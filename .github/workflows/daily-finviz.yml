@@ -1,0 +1,40 @@
+name: Daily Finviz Screener
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-finviz:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Luxembourg
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Finviz agent script
+        run: python finviz_agent.py
+
+      - name: Commit and push results
+        run: |
+          git config user.name "Finviz Agent Bot"
+          git config user.email "bot@example.com"
+          git add finviz_screeners_*.csv finviz_screeners_*.html finviz_chart_grid_*.html || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Daily Finviz screener update"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
