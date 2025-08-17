@@ -25,16 +25,8 @@ jobs:
       - name: Run Finviz agent script
         run: python finviz_agent.py
 
-      - name: Commit and push results
-        run: |
-          git config user.name "Finviz Agent Bot"
-          git config user.email "bot@example.com"
-          git add finviz_screeners_*.csv finviz_screeners_*.html finviz_chart_grid_*.html || true
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Daily Finviz screener update"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload chart gallery (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: finviz-chart-gallery
+          path: finviz_chart_grid_*.html
