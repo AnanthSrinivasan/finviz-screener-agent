@@ -2,7 +2,7 @@ name: Daily Finviz Screener
 
 on:
   schedule:
-    - cron: '0 18 * * *'
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 jobs:
