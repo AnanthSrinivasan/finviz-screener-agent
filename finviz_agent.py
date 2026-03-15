@@ -355,7 +355,7 @@ Be direct and specific. Use ticker names. No disclaimers. No markdown headers. P
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-4-20250514",
+                "model": "claude-sonnet-4-6",
                 "max_tokens": 400,
                 "messages": [{"role": "user", "content": prompt}],
             },
