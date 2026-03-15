@@ -13,12 +13,15 @@
   .chart-item { background: #1e2130; border: 1px solid #2d3148; border-radius: 10px;
                 padding: 12px; transition: border-color .2s; }
   .chart-item:hover { border-color: #4f6ef7; }
-  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .ticker { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
+  .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+  .ticker { font-size: 1rem; font-weight: 700; color: #e2e8f0; display: block; }
+  .company { font-size: 0.72rem; color: #64748b; display: block; margin-top: 2px; }
   .badge { background: #2d3f6e; color: #7aa2f7; font-size: 0.72rem; font-weight: 600;
-            padding: 2px 8px; border-radius: 20px; }
+            padding: 2px 8px; border-radius: 20px; white-space: nowrap; margin-left: 8px; flex-shrink: 0; }
+  .sector-tag { font-size: 0.72rem; color: #38bdf8; background: #0c2240;
+                 border-radius: 4px; padding: 2px 7px; display: inline-block; margin-bottom: 8px; }
   .chart-item img { width: 100%; border-radius: 6px; display: block; }
-  .meta { display: flex; gap: 12px; margin-top: 10px; font-size: 0.78rem; color: #94a3b8; }
+  .meta { display: flex; gap: 8px; margin-top: 10px; font-size: 0.78rem; color: #94a3b8; flex-wrap: wrap; }
   .meta span { background: #161b27; padding: 3px 8px; border-radius: 4px; }
   .screeners { margin-top: 6px; font-size: 0.72rem; color: #64748b; line-height: 1.4; }
 </style>
@@ -29,529 +32,749 @@
   <div class="chart-grid">
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">AXTI</span>
+            <div>
+              <span class="ticker">AXTI</span>
+              <span class="company">AXT Inc</span>
+            </div>
             <span class="badge">2 screens</span>
           </div>
+          <div class="sector-tag">Technology · Semiconductor Equipment & Materials</div>
           <img src="https://finviz.com/chart.ashx?t=AXTI&ty=c&ta=1&p=d&s=m" alt="AXTI" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 11.3%</span>
             <span title="EPS Y/Y TTM">EPS -78.8%</span>
+            <span title="Market Cap">2.70B</span>
           </div>
           <div class="screeners">52 Week High, Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">CGON</span>
+            <div>
+              <span class="ticker">CGON</span>
+              <span class="company">Cg Oncology Inc</span>
+            </div>
             <span class="badge">2 screens</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=CGON&ty=c&ta=1&p=d&s=m" alt="CGON" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.0%</span>
             <span title="EPS Y/Y TTM">EPS -80.1%</span>
+            <span title="Market Cap">5.43B</span>
           </div>
           <div class="screeners">IPO, 52 Week High</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">KRMN</span>
+            <div>
+              <span class="ticker">KRMN</span>
+              <span class="company">Karman Holdings Inc</span>
+            </div>
             <span class="badge">2 screens</span>
           </div>
+          <div class="sector-tag">Industrials · Aerospace & Defense</div>
           <img src="https://finviz.com/chart.ashx?t=KRMN&ty=c&ta=1&p=d&s=m" alt="KRMN" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.2%</span>
             <span title="EPS Y/Y TTM">EPS -28.0%</span>
+            <span title="Market Cap">13.23B</span>
           </div>
           <div class="screeners">Growth, IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">SNDK</span>
+            <div>
+              <span class="ticker">SNDK</span>
+              <span class="company">Sandisk Corp</span>
+            </div>
             <span class="badge">2 screens</span>
           </div>
+          <div class="sector-tag">Technology · Computer Hardware</div>
           <img src="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d&s=m" alt="SNDK" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.6%</span>
             <span title="EPS Y/Y TTM">EPS -328.0%</span>
+            <span title="Market Cap">97.66B</span>
           </div>
           <div class="screeners">Growth, IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">VG</span>
+            <div>
+              <span class="ticker">VG</span>
+              <span class="company">Venture Global Inc</span>
+            </div>
             <span class="badge">2 screens</span>
           </div>
+          <div class="sector-tag">Energy · Oil & Gas Midstream</div>
           <img src="https://finviz.com/chart.ashx?t=VG&ty=c&ta=1&p=d&s=m" alt="VG" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.0%</span>
             <span title="EPS Y/Y TTM">EPS 51.8%</span>
+            <span title="Market Cap">32.19B</span>
           </div>
           <div class="screeners">Growth, IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">AAOI</span>
+            <div>
+              <span class="ticker">AAOI</span>
+              <span class="company">Applied Optoelectronics Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Communication Equipment</div>
           <img src="https://finviz.com/chart.ashx?t=AAOI&ty=c&ta=1&p=d&s=m" alt="AAOI" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 12.2%</span>
             <span title="EPS Y/Y TTM">EPS 84.7%</span>
+            <span title="Market Cap">7.28B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">ADEA</span>
+            <div>
+              <span class="ticker">ADEA</span>
+              <span class="company">Adeia Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Software - Application</div>
           <img src="https://finviz.com/chart.ashx?t=ADEA&ty=c&ta=1&p=d&s=m" alt="ADEA" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 4.4%</span>
             <span title="EPS Y/Y TTM">EPS 71.9%</span>
+            <span title="Market Cap">2.49B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">ALM</span>
+            <div>
+              <span class="ticker">ALM</span>
+              <span class="company">Almonty Industries Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Basic Materials · Other Industrial Metals & Mining</div>
           <img src="https://finviz.com/chart.ashx?t=ALM&ty=c&ta=1&p=d&s=m" alt="ALM" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 8.4%</span>
             <span title="EPS Y/Y TTM">EPS -489.1%</span>
+            <span title="Market Cap">5.17B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">AR</span>
+            <div>
+              <span class="ticker">AR</span>
+              <span class="company">Antero Resources Corp</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Energy · Oil & Gas E&P</div>
           <img src="https://finviz.com/chart.ashx?t=AR&ty=c&ta=1&p=d&s=m" alt="AR" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 3.8%</span>
             <span title="EPS Y/Y TTM">EPS 1000.6%</span>
+            <span title="Market Cap">12.65B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">BDSX</span>
+            <div>
+              <span class="ticker">BDSX</span>
+              <span class="company">Biodesix Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Diagnostics & Research</div>
           <img src="https://finviz.com/chart.ashx?t=BDSX&ty=c&ta=1&p=d&s=m" alt="BDSX" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 9.7%</span>
             <span title="EPS Y/Y TTM">EPS 32.6%</span>
+            <span title="Market Cap">176.27M</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">BNAI</span>
+            <div>
+              <span class="ticker">BNAI</span>
+              <span class="company">Brand Engagement Network Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Software - Infrastructure</div>
           <img src="https://finviz.com/chart.ashx?t=BNAI&ty=c&ta=1&p=d&s=m" alt="BNAI" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 18.2%</span>
             <span title="EPS Y/Y TTM">EPS 53.6%</span>
+            <span title="Market Cap">223.44M</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">CART</span>
+            <div>
+              <span class="ticker">CART</span>
+              <span class="company">Maplebear Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Internet Retail</div>
           <img src="https://finviz.com/chart.ashx?t=CART&ty=c&ta=1&p=d&s=m" alt="CART" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 4.2%</span>
             <span title="EPS Y/Y TTM">EPS -2.3%</span>
+            <span title="Market Cap">9.20B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">CAVA</span>
+            <div>
+              <span class="ticker">CAVA</span>
+              <span class="company">Cava Group Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Restaurants</div>
           <img src="https://finviz.com/chart.ashx?t=CAVA&ty=c&ta=1&p=d&s=m" alt="CAVA" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.2%</span>
             <span title="EPS Y/Y TTM">EPS -51.6%</span>
+            <span title="Market Cap">9.54B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">CIEN</span>
+            <div>
+              <span class="ticker">CIEN</span>
+              <span class="company">CIENA Corp</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Communication Equipment</div>
           <img src="https://finviz.com/chart.ashx?t=CIEN&ty=c&ta=1&p=d&s=m" alt="CIEN" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.1%</span>
             <span title="EPS Y/Y TTM">EPS 193.4%</span>
+            <span title="Market Cap">47.70B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">DELL</span>
+            <div>
+              <span class="ticker">DELL</span>
+              <span class="company">Dell Technologies Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Computer Hardware</div>
           <img src="https://finviz.com/chart.ashx?t=DELL&ty=c&ta=1&p=d&s=m" alt="DELL" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 4.6%</span>
             <span title="EPS Y/Y TTM">EPS 31.7%</span>
+            <span title="Market Cap">100.48B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">FIGS</span>
+            <div>
+              <span class="ticker">FIGS</span>
+              <span class="company">Figs Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Apparel Manufacturing</div>
           <img src="https://finviz.com/chart.ashx?t=FIGS&ty=c&ta=1&p=d&s=m" alt="FIGS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.9%</span>
             <span title="EPS Y/Y TTM">EPS 1187.7%</span>
+            <span title="Market Cap">2.47B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">HIMS</span>
+            <div>
+              <span class="ticker">HIMS</span>
+              <span class="company">Hims & Hers Health Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
           <img src="https://finviz.com/chart.ashx?t=HIMS&ty=c&ta=1&p=d&s=m" alt="HIMS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 9.6%</span>
             <span title="EPS Y/Y TTM">EPS -1.6%</span>
+            <span title="Market Cap">5.65B</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">HIMX</span>
+            <div>
+              <span class="ticker">HIMX</span>
+              <span class="company">Himax Technologies ADR</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Semiconductors</div>
           <img src="https://finviz.com/chart.ashx?t=HIMX&ty=c&ta=1&p=d&s=m" alt="HIMX" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 6.9%</span>
             <span title="EPS Y/Y TTM">EPS -44.8%</span>
+            <span title="Market Cap">1.72B</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">KEYS</span>
+            <div>
+              <span class="ticker">KEYS</span>
+              <span class="company">Keysight Technologies Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Scientific & Technical Instruments</div>
           <img src="https://finviz.com/chart.ashx?t=KEYS&ty=c&ta=1&p=d&s=m" alt="KEYS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 4.4%</span>
             <span title="EPS Y/Y TTM">EPS 58.5%</span>
+            <span title="Market Cap">47.98B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">KGS</span>
+            <div>
+              <span class="ticker">KGS</span>
+              <span class="company">Kodiak Gas Services Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Energy · Oil & Gas Equipment & Services</div>
           <img src="https://finviz.com/chart.ashx?t=KGS&ty=c&ta=1&p=d&s=m" alt="KGS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 3.7%</span>
             <span title="EPS Y/Y TTM">EPS 50.7%</span>
+            <span title="Market Cap">4.65B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">KVYO</span>
+            <div>
+              <span class="ticker">KVYO</span>
+              <span class="company">Klaviyo Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Software - Application</div>
           <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.2%</span>
             <span title="EPS Y/Y TTM">EPS 33.5%</span>
+            <span title="Market Cap">5.83B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">LASR</span>
+            <div>
+              <span class="ticker">LASR</span>
+              <span class="company">nLIGHT Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Semiconductors</div>
           <img src="https://finviz.com/chart.ashx?t=LASR&ty=c&ta=1&p=d&s=m" alt="LASR" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 8.3%</span>
             <span title="EPS Y/Y TTM">EPS 62.9%</span>
+            <span title="Market Cap">3.49B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">LWLG</span>
+            <div>
+              <span class="ticker">LWLG</span>
+              <span class="company">Lightwave Logic Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Basic Materials · Specialty Chemicals</div>
           <img src="https://finviz.com/chart.ashx?t=LWLG&ty=c&ta=1&p=d&s=m" alt="LWLG" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 8.5%</span>
             <span title="EPS Y/Y TTM">EPS 11.8%</span>
+            <span title="Market Cap">1.11B</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">MU</span>
+            <div>
+              <span class="ticker">MU</span>
+              <span class="company">Micron Technology Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Semiconductors</div>
           <img src="https://finviz.com/chart.ashx?t=MU&ty=c&ta=1&p=d&s=m" alt="MU" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.9%</span>
             <span title="EPS Y/Y TTM">EPS 203.3%</span>
+            <span title="Market Cap">479.61B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">NPT</span>
+            <div>
+              <span class="ticker">NPT</span>
+              <span class="company">Texxon Holding Ltd</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Specialty Retail</div>
           <img src="https://finviz.com/chart.ashx?t=NPT&ty=c&ta=1&p=d&s=m" alt="NPT" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 11.3%</span>
             <span title="EPS Y/Y TTM">EPS 0.0%</span>
+            <span title="Market Cap">403.55M</span>
           </div>
           <div class="screeners">10% Change</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">NVAX</span>
+            <div>
+              <span class="ticker">NVAX</span>
+              <span class="company">Novavax, Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=NVAX&ty=c&ta=1&p=d&s=m" alt="NVAX" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 6.5%</span>
             <span title="EPS Y/Y TTM">EPS 323.8%</span>
+            <span title="Market Cap">1.67B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">OCGN</span>
+            <div>
+              <span class="ticker">OCGN</span>
+              <span class="company">Ocugen Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=OCGN&ty=c&ta=1&p=d&s=m" alt="OCGN" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.7%</span>
             <span title="EPS Y/Y TTM">EPS -24.9%</span>
+            <span title="Market Cap">813.19M</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">ORKA</span>
+            <div>
+              <span class="ticker">ORKA</span>
+              <span class="company">Oruka Therapeutics Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=ORKA&ty=c&ta=1&p=d&s=m" alt="ORKA" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 6.6%</span>
             <span title="EPS Y/Y TTM">EPS 63.9%</span>
+            <span title="Market Cap">1.98B</span>
           </div>
           <div class="screeners">10% Change</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">OSS</span>
+            <div>
+              <span class="ticker">OSS</span>
+              <span class="company">One Stop Systems Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Computer Hardware</div>
           <img src="https://finviz.com/chart.ashx?t=OSS&ty=c&ta=1&p=d&s=m" alt="OSS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 8.8%</span>
             <span title="EPS Y/Y TTM">EPS 37.0%</span>
+            <span title="Market Cap">247.12M</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">PARR</span>
+            <div>
+              <span class="ticker">PARR</span>
+              <span class="company">Par Pacific Holdings Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Energy · Oil & Gas Refining & Marketing</div>
           <img src="https://finviz.com/chart.ashx?t=PARR&ty=c&ta=1&p=d&s=m" alt="PARR" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.0%</span>
             <span title="EPS Y/Y TTM">EPS 1323.6%</span>
+            <span title="Market Cap">2.64B</span>
           </div>
           <div class="screeners">52 Week High</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">PLYX</span>
+            <div>
+              <span class="ticker">PLYX</span>
+              <span class="company">Polaryx Therapeutics Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=PLYX&ty=c&ta=1&p=d&s=m" alt="PLYX" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 43.7%</span>
             <span title="EPS Y/Y TTM">EPS 0.0%</span>
+            <span title="Market Cap">301.08M</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">RLAY</span>
+            <div>
+              <span class="ticker">RLAY</span>
+              <span class="company">Relay Therapeutics Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=RLAY&ty=c&ta=1&p=d&s=m" alt="RLAY" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 7.2%</span>
             <span title="EPS Y/Y TTM">EPS 32.8%</span>
+            <span title="Market Cap">1.85B</span>
           </div>
           <div class="screeners">52 Week High</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">RLMD</span>
+            <div>
+              <span class="ticker">RLMD</span>
+              <span class="company">Relmada Therapeutics Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=RLMD&ty=c&ta=1&p=d&s=m" alt="RLMD" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 9.8%</span>
             <span title="EPS Y/Y TTM">EPS 37.4%</span>
+            <span title="Market Cap">433.40M</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">RSI</span>
+            <div>
+              <span class="ticker">RSI</span>
+              <span class="company">Rush Street Interactive Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Gambling</div>
           <img src="https://finviz.com/chart.ashx?t=RSI&ty=c&ta=1&p=d&s=m" alt="RSI" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 4.4%</span>
             <span title="EPS Y/Y TTM">EPS 1215.5%</span>
+            <span title="Market Cap">4.71B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">RYAM</span>
+            <div>
+              <span class="ticker">RYAM</span>
+              <span class="company">Rayonier Advanced Materials Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Basic Materials · Chemicals</div>
           <img src="https://finviz.com/chart.ashx?t=RYAM&ty=c&ta=1&p=d&s=m" alt="RYAM" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.8%</span>
             <span title="EPS Y/Y TTM">EPS -970.1%</span>
+            <span title="Market Cap">757.16M</span>
           </div>
           <div class="screeners">52 Week High</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">SAIL</span>
+            <div>
+              <span class="ticker">SAIL</span>
+              <span class="company">Sailpoint Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Software - Infrastructure</div>
           <img src="https://finviz.com/chart.ashx?t=SAIL&ty=c&ta=1&p=d&s=m" alt="SAIL" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.4%</span>
             <span title="EPS Y/Y TTM">EPS -18.0%</span>
+            <span title="Market Cap">8.68B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">SNDX</span>
+            <div>
+              <span class="ticker">SNDX</span>
+              <span class="company">Syndax Pharmaceuticals Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=SNDX&ty=c&ta=1&p=d&s=m" alt="SNDX" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.1%</span>
             <span title="EPS Y/Y TTM">EPS 11.6%</span>
+            <span title="Market Cap">2.07B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">TSSI</span>
+            <div>
+              <span class="ticker">TSSI</span>
+              <span class="company">TSS Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Information Technology Services</div>
           <img src="https://finviz.com/chart.ashx?t=TSSI&ty=c&ta=1&p=d&s=m" alt="TSSI" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 9.2%</span>
             <span title="EPS Y/Y TTM">EPS 118.0%</span>
+            <span title="Market Cap">344.70M</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">ULS</span>
+            <div>
+              <span class="ticker">ULS</span>
+              <span class="company">UL Solutions Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Industrials · Specialty Business Services</div>
           <img src="https://finviz.com/chart.ashx?t=ULS&ty=c&ta=1&p=d&s=m" alt="ULS" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 3.6%</span>
             <span title="EPS Y/Y TTM">EPS -1.0%</span>
+            <span title="Market Cap">16.73B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">UMAC</span>
+            <div>
+              <span class="ticker">UMAC</span>
+              <span class="company">Unusual Machines Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Technology · Computer Hardware</div>
           <img src="https://finviz.com/chart.ashx?t=UMAC&ty=c&ta=1&p=d&s=m" alt="UMAC" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 10.0%</span>
             <span title="EPS Y/Y TTM">EPS 79.9%</span>
+            <span title="Market Cap">793.35M</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">USAR</span>
+            <div>
+              <span class="ticker">USAR</span>
+              <span class="company">USA Rare Earth Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Basic Materials · Other Industrial Metals & Mining</div>
           <img src="https://finviz.com/chart.ashx?t=USAR&ty=c&ta=1&p=d&s=m" alt="USAR" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 9.8%</span>
             <span title="EPS Y/Y TTM">EPS -791.5%</span>
+            <span title="Market Cap">4.24B</span>
           </div>
           <div class="screeners">IPO</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">VRT</span>
+            <div>
+              <span class="ticker">VRT</span>
+              <span class="company">Vertiv Holdings Co</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Industrials · Electrical Equipment & Parts</div>
           <img src="https://finviz.com/chart.ashx?t=VRT&ty=c&ta=1&p=d&s=m" alt="VRT" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 5.5%</span>
             <span title="EPS Y/Y TTM">EPS 164.2%</span>
+            <span title="Market Cap">99.05B</span>
           </div>
           <div class="screeners">Growth</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">WOOF</span>
+            <div>
+              <span class="ticker">WOOF</span>
+              <span class="company">Petco Health and Wellness Co Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Consumer Cyclical · Specialty Retail</div>
           <img src="https://finviz.com/chart.ashx?t=WOOF&ty=c&ta=1&p=d&s=m" alt="WOOF" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 6.1%</span>
             <span title="EPS Y/Y TTM">EPS 108.6%</span>
+            <span title="Market Cap">1.02B</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div>
         <div class="chart-item">
           <div class="chart-header">
-            <span class="ticker">XENE</span>
+            <div>
+              <span class="ticker">XENE</span>
+              <span class="company">Xenon Pharmaceuticals Inc</span>
+            </div>
             <span class="badge">1 screen</span>
           </div>
+          <div class="sector-tag">Healthcare · Biotechnology</div>
           <img src="https://finviz.com/chart.ashx?t=XENE&ty=c&ta=1&p=d&s=m" alt="XENE" loading="lazy">
           <div class="meta">
             <span title="ATR%">ATR 6.2%</span>
             <span title="EPS Y/Y TTM">EPS -45.0%</span>
+            <span title="Market Cap">4.59B</span>
           </div>
           <div class="screeners">Week 20%+ Gain</div>
         </div></div>
