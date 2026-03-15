@@ -355,13 +355,15 @@ Be direct and specific. Use ticker names. No disclaimers. No markdown headers. P
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-4-6",
+                "model": "claude-sonnet-4-6",  # verified API ID from docs
                 "max_tokens": 400,
                 "messages": [{"role": "user", "content": prompt}],
             },
             timeout=30,
         )
-        resp.raise_for_status()
+        if not resp.ok:
+            log.error(f"AI summary HTTP {resp.status_code}: {resp.text}")
+            return ""
         summary = resp.json()["content"][0]["text"].strip()
         log.info("AI summary generated.")
         return summary
