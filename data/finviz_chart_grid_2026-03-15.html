@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Finviz Chart Gallery — 2026-03-15</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; padding: 24px; }
+  h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 6px; }
+  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .chart-item { background: #1e2130; border: 1px solid #2d3148; border-radius: 10px;
+                padding: 12px; transition: border-color .2s; }
+  .chart-item:hover { border-color: #4f6ef7; }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .ticker { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
+  .badge { background: #2d3f6e; color: #7aa2f7; font-size: 0.72rem; font-weight: 600;
+            padding: 2px 8px; border-radius: 20px; }
+  .chart-item img { width: 100%; border-radius: 6px; display: block; }
+  .meta { display: flex; gap: 12px; margin-top: 10px; font-size: 0.78rem; color: #94a3b8; }
+  .meta span { background: #161b27; padding: 3px 8px; border-radius: 4px; }
+  .screeners { margin-top: 6px; font-size: 0.72rem; color: #64748b; line-height: 1.4; }
+</style>
+</head>
+<body>
+  <h1>Finviz Chart Gallery</h1>
+  <p class="subtitle">2026-03-15 · 44 tickers · ATR% &gt; 3.0</p>
+  <div class="chart-grid">
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">AXTI</span>
+            <span class="badge">2 screens</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=AXTI&ty=c&ta=1&p=d&s=m" alt="AXTI" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 11.3%</span>
+            <span title="EPS Y/Y TTM">EPS -78.8%</span>
+          </div>
+          <div class="screeners">52 Week High, Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">CGON</span>
+            <span class="badge">2 screens</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=CGON&ty=c&ta=1&p=d&s=m" alt="CGON" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.0%</span>
+            <span title="EPS Y/Y TTM">EPS -80.1%</span>
+          </div>
+          <div class="screeners">IPO, 52 Week High</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">KRMN</span>
+            <span class="badge">2 screens</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=KRMN&ty=c&ta=1&p=d&s=m" alt="KRMN" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.2%</span>
+            <span title="EPS Y/Y TTM">EPS -28.0%</span>
+          </div>
+          <div class="screeners">Growth, IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">SNDK</span>
+            <span class="badge">2 screens</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d&s=m" alt="SNDK" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.6%</span>
+            <span title="EPS Y/Y TTM">EPS -328.0%</span>
+          </div>
+          <div class="screeners">Growth, IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">VG</span>
+            <span class="badge">2 screens</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=VG&ty=c&ta=1&p=d&s=m" alt="VG" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.0%</span>
+            <span title="EPS Y/Y TTM">EPS 51.8%</span>
+          </div>
+          <div class="screeners">Growth, IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">AAOI</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=AAOI&ty=c&ta=1&p=d&s=m" alt="AAOI" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 12.2%</span>
+            <span title="EPS Y/Y TTM">EPS 84.7%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">ADEA</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=ADEA&ty=c&ta=1&p=d&s=m" alt="ADEA" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 4.4%</span>
+            <span title="EPS Y/Y TTM">EPS 71.9%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">ALM</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=ALM&ty=c&ta=1&p=d&s=m" alt="ALM" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 8.4%</span>
+            <span title="EPS Y/Y TTM">EPS -489.1%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">AR</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=AR&ty=c&ta=1&p=d&s=m" alt="AR" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 3.8%</span>
+            <span title="EPS Y/Y TTM">EPS 1000.6%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">BDSX</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=BDSX&ty=c&ta=1&p=d&s=m" alt="BDSX" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 9.7%</span>
+            <span title="EPS Y/Y TTM">EPS 32.6%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">BNAI</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=BNAI&ty=c&ta=1&p=d&s=m" alt="BNAI" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 18.2%</span>
+            <span title="EPS Y/Y TTM">EPS 53.6%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">CART</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=CART&ty=c&ta=1&p=d&s=m" alt="CART" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 4.2%</span>
+            <span title="EPS Y/Y TTM">EPS -2.3%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">CAVA</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=CAVA&ty=c&ta=1&p=d&s=m" alt="CAVA" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.2%</span>
+            <span title="EPS Y/Y TTM">EPS -51.6%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">CIEN</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=CIEN&ty=c&ta=1&p=d&s=m" alt="CIEN" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.1%</span>
+            <span title="EPS Y/Y TTM">EPS 193.4%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">DELL</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=DELL&ty=c&ta=1&p=d&s=m" alt="DELL" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 4.6%</span>
+            <span title="EPS Y/Y TTM">EPS 31.7%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">FIGS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=FIGS&ty=c&ta=1&p=d&s=m" alt="FIGS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.9%</span>
+            <span title="EPS Y/Y TTM">EPS 1187.7%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">HIMS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=HIMS&ty=c&ta=1&p=d&s=m" alt="HIMS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 9.6%</span>
+            <span title="EPS Y/Y TTM">EPS -1.6%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">HIMX</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=HIMX&ty=c&ta=1&p=d&s=m" alt="HIMX" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 6.9%</span>
+            <span title="EPS Y/Y TTM">EPS -44.8%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">KEYS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=KEYS&ty=c&ta=1&p=d&s=m" alt="KEYS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 4.4%</span>
+            <span title="EPS Y/Y TTM">EPS 58.5%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">KGS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=KGS&ty=c&ta=1&p=d&s=m" alt="KGS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 3.7%</span>
+            <span title="EPS Y/Y TTM">EPS 50.7%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">KVYO</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.2%</span>
+            <span title="EPS Y/Y TTM">EPS 33.5%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">LASR</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=LASR&ty=c&ta=1&p=d&s=m" alt="LASR" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 8.3%</span>
+            <span title="EPS Y/Y TTM">EPS 62.9%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">LWLG</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=LWLG&ty=c&ta=1&p=d&s=m" alt="LWLG" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 8.5%</span>
+            <span title="EPS Y/Y TTM">EPS 11.8%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">MU</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=MU&ty=c&ta=1&p=d&s=m" alt="MU" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.9%</span>
+            <span title="EPS Y/Y TTM">EPS 203.3%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">NPT</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=NPT&ty=c&ta=1&p=d&s=m" alt="NPT" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 11.3%</span>
+            <span title="EPS Y/Y TTM">EPS 0.0%</span>
+          </div>
+          <div class="screeners">10% Change</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">NVAX</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=NVAX&ty=c&ta=1&p=d&s=m" alt="NVAX" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 6.5%</span>
+            <span title="EPS Y/Y TTM">EPS 323.8%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">OCGN</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=OCGN&ty=c&ta=1&p=d&s=m" alt="OCGN" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.7%</span>
+            <span title="EPS Y/Y TTM">EPS -24.9%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">ORKA</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=ORKA&ty=c&ta=1&p=d&s=m" alt="ORKA" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 6.6%</span>
+            <span title="EPS Y/Y TTM">EPS 63.9%</span>
+          </div>
+          <div class="screeners">10% Change</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">OSS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=OSS&ty=c&ta=1&p=d&s=m" alt="OSS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 8.8%</span>
+            <span title="EPS Y/Y TTM">EPS 37.0%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">PARR</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=PARR&ty=c&ta=1&p=d&s=m" alt="PARR" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.0%</span>
+            <span title="EPS Y/Y TTM">EPS 1323.6%</span>
+          </div>
+          <div class="screeners">52 Week High</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">PLYX</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=PLYX&ty=c&ta=1&p=d&s=m" alt="PLYX" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 43.7%</span>
+            <span title="EPS Y/Y TTM">EPS 0.0%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">RLAY</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=RLAY&ty=c&ta=1&p=d&s=m" alt="RLAY" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 7.2%</span>
+            <span title="EPS Y/Y TTM">EPS 32.8%</span>
+          </div>
+          <div class="screeners">52 Week High</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">RLMD</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=RLMD&ty=c&ta=1&p=d&s=m" alt="RLMD" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 9.8%</span>
+            <span title="EPS Y/Y TTM">EPS 37.4%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">RSI</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=RSI&ty=c&ta=1&p=d&s=m" alt="RSI" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 4.4%</span>
+            <span title="EPS Y/Y TTM">EPS 1215.5%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">RYAM</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=RYAM&ty=c&ta=1&p=d&s=m" alt="RYAM" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.8%</span>
+            <span title="EPS Y/Y TTM">EPS -970.1%</span>
+          </div>
+          <div class="screeners">52 Week High</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">SAIL</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=SAIL&ty=c&ta=1&p=d&s=m" alt="SAIL" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.4%</span>
+            <span title="EPS Y/Y TTM">EPS -18.0%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">SNDX</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=SNDX&ty=c&ta=1&p=d&s=m" alt="SNDX" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.1%</span>
+            <span title="EPS Y/Y TTM">EPS 11.6%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">TSSI</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=TSSI&ty=c&ta=1&p=d&s=m" alt="TSSI" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 9.2%</span>
+            <span title="EPS Y/Y TTM">EPS 118.0%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">ULS</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=ULS&ty=c&ta=1&p=d&s=m" alt="ULS" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 3.6%</span>
+            <span title="EPS Y/Y TTM">EPS -1.0%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">UMAC</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=UMAC&ty=c&ta=1&p=d&s=m" alt="UMAC" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 10.0%</span>
+            <span title="EPS Y/Y TTM">EPS 79.9%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">USAR</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=USAR&ty=c&ta=1&p=d&s=m" alt="USAR" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 9.8%</span>
+            <span title="EPS Y/Y TTM">EPS -791.5%</span>
+          </div>
+          <div class="screeners">IPO</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">VRT</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=VRT&ty=c&ta=1&p=d&s=m" alt="VRT" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 5.5%</span>
+            <span title="EPS Y/Y TTM">EPS 164.2%</span>
+          </div>
+          <div class="screeners">Growth</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">WOOF</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=WOOF&ty=c&ta=1&p=d&s=m" alt="WOOF" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 6.1%</span>
+            <span title="EPS Y/Y TTM">EPS 108.6%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div>
+        <div class="chart-item">
+          <div class="chart-header">
+            <span class="ticker">XENE</span>
+            <span class="badge">1 screen</span>
+          </div>
+          <img src="https://finviz.com/chart.ashx?t=XENE&ty=c&ta=1&p=d&s=m" alt="XENE" loading="lazy">
+          <div class="meta">
+            <span title="ATR%">ATR 6.2%</span>
+            <span title="EPS Y/Y TTM">EPS -45.0%</span>
+          </div>
+          <div class="screeners">Week 20%+ Gain</div>
+        </div></div>
+</body>
+</html>
