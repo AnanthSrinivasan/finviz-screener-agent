@@ -2,7 +2,9 @@ name: Daily Finviz Screener
 
 on:
   schedule:
-    - cron: '0 23 * * *'
+    # 21:30 UTC = 23:30 CET / 22:30 CEST — after US market close + buffer
+    # Weekdays only
+    - cron: '30 21 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -10,6 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Europe/Luxembourg
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+      ATR_THRESHOLD: "3.0"
+      SNAPSHOT_WORKERS: "6"
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -17,16 +24,38 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Finviz agent script
+      - name: Run Finviz agent
         run: python finviz_agent.py
 
-      - name: Upload chart gallery (artifact)
+      # Commit data/ folder so GitHub Pages can serve the HTML gallery
+      - name: Commit output data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "chore: finviz data $(date +%Y-%m-%d)"
+          git push
+
+      # Upload as artifact too (backup, expires after 30 days)
+      - name: Upload chart gallery artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: finviz-chart-gallery
-          path: finviz_chart_grid_*.html
+          path: data/finviz_chart_grid_*.html
+          retention-days: 30
+
+      # Notify Slack on failure (separate from the agent's own success message)
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-type: application/json' \
+            --data '{
+              "text": ":x: *Finviz agent failed* on `'"$(date +%Y-%m-%d)"'`\nCheck the run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }'
