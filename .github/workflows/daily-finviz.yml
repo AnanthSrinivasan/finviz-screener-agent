@@ -14,15 +14,17 @@ jobs:
       TZ: Europe/Luxembourg
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ATR_THRESHOLD: "3.0"
       SNAPSHOT_WORKERS: "6"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.11'
 
@@ -44,7 +46,7 @@ jobs:
       # Upload as artifact too (backup, expires after 30 days)
       - name: Upload chart gallery artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: finviz-chart-gallery
           path: data/finviz_chart_grid_*.html
