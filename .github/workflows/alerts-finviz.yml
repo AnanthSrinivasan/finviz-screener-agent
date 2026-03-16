@@ -1,0 +1,51 @@
+name: Finviz Alerts
+
+on:
+  schedule:
+    # 22:00 UTC = 23:00 CET — runs just before the daily screener
+    # Weekdays only
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  run-alerts:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Luxembourg
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      DATA_DIR: "data"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run alerts agent
+        run: python finviz_alerts_agent.py
+
+      # Commit state file so SMA history persists across days
+      - name: Commit alerts state
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/alerts_state.json
+          git diff --cached --quiet || git commit -m "chore: alerts state $(date +%Y-%m-%d)"
+          git push
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-type: application/json' \
+            --data '{
+              "text": ":x: *Alerts agent failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }'
