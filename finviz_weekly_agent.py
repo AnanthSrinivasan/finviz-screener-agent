@@ -25,20 +25,45 @@ ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
 ATR_THRESHOLD      = float(os.environ.get("ATR_THRESHOLD", "3.0"))
 DATA_DIR           = os.environ.get("DATA_DIR", "data")
 
-# Tickers worth tracking for macro context even though they're ETFs/commodities
+CNN_FNG_URL      = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+COINGECKO_URL    = "https://api.coingecko.com/api/v3"
+
+# Crypto assets: CoinGecko ID -> display name
+CRYPTO_WATCHLIST = {
+    "bitcoin":  "Bitcoin (BTC)",
+    "ethereum": "Ethereum (ETH)",
+    "coinbase-exchange": "Coinbase (COIN)",  # COIN stock via CoinGecko
+}
+
+# ETF proxies for crypto via Finviz (treated as normal macro tickers)
+CRYPTO_ETFS = ["IBIT", "FBTC", "COIN", "MSTR"]
+
+# Key indices and sector ETFs for macro context
 MACRO_WATCHLIST = {
+    # Indices
+    "SPY": "S&P 500",
+    "QQQ": "Nasdaq 100",
+    "IWM": "Russell 2000",
+    "DIA": "Dow Jones",
+    # Commodities
     "SLV": "Silver",
     "GLD": "Gold",
     "GDX": "Gold Miners",
-    "GDXJ": "Junior Gold Miners",
-    "XLE": "Energy",
+    "USO": "Oil",
+    # Sectors
     "XLK": "Technology",
+    "SMH": "Semiconductors",
+    "XLE": "Energy",
     "XLF": "Financials",
     "XBI": "Biotech",
-    "SMH": "Semiconductors",
+    # Macro
     "TLT": "20yr Treasuries",
     "UUP": "US Dollar",
-    "USO": "Oil",
+    "VIX": "Volatility Index",
+    # Crypto proxies (equity/ETF)
+    "IBIT": "iShares Bitcoin ETF",
+    "MSTR": "MicroStrategy",
+    "COIN": "Coinbase",
 }
 
 FINVIZ_BASE = "https://finviz.com"
@@ -207,10 +232,145 @@ def fetch_macro_snapshot() -> dict:
 
 
 # ----------------------------
+# Part 2a: Crypto Prices via CoinGecko
+# ----------------------------
+def fetch_crypto_data() -> dict:
+    """
+    Fetch BTC and ETH price, 24h change, 7d change, market cap from CoinGecko.
+    No API key needed for public endpoints.
+    """
+    session = make_session()
+    try:
+        ids = ",".join(CRYPTO_WATCHLIST.keys() - {"coinbase-exchange"})  # BTC + ETH
+        resp = session.get(
+            f"{COINGECKO_URL}/simple/price",
+            params={
+                "ids": "bitcoin,ethereum",
+                "vs_currencies": "usd",
+                "include_24hr_change": "true",
+                "include_7d_change": "true",
+                "include_market_cap": "true",
+                "include_24hr_vol": "true",
+            },
+            timeout=10,
+        )
+        if not resp.ok:
+            log.warning(f"CoinGecko fetch failed: {resp.status_code}")
+            return {}
+
+        raw = resp.json()
+        result = {}
+        name_map = {"bitcoin": "Bitcoin (BTC)", "ethereum": "Ethereum (ETH)"}
+
+        for coin_id, name in name_map.items():
+            d = raw.get(coin_id, {})
+            price = d.get("usd", 0)
+            chg_24h = d.get("usd_24h_change", 0) or 0
+            chg_7d  = d.get("usd_7d_change", 0) or 0
+            mcap    = d.get("usd_market_cap", 0) or 0
+            vol     = d.get("usd_24h_vol", 0) or 0
+
+            result[coin_id] = {
+                "name":    name,
+                "price":   f"${price:,.0f}" if price > 100 else f"${price:,.2f}",
+                "chg_24h": f"{chg_24h:+.1f}%",
+                "chg_7d":  f"{chg_7d:+.1f}%",
+                "mcap":    f"${mcap/1e9:.0f}B" if mcap > 1e9 else f"${mcap/1e6:.0f}M",
+                "vol_24h": f"${vol/1e9:.1f}B" if vol > 1e9 else f"${vol/1e6:.0f}M",
+                "raw_chg_24h": chg_24h,
+                "raw_chg_7d":  chg_7d,
+                "raw_price":   price,
+            }
+            log.info(f"Crypto: {name} {result[coin_id]['price']} 7d:{result[coin_id]['chg_7d']}")
+
+        return result
+    except Exception as e:
+        log.error(f"Crypto data fetch failed: {e}")
+        return {}
+
+
+# ----------------------------
+# Part 2b: CNN Fear & Greed
+# ----------------------------
+def fetch_fear_and_greed() -> dict:
+    """Fetch CNN Fear & Greed index — current value + historical context."""
+    try:
+        session = make_session()
+        resp = session.get(CNN_FNG_URL, timeout=10)
+        if not resp.ok:
+            log.warning(f"Fear & Greed fetch failed: {resp.status_code}")
+            return {}
+        data = resp.json()
+        fg = data.get("fear_and_greed", {})
+
+        # Extract last 30 days trend from historical data
+        historical = data.get("fear_and_greed_historical", {}).get("data", [])
+        recent_30 = historical[-30:] if len(historical) >= 30 else historical
+        if recent_30:
+            scores = [d["y"] for d in recent_30]
+            trend_low  = round(min(scores), 1)
+            trend_high = round(max(scores), 1)
+            trend_avg  = round(sum(scores) / len(scores), 1)
+        else:
+            trend_low = trend_high = trend_avg = None
+
+        result = {
+            "score":          round(fg.get("score", 0), 1),
+            "rating":         fg.get("rating", "unknown").title(),
+            "prev_close":     round(fg.get("previous_close", 0), 1),
+            "prev_1_week":    round(fg.get("previous_1_week", 0), 1),
+            "prev_1_month":   round(fg.get("previous_1_month", 0), 1),
+            "prev_1_year":    round(fg.get("previous_1_year", 0), 1),
+            "trend_30d_low":  trend_low,
+            "trend_30d_high": trend_high,
+            "trend_30d_avg":  trend_avg,
+        }
+        log.info(f"Fear & Greed: {result['score']} ({result['rating']})")
+        return result
+    except Exception as e:
+        log.error(f"Fear & Greed fetch failed: {e}")
+        return {}
+
+
+def _fng_emoji(score: float) -> str:
+    if score <= 25:   return "🔴"
+    elif score <= 45: return "🟠"
+    elif score <= 55: return "🟡"
+    elif score <= 75: return "🟢"
+    else:             return "💚"
+
+
+def _fng_context(score: float, prev_month: float) -> str:
+    """Plain English context — no hype, no fear mongering."""
+    change = score - prev_month
+    direction = "up" if change > 0 else "down"
+    magnitude = abs(round(change, 1))
+
+    if score <= 25:
+        base = "Market is in Extreme Fear"
+        context = "historically a better buying zone — but confirm with breadth before acting"
+    elif score <= 45:
+        base = "Market is in Fear"
+        context = "caution warranted, momentum stocks face headwinds"
+    elif score <= 55:
+        base = "Market is Neutral"
+        context = "no strong directional bias, stock-picking matters more than macro"
+    elif score <= 75:
+        base = "Market is in Greed"
+        context = "momentum favourable, but watch for overextension"
+    else:
+        base = "Market is in Extreme Greed"
+        context = "late-stage momentum — tighten stops, don't chase extended moves"
+
+    return f"{base} ({score}). {magnitude}pt {direction} vs last month. {context}."
+
+
+# ----------------------------
 # Part 3: Weekly HTML Report
 # ----------------------------
 def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
-                          dates_found: list, ai_brief: str) -> str:
+                          dates_found: list, ai_brief: str,
+                          fng_data: dict = None, crypto_data: dict = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
@@ -271,6 +431,43 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         paragraphs = [p.strip() for p in ai_brief.split('\n') if p.strip()]
         ai_section = "".join(f"<p>{p}</p>" for p in paragraphs)
 
+    # Build crypto cards
+    crypto_section = ""
+    if crypto_data:
+        cards = ""
+        for coin_id, d in crypto_data.items():
+            c24 = "pos" if d["raw_chg_24h"] >= 0 else "neg"
+            c7d = "pos" if d["raw_chg_7d"]  >= 0 else "neg"
+            cards += f"""
+            <div class="crypto-card">
+              <div class="crypto-name">{d['name']}</div>
+              <div class="crypto-price">{d['price']}</div>
+              <div class="crypto-changes">
+                <span class="{c24}">24h {d['chg_24h']}</span>
+                <span class="{c7d}">7d {d['chg_7d']}</span>
+              </div>
+              <div class="crypto-mcap">MCap {d['mcap']} · Vol {d['vol_24h']}</div>
+            </div>"""
+        crypto_section = cards
+
+    # Build Fear & Greed bar
+    fng_bar = ""
+    if fng_data:
+        emoji = _fng_emoji(fng_data["score"])
+        ctx   = _fng_context(fng_data["score"], fng_data["prev_1_month"])
+        fng_bar = (
+            f'<div><div class="fng-label">Fear &amp; Greed</div>' 
+            f'<div class="fng-score">{emoji} {fng_data["score"]}</div>' 
+            f'<div style="font-size:.8rem;color:#64748b">{fng_data["rating"]}</div></div>' 
+            f'<div class="fng-context">{ctx}</div>' 
+            f'<div class="fng-hist">' 
+            f'<span>Prev close <strong>{fng_data["prev_close"]}</strong></span>' 
+            f'<span>1 week ago <strong>{fng_data["prev_1_week"]}</strong></span>' 
+            f'<span>1 month ago <strong>{fng_data["prev_1_month"]}</strong></span>' 
+            f'<span>1 year ago <strong>{fng_data["prev_1_year"]}</strong></span>' 
+            f'</div>'
+        )
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -313,7 +510,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
   <h1>Finviz Weekly Review</h1>
   <p class="subtitle">{week_range} · {len(persistence_df)} unique tickers · {len(dates_found)} trading days scanned</p>
 
-  {"<h2>Weekly Intelligence Brief</h2><div class='ai-brief'>" + ai_section + "</div>" if ai_brief else ""}
+  {"<h2>Crypto Snapshot</h2><div class=\'crypto-bar\'>" + crypto_section + "</div>" if crypto_section else ""}
+  {"<div class=\'fng-bar\'>" + fng_bar + "</div>" if fng_bar else ""}
+  {"<h2>Weekly Intelligence Brief</h2><div class=\'ai-brief\'>" + ai_section + "</div>" if ai_brief else ""}
 
   <h2>Persistence Leaderboard — highest conviction setups</h2>
   <table>
@@ -341,7 +540,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
 # Part 4: AI Weekly Brief
 # ----------------------------
 def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
-                              dates_found: list) -> str:
+                              dates_found: list, fng_data: dict = None,
+                              crypto_data: dict = None) -> str:
     if not ANTHROPIC_API_KEY:
         log.info("ANTHROPIC_API_KEY not set — skipping AI brief.")
         return ""
@@ -371,6 +571,38 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
 
     week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
 
+    # Build F&G context for prompt
+    fng_context = ""
+    if fng_data:
+        fng_context = (
+            f"\n## CNN FEAR & GREED INDEX:\n"
+            f"Current: {fng_data['score']} ({fng_data['rating']}) | "
+            f"1 week ago: {fng_data['prev_1_week']} | "
+            f"1 month ago: {fng_data['prev_1_month']} | "
+            f"30d range: {fng_data['trend_30d_low']}–{fng_data['trend_30d_high']} | "
+            f"30d avg: {fng_data['trend_30d_avg']}\n"
+            f"Interpret this as market context for your brief — extreme fear zones have historically "
+            f"been better entry points for quality momentum setups. If the score is rising from "
+            f"extreme fear toward neutral, that's a green light. If falling into extreme fear, flag caution."
+        )
+
+    crypto_context = ""
+    if crypto_data:
+        lines = []
+        for coin_id, d in crypto_data.items():
+            lines.append(
+                f"{d['name']}: {d['price']} | 24h {d['chg_24h']} | 7d {d['chg_7d']} | "
+                f"MCap {d['mcap']} | Vol {d['vol_24h']}"
+            )
+        crypto_context = (
+            "\n## CRYPTO MARKET:\n" + "\n".join(lines) +
+            "\nNote: BTC/ETH risk-on/risk-off behaviour often leads or confirms equity "
+            "momentum. If BTC is down 10%+ on the week while momentum stocks are holding "
+            "up, that divergence is meaningful — flag it. If crypto and equities are both "
+            "selling off, that is a risk-off environment — be selective. IBIT/MSTR/COIN "
+            "performance in the macro data above confirms crypto equity correlation."
+        )
+
     prompt = f"""You are an experienced momentum trader and portfolio analyst doing a weekly review ({week_range}).
 
 You have access to two data sets:
@@ -379,7 +611,7 @@ You have access to two data sets:
 {chr(10).join(ticker_lines)}
 
 ## MACRO ENVIRONMENT:
-{chr(10).join(macro_lines) if macro_lines else "No macro data available."}
+{chr(10).join(macro_lines) if macro_lines else "No macro data available."}{fng_context}{crypto_context}
 
 Write a thorough weekly intelligence brief covering:
 
@@ -426,7 +658,8 @@ Be direct and specific. Use ticker names throughout. Think like a partner who ow
 # ----------------------------
 def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                        ai_brief: str, weekly_html: str,
-                       dates_found: list):
+                       dates_found: list, fng_data: dict = None,
+                       crypto_data: dict = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
@@ -455,6 +688,19 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                 macro_highlights.append(f"{symbol} {direction} {m['perf_week']} wk")
         except:
             pass
+
+    fng_line = ""
+    if fng_data:
+        emoji = _fng_emoji(fng_data["score"])
+        fng_line = f"\n*Fear & Greed:* {emoji} {fng_data['score']} ({fng_data['rating']}) · 1wk ago {fng_data['prev_1_week']} · 1mo ago {fng_data['prev_1_month']}"
+
+    crypto_line = ""
+    if crypto_data:
+        parts = []
+        for d in crypto_data.values():
+            c = "↑" if d["raw_chg_7d"] >= 0 else "↓"
+            parts.append(f"{d['name'].split(' ')[0]} {d['price']} {c}{abs(d['raw_chg_7d']):.1f}% wk")
+        crypto_line = "\n*Crypto:* " + " · ".join(parts)
 
     gallery_link = ""
     if GITHUB_PAGES_BASE:
@@ -487,6 +733,8 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                 f"*Top 5 conviction setups:*\n" +
                 "\n".join(ticker_lines) +
                 (f"\n\n*Macro movers:* {' · '.join(macro_highlights)}" if macro_highlights else "") +
+                fng_line +
+                crypto_line +
                 gallery_link
             )
         }
@@ -527,19 +775,25 @@ if __name__ == "__main__":
         os.path.join(DATA_DIR, f"finviz_weekly_persistence_{today}.csv"), index=False
     )
 
-    # Step 3: Macro snapshot
+    # Step 3: Macro snapshot + Fear & Greed
     log.info("Fetching macro snapshot...")
     macro_data = fetch_macro_snapshot()
     log.info(f"Macro data fetched for {len(macro_data)} symbols")
 
+    log.info("Fetching CNN Fear & Greed index...")
+    fng_data = fetch_fear_and_greed()
+
+    log.info("Fetching crypto prices from CoinGecko...")
+    crypto_data = fetch_crypto_data()
+
     # Step 4: AI weekly brief
-    ai_brief = generate_weekly_ai_brief(persistence_df, macro_data, dates_found)
+    ai_brief = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data)
 
     # Step 5: Weekly HTML report
-    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief)
+    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
     log.info(f"Weekly report: {weekly_html}")
 
     # Step 6: Slack push
-    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found)
+    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data)
 
     log.info("=== Weekly agent done ===")
