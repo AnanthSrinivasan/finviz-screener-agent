@@ -34,12 +34,19 @@ jobs:
       - name: Run Finviz agent
         run: python finviz_agent.py
 
-      # Commit data/ folder so GitHub Pages can serve the HTML gallery
+      # Regenerate index.html listing all reports
+      - name: Regenerate index page
+        env:
+          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+          DATA_DIR: data
+        run: python generate_index.py
+
+      # Commit data/ folder + index.html
       - name: Commit output data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ index.html
           git diff --cached --quiet || git commit -m "chore: finviz data $(date +%Y-%m-%d)"
           git push
 
