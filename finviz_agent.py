@@ -42,10 +42,13 @@ session = make_session()
 # Part 1: Screener Fetch & Save
 # ----------------------------
 screener_urls = {
+    # SMA filters removed intentionally — quality score handles filtering now
+    # cap_smallover ($300M+) keeps institutional-grade names, catches recovery moves like LMND
     "10% Change": (
         f"{FINVIZ_BASE}/screener.ashx?v=151"
-        f"&f=ind_stocksonly,sh_avgvol_o500,sh_price_o5,ta_changeopen_u10,"
-        f"ta_sma20_sa50,ta_sma50_pa&ft=4&o=-relativevolume&"
+        f"&f=cap_smallover,ind_stocksonly,sh_avgvol_o500,sh_price_o5,"
+        f"ta_changeopen_u10"
+        f"&ft=4&o=-relativevolume&"
         f"c=0,1,2,3,4,5,6,64,67,65,66"
     ),
     "Growth": (
@@ -198,7 +201,18 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             sales_str = data.get("Sales Y/Y TTM", '0').replace('%', '').strip()
             sales     = float(sales_str) if sales_str not in ('-', '') else 0.0
 
-            return atr_pct, eps, sales
+            # Extra fields for quality score
+            high_52w_raw = data.get("52W High", "0").replace(",", "").strip()
+            high_52w = float(high_52w_raw) if high_52w_raw else 0.0
+            dist_from_high = ((price / high_52w) - 1) * 100 if high_52w > 0 else 0.0
+
+            rel_vol_raw = data.get("Rel Volume", "1").replace("x", "").strip()
+            rel_vol = float(rel_vol_raw) if rel_vol_raw not in ('-', '') else 1.0
+
+            avg_vol_raw = data.get("Avg Volume", "0").replace(",", "").strip()
+            avg_vol = float(avg_vol_raw) if avg_vol_raw else 0.0
+
+            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol
 
         except requests.HTTPError as e:
             if e.response.status_code == 429:
@@ -212,7 +226,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             log.error(f"{ticker}: unexpected error — {e}")
             break
 
-    return None, None, None
+    return None, None, None, None, None, None
 
 
 def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -> dict:
@@ -223,6 +237,84 @@ def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -
             ticker = futures[future]
             results[ticker] = future.result()
     return results
+
+
+# ----------------------------
+# Part 2c: Quality Score
+# ----------------------------
+def compute_quality_score(row: pd.Series) -> float:
+    """
+    Score each ticker by institutional quality — not just momentum.
+    Pushes liquid leaders to the top, micro caps to the bottom.
+
+    Market cap (0-30): size = liquidity = institutional grade
+    Rel Volume (0-25): unusual volume = real conviction behind the move
+    EPS Y/Y TTM (0-20): fundamental backing
+    Multi-screen bonus (0-15): appeared in 2+ screeners same day
+    Dist from 52w high (0-10): room to re-rate vs already extended
+    """
+    score = 0.0
+
+    # --- Market cap (0-30 pts) ---
+    mcap_raw = str(row.get('Market Cap', '') or '').strip().upper()
+    mcap = 0.0
+    try:
+        if mcap_raw.endswith('B'):
+            mcap = float(mcap_raw[:-1])
+        elif mcap_raw.endswith('M'):
+            mcap = float(mcap_raw[:-1]) / 1000
+    except:
+        pass
+
+    if   mcap >= 100: score += 30   # mega cap  — SNDK, MU, ARM, GEV
+    elif mcap >=  50: score += 27   # large cap — CRCL, CIEN, VRT
+    elif mcap >=  10: score += 22   # mid-large — KRMN, VG, RDDT
+    elif mcap >=   2: score += 14   # mid cap   — KVYO, LASR, CART
+    elif mcap >=   0.3: score += 5  # small cap — passes cap_smallover
+    else: score += 0                # micro     — noise
+
+    # --- Relative volume (0-25 pts) ---
+    rel_vol = row.get('Rel Volume')
+    if pd.notna(rel_vol) and rel_vol is not None:
+        rv = float(rel_vol)
+        if   rv >= 5.0: score += 25
+        elif rv >= 3.0: score += 20
+        elif rv >= 2.0: score += 15
+        elif rv >= 1.5: score += 10
+        elif rv >= 1.0: score += 5
+
+    # --- EPS Y/Y TTM (0-20 pts) ---
+    eps = row.get('EPS Y/Y TTM')
+    if pd.notna(eps) and eps is not None:
+        ev = float(eps)
+        if   ev >= 200: score += 20
+        elif ev >= 100: score += 16
+        elif ev >=  50: score += 12
+        elif ev >=  20: score += 8
+        elif ev >=   0: score += 4
+        # negative EPS = 0 pts, not penalised (growth companies)
+
+    # --- Multi-screen bonus (0-15 pts) ---
+    appearances = row.get('Appearances', 1)
+    if pd.notna(appearances):
+        apps = int(appearances)
+        if   apps >= 3: score += 15
+        elif apps >= 2: score += 10
+        else:           score += 0
+
+    # --- Distance from 52w high (0-10 pts) ---
+    # Beaten down = more room to re-rate = higher score
+    # Extended near highs = lower score (risk of being chased)
+    dist = row.get('Dist From High%')
+    if pd.notna(dist) and dist is not None:
+        d = float(dist)  # negative = below high
+        if   d <= -50: score += 10  # deep recovery — massive room
+        elif d <= -30: score += 8   # beaten down — good room
+        elif d <= -15: score += 5   # pulled back — moderate room
+        elif d <= -5:  score += 2   # near highs — limited room
+        else:          score += 0   # at/above highs — most extended
+
+    return round(score, 1)
 
 
 # ----------------------------
@@ -239,19 +331,28 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
         row  = rows.iloc[0] if not rows.empty else None
 
         chart_url = f"{FINVIZ_BASE}/chart.ashx?t={t}&ty=c&ta=1&p=d&s=m"
-        atr      = f"{row['ATR%']:.1f}%"           if row is not None and pd.notna(row.get('ATR%'))         else "—"
-        eps      = f"{row['EPS Y/Y TTM']:.1f}%"    if row is not None and pd.notna(row.get('EPS Y/Y TTM'))  else "—"
+        atr      = f"{row['ATR%']:.1f}%"           if row is not None and pd.notna(row.get('ATR%'))          else "—"
+        eps      = f"{row['EPS Y/Y TTM']:.1f}%"    if row is not None and pd.notna(row.get('EPS Y/Y TTM'))   else "—"
         apps     = row['Appearances']               if row is not None else "—"
         screeners= row['Screeners']                 if row is not None else "—"
         sector   = row.get('Sector', '')            if row is not None else ""
         industry = row.get('Industry', '')          if row is not None else ""
         company  = row.get('Company', '')           if row is not None else ""
         mktcap   = row.get('Market Cap', '')        if row is not None else ""
+        qscore   = f"{row['Quality Score']:.0f}"   if row is not None and pd.notna(row.get('Quality Score')) else "—"
+        dist     = f"{row['Dist From High%']:.0f}%" if row is not None and pd.notna(row.get('Dist From High%')) else "—"
+        rel_vol  = f"{row['Rel Volume']:.1f}x"     if row is not None and pd.notna(row.get('Rel Volume'))    else "—"
 
         sector_html = ""
         if sector:
             label = sector + (f" · {industry}" if industry else "")
             sector_html = f'<div class="sector-tag">{label}</div>'
+
+        # Quality score colour — green high, amber mid, grey low
+        qs_int = int(float(qscore)) if qscore != "—" else 0
+        if qs_int >= 60:   qs_color = "#4ade80"
+        elif qs_int >= 35: qs_color = "#facc15"
+        else:              qs_color = "#64748b"
 
         chart_items.append(f"""
         <div class="chart-item">
@@ -260,7 +361,10 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
               <span class="ticker">{t}</span>
               {f'<span class="company">{company}</span>' if company else ''}
             </div>
-            <span class="badge">{apps} screen{'s' if apps != 1 else ''}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+              <span class="badge">{apps} screen{'s' if apps != 1 else ''}</span>
+              <span style="font-size:10px;font-weight:700;color:{qs_color}">Q {qscore}</span>
+            </div>
           </div>
           {sector_html}
           <img src="{chart_url}" alt="{t}" loading="lazy">
@@ -268,6 +372,8 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
             <span title="ATR%">ATR {atr}</span>
             <span title="EPS Y/Y TTM">EPS {eps}</span>
             {f'<span title="Market Cap">{mktcap}</span>' if mktcap else ''}
+            <span title="Relative Volume">RVol {rel_vol}</span>
+            <span title="Distance from 52w High">{dist} hi</span>
           </div>
           <div class="screeners">{screeners}</div>
         </div>""")
@@ -321,15 +427,21 @@ def generate_ai_summary(filter_df: pd.DataFrame, today: str) -> str:
         log.info("ANTHROPIC_API_KEY not set — skipping AI summary.")
         return ""
 
+    # Sort by quality score for AI — highest conviction first
+    sorted_df = filter_df.sort_values('Quality Score', ascending=False) if 'Quality Score' in filter_df.columns else filter_df
     rows = []
-    for _, row in filter_df.head(20).iterrows():
+    for _, row in sorted_df.head(20).iterrows():
         atr   = f"{row['ATR%']:.1f}%"           if pd.notna(row.get('ATR%'))          else "n/a"
         eps   = f"{row['EPS Y/Y TTM']:.1f}%"    if pd.notna(row.get('EPS Y/Y TTM'))   else "n/a"
         sales = f"{row['Sales Y/Y TTM']:.1f}%"  if pd.notna(row.get('Sales Y/Y TTM')) else "n/a"
+        qs    = f"{row['Quality Score']:.0f}"   if pd.notna(row.get('Quality Score')) else "n/a"
+        dist  = f"{row['Dist From High%']:.0f}%" if pd.notna(row.get('Dist From High%')) else "n/a"
+        rvol  = f"{row['Rel Volume']:.1f}x"     if pd.notna(row.get('Rel Volume'))    else "n/a"
         rows.append(
             f"{row['Ticker']} ({row.get('Sector','?')} / {row.get('Industry','?')}) "
-            f"| {row['Appearances']} screens: {row['Screeners']} "
-            f"| ATR {atr} | EPS {eps} | Sales {sales} | MCap {row.get('Market Cap','?')}"
+            f"| Quality {qs} | {row['Appearances']} screens: {row['Screeners']} "
+            f"| ATR {atr} | EPS {eps} | Sales {sales} | MCap {row.get('Market Cap','?')} "
+            f"| RVol {rvol} | From52wHigh {dist}"
         )
 
     prompt = f"""You are a sharp momentum trader reviewing today's Finviz screener results ({today}).
@@ -339,12 +451,12 @@ Here are the top tickers that passed all filters (ATR% > {ATR_THRESHOLD}, sorted
 {chr(10).join(rows)}
 
 Write a concise 4-6 sentence analyst briefing for a Slack message. Cover:
-- The highest-conviction tickers (appearing in 2+ screeners) and why they stand out
-- Any notable outliers by ATR%, EPS, or sector cluster
-- One sentence on what sectors are dominating today's scan
-- Flag any tickers that look like extended/risky plays vs ones with clean setups
+- The top 2-3 tickers by Quality Score and why they stand out — reference their market cap, relative volume, and distance from 52w high
+- Any high quality score tickers that are deeply beaten down (dist from high -30% or more) — these are recovery setups
+- What sectors dominate today and whether macro supports them
+- Any tickers to explicitly avoid — low quality score, micro cap, or too extended near 52w highs
 
-Be direct and specific. Use ticker names. No disclaimers. No markdown headers. Plain text only."""
+Be direct and specific. Use ticker names. Quality Score above 60 = liquid leader worth sizing. Below 35 = noise. No disclaimers. No markdown headers. Plain text only."""
 
     try:
         resp = requests.post(
@@ -381,15 +493,18 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
 
-    top = filter_df.head(10)
+    # Sort by quality score for Slack too
+    top = filter_df.sort_values('Quality Score', ascending=False).head(10) if 'Quality Score' in filter_df.columns else filter_df.head(10)
     ticker_lines = []
     for _, row in top.iterrows():
-        atr    = f"{row['ATR%']:.1f}%"        if pd.notna(row.get('ATR%'))        else "—"
-        eps    = f"{row['EPS Y/Y TTM']:.1f}%" if pd.notna(row.get('EPS Y/Y TTM')) else "—"
+        atr    = f"{row['ATR%']:.1f}%"         if pd.notna(row.get('ATR%'))           else "—"
+        eps    = f"{row['EPS Y/Y TTM']:.1f}%"  if pd.notna(row.get('EPS Y/Y TTM'))    else "—"
+        qs     = f"{row['Quality Score']:.0f}" if pd.notna(row.get('Quality Score'))  else "—"
+        mktcap = row.get('Market Cap', '')
         sector = row.get('Sector', '')
         sector_str = f" · _{sector}_" if sector else ""
         ticker_lines.append(
-            f"*{row['Ticker']}*{sector_str} · {row['Appearances']} screens · ATR {atr} · EPS {eps}\n"
+            f"*{row['Ticker']}*{sector_str} · Q{qs} · {mktcap} · ATR {atr} · EPS {eps}\n"
             f"  {row['Screeners']}"
         )
 
@@ -453,15 +568,23 @@ if __name__ == "__main__":
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")
     snapshot_results = fetch_snapshots_concurrent(summary_df['Ticker'].tolist())
 
-    summary_df['ATR%']          = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None, None, None))[0])
-    summary_df['EPS Y/Y TTM']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None, None, None))[1])
-    summary_df['Sales Y/Y TTM'] = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None, None, None))[2])
+    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[0])
+    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[1])
+    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[2])
+    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[3])
+    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[4])
+    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[5])
 
-    # Step 3: Filter
+    # Step 3: Compute quality score + filter
+    summary_df['Quality Score'] = summary_df.apply(compute_quality_score, axis=1)
     filter_df = summary_df[summary_df['ATR%'] > ATR_THRESHOLD].copy()
+    filter_df = filter_df.sort_values('Quality Score', ascending=False)
     log.info(f"Tickers with ATR% > {ATR_THRESHOLD}: {len(filter_df)}")
+    if not filter_df.empty:
+        top3 = filter_df.head(3)[['Ticker','Quality Score','Market Cap','Appearances']].to_string(index=False)
+        log.info(f"Top 3 by quality score:\n{top3}")
 
-    # Step 4: Chart gallery with sector tags
+    # Step 4: Chart gallery sorted by quality score (liquid leaders first)
     gallery_path = generate_finviz_gallery(filter_df['Ticker'].tolist(), filter_df)
     log.info(f"Chart gallery: {gallery_path}")
 
