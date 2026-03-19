@@ -210,11 +210,28 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             high_52w = float(high_52w_match.group(1)) if high_52w_match else 0.0
             dist_from_high = ((price / high_52w) - 1) * 100 if high_52w > 0 else 0.0
 
-            rel_vol_raw = data.get("Rel Volume", "1").replace("x", "").strip()
-            rel_vol = float(rel_vol_raw) if rel_vol_raw not in ('-', '') else 1.0
+            def parse_finviz_float(raw, default=0.0):
+                """Parse Finviz numeric strings handling K/M/B suffixes and concatenated values."""
+                import re as _re2
+                if not raw or raw in ('-', ''):
+                    return default
+                raw = raw.replace(',', '').replace('x', '').strip()
+                # Extract leading number
+                m = _re2.match(r'^([\d.]+)([KMBkmb]?)', raw)
+                if not m:
+                    return default
+                val = float(m.group(1))
+                suffix = m.group(2).upper()
+                if suffix == 'K': val *= 1_000
+                elif suffix == 'M': val *= 1_000_000
+                elif suffix == 'B': val *= 1_000_000_000
+                return val
 
-            avg_vol_raw = data.get("Avg Volume", "0").replace(",", "").strip()
-            avg_vol = float(avg_vol_raw) if avg_vol_raw else 0.0
+            rel_vol_raw = data.get("Rel Volume", "1").strip()
+            rel_vol = parse_finviz_float(rel_vol_raw, default=1.0)
+
+            avg_vol_raw = data.get("Avg Volume", "0").strip()
+            avg_vol = parse_finviz_float(avg_vol_raw, default=0.0)
 
             return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol
 
