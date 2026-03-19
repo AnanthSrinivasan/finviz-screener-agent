@@ -182,7 +182,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             table = soup.find("table", class_="snapshot-table2")
             if not table:
                 log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
-                return None, None, None
+                return None, None, None, None, None, None
 
             data = {}
             for row in table.find_all("tr"):
