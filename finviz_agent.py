@@ -202,8 +202,12 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             sales     = float(sales_str) if sales_str not in ('-', '') else 0.0
 
             # Extra fields for quality score
+            # Finviz concatenates 52W High + pct change: "128.96-22.12%" or "52.702.30%"
+            # Extract first valid number (stops at sign or second decimal point)
+            import re as _re
             high_52w_raw = data.get("52W High", "0").replace(",", "").strip()
-            high_52w = float(high_52w_raw) if high_52w_raw else 0.0
+            high_52w_match = _re.match(r"^(\d+\.?\d*)", high_52w_raw)
+            high_52w = float(high_52w_match.group(1)) if high_52w_match else 0.0
             dist_from_high = ((price / high_52w) - 1) * 100 if high_52w > 0 else 0.0
 
             rel_vol_raw = data.get("Rel Volume", "1").replace("x", "").strip()
