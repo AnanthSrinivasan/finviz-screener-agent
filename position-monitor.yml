@@ -1,0 +1,56 @@
+name: Position Monitor
+
+on:
+  schedule:
+    # 21:45 UTC = 22:45 CET — runs 15min before daily screener
+    # Weekdays only
+    - cron: '45 21 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  monitor-positions:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Luxembourg
+      SNAPTRADE_CLIENT_ID:    ${{ secrets.SNAPTRADE_CLIENT_ID }}
+      SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}
+      SNAPTRADE_USER_SECRET:  ${{ secrets.SNAPTRADE_USER_SECRET }}
+      SNAPTRADE_USER_ID:      ${{ vars.SNAPTRADE_USER_ID }}
+      SLACK_WEBHOOK_URL:      ${{ secrets.SLACK_WEBHOOK_URL }}
+      ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
+      DATA_DIR:               "data"
+      ATR_MULTIPLE_EXIT:      "-1.5"
+      ATR_MULTIPLE_WARN:      "-1.0"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run position monitor
+        run: python finviz_position_monitor.py
+
+      - name: Commit positions snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/positions_*.json
+          git diff --cached --quiet || git commit -m "chore: positions snapshot $(date +%Y-%m-%d)"
+          git push
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-type: application/json' \
+            --data '{
+              "text": ":x: *Position monitor failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }'
