@@ -1,12 +1,14 @@
 """
 Unit tests for finviz_agent.py
+
 Run locally: python -m pytest test_finviz_agent.py -v
+
 These tests use mocks — no real HTTP calls are made.
 """
+
 import unittest
 from unittest.mock import patch, MagicMock
 import pandas as pd
-
 from finviz_agent import (
     aggregate_and_save,
     get_snapshot_metrics,
@@ -15,27 +17,27 @@ from finviz_agent import (
     send_slack_notification,
 )
 
-
 # ----------------------------
 # Helpers
 # ----------------------------
+
 def make_mock_screener_html(tickers: list) -> str:
     """Build a minimal Finviz screener HTML page with the given tickers."""
     rows = ""
     for i, t in enumerate(tickers):
         rows += f"""
         <tr valign="top">
-          <td>{i+1}</td>
-          <td>{t}</td>
-          <td>{t} Inc</td>
-          <td>Technology</td>
-          <td>Semiconductors</td>
-          <td>USA</td>
-          <td>1.5B</td>
-          <td>25.0</td>
-          <td>500K</td>
-          <td>50.00</td>
-          <td>+5.0%</td>
+            <td>{i+1}</td>
+            <td>{t}</td>
+            <td>{t} Inc</td>
+            <td>Technology</td>
+            <td>Semiconductors</td>
+            <td>USA</td>
+            <td>1.5B</td>
+            <td>25.0</td>
+            <td>500K</td>
+            <td>50.00</td>
+            <td>+5.0%</td>
         </tr>"""
     return f"<html><body><table>{rows}</table></body></html>"
 
@@ -45,8 +47,11 @@ def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0")
     html = f"""
     <html><body>
     <table class="snapshot-table2">
-      <tr><td>Price</td><td>{price}</td><td>ATR (14)</td><td>{atr}</td></tr>
-      <tr><td>EPS Y/Y TTM</td><td>{eps}%</td><td>Sales Y/Y TTM</td><td>{sales}%</td></tr>
+        <tr><td>Price</td><td>{price}</td><td>ATR (14)</td><td>{atr}</td></tr>
+        <tr><td>EPS Y/Y TTM</td><td>{eps}%</td><td>Sales Y/Y TTM</td><td>{sales}%</td></tr>
+        <tr><td>52W High</td><td>55.00</td><td>Rel Volume</td><td>1.2</td></tr>
+        <tr><td>Avg Volume</td><td>500K</td><td>SMA20</td><td>3.5%</td></tr>
+        <tr><td>SMA50</td><td>2.1%</td><td>SMA200</td><td>1.0%</td></tr>
     </table>
     </body></html>"""
     return html.encode()
@@ -55,6 +60,7 @@ def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0")
 # ----------------------------
 # Tests: fetch_all_tickers / aggregate_and_save
 # ----------------------------
+
 class TestAggregateAndSave(unittest.TestCase):
 
     @patch("finviz_agent.session")
@@ -85,7 +91,6 @@ class TestAggregateAndSave(unittest.TestCase):
                     "NVDA": {"Company": "Nvidia", "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA", "Market Cap": "2T"},
                 }
             )
-
             with patch("finviz_agent.pd.DataFrame.to_csv"), \
                  patch("finviz_agent.pd.DataFrame.to_html"), \
                  patch("finviz_agent.os.makedirs"):
@@ -115,14 +120,16 @@ class TestAggregateAndSave(unittest.TestCase):
             "Country": ["USA"], "Market Cap": ["2T"],
             "P/E": ["40"], "Volume": ["40M"], "Price": ["850"], "Change": ["+3%"],
         })
-        mock_fetch.return_value = (shared_df, {"NVDA": {"Company": "Nvidia", "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA", "Market Cap": "2T"}})
-
+        mock_fetch.return_value = (
+            shared_df,
+            {"NVDA": {"Company": "Nvidia", "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA", "Market Cap": "2T"}}
+        )
         with patch("finviz_agent.pd.DataFrame.to_csv"), \
              patch("finviz_agent.pd.DataFrame.to_html"), \
              patch("finviz_agent.os.makedirs"):
             summary_df, _, _ = aggregate_and_save({
                 "Growth": "http://fake1",
-                "IPO":    "http://fake2",
+                "IPO": "http://fake2",
             })
 
         nvda_row = summary_df[summary_df["Ticker"] == "NVDA"]
@@ -132,6 +139,7 @@ class TestAggregateAndSave(unittest.TestCase):
 # ----------------------------
 # Tests: get_snapshot_metrics
 # ----------------------------
+
 class TestGetSnapshotMetrics(unittest.TestCase):
 
     @patch("finviz_agent.make_session")
@@ -145,7 +153,8 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_session.get.return_value = mock_resp
         mock_make_session.return_value = mock_session
 
-        atr_pct, eps, sales = get_snapshot_metrics("AAPL")
+        result = get_snapshot_metrics("AAPL")
+        atr_pct, eps, sales, dist_high, rel_vol, avg_vol, sma20, sma50, sma200 = result
 
         self.assertAlmostEqual(atr_pct, 5.0, places=1)   # 2.50 / 50.00 * 100
         self.assertAlmostEqual(eps, 25.0, places=1)
@@ -162,12 +171,13 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_make_session.return_value = mock_session
 
         result = get_snapshot_metrics("FAKE")
-        self.assertEqual(result, (None, None, None))
+        self.assertEqual(result, (None,) * 9)
 
     @patch("finviz_agent.make_session")
     def test_retries_on_429(self, mock_make_session):
         """Should retry on rate limit and eventually return None after exhausting retries."""
         import requests as req
+
         mock_resp = MagicMock()
         http_err = req.HTTPError(response=MagicMock(status_code=429))
         mock_resp.raise_for_status.side_effect = http_err
@@ -178,31 +188,47 @@ class TestGetSnapshotMetrics(unittest.TestCase):
 
         with patch("finviz_agent.time.sleep"):  # don't actually sleep in tests
             result = get_snapshot_metrics("AAPL", max_retries=2)
-        self.assertEqual(result, (None, None, None))
+
+        self.assertEqual(result, (None,) * 9)
 
 
 # ----------------------------
 # Tests: generate_finviz_gallery
 # ----------------------------
+
 class TestGenerateGallery(unittest.TestCase):
 
     def _make_filter_df(self):
         return pd.DataFrame({
-            "Ticker":       ["AAPL", "NVDA"],
-            "Appearances":  [2, 1],
-            "Screeners":    ["Growth, IPO", "Growth"],
-            "Company":      ["Apple Inc", "Nvidia Corp"],
-            "Sector":       ["Technology", "Technology"],
-            "Industry":     ["Consumer Electronics", "Semiconductors"],
-            "Country":      ["USA", "USA"],
-            "Market Cap":   ["3T", "2T"],
-            "ATR%":         [4.5, 6.2],
-            "EPS Y/Y TTM":  [15.0, 80.0],
-            "Sales Y/Y TTM":[10.0, 120.0],
+            "Ticker": ["AAPL", "NVDA"],
+            "Appearances": [2, 1],
+            "Screeners": ["Growth, IPO", "Growth"],
+            "Company": ["Apple Inc", "Nvidia Corp"],
+            "Sector": ["Technology", "Technology"],
+            "Industry": ["Consumer Electronics", "Semiconductors"],
+            "Country": ["USA", "USA"],
+            "Market Cap": ["3T", "2T"],
+            "ATR%": [4.5, 6.2],
+            "EPS Y/Y TTM": [15.0, 80.0],
+            "Sales Y/Y TTM": [10.0, 120.0],
+            "Dist From High%": [-10.0, -5.0],
+            "Rel Volume": [1.5, 2.0],
+            "Avg Volume": [50_000_000, 40_000_000],
+            "SMA20%": [3.5, 4.0],
+            "SMA50%": [2.1, 3.0],
+            "SMA200%": [1.0, 2.5],
+            "Stage": [
+                {"stage": 2, "badge": "🟢 Stage 2", "perfect": True, "sma20": 3.5, "sma50": 2.1, "sma200": 1.0},
+                {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 4.0, "sma50": 3.0, "sma200": 2.5},
+            ],
+            "VCP": [
+                {"vcp_possible": False, "confidence": 0, "reason": "no signals"},
+                {"vcp_possible": True, "confidence": 75, "reason": "tight range · volume dry-up"},
+            ],
+            "Quality Score": [55.0, 72.0],
         })
 
     def test_creates_html_file(self):
-        import tempfile, os
         filter_df = self._make_filter_df()
         with patch("finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
@@ -235,19 +261,23 @@ class TestGenerateGallery(unittest.TestCase):
 # ----------------------------
 # Tests: generate_ai_summary
 # ----------------------------
+
 class TestAiSummary(unittest.TestCase):
 
     def _make_filter_df(self):
         return pd.DataFrame({
-            "Ticker":        ["NVDA", "AAPL"],
-            "Appearances":   [2, 1],
-            "Screeners":     ["Growth, IPO", "Growth"],
-            "Sector":        ["Technology", "Technology"],
-            "Industry":      ["Semiconductors", "Consumer Electronics"],
-            "Market Cap":    ["2T", "3T"],
-            "ATR%":          [6.2, 4.5],
-            "EPS Y/Y TTM":   [80.0, 15.0],
+            "Ticker": ["NVDA", "AAPL"],
+            "Appearances": [2, 1],
+            "Screeners": ["Growth, IPO", "Growth"],
+            "Sector": ["Technology", "Technology"],
+            "Industry": ["Semiconductors", "Consumer Electronics"],
+            "Market Cap": ["2T", "3T"],
+            "ATR%": [6.2, 4.5],
+            "EPS Y/Y TTM": [80.0, 15.0],
             "Sales Y/Y TTM": [120.0, 10.0],
+            "Dist From High%": [-5.0, -10.0],
+            "Rel Volume": [2.0, 1.5],
+            "Quality Score": [72.0, 55.0],
         })
 
     def test_returns_empty_string_without_api_key(self):
@@ -263,6 +293,7 @@ class TestAiSummary(unittest.TestCase):
             "content": [{"text": "NVDA and AAPL are top picks today."}]
         }
         mock_resp.raise_for_status = MagicMock()
+        mock_resp.ok = True
         mock_post.return_value = mock_resp
 
         result = generate_ai_summary(self._make_filter_df(), "2026-01-01")
@@ -279,6 +310,7 @@ class TestAiSummary(unittest.TestCase):
 # ----------------------------
 # Tests: send_slack_notification
 # ----------------------------
+
 class TestSlackNotification(unittest.TestCase):
 
     def _make_dfs(self):
@@ -289,6 +321,8 @@ class TestSlackNotification(unittest.TestCase):
             "Sector": ["Technology", "Technology", "Technology"],
             "ATR%": [6.2, 4.5, 3.8],
             "EPS Y/Y TTM": [80.0, 15.0, 20.0],
+            "Market Cap": ["2T", "3T", "3T"],
+            "Quality Score": [72.0, 55.0, 50.0],
         })
         filter_df = summary_df[summary_df["ATR%"] > 3.0].copy()
         return summary_df, filter_df
@@ -298,7 +332,7 @@ class TestSlackNotification(unittest.TestCase):
             with patch("finviz_agent.requests.post") as mock_post:
                 summary_df, filter_df = self._make_dfs()
                 send_slack_notification(summary_df, filter_df, "data/gallery.html", "2026-01-01", "")
-        mock_post.assert_not_called()
+                mock_post.assert_not_called()
 
     @patch("finviz_agent.SLACK_WEBHOOK_URL", "https://hooks.slack.com/fake")
     @patch("finviz_agent.requests.post")
@@ -309,6 +343,7 @@ class TestSlackNotification(unittest.TestCase):
 
         summary_df, filter_df = self._make_dfs()
         send_slack_notification(summary_df, filter_df, "data/gallery.html", "2026-01-01", "NVDA is top pick.")
+
         mock_post.assert_called_once()
         call_kwargs = mock_post.call_args
         payload = call_kwargs[1]["json"]
@@ -324,6 +359,7 @@ class TestSlackNotification(unittest.TestCase):
 
         summary_df, filter_df = self._make_dfs()
         send_slack_notification(summary_df, filter_df, "data/finviz_chart_grid_2026-01-01.html", "2026-01-01", "")
+
         payload = mock_post.call_args[1]["json"]
         blocks_text = str(payload)
         self.assertIn("github.io", blocks_text)
