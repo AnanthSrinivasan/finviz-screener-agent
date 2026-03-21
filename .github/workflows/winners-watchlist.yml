@@ -1,14 +1,15 @@
-name: Earnings Alert
+name: Winners Watchlist
 
 on:
   schedule:
-    - cron: '30 22 * * 1-5'
+    # 19:00 UTC Monday = 21:00 CET / 20:00 CEST
+    - cron: '0 19 * * 1'
   workflow_dispatch:
 
 jobs:
-  earnings-alert:
+  winners-watchlist:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       TZ: Europe/Luxembourg
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -25,14 +26,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run earnings alert
+      - name: Run winners watchlist
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALERTS }}
-        run: python finviz_earnings_alert.py
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_WEEKLY }}
+        run: python finviz_winners_watchlist.py
 
-      - name: Notify Slack on failure
+      - name: Notify on failure
         if: failure()
         run: |
           curl -s -X POST "${{ secrets.SLACK_WEBHOOK_ALERTS }}" \
             -H 'Content-type: application/json' \
-            --data '{"text": ":x: *Earnings alert failed* on `'"$(date +%Y-%m-%d)"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
+            --data '{"text": ":x: *Winners watchlist failed* `'"$(date +%Y-%m-%d)"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

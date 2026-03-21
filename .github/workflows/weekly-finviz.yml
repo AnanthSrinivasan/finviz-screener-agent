@@ -2,8 +2,6 @@ name: Weekly Finviz Review
 
 on:
   schedule:
-    # 18:00 UTC Sunday = 19:00 CET / 20:00 CEST
-    # Runs after markets close Friday, giving you the full week's data
     - cron: '0 18 * * 0'
   workflow_dispatch:
 
@@ -12,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Europe/Luxembourg
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_WEEKLY }}
       GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ATR_THRESHOLD: "3.0"
@@ -42,7 +40,7 @@ jobs:
 
       - name: Commit weekly report
         run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ index.html
           git diff --cached --quiet || git commit -m "chore: weekly review $(date +%Y-%m-%d)"
@@ -59,8 +57,6 @@ jobs:
       - name: Notify Slack on failure
         if: failure()
         run: |
-          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_ALERTS }}" \
             -H 'Content-type: application/json' \
-            --data '{
-              "text": ":x: *Weekly Finviz review failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }'
+            --data '{"text": ":x: *Weekly review failed* on `'"$(date +%Y-%m-%d)"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
