@@ -848,30 +848,38 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         "Be direct. Name names. No disclaimers. Plain paragraphs."
     )
 
-    try:
-        resp = requests.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model":      "claude-sonnet-4-6",
-                "max_tokens": 1200,
-                "messages":   [{"role": "user", "content": prompt}],
-            },
-            timeout=60,
-        )
-        if not resp.ok:
-            log.error(f"AI brief HTTP {resp.status_code}: {resp.text}")
+    for attempt in range(3):
+        try:
+            resp = requests.post(
+                ANTHROPIC_API_URL,
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model":      "claude-sonnet-4-6",
+                    "max_tokens": 1200,
+                    "messages":   [{"role": "user", "content": prompt}],
+                },
+                timeout=60,
+            )
+            if resp.status_code == 429:
+                wait = 30 * (attempt + 1)
+                log.warning(f"AI brief rate limited (429), retrying in {wait}s (attempt {attempt + 1}/3)...")
+                time.sleep(wait)
+                continue
+            if not resp.ok:
+                log.error(f"AI brief HTTP {resp.status_code}: {resp.text}")
+                return ""
+            brief = resp.json()["content"][0]["text"].strip()
+            log.info("Weekly AI brief generated.")
+            return brief
+        except Exception as e:
+            log.error(f"Weekly AI brief failed: {e}")
             return ""
-        brief = resp.json()["content"][0]["text"].strip()
-        log.info("Weekly AI brief generated.")
-        return brief
-    except Exception as e:
-        log.error(f"Weekly AI brief failed: {e}")
-        return ""
+    log.error("AI brief failed after 3 rate-limit retries.")
+    return ""
 
 
 # ----------------------------
@@ -1004,6 +1012,10 @@ if __name__ == "__main__":
 
     log.info("Running Agent 2 — catalyst research for top 5...")
     research    = research_catalysts(persistence_df)
+
+    # Cooldown — Agent 2 web_search calls consume rate limit; wait before Agent 3
+    log.info("Rate-limit cooldown (60s) before Agent 3...")
+    time.sleep(60)
 
     log.info("Running Agent 3 — synthesised AI brief...")
     ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data, research)
