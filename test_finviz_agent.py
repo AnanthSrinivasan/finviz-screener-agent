@@ -1,5 +1,5 @@
 """
-Unit tests for finviz_agent.py
+Unit tests for finviz_agent.py and finviz_earnings_alert.py
 
 Run locally: python -m pytest test_finviz_agent.py -v
 
@@ -16,6 +16,7 @@ from finviz_agent import (
     generate_ai_summary,
     send_slack_notification,
 )
+from finviz_earnings_alert import find_upcoming_earnings
 
 # ----------------------------
 # Helpers
@@ -257,6 +258,46 @@ class TestGenerateGallery(unittest.TestCase):
         html_content = "".join(written)
         self.assertIn("Apple Inc", html_content)
 
+    def test_sector_lead_badge_shown_for_dominant_sector(self):
+        """Tickers in the top 2 sectors by count should get the Lead Sector badge."""
+        # Both AAPL and NVDA are Technology — it will be the top sector
+        filter_df = self._make_filter_df()
+        written = []
+        with patch("finviz_agent.os.makedirs"), \
+             patch("builtins.open", unittest.mock.mock_open()) as mock_file:
+            mock_file.return_value.__enter__.return_value.write.side_effect = written.append
+            generate_finviz_gallery(["AAPL", "NVDA"], filter_df)
+        html_content = "".join(written)
+        self.assertIn("tag-sector-lead", html_content)
+        self.assertIn("Lead Sector", html_content)
+
+    def test_sector_lead_badge_absent_for_minority_sector(self):
+        """A ticker in a 3rd-place sector should not get the Lead Sector badge."""
+        # Build a df with 3 sectors: Technology(2), Healthcare(1), Energy(1-rendered)
+        # top_sectors = {Technology, Healthcare} — Energy ticker should get no badge
+        base = self._make_filter_df()
+        extra_row = base.iloc[0:1].copy()
+        extra_row["Ticker"] = "EXTRA"
+        extra_row["Sector"] = "Healthcare"
+        energy_row = base.iloc[0:1].copy()
+        energy_row["Ticker"] = "ENGY"
+        energy_row["Sector"] = "Energy"
+        filter_df = pd.concat([base, extra_row, energy_row], ignore_index=True)
+        # Sector counts: Technology=2, Healthcare=1, Energy=1  → top2 = Technology + one of the tied pair
+        # Force unambiguous minority: add 2nd Healthcare to push it clearly to top2
+        extra_row2 = extra_row.copy()
+        extra_row2["Ticker"] = "HLTH2"
+        filter_df = pd.concat([filter_df, extra_row2], ignore_index=True)
+        # Now: Technology=2, Healthcare=2, Energy=1 → top2 = Technology & Healthcare; Energy is minority
+
+        written = []
+        with patch("finviz_agent.os.makedirs"), \
+             patch("builtins.open", unittest.mock.mock_open()) as mock_file:
+            mock_file.return_value.__enter__.return_value.write.side_effect = written.append
+            generate_finviz_gallery(["ENGY"], filter_df)
+        html_content = "".join(written)
+        self.assertNotIn("Lead Sector", html_content)
+
 
 # ----------------------------
 # Tests: generate_ai_summary
@@ -363,6 +404,61 @@ class TestSlackNotification(unittest.TestCase):
         payload = mock_post.call_args[1]["json"]
         blocks_text = str(payload)
         self.assertIn("github.io", blocks_text)
+
+
+# ----------------------------
+# Tests: finviz_earnings_alert — quality + sector filter
+# ----------------------------
+
+class TestEarningsQualityFilter(unittest.TestCase):
+
+    def _make_tickers(self, quality, sector):
+        return {"FAKE": {"appearances": 3, "atr": 4.5, "quality": quality, "sector": sector, "screeners": "Growth", "market_cap": "1B"}}
+
+    @patch("finviz_earnings_alert.fetch_earnings_date")
+    def test_skips_low_quality_score(self, mock_fetch):
+        """Tickers with Quality Score <= 50 should be skipped without calling Finviz."""
+        tickers = self._make_tickers(quality=40.0, sector="Technology")
+        result = find_upcoming_earnings(tickers)
+        mock_fetch.assert_not_called()
+        self.assertEqual(result, [])
+
+    @patch("finviz_earnings_alert.fetch_earnings_date")
+    def test_skips_missing_sector(self, mock_fetch):
+        """Tickers with no sector should be skipped without calling Finviz."""
+        tickers = self._make_tickers(quality=70.0, sector="")
+        result = find_upcoming_earnings(tickers)
+        mock_fetch.assert_not_called()
+        self.assertEqual(result, [])
+
+    @patch("finviz_earnings_alert.fetch_earnings_date")
+    def test_skips_none_quality(self, mock_fetch):
+        """Tickers with None quality should be skipped."""
+        tickers = self._make_tickers(quality=None, sector="Technology")
+        result = find_upcoming_earnings(tickers)
+        mock_fetch.assert_not_called()
+        self.assertEqual(result, [])
+
+    @patch("finviz_earnings_alert.fetch_earnings_date")
+    def test_passes_high_quality_with_sector(self, mock_fetch):
+        """Tickers with Quality Score > 50 and a sector should proceed to Finviz lookup."""
+        import datetime
+        today = datetime.date.today()
+        mock_fetch.return_value = today + datetime.timedelta(days=3)  # earnings in 3 days
+
+        tickers = self._make_tickers(quality=65.0, sector="Technology")
+        result = find_upcoming_earnings(tickers)
+        mock_fetch.assert_called_once()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["ticker"], "FAKE")
+
+    @patch("finviz_earnings_alert.fetch_earnings_date")
+    def test_boundary_quality_score_excluded(self, mock_fetch):
+        """Quality Score exactly 50 should be excluded (strictly greater than required)."""
+        tickers = self._make_tickers(quality=50.0, sector="Technology")
+        result = find_upcoming_earnings(tickers)
+        mock_fetch.assert_not_called()
+        self.assertEqual(result, [])
 
 
 if __name__ == "__main__":
