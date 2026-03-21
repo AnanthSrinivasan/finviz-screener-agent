@@ -57,7 +57,7 @@ def make_session() -> requests.Session:
 
 
 # ----------------------------
-# Part 1: Load & Score
+# Part 1: Score & Rank
 # ----------------------------
 
 def load_weekly_data(data_dir: str, lookback_days: int = 7) -> tuple:
@@ -87,17 +87,55 @@ def load_weekly_data(data_dir: str, lookback_days: int = 7) -> tuple:
     return combined_df, daily_dfs, sorted(dates_found)
 
 
-def _is_ep(screeners_hit: set, max_appearances: int) -> bool:
+def _detect_signals(screeners_hit: set, max_appearances: int) -> dict:
     """
-    Tight EP criteria — all three required:
-    1. Gap/surge screener: '10% Change' OR 'Week 20%+ Gain'
-    2. '52 Week High' also fired (real breakout, not a bounce)
-    3. max_appearances >= 2 (multi-screener same day = volume conviction)
+    Detect setup signals for a ticker based on which screeners fired.
+    Returns a dict of active signals and their bonus scores.
+
+    Each signal explains *why* the ticker ranks where it does.
+    All signals compete in the same unified score — no separate buckets.
+
+    EP (Episodic Pivot) +30
+      Gap/surge screener + 52 Week High + multi-screen same day.
+      Stockbee/Qullamaggie: catalyst move, new high confirmation, volume implied.
+      Low persistence names like PL can rank #1-3 if EP criteria are strong.
+
+    IPO Lifecycle +15
+      From IPO screener — recently public or re-listed.
+      Different evaluation rules: no long base expected, evaluate on narrative.
+      VG, KRMN type names.
+
+    Multi-screen same day +20
+      3+ screeners fired on a single day — institutional conviction signal.
+      Separate from EP because a stock can be multi-screen without being an EP.
+
+    52 Week High +10
+      Making new highs = price leadership. Simple but powerful.
     """
     has_gap   = "10% Change" in screeners_hit or "Week 20%+ Gain" in screeners_hit
     has_high  = "52 Week High" in screeners_hit
-    has_multi = max_appearances >= 2
-    return has_gap and has_high and has_multi
+    has_ipo   = "IPO" in screeners_hit
+    has_multi = max_appearances >= 3
+    is_ep     = has_gap and has_high and max_appearances >= 2
+
+    signals = {}
+    bonuses = 0
+
+    if is_ep:
+        signals["EP"]    = True
+        bonuses         += 30
+    if has_ipo:
+        signals["IPO"]   = True
+        bonuses         += 15
+    if has_multi:
+        signals["MULTI"] = True
+        bonuses         += 20
+    if has_high and not is_ep:
+        signals["HIGH"]  = True
+        bonuses         += 10
+
+    signals["bonuses"] = bonuses
+    return signals
 
 
 def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd.DataFrame:
@@ -139,11 +177,16 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd
     rows = []
     total_days = len(dates_found)
     for ticker, r in records.items():
+        # Base conviction: persistence + screener diversity + multi-screen bonus
         screener_diversity = len(r["screeners_hit"])
-        conviction = (r["days_seen"] / max(total_days, 1)) * 100
-        conviction += screener_diversity * 10
+        base_score = (r["days_seen"] / max(total_days, 1)) * 100
+        base_score += screener_diversity * 10
         if r["max_appearances"] >= 2:
-            conviction += 20
+            base_score += 20
+
+        # Signal detection — adds bonuses that can push EP/IPO names into top 5
+        signals = _detect_signals(r["screeners_hit"], r["max_appearances"])
+        signal_score = round(base_score + signals["bonuses"], 1)
 
         rows.append({
             "Ticker":          ticker,
@@ -158,37 +201,47 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd
             "Max EPS%":        round(r["max_eps"], 1) if r["max_eps"] is not None else None,
             "Max Appearances": r["max_appearances"],
             "Screeners Hit":   ", ".join(sorted(r["screeners_hit"])),
-            "Conviction":      round(conviction, 1),
-            "EP":              _is_ep(r["screeners_hit"], r["max_appearances"]),
+            "Base Score":      round(base_score, 1),
+            "Signal Score":    signal_score,
+            # Individual signal flags for badges
+            "EP":              signals.get("EP",    False),
+            "IPO":             signals.get("IPO",   False),
+            "MULTI":           signals.get("MULTI", False),
+            "HIGH":            signals.get("HIGH",  False),
         })
 
-    return pd.DataFrame(rows).sort_values("Conviction", ascending=False)
-
-
-def select_focus_names(persistence_df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
-    """Top 3 conviction + up to 2 EP candidates not already in top 3."""
-    top3   = persistence_df.head(3)
-    ep_df  = persistence_df[persistence_df["EP"] == True]
-    ep_new = ep_df[~ep_df["Ticker"].isin(top3["Ticker"].tolist())].head(2)
-    return pd.concat([top3, ep_new]).drop_duplicates("Ticker").head(n)
+    # Sort by unified signal score — EP/IPO names compete fairly for top 5
+    return pd.DataFrame(rows).sort_values("Signal Score", ascending=False)
 
 
 def select_leaderboard(persistence_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Recurring names worth monitoring — filtered to the upper half by conviction.
-    If max score is 150, show everything >= 75.
-    Hard cap at 30 names so it stays scannable.
+    Recurring names worth monitoring.
+    Show top half by signal score, hard cap at 30.
     """
     if persistence_df.empty:
         return persistence_df
-    max_score  = persistence_df["Conviction"].max()
-    threshold  = max_score / 2
-    filtered   = persistence_df[persistence_df["Conviction"] >= threshold]
-    return filtered.head(30)
+    max_score = persistence_df["Signal Score"].max()
+    threshold = max_score / 2
+    return persistence_df[persistence_df["Signal Score"] >= threshold].head(30)
+
+
+def _build_badges(row) -> str:
+    """Build badge HTML explaining why a ticker ranks where it does."""
+    badges = ""
+    if row.get("EP"):
+        badges += "<span class='badge-ep'>⚡ EP</span>"
+    if row.get("IPO"):
+        badges += "<span class='badge-ipo'>🚀 IPO</span>"
+    if row.get("MULTI"):
+        badges += "<span class='badge-multi'>x3 screens</span>"
+    if row.get("HIGH") and not row.get("EP"):
+        badges += "<span class='badge-high'>52w High</span>"
+    return badges
 
 
 # ----------------------------
-# Part 2: Macro Snapshot
+# Part 2: Macro
 # ----------------------------
 
 def fetch_macro_snapshot() -> dict:
@@ -217,7 +270,6 @@ def fetch_macro_snapshot() -> dict:
                 "perf_week":  data.get("Perf Week",  "n/a"),
                 "perf_month": data.get("Perf Month", "n/a"),
             }
-            log.info(f"Macro: {symbol} {data.get('Price')} {data.get('Change')}")
         except Exception as e:
             log.warning(f"Macro fetch failed for {symbol}: {e}")
 
@@ -316,7 +368,6 @@ def fetch_fear_and_greed() -> dict:
         log.error(f"Fear & Greed fetch failed: {e}")
         return {}
 
-
 def _fng_emoji(score: float) -> str:
     if score <= 25:   return "🔴"
     elif score <= 45: return "🟠"
@@ -329,20 +380,15 @@ def _fng_context(score: float, prev_month: float) -> str:
     direction = "up" if change > 0 else "down"
     magnitude = abs(round(change, 1))
     if score <= 25:
-        base = "Extreme Fear"
-        ctx  = "historically a better buying zone — confirm with breadth before acting"
+        base = "Extreme Fear"; ctx = "historically a better buying zone — confirm with breadth first"
     elif score <= 45:
-        base = "Fear"
-        ctx  = "caution warranted, momentum stocks face headwinds"
+        base = "Fear"; ctx = "caution warranted, momentum stocks face headwinds"
     elif score <= 55:
-        base = "Neutral"
-        ctx  = "no strong directional bias"
+        base = "Neutral"; ctx = "no strong directional bias"
     elif score <= 75:
-        base = "Greed"
-        ctx  = "momentum favourable, watch for overextension"
+        base = "Greed"; ctx = "momentum favourable, watch for overextension"
     else:
-        base = "Extreme Greed"
-        ctx  = "late-stage momentum — tighten stops"
+        base = "Extreme Greed"; ctx = "late-stage momentum — tighten stops"
     return f"{base} ({score}). {magnitude}pt {direction} vs last month. {ctx}."
 
 
@@ -358,33 +404,35 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
     week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else today
 
-    # --- FOCUS CARDS: top 3 + up to 2 EPs ---
-    focus_df    = select_focus_names(persistence_df)
-    rank_colors = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
-    focus_cards = ""
+    # --- TOP 5: unified signal score ranking ---
+    top5         = persistence_df.head(5)
+    rank_colors  = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
+    focus_cards  = ""
 
-    for i, (_, row) in enumerate(focus_df.iterrows()):
+    for i, (_, row) in enumerate(top5.iterrows()):
         rank_color = rank_colors[i] if i < len(rank_colors) else "#334155"
         days       = row["Days Seen"]
         total      = row["Total Days"]
         atr        = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
         eps        = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
-        rank_label = f"#{i+1}" if i < 3 else "EP"
-        ep_badge   = "<span class='ep-badge'>⚡ EP</span>" if row["EP"] else ""
-        mb         = f"<span class='multi-badge'>x{row['Max Appearances']} screens</span>" if row["Max Appearances"] >= 2 else ""
+        badges     = _build_badges(row)
         chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
         fv_url     = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
+        base_sc    = row["Base Score"]
+        sig_sc     = row["Signal Score"]
+        bonus      = int(sig_sc - base_sc)
+        score_note = f"score {sig_sc:.0f}" + (f" (+{bonus} signal)" if bonus > 0 else "")
 
         focus_cards += (
             "<div class='focus-card'>"
-            f"<div class='focus-rank' style='color:{rank_color}'>{rank_label}</div>"
+            f"<div class='focus-rank' style='color:{rank_color}'>#{i+1}</div>"
             "<div class='focus-header'>"
             f"<a href='{fv_url}' target='_blank' class='focus-ticker'>{row['Ticker']}</a>"
             f"<span class='focus-sector'>{row['Sector']}</span>"
             "</div>"
             f"<div class='focus-company'>{row['Company']}</div>"
-            f"<div class='focus-badges'>{ep_badge}{mb}</div>"
-            f"<div class='focus-persist'>{days}/{total} days · score {row['Conviction']}</div>"
+            f"<div class='focus-badges'>{badges}</div>"
+            f"<div class='focus-persist'>{days}/{total} days · {score_note}</div>"
             f"<div class='focus-meta'>ATR {atr} · EPS {eps}</div>"
             f"<div class='focus-screeners'>{row['Screeners Hit']}</div>"
             f"<a href='{chart_url}' target='_blank'>"
@@ -412,10 +460,10 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             "</tr>"
         )
 
-    # --- LEADERBOARD: upper half by conviction, max 30 ---
-    leaderboard_df  = select_leaderboard(persistence_df)
-    max_score       = persistence_df["Conviction"].max() if not persistence_df.empty else 100
-    threshold       = max_score / 2
+    # --- LEADERBOARD: top half by signal score, max 30 ---
+    leaderboard_df   = select_leaderboard(persistence_df)
+    max_score        = persistence_df["Signal Score"].max() if not persistence_df.empty else 100
+    threshold        = max_score / 2
     leaderboard_rows = ""
 
     for idx, (_, row) in enumerate(leaderboard_df.iterrows()):
@@ -425,25 +473,29 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         bar_color = "#4f6ef7" if pct >= 80 else "#38bdf8" if pct >= 60 else "#64748b"
         atr       = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
         eps       = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
-        apps      = f"x{row['Max Appearances']}" if row["Max Appearances"] >= 2 else ""
-        ep_flag   = " ⚡" if row["EP"] else ""
+        badge_str = ""
+        if row.get("EP"):    badge_str += "⚡"
+        if row.get("IPO"):   badge_str += "🚀"
+        if row.get("MULTI"): badge_str += "x3"
+        if row.get("HIGH") and not row.get("EP"): badge_str += "↑hi"
         fv_url    = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
         chart_url = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
-        row_cls   = "ep-row" if row["EP"] else ""
+        row_cls   = "ep-row" if (row.get("EP") or row.get("IPO")) else ""
 
         leaderboard_rows += (
             f"<tr class='{row_cls}'>"
             f"<td class='dim'>{idx+1}</td>"
-            f"<td><a href='{fv_url}' target='_blank' class='tlink'>{row['Ticker']}</a>{ep_flag}</td>"
+            f"<td><a href='{fv_url}' target='_blank' class='tlink'>{row['Ticker']}</a>"
+            f" <span class='lb-signals'>{badge_str}</span></td>"
             f"<td class='company'>{row['Company']}</td>"
             f"<td><span class='sector-pill'>{row['Sector']}</span></td>"
             "<td><div class='bar-wrap'>"
             f"<div class='bar' style='width:{pct}%;background:{bar_color}'></div>"
             f"<span>{days}/{total}d</span></div></td>"
-            f"<td class='center bold'>{row['Conviction']}</td>"
+            f"<td class='center bold'>{row['Signal Score']:.0f}</td>"
+            f"<td class='center dim'>{row['Base Score']:.0f}</td>"
             f"<td class='center'>{atr}</td>"
             f"<td class='center'>{eps}</td>"
-            f"<td class='center'>{apps}</td>"
             f"<td class='screeners'>{row['Screeners Hit']}</td>"
             f"<td><a href='{chart_url}' target='_blank' class='chart-link'>chart</a></td>"
             "</tr>"
@@ -506,14 +558,17 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     ) if macro_rows else ""
 
     leaderboard_count = len(leaderboard_df)
-    leaderboard_html  = (
-        f"<h2>Recurring Names — conviction score &gt; {threshold:.0f} ({leaderboard_count} names)</h2>"
-        "<p class='lb-note'>Tickers that kept appearing across multiple days this week. "
-        "⚡ = Episodic Pivot candidate (gap/surge + new high + multi-screen).</p>"
+    leaderboard_html = (
+        f"<h2>Recurring Names — signal score &gt; {threshold:.0f} ({leaderboard_count} names)</h2>"
+        "<p class='lb-note'>"
+        "Ranked by signal score (persistence + bonuses). "
+        "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high. "
+        "Signal score = base + bonuses. Base score shown in grey."
+        "</p>"
         "<table class='lb-table'><thead><tr>"
         "<th>#</th><th>Ticker</th><th>Company</th><th>Sector</th>"
-        "<th>Persistence</th><th>Score</th><th>ATR%</th><th>EPS%</th>"
-        "<th>Multi</th><th>Screeners</th><th>Chart</th>"
+        "<th>Persistence</th><th>Signal</th><th>Base</th>"
+        "<th>ATR%</th><th>EPS%</th><th>Screeners</th><th>Chart</th>"
         "</tr></thead><tbody>" + leaderboard_rows + "</tbody></table>"
     ) if leaderboard_rows else ""
 
@@ -525,54 +580,57 @@ h1    { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
 h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px;
         text-transform: uppercase; letter-spacing: .08em;
         border-bottom: 1px solid #1a1f2e; padding-bottom: 6px; }
-.subtitle  { color: #64748b; font-size: 0.82rem; margin-bottom: 28px; }
-.lb-note   { font-size: 0.74rem; color: #4b5563; margin-bottom: 10px; }
+.subtitle { color: #64748b; font-size: 0.82rem; margin-bottom: 28px; }
+.lb-note  { font-size: 0.73rem; color: #4b5563; margin-bottom: 10px; line-height: 1.5; }
 .pos  { color: #4ade80; }
 .neg  { color: #f87171; }
 .mono { font-variant-numeric: tabular-nums; }
 .bold { font-weight: 700; }
-.dim  { color: #334155; }
+.dim  { color: #4b5563; }
 /* Focus cards */
-.focus-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 36px; }
-.focus-card   { background: #1a1f2e; border-radius: 10px; padding: 14px 16px; border: 1px solid #252d40; }
-.focus-rank   { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 6px; }
-.focus-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
-.focus-ticker { font-size: 1.1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; }
+.focus-grid    { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 36px; }
+.focus-card    { background: #1a1f2e; border-radius: 10px; padding: 14px 16px; border: 1px solid #252d40; }
+.focus-rank    { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+.focus-header  { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
+.focus-ticker  { font-size: 1.1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; }
 .focus-ticker:hover { color: #a5b4fc; }
-.focus-sector  { font-size: 0.63rem; color: #38bdf8; background: #0c2240; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
-.focus-company { font-size: 0.68rem; color: #4b5563; margin-bottom: 6px; }
-.focus-badges  { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; min-height: 18px; }
-.ep-badge      { font-size: 0.65rem; background: #451a03; color: #fbbf24; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
-.multi-badge   { font-size: 0.65rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
-.focus-persist { font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px; }
-.focus-meta    { font-size: 0.7rem; color: #475569; margin-bottom: 5px; }
-.focus-screeners { font-size: 0.64rem; color: #374151; margin-bottom: 9px; line-height: 1.4; }
+.focus-sector  { font-size: 0.62rem; color: #38bdf8; background: #0c2240; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.focus-company { font-size: 0.67rem; color: #4b5563; margin-bottom: 6px; }
+.focus-badges  { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 5px; min-height: 18px; }
+.badge-ep      { font-size: 0.64rem; background: #451a03; color: #fbbf24; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.badge-ipo     { font-size: 0.64rem; background: #1a3a1a; color: #86efac; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.badge-multi   { font-size: 0.64rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
+.badge-high    { font-size: 0.64rem; background: #1f2d40; color: #7dd3fc; padding: 1px 6px; border-radius: 3px; }
+.focus-persist { font-size: 0.71rem; color: #94a3b8; margin-bottom: 2px; }
+.focus-meta    { font-size: 0.69rem; color: #475569; margin-bottom: 5px; }
+.focus-screeners { font-size: 0.63rem; color: #374151; margin-bottom: 9px; line-height: 1.4; }
 .focus-chart   { width: 100%; border-radius: 6px; display: block; }
 /* Macro */
 .macro-table    { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 8px; }
 .macro-table th { text-align: left; padding: 7px 10px; color: #475569; font-weight: 500;
-                  border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.67rem; letter-spacing: .05em; }
-.macro-table td { padding: 7px 10px; border-bottom: 1px solid #161b27; vertical-align: middle; }
+                  border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.66rem; letter-spacing: .05em; }
+.macro-table td { padding: 7px 10px; border-bottom: 1px solid #161b27; }
 .macro-table tr:hover td { background: #181d2b; }
 .mname { color: #64748b; font-size: 0.75rem; }
 /* Leaderboard */
 .lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
 .lb-table th { text-align: left; padding: 6px 9px; color: #475569; font-weight: 500;
-               border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.65rem; letter-spacing: .05em; }
+               border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.64rem; letter-spacing: .05em; }
 .lb-table td { padding: 7px 9px; border-bottom: 1px solid #161b27; vertical-align: middle; }
 .lb-table tr:hover td { background: #181d2b; }
-.lb-table tr.ep-row td { background: #1c1708; }
-.lb-table tr.ep-row:hover td { background: #251e0a; }
-.tlink      { color: #7aa2f7; font-weight: 700; text-decoration: none; }
+.lb-table tr.ep-row td { background: #1a1a0e; }
+.lb-table tr.ep-row:hover td { background: #22220f; }
+.tlink       { color: #7aa2f7; font-weight: 700; text-decoration: none; }
 .tlink:hover { color: #a5b4fc; }
-.chart-link { color: #38bdf8; font-size: 0.7rem; text-decoration: none; }
-.company    { color: #94a3b8; font-size: 0.73rem; }
-.sector-pill { background: #0c2240; color: #38bdf8; font-size: 0.63rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
-.screeners  { color: #374151; font-size: 0.67rem; }
-.bar-wrap   { display: flex; align-items: center; gap: 7px; }
-.bar-wrap span { font-size: 0.7rem; color: #94a3b8; white-space: nowrap; }
-.bar        { height: 5px; border-radius: 3px; min-width: 2px; }
-.center     { text-align: center; }
+.chart-link  { color: #38bdf8; font-size: 0.69rem; text-decoration: none; }
+.company     { color: #94a3b8; font-size: 0.72rem; }
+.sector-pill { background: #0c2240; color: #38bdf8; font-size: 0.62rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+.screeners   { color: #374151; font-size: 0.66rem; }
+.lb-signals  { font-size: 0.65rem; color: #92400e; }
+.bar-wrap    { display: flex; align-items: center; gap: 7px; }
+.bar-wrap span { font-size: 0.69rem; color: #94a3b8; white-space: nowrap; }
+.bar         { height: 5px; border-radius: 3px; min-width: 2px; }
+.center      { text-align: center; }
 /* AI brief */
 .ai-brief   { background: #151b2e; border-left: 3px solid #3b55c9; border-radius: 0 8px 8px 0;
               padding: 16px 20px; margin-bottom: 8px; }
@@ -584,13 +642,13 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .cname  { font-size: 0.67rem; color: #64748b; margin-bottom: 3px; }
 .cprice { font-size: 1.05rem; font-weight: 700; margin-bottom: 5px; }
 .cchanges { display: flex; gap: 10px; font-size: 0.75rem; margin-bottom: 4px; }
-.cmcap  { font-size: 0.66rem; color: #374151; }
+.cmcap  { font-size: 0.65rem; color: #374151; }
 /* F&G */
 .fng-bar    { background: #1a1f2e; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px;
               display: flex; flex-direction: column; gap: 7px; }
-.fng-label  { font-size: 0.64rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+.fng-label  { font-size: 0.63rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
 .fng-score  { font-size: 1.35rem; font-weight: 700; }
-.fng-rating { font-size: 0.74rem; color: #64748b; }
+.fng-rating { font-size: 0.73rem; color: #64748b; }
 .fng-ctx    { font-size: 0.78rem; color: #94a3b8; line-height: 1.5; }
 .fng-hist   { display: flex; gap: 16px; font-size: 0.71rem; color: #4b5563; flex-wrap: wrap; }
 """
@@ -606,7 +664,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
         + crypto_html
         + fng_html
         + ai_html
-        + "<h2>Focus Names This Week</h2>"
+        + "<h2>Top 5 This Week</h2>"
         + "<div class='focus-grid'>" + focus_cards + "</div>"
         + macro_html
         + leaderboard_html
@@ -629,21 +687,26 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         log.info("ANTHROPIC_API_KEY not set — skipping AI brief.")
         return ""
 
-    focus_df     = select_focus_names(persistence_df)
+    top5         = persistence_df.head(5)
     newline      = "\n"
     ticker_lines = []
 
-    for _, row in focus_df.iterrows():
-        atr   = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "n/a"
-        eps   = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "n/a"
-        multi = f" | x{row['Max Appearances']} screeners same day" if row["Max Appearances"] >= 2 else ""
-        ep    = " | EPISODIC PIVOT — gap/surge + new high + multi-screen" if row["EP"] else ""
+    for _, row in top5.iterrows():
+        atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "n/a"
+        eps      = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "n/a"
+        sig_tags = []
+        if row.get("EP"):    sig_tags.append("EPISODIC PIVOT (gap+high+multi-screen)")
+        if row.get("IPO"):   sig_tags.append("IPO LIFECYCLE")
+        if row.get("MULTI"): sig_tags.append("3+ SCREENERS SAME DAY")
+        if row.get("HIGH") and not row.get("EP"): sig_tags.append("52W HIGH")
+        sig_str = " | " + " + ".join(sig_tags) if sig_tags else ""
+        bonus   = int(row["Signal Score"] - row["Base Score"])
         ticker_lines.append(
             f"{row['Ticker']} ({row['Sector']} / {row['Industry']}) "
             f"| {row['Days Seen']}/{row['Total Days']} days "
-            f"| conviction {row['Conviction']} "
+            f"| signal score {row['Signal Score']:.0f} (base {row['Base Score']:.0f}, +{bonus} bonus) "
             f"| ATR {atr} | EPS {eps} "
-            f"| screeners: {row['Screeners Hit']}{multi}{ep}"
+            f"| screeners: {row['Screeners Hit']}{sig_str}"
         )
 
     macro_lines = [
@@ -670,15 +733,17 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
 
     prompt = (
         f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
-        "These are the focus names for the week — top conviction leaders plus any episodic pivot setups:\n"
+        "Top 5 names this week, ranked by unified signal score "
+        "(persistence + EP bonus + IPO bonus + multi-screen bonus + 52w high bonus):\n"
         f"{newline.join(ticker_lines)}\n\n"
         f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
         f"{fng_ctx}{crypto_ctx}\n\n"
         "Write a sharp weekly brief (4-6 paragraphs):\n"
-        "1. For each focus name: why it stands out, what the screener combination tells you, "
-        "what to watch for next week. For EP candidates — explain the catalyst signature.\n"
-        "2. Sector themes and macro backdrop.\n"
-        "3. What to do Monday — specific names, specific triggers.\n\n"
+        "1. For each of the top 5: why it ranks here, what its signal tags mean in plain English, "
+        "what to watch next week. For EP names — explain the catalyst signature. "
+        "For IPO names — what lifecycle stage and why that matters.\n"
+        "2. Sector themes and macro backdrop — what's supporting or fighting these names?\n"
+        "3. Monday plan — specific names, specific entry triggers to watch.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
     )
 
@@ -720,17 +785,20 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
 
-    week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
-    focus_df   = select_focus_names(persistence_df)
-
+    week_range   = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
+    top5         = persistence_df.head(5)
     ticker_lines = []
-    for _, row in focus_df.iterrows():
-        atr   = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
-        multi = f" · x{row['Max Appearances']}" if row["Max Appearances"] >= 2 else ""
-        ep    = " · ⚡ EP" if row["EP"] else ""
+
+    for _, row in top5.iterrows():
+        atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
+        tags     = []
+        if row.get("EP"):    tags.append("⚡EP")
+        if row.get("IPO"):   tags.append("🚀IPO")
+        if row.get("MULTI"): tags.append("x3")
+        tag_str  = " " + " ".join(tags) if tags else ""
         ticker_lines.append(
-            f"*{row['Ticker']}* · {row['Sector']} · "
-            f"{row['Days Seen']}/{row['Total Days']}d{multi}{ep}\n"
+            f"*{row['Ticker']}*{tag_str} · {row['Sector']} · "
+            f"{row['Days Seen']}/{row['Total Days']}d · score {row['Signal Score']:.0f}\n"
             f" _{row['Screeners Hit']}_"
         )
 
@@ -778,7 +846,7 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
 
     macro_str = " · ".join(macro_movers) if macro_movers else ""
     body = (
-        "*Focus names this week:*\n"
+        "*Top 5 this week:*\n"
         + "\n".join(ticker_lines)
         + (f"\n\n*Macro movers:* {macro_str}" if macro_str else "")
         + fng_line + crypto_line + gallery_link
@@ -811,14 +879,15 @@ if __name__ == "__main__":
     persistence_df = build_persistence_scores(combined_df, dates_found)
     log.info(f"{len(persistence_df)} unique tickers scored")
 
-    ep_tickers = persistence_df[persistence_df["EP"]]["Ticker"].tolist()
-    log.info(f"EP candidates ({len(ep_tickers)}): {ep_tickers}")
-
-    focus_df = select_focus_names(persistence_df)
-    log.info(f"Focus names: {focus_df['Ticker'].tolist()}")
-
-    lb_df = select_leaderboard(persistence_df)
-    log.info(f"Leaderboard: {len(lb_df)} names above threshold")
+    top5 = persistence_df.head(5)
+    log.info("Top 5 by signal score:")
+    for _, row in top5.iterrows():
+        tags = []
+        if row["EP"]:    tags.append("EP")
+        if row["IPO"]:   tags.append("IPO")
+        if row["MULTI"]: tags.append("MULTI")
+        tag_str = " [" + ",".join(tags) + "]" if tags else ""
+        log.info(f"  {row['Ticker']}{tag_str} signal={row['Signal Score']} base={row['Base Score']}")
 
     os.makedirs(DATA_DIR, exist_ok=True)
     persistence_df.to_csv(
