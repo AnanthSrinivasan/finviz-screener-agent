@@ -482,7 +482,7 @@ def _classify_ticker(row) -> str:
     return 'watch'
 
 
-def _build_card(t: str, row, finviz_base: str) -> str:
+def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     chart_url  = f"{finviz_base}/chart.ashx?t={t}&ty=c&ta=1&p=d&s=m"
     finviz_url = f"{finviz_base}/quote.ashx?t={t}"
 
@@ -527,6 +527,10 @@ def _build_card(t: str, row, finviz_base: str) -> str:
 
     vcp_badge    = '<span class="tag-vcp">VCP</span>'           if vcp_ok       else ''
     perfect_badge= '<span class="tag-perf">⚡ aligned</span>'  if stage_perfect else ''
+    sector_lead_badge = (
+        '<span class="tag-sector-lead">🏆 Lead Sector</span>'
+        if top_sectors and sector and sector in top_sectors else ''
+    )
 
     sma_html = (
         f'<div class="sma-row">'
@@ -549,7 +553,7 @@ def _build_card(t: str, row, finviz_base: str) -> str:
     </div>
   </div>
   <div class="stage-row">
-    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}
+    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}
   </div>
   {sector_html}
   {sma_html}
@@ -579,13 +583,20 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
         'watch':    {'title': '👀 Watch List',             'subtitle': 'Transitional or lower conviction — monitor, do not chase',        'cards': []},
     }
 
+    # Compute dominant sectors (top 2 by ticker count) for sector discipline badge
+    if 'Sector' in filter_df.columns:
+        sector_counts = filter_df['Sector'].dropna().value_counts()
+        top_sectors = set(sector_counts.head(2).index.tolist())
+    else:
+        top_sectors = set()
+
     for t in tickers:
         rows = filter_df[filter_df['Ticker'] == t]
         if rows.empty:
             continue
         row     = rows.iloc[0]
         section = _classify_ticker(row)
-        card    = _build_card(t, row, FINVIZ_BASE)
+        card    = _build_card(t, row, FINVIZ_BASE, top_sectors)
         sections[section]['cards'].append(card)
 
     sections_html = ""
@@ -637,6 +648,8 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-ite
              padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
 .tag-perf {{ font-size: 9px; background: #14532d; color: #86efac;
              padding: 1px 5px; border-radius: 3px; font-weight: 600; }}
+.tag-sector-lead {{ font-size: 9px; background: #312e81; color: #a5b4fc;
+                    padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
 .sector-tag {{ font-size: 0.7rem; color: #38bdf8; background: #0c2240;
                border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
 .sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }}

@@ -32,6 +32,7 @@ SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 FINVIZ_BASE = "https://finviz.com"
 EARNINGS_WINDOW_DAYS = 7       # alert if earnings within this many days
 MIN_APPEARANCES = 2            # only check tickers that appeared 2+ days this week
+MIN_QUALITY_SCORE = 50         # skip tickers below this quality score
 DATA_DIR = "data"
 
 USER_AGENTS = [
@@ -220,6 +221,16 @@ def find_upcoming_earnings(tickers: dict) -> list:
     upcoming = []
 
     for ticker, meta in tickers.items():
+        # Quality + sector discipline filter — skip noise before hitting Finviz
+        quality = meta.get("quality")
+        sector  = meta.get("sector") or ""
+        if quality is None or quality <= MIN_QUALITY_SCORE:
+            log.info(f"{ticker}: skipped — Quality Score {quality} <= {MIN_QUALITY_SCORE}")
+            continue
+        if not sector:
+            log.info(f"{ticker}: skipped — no sector data")
+            continue
+
         earnings_date = fetch_earnings_date(ticker, session)
 
         if earnings_date is None:
