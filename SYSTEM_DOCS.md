@@ -26,84 +26,96 @@ Stay in your sectors. The discipline gap costs ~$9K/year, not skills.
 
 ## 2. Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│  GITHUB ACTIONS (scheduler)                                                     │
-│                                                                                 │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌─────────────────┐  ┌────────────┐│
-│  │ daily-finviz.yml│  │weekly-finviz.yml │  │earnings-alert   │  │position-   ││
-│  │ Mon-Fri 21:30   │  │Sunday 18:00      │  │.yml Mon-Fri     │  │monitor.yml ││
-│  │ UTC             │  │UTC               │  │22:30 UTC        │  │every 30min ││
-│  └───────┬─────────┘  └────────┬─────────┘  └───────┬─────────┘  └──────┬─────┘│
-└──────────┼─────────────────────┼────────────────────┼───────────────────┼───────┘
-           │                     │                    │                   │
-           ▼                     ▼                    ▼                   ▼
-┌─────────────────┐  ┌────────────────────┐  ┌─────────────────┐  ┌────────────────┐
-│ finviz_agent.py │  │finviz_weekly_      │  │finviz_earnings_ │  │finviz_position_│
-│                 │  │agent.py            │  │alert.py         │  │monitor.py      │
-│ • 5 screeners   │  │                    │  │                 │  │                │
-│ • Quality Score │  │ • Persistence score│  │ • Quality > 50  │  │ • $4500 hard   │
-│ • Stage analysis│  │ • Agent 2: catalyst│  │ • Sector filter │  │   stop         │
-│ • VCP detection │  │   research (web)   │  │ • 7-day window  │  │ • ATR exits    │
-│ • Sector badge  │  │ • Agent 3: synth   │  │                 │  │ • Peel levels  │
-│ • AI summary    │  │   brief (Claude)   │  │                 │  │                │
-└──┬───────┬──────┘  └──┬──────┬──────────┘  └──┬──────────────┘  └──┬─────────────┘
-   │       │            │      │                 │                    │
-   │       │            │      │                 │                    │
+```mermaid
+flowchart TB
+    subgraph GHA["GitHub Actions (scheduler)"]
+        direction LR
+        W1["daily-finviz.yml<br/><i>Mon-Fri 21:30 UTC</i>"]
+        W2["weekly-finviz.yml<br/><i>Sunday 18:00 UTC</i>"]
+        W3["earnings-alert.yml<br/><i>Mon-Fri 22:30 UTC</i>"]
+        W4["position-monitor.yml<br/><i>every 30 min</i>"]
+    end
 
-═══════════════════════════  EXTERNAL DATA SOURCES  ═══════════════════════════════
+    subgraph AGENTS["Python Agents"]
+        direction LR
+        A1["<b>finviz_agent.py</b><br/>5 screeners · Quality Score<br/>Stage analysis · VCP detection<br/>Sector badge · AI summary"]
+        A2["<b>finviz_weekly_agent.py</b><br/>Persistence scoring<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
+        A3["<b>finviz_earnings_alert.py</b><br/>Quality &gt; 50 filter<br/>Sector filter<br/>7-day earnings window"]
+        A4["<b>finviz_position_monitor.py</b><br/>$4,500 hard stop 🚨<br/>ATR exit system<br/>Peel levels"]
+    end
 
-┌───────────────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐
-│ finviz.com                │  │ CoinGecko API    │  │ Anthropic API (Claude)   │
-│ screener + quote pages    │  │ CNN Fear & Greed │  │ • daily AI summaries     │
-│                           │  │                  │  │ • Agent 2: web_search    │
-│ ◄── daily, weekly,       │  │ ◄── weekly agent │  │   catalyst research      │
-│     earnings agents       │  │                  │  │ • Agent 3: synthesised   │
-└───────────────────────────┘  └──────────────────┘  │   weekly brief           │
-                                                     │                          │
-┌───────────────────────────┐                        │ ◄── daily, weekly,       │
-│ SnapTrade API             │                        │     position agents      │
-│ Robinhood positions       │                        └──────────────────────────┘
-│                           │
-│ ◄── position monitor      │
-└───────────────────────────┘
+    W1 --> A1
+    W2 --> A2
+    W3 --> A3
+    W4 --> A4
 
-═══════════════════════════════  OUTPUTS  ══════════════════════════════════════════
+    subgraph EXT["External Data Sources"]
+        direction LR
+        E1[("finviz.com<br/>screener + quote pages")]
+        E2[("CoinGecko API<br/>CNN Fear &amp; Greed")]
+        E3[("Anthropic API<br/><i>Claude Sonnet</i><br/>daily summaries<br/>web_search catalysts<br/>synthesised brief")]
+        E4[("SnapTrade API<br/>Robinhood positions")]
+    end
 
-┌──────────────────────────┐  ┌──────────────────────────┐
-│ data/*.csv               │  │ data/*.html              │
-│ enriched daily screener  │  │ chart gallery (daily)    │
-│ weekly persistence scores│  │ weekly report + AI brief │
-└────────────┬─────────────┘  └────────────┬─────────────┘
-             │                             │
-             └──────────┬──────────────────┘
-                        ▼
-          ┌──────────────────────────┐
-          │ GitHub Pages             │
-          │ live reports index       │
-          └──────────────────────────┘
+    E1 -.-> A1
+    E1 -.-> A2
+    E1 -.-> A3
+    E2 -.-> A2
+    E3 -.-> A1
+    E3 -.-> A2
+    E3 -.-> A4
+    E4 -.-> A4
 
-═══════════════════════════  SLACK CHANNELS  ═══════════════════════════════════════
+    subgraph OUT["Outputs"]
+        direction LR
+        O1["data/*.csv<br/><i>enriched daily screener<br/>weekly persistence scores</i>"]
+        O2["data/*.html<br/><i>chart gallery<br/>weekly report + AI brief</i>"]
+    end
 
-┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│ #daily-alerts│  │#weekly-alerts│  │ #general-alerts  │  │ #positions       │
-│              │  │              │  │                  │  │                  │
-│ quality picks│  │ top 5 + AI   │  │ earnings alerts  │  │ ATR exits + P&L  │
-│ + gallery    │  │ brief +      │  │ hard stop fires  │  │ peel signals     │
-│ link         │  │ catalyst     │  │ breadth alerts   │  │                  │
-│              │  │ research     │  │                  │  │                  │
-│ ◄── daily    │  │ ◄── weekly   │  │ ◄── earnings,    │  │ ◄── position     │
-│    agent     │  │    agent     │  │   alerts, pos.   │  │    monitor       │
-└──────────────┘  └──────────────┘  └──────────────────┘  └──────────────────┘
+    A1 --> O1
+    A1 --> O2
+    A2 --> O1
+    A2 --> O2
 
-═══════════════════════════  RISK RULES (hard-coded)  ═════════════════════════════
+    O1 --> GP["GitHub Pages<br/>live reports index"]
+    O2 --> GP
 
-┌──────────────────┐  ┌──────────────────┐  ┌───────────────────────────────────┐
-│ $4,500 hard stop │  │ ATR exit system  │  │ Sector discipline                 │
-│ per position     │  │ +1x peel         │  │ crypto/fintech · macro · stage 2  │
-│ max loss         │  │ -1x stop         │  │ outside edge = watch list only    │
-│                  │  │ -1.5x full exit  │  │                                   │
-└──────────────────┘  └──────────────────┘  └───────────────────────────────────┘
+    subgraph SLACK["Slack Channels"]
+        direction LR
+        S1["<b>#daily-alerts</b><br/>quality picks + gallery"]
+        S2["<b>#weekly-alerts</b><br/>top 5 + catalyst brief"]
+        S3["<b>#general-alerts</b><br/>earnings · hard stops · breadth"]
+        S4["<b>#positions</b><br/>ATR exits + P&amp;L"]
+    end
+
+    A1 ==> S1
+    A2 ==> S2
+    A3 ==> S3
+    A4 ==> S4
+
+    subgraph RISK["Risk Rules (hard-coded)"]
+        direction LR
+        R1["🚨 $4,500 hard stop<br/><i>per position max loss</i>"]
+        R2["📊 ATR exit system<br/><i>+1x peel · -1x stop · -1.5x exit</i>"]
+        R3["🔒 Sector discipline<br/><i>crypto/fintech · macro · stage 2</i>"]
+    end
+
+    style GHA fill:#e8eaf6,stroke:#9fa8da,color:#333
+    style AGENTS fill:#e3f2fd,stroke:#1976d2,color:#333
+    style EXT fill:#f5f5f5,stroke:#bbb,color:#333
+    style OUT fill:#f3e5f5,stroke:#7b1fa2,color:#333
+    style SLACK fill:#e8f5e9,stroke:#2e7d32,color:#333
+    style RISK fill:#ffebee,stroke:#c62828,color:#333
+    style GP fill:#f3e5f5,stroke:#7b1fa2,color:#333
+
+    style A2 fill:#f3e5f5,stroke:#7b1fa2,color:#333
+    style A3 fill:#fff8e1,stroke:#f57f17,color:#333
+    style A4 fill:#e0f2f1,stroke:#00695c,color:#333
+    style E3 fill:#fce4ec,stroke:#c62828,color:#333
+
+    style R1 fill:#ffebee,stroke:#c62828,color:#b71c1c
+    style R2 fill:#fbe9e7,stroke:#bf360c,color:#bf360c
+    style R3 fill:#fff8e1,stroke:#f57f17,color:#e65100
 ```
 
 ---
