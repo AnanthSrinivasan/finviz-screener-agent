@@ -89,16 +89,13 @@ def load_weekly_data(data_dir: str, lookback_days: int = 7) -> tuple:
 
 def _is_ep(screeners_hit: set, max_appearances: int) -> bool:
     """
-    Tight Episodic Pivot criteria — all three must be true:
-    1. Gap/surge screener fired: '10% Change' OR 'Week 20%+ Gain'
-    2. '52 Week High' also fired (confirms the move is a real breakout, not a dead-cat)
-    3. Multi-screener on same day (max_appearances >= 2) — confirms volume conviction
-
-    PL this week: 10% Change + 52 Week High + Week 20%+ Gain + x3 appearances = EP.
-    A stock that only hit '10% Change' once without a new high is NOT an EP.
+    Tight EP criteria — all three required:
+    1. Gap/surge screener: '10% Change' OR 'Week 20%+ Gain'
+    2. '52 Week High' also fired (real breakout, not a bounce)
+    3. max_appearances >= 2 (multi-screener same day = volume conviction)
     """
-    has_gap  = "10% Change" in screeners_hit or "Week 20%+ Gain" in screeners_hit
-    has_high = "52 Week High" in screeners_hit
+    has_gap   = "10% Change" in screeners_hit or "Week 20%+ Gain" in screeners_hit
+    has_high  = "52 Week High" in screeners_hit
     has_multi = max_appearances >= 2
     return has_gap and has_high and has_multi
 
@@ -169,17 +166,25 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd
 
 
 def select_focus_names(persistence_df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
-    """
-    Select the week's focus names:
-    - Start with top 3 by conviction (the persistent leaders)
-    - Add up to 2 EP candidates not already in top 3 (the explosive setups)
-    - Result: max 5 names, mix of persistence leaders + EP catalysts
-    """
+    """Top 3 conviction + up to 2 EP candidates not already in top 3."""
     top3   = persistence_df.head(3)
     ep_df  = persistence_df[persistence_df["EP"] == True]
     ep_new = ep_df[~ep_df["Ticker"].isin(top3["Ticker"].tolist())].head(2)
-    focus  = pd.concat([top3, ep_new]).drop_duplicates("Ticker")
-    return focus.head(n)
+    return pd.concat([top3, ep_new]).drop_duplicates("Ticker").head(n)
+
+
+def select_leaderboard(persistence_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Recurring names worth monitoring — filtered to the upper half by conviction.
+    If max score is 150, show everything >= 75.
+    Hard cap at 30 names so it stays scannable.
+    """
+    if persistence_df.empty:
+        return persistence_df
+    max_score  = persistence_df["Conviction"].max()
+    threshold  = max_score / 2
+    filtered   = persistence_df[persistence_df["Conviction"] >= threshold]
+    return filtered.head(30)
 
 
 # ----------------------------
@@ -295,12 +300,12 @@ def fetch_fear_and_greed() -> dict:
         recent_30  = historical[-30:] if len(historical) >= 30 else historical
         scores     = [d["y"] for d in recent_30] if recent_30 else []
         result = {
-            "score":         round(fg.get("score", 0), 1),
-            "rating":        fg.get("rating", "unknown").title(),
-            "prev_close":    round(fg.get("previous_close",   0), 1),
-            "prev_1_week":   round(fg.get("previous_1_week",  0), 1),
-            "prev_1_month":  round(fg.get("previous_1_month", 0), 1),
-            "prev_1_year":   round(fg.get("previous_1_year",  0), 1),
+            "score":          round(fg.get("score", 0), 1),
+            "rating":         fg.get("rating", "unknown").title(),
+            "prev_close":     round(fg.get("previous_close",   0), 1),
+            "prev_1_week":    round(fg.get("previous_1_week",  0), 1),
+            "prev_1_month":   round(fg.get("previous_1_month", 0), 1),
+            "prev_1_year":    round(fg.get("previous_1_year",  0), 1),
             "trend_30d_low":  round(min(scores), 1) if scores else None,
             "trend_30d_high": round(max(scores), 1) if scores else None,
             "trend_30d_avg":  round(sum(scores)/len(scores), 1) if scores else None,
@@ -331,13 +336,13 @@ def _fng_context(score: float, prev_month: float) -> str:
         ctx  = "caution warranted, momentum stocks face headwinds"
     elif score <= 55:
         base = "Neutral"
-        ctx  = "no strong directional bias, stock-picking matters more than macro"
+        ctx  = "no strong directional bias"
     elif score <= 75:
         base = "Greed"
         ctx  = "momentum favourable, watch for overextension"
     else:
         base = "Extreme Greed"
-        ctx  = "late-stage momentum — tighten stops, don't chase extended moves"
+        ctx  = "late-stage momentum — tighten stops"
     return f"{base} ({score}). {magnitude}pt {direction} vs last month. {ctx}."
 
 
@@ -353,10 +358,10 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
     week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else today
 
-    # --- FOCUS NAMES: top 3 conviction + up to 2 EPs ---
-    focus_df     = select_focus_names(persistence_df)
-    rank_colors  = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
-    focus_cards  = ""
+    # --- FOCUS CARDS: top 3 + up to 2 EPs ---
+    focus_df    = select_focus_names(persistence_df)
+    rank_colors = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
+    focus_cards = ""
 
     for i, (_, row) in enumerate(focus_df.iterrows()):
         rank_color = rank_colors[i] if i < len(rank_colors) else "#334155"
@@ -364,11 +369,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         total      = row["Total Days"]
         atr        = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
         eps        = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
-        is_ep      = row["EP"]
-        # Label: #1/#2/#3 for conviction leaders, EP for extras
         rank_label = f"#{i+1}" if i < 3 else "EP"
-        ep_badge   = "<span class='ep-badge'>⚡ EP</span>" if is_ep else ""
-        multi_badge= f"<span class='multi-badge'>x{row['Max Appearances']} screens</span>" if row["Max Appearances"] >= 2 else ""
+        ep_badge   = "<span class='ep-badge'>⚡ EP</span>" if row["EP"] else ""
+        mb         = f"<span class='multi-badge'>x{row['Max Appearances']} screens</span>" if row["Max Appearances"] >= 2 else ""
         chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
         fv_url     = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
 
@@ -380,7 +383,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<span class='focus-sector'>{row['Sector']}</span>"
             "</div>"
             f"<div class='focus-company'>{row['Company']}</div>"
-            f"<div class='focus-badges'>{ep_badge}{multi_badge}</div>"
+            f"<div class='focus-badges'>{ep_badge}{mb}</div>"
             f"<div class='focus-persist'>{days}/{total} days · score {row['Conviction']}</div>"
             f"<div class='focus-meta'>ATR {atr} · EPS {eps}</div>"
             f"<div class='focus-screeners'>{row['Screeners Hit']}</div>"
@@ -390,7 +393,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             "</div>"
         )
 
-    # --- MACRO TABLE: colour-coded ---
+    # --- MACRO TABLE ---
     macro_rows = ""
     for symbol, m in macro_data.items():
         wk_cls = _color(m["perf_week"])
@@ -398,7 +401,6 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         dy_cls = _color(m["change"])
         wk_arr = _arrow(m["perf_week"])
         mo_arr = _arrow(m["perf_month"])
-
         macro_rows += (
             "<tr>"
             f"<td class='bold'>{symbol}</td>"
@@ -407,6 +409,43 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<td class='mono {dy_cls}'>{m['change']}</td>"
             f"<td class='mono {wk_cls}'>{wk_arr} {m['perf_week']}</td>"
             f"<td class='mono {mo_cls}'>{mo_arr} {m['perf_month']}</td>"
+            "</tr>"
+        )
+
+    # --- LEADERBOARD: upper half by conviction, max 30 ---
+    leaderboard_df  = select_leaderboard(persistence_df)
+    max_score       = persistence_df["Conviction"].max() if not persistence_df.empty else 100
+    threshold       = max_score / 2
+    leaderboard_rows = ""
+
+    for idx, (_, row) in enumerate(leaderboard_df.iterrows()):
+        days      = row["Days Seen"]
+        total     = row["Total Days"]
+        pct       = int((days / total) * 100) if total > 0 else 0
+        bar_color = "#4f6ef7" if pct >= 80 else "#38bdf8" if pct >= 60 else "#64748b"
+        atr       = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
+        eps       = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
+        apps      = f"x{row['Max Appearances']}" if row["Max Appearances"] >= 2 else ""
+        ep_flag   = " ⚡" if row["EP"] else ""
+        fv_url    = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
+        chart_url = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
+        row_cls   = "ep-row" if row["EP"] else ""
+
+        leaderboard_rows += (
+            f"<tr class='{row_cls}'>"
+            f"<td class='dim'>{idx+1}</td>"
+            f"<td><a href='{fv_url}' target='_blank' class='tlink'>{row['Ticker']}</a>{ep_flag}</td>"
+            f"<td class='company'>{row['Company']}</td>"
+            f"<td><span class='sector-pill'>{row['Sector']}</span></td>"
+            "<td><div class='bar-wrap'>"
+            f"<div class='bar' style='width:{pct}%;background:{bar_color}'></div>"
+            f"<span>{days}/{total}d</span></div></td>"
+            f"<td class='center bold'>{row['Conviction']}</td>"
+            f"<td class='center'>{atr}</td>"
+            f"<td class='center'>{eps}</td>"
+            f"<td class='center'>{apps}</td>"
+            f"<td class='screeners'>{row['Screeners Hit']}</td>"
+            f"<td><a href='{chart_url}' target='_blank' class='chart-link'>chart</a></td>"
             "</tr>"
         )
 
@@ -440,8 +479,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     # --- FEAR & GREED ---
     fng_html = ""
     if fng_data:
-        emoji   = _fng_emoji(fng_data["score"])
-        ctx     = _fng_context(fng_data["score"], fng_data["prev_1_month"])
+        emoji = _fng_emoji(fng_data["score"])
+        ctx   = _fng_context(fng_data["score"], fng_data["prev_1_month"])
         fng_html = (
             "<div class='fng-bar'>"
             "<div>"
@@ -466,71 +505,94 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         "</tr></thead><tbody>" + macro_rows + "</tbody></table>"
     ) if macro_rows else ""
 
+    leaderboard_count = len(leaderboard_df)
+    leaderboard_html  = (
+        f"<h2>Recurring Names — conviction score &gt; {threshold:.0f} ({leaderboard_count} names)</h2>"
+        "<p class='lb-note'>Tickers that kept appearing across multiple days this week. "
+        "⚡ = Episodic Pivot candidate (gap/surge + new high + multi-screen).</p>"
+        "<table class='lb-table'><thead><tr>"
+        "<th>#</th><th>Ticker</th><th>Company</th><th>Sector</th>"
+        "<th>Persistence</th><th>Score</th><th>ATR%</th><th>EPS%</th>"
+        "<th>Multi</th><th>Screeners</th><th>Chart</th>"
+        "</tr></thead><tbody>" + leaderboard_rows + "</tbody></table>"
+    ) if leaderboard_rows else ""
+
     css = """
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body  { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         background: #0f1117; color: #e2e8f0; padding: 32px; max-width: 1400px; }
 h1    { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
-h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 12px;
-        text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #1e2130; padding-bottom: 6px; }
-.subtitle { color: #64748b; font-size: 0.82rem; margin-bottom: 28px; }
+h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px;
+        text-transform: uppercase; letter-spacing: .08em;
+        border-bottom: 1px solid #1a1f2e; padding-bottom: 6px; }
+.subtitle  { color: #64748b; font-size: 0.82rem; margin-bottom: 28px; }
+.lb-note   { font-size: 0.74rem; color: #4b5563; margin-bottom: 10px; }
 .pos  { color: #4ade80; }
 .neg  { color: #f87171; }
 .mono { font-variant-numeric: tabular-nums; }
 .bold { font-weight: 700; }
-
+.dim  { color: #334155; }
 /* Focus cards */
-.focus-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 40px; }
-.focus-card   { background: #1a1f2e; border-radius: 10px; padding: 14px 16px;
-                border: 1px solid #252d40; }
+.focus-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 36px; }
+.focus-card   { background: #1a1f2e; border-radius: 10px; padding: 14px 16px; border: 1px solid #252d40; }
 .focus-rank   { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 6px; }
 .focus-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
 .focus-ticker { font-size: 1.1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; }
 .focus-ticker:hover { color: #a5b4fc; }
-.focus-sector { font-size: 0.63rem; color: #38bdf8; background: #0c2240;
-                padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
-.focus-company   { font-size: 0.68rem; color: #4b5563; margin-bottom: 7px; }
-.focus-badges    { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; min-height: 18px; }
-.ep-badge        { font-size: 0.65rem; background: #451a03; color: #fbbf24;
-                   padding: 1px 6px; border-radius: 3px; font-weight: 700; }
-.multi-badge     { font-size: 0.65rem; background: #1e3a5f; color: #60a5fa;
-                   padding: 1px 6px; border-radius: 3px; }
-.focus-persist   { font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px; }
-.focus-meta      { font-size: 0.7rem; color: #475569; margin-bottom: 5px; }
-.focus-screeners { font-size: 0.65rem; color: #374151; margin-bottom: 9px; line-height: 1.4; }
-.focus-chart     { width: 100%; border-radius: 6px; display: block; }
-
-/* Macro table */
-.macro-table     { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-.macro-table th  { text-align: left; padding: 7px 10px; color: #475569; font-weight: 500;
-                   border-bottom: 1px solid #1e2130; text-transform: uppercase;
-                   font-size: 0.67rem; letter-spacing: .05em; }
-.macro-table td  { padding: 7px 10px; border-bottom: 1px solid #161b27; vertical-align: middle; }
+.focus-sector  { font-size: 0.63rem; color: #38bdf8; background: #0c2240; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.focus-company { font-size: 0.68rem; color: #4b5563; margin-bottom: 6px; }
+.focus-badges  { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; min-height: 18px; }
+.ep-badge      { font-size: 0.65rem; background: #451a03; color: #fbbf24; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.multi-badge   { font-size: 0.65rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
+.focus-persist { font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px; }
+.focus-meta    { font-size: 0.7rem; color: #475569; margin-bottom: 5px; }
+.focus-screeners { font-size: 0.64rem; color: #374151; margin-bottom: 9px; line-height: 1.4; }
+.focus-chart   { width: 100%; border-radius: 6px; display: block; }
+/* Macro */
+.macro-table    { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 8px; }
+.macro-table th { text-align: left; padding: 7px 10px; color: #475569; font-weight: 500;
+                  border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.67rem; letter-spacing: .05em; }
+.macro-table td { padding: 7px 10px; border-bottom: 1px solid #161b27; vertical-align: middle; }
 .macro-table tr:hover td { background: #181d2b; }
-.mname           { color: #64748b; font-size: 0.75rem; }
-
+.mname { color: #64748b; font-size: 0.75rem; }
+/* Leaderboard */
+.lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
+.lb-table th { text-align: left; padding: 6px 9px; color: #475569; font-weight: 500;
+               border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.65rem; letter-spacing: .05em; }
+.lb-table td { padding: 7px 9px; border-bottom: 1px solid #161b27; vertical-align: middle; }
+.lb-table tr:hover td { background: #181d2b; }
+.lb-table tr.ep-row td { background: #1c1708; }
+.lb-table tr.ep-row:hover td { background: #251e0a; }
+.tlink      { color: #7aa2f7; font-weight: 700; text-decoration: none; }
+.tlink:hover { color: #a5b4fc; }
+.chart-link { color: #38bdf8; font-size: 0.7rem; text-decoration: none; }
+.company    { color: #94a3b8; font-size: 0.73rem; }
+.sector-pill { background: #0c2240; color: #38bdf8; font-size: 0.63rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+.screeners  { color: #374151; font-size: 0.67rem; }
+.bar-wrap   { display: flex; align-items: center; gap: 7px; }
+.bar-wrap span { font-size: 0.7rem; color: #94a3b8; white-space: nowrap; }
+.bar        { height: 5px; border-radius: 3px; min-width: 2px; }
+.center     { text-align: center; }
 /* AI brief */
-.ai-brief   { background: #151b2e; border-left: 3px solid #3b55c9;
-              border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 8px; }
+.ai-brief   { background: #151b2e; border-left: 3px solid #3b55c9; border-radius: 0 8px 8px 0;
+              padding: 16px 20px; margin-bottom: 8px; }
 .ai-brief p { line-height: 1.75; color: #c4cfe8; font-size: 0.87rem; margin-bottom: 10px; }
 .ai-brief p:last-child { margin-bottom: 0; }
-
 /* Crypto */
 .crypto-bar  { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .crypto-card { background: #1a1f2e; border-radius: 8px; padding: 13px 16px; min-width: 170px; }
-.cname   { font-size: 0.68rem; color: #64748b; margin-bottom: 3px; }
-.cprice  { font-size: 1.05rem; font-weight: 700; margin-bottom: 5px; }
-.cchanges { display: flex; gap: 10px; font-size: 0.76rem; margin-bottom: 4px; }
-.cmcap   { font-size: 0.67rem; color: #374151; }
-
-/* Fear & Greed */
-.fng-bar    { background: #1a1f2e; border-radius: 8px; padding: 14px 18px;
-              margin-bottom: 8px; display: flex; flex-direction: column; gap: 7px; }
-.fng-label  { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+.cname  { font-size: 0.67rem; color: #64748b; margin-bottom: 3px; }
+.cprice { font-size: 1.05rem; font-weight: 700; margin-bottom: 5px; }
+.cchanges { display: flex; gap: 10px; font-size: 0.75rem; margin-bottom: 4px; }
+.cmcap  { font-size: 0.66rem; color: #374151; }
+/* F&G */
+.fng-bar    { background: #1a1f2e; border-radius: 8px; padding: 14px 18px; margin-bottom: 8px;
+              display: flex; flex-direction: column; gap: 7px; }
+.fng-label  { font-size: 0.64rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
 .fng-score  { font-size: 1.35rem; font-weight: 700; }
-.fng-rating { font-size: 0.75rem; color: #64748b; }
-.fng-ctx    { font-size: 0.79rem; color: #94a3b8; line-height: 1.5; }
-.fng-hist   { display: flex; gap: 16px; font-size: 0.72rem; color: #4b5563; flex-wrap: wrap; }
+.fng-rating { font-size: 0.74rem; color: #64748b; }
+.fng-ctx    { font-size: 0.78rem; color: #94a3b8; line-height: 1.5; }
+.fng-hist   { display: flex; gap: 16px; font-size: 0.71rem; color: #4b5563; flex-wrap: wrap; }
 """
 
     html = (
@@ -547,6 +609,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 12px
         + "<h2>Focus Names This Week</h2>"
         + "<div class='focus-grid'>" + focus_cards + "</div>"
         + macro_html
+        + leaderboard_html
         + "</body></html>"
     )
 
@@ -607,15 +670,14 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
 
     prompt = (
         f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
-        "These are the 3-5 focus names for the week — top conviction leaders plus any episodic pivot setups:\n"
+        "These are the focus names for the week — top conviction leaders plus any episodic pivot setups:\n"
         f"{newline.join(ticker_lines)}\n\n"
         f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
         f"{fng_ctx}{crypto_ctx}\n\n"
         "Write a sharp weekly brief (4-6 paragraphs):\n"
-        "1. For each focus name: why it stands out this week, what the screener combination tells you, "
-        "and what to watch for next week. For EP candidates specifically — explain the catalyst signature "
-        "and why the gap + new high combination matters.\n"
-        "2. Sector themes and macro backdrop — is the tape supportive or are we fighting headwinds?\n"
+        "1. For each focus name: why it stands out, what the screener combination tells you, "
+        "what to watch for next week. For EP candidates — explain the catalyst signature.\n"
+        "2. Sector themes and macro backdrop.\n"
         "3. What to do Monday — specific names, specific triggers.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
     )
@@ -754,6 +816,9 @@ if __name__ == "__main__":
 
     focus_df = select_focus_names(persistence_df)
     log.info(f"Focus names: {focus_df['Ticker'].tolist()}")
+
+    lb_df = select_leaderboard(persistence_df)
+    log.info(f"Leaderboard: {len(lb_df)} names above threshold")
 
     os.makedirs(DATA_DIR, exist_ok=True)
     persistence_df.to_csv(
