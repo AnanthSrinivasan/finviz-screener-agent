@@ -680,9 +680,97 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 # Part 4: AI Brief
 # ----------------------------
 
+# ----------------------------
+# Part 4a: Agent 2 — Catalyst Research
+# ----------------------------
+
+def research_catalysts(persistence_df: pd.DataFrame) -> dict:
+    """
+    Agent 2: For each of the top 5 tickers by signal score, call Claude API
+    with web_search tool to find real catalysts that explain the screener activity.
+    Returns {ticker: research_summary_string}.
+    """
+    if not ANTHROPIC_API_KEY:
+        log.info("ANTHROPIC_API_KEY not set — skipping catalyst research.")
+        return {}
+
+    top5 = persistence_df.head(5)
+    research = {}
+
+    for _, row in top5.iterrows():
+        ticker = row["Ticker"]
+        sector = row.get("Sector", "")
+        industry = row.get("Industry", "")
+        sig_tags = []
+        if row.get("EP"):    sig_tags.append("episodic pivot (gap + new high)")
+        if row.get("IPO"):   sig_tags.append("IPO lifecycle")
+        if row.get("MULTI"): sig_tags.append("3+ screeners same day")
+        if row.get("HIGH") and not row.get("EP"): sig_tags.append("52w high")
+        signal_ctx = (" Signals: " + ", ".join(sig_tags) + ".") if sig_tags else ""
+
+        prompt = (
+            f"Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.{signal_ctx}\n"
+            f"Find: recent earnings beats or misses, analyst upgrades/downgrades, "
+            f"sector tailwinds, any catalyst in the past 2 weeks that explains "
+            f"why this stock appeared in momentum screeners all week.\n"
+            f"Be specific. 3-4 sentences max. No fluff."
+        )
+
+        try:
+            resp = requests.post(
+                ANTHROPIC_API_URL,
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 400,
+                    "tools": [
+                        {
+                            "type": "web_search_20250305",
+                            "name": "web_search",
+                            "max_uses": 3,
+                        }
+                    ],
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=90,
+            )
+            if not resp.ok:
+                log.error(f"Catalyst research HTTP {resp.status_code} for {ticker}: {resp.text}")
+                research[ticker] = ""
+                continue
+
+            # Extract text blocks from the response (skip tool_use / search_result blocks)
+            content_blocks = resp.json().get("content", [])
+            text_parts = [b["text"] for b in content_blocks if b.get("type") == "text" and b.get("text")]
+            summary = " ".join(text_parts).strip()
+
+            if summary:
+                research[ticker] = summary
+                log.info(f"Catalyst research for {ticker}: {summary[:80]}...")
+            else:
+                research[ticker] = ""
+                log.warning(f"No catalyst text returned for {ticker}")
+
+        except Exception as e:
+            log.error(f"Catalyst research failed for {ticker}: {e}")
+            research[ticker] = ""
+
+    found = sum(1 for v in research.values() if v)
+    log.info(f"Catalyst research complete: {found}/{len(research)} tickers with results.")
+    return research
+
+
+# ----------------------------
+# Part 4b: Agent 3 — Synthesiser (enhanced AI brief)
+# ----------------------------
+
 def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
                               dates_found: list, fng_data: dict = None,
-                              crypto_data: dict = None) -> str:
+                              crypto_data: dict = None, research: dict = None) -> str:
     if not ANTHROPIC_API_KEY:
         log.info("ANTHROPIC_API_KEY not set — skipping AI brief.")
         return ""
@@ -731,17 +819,30 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         ]
         crypto_ctx = "\nCrypto: " + " | ".join(lines) + "\n"
 
+    # Agent 3 — build catalyst context from Agent 2 research
+    research_ctx = ""
+    if research:
+        catalyst_lines = []
+        for ticker, summary in research.items():
+            if summary:
+                catalyst_lines.append(f"{ticker}: {summary}")
+        if catalyst_lines:
+            research_ctx = (
+                "\n\nCatalyst research (web-sourced for each top name):\n"
+                + "\n".join(catalyst_lines) + "\n"
+            )
+
     prompt = (
         f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
         "Top 5 names this week, ranked by unified signal score "
         "(persistence + EP bonus + IPO bonus + multi-screen bonus + 52w high bonus):\n"
         f"{newline.join(ticker_lines)}\n\n"
         f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
-        f"{fng_ctx}{crypto_ctx}\n\n"
+        f"{fng_ctx}{crypto_ctx}{research_ctx}\n\n"
         "Write a sharp weekly brief (4-6 paragraphs):\n"
-        "1. For each of the top 5: why it ranks here, what its signal tags mean in plain English, "
-        "what to watch next week. For EP names — explain the catalyst signature. "
-        "For IPO names — what lifecycle stage and why that matters.\n"
+        "1. For each of the top 5: why it ranks here, and critically — use the catalyst research "
+        "to explain the *real-world reason* behind the screener activity (earnings beat, analyst upgrade, "
+        "sector rotation, product launch, etc). Don't just say 'appeared in screeners' — say *why*.\n"
         "2. Sector themes and macro backdrop — what's supporting or fighting these names?\n"
         "3. Monday plan — specific names, specific entry triggers to watch.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
@@ -901,7 +1002,11 @@ if __name__ == "__main__":
     log.info("Fetching crypto...")
     crypto_data = fetch_crypto_data()
 
-    ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data)
+    log.info("Running Agent 2 — catalyst research for top 5...")
+    research    = research_catalysts(persistence_df)
+
+    log.info("Running Agent 3 — synthesised AI brief...")
+    ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data, research)
     weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
     log.info(f"Report: {weekly_html}")
 

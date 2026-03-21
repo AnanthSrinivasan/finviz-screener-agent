@@ -17,6 +17,7 @@ from finviz_agent import (
     send_slack_notification,
 )
 from finviz_earnings_alert import find_upcoming_earnings
+from finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
 
 # ----------------------------
 # Helpers
@@ -459,6 +460,148 @@ class TestEarningsQualityFilter(unittest.TestCase):
         result = find_upcoming_earnings(tickers)
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
+
+
+# ----------------------------
+# Tests: Agent 2 — Catalyst Research
+# ----------------------------
+
+class TestCatalystResearch(unittest.TestCase):
+
+    def _make_persistence_df(self):
+        return pd.DataFrame({
+            "Ticker": ["NVDA", "COIN", "PLTR", "HOOD", "GLD"],
+            "Company": ["Nvidia", "Coinbase", "Palantir", "Robinhood", "SPDR Gold"],
+            "Sector": ["Technology", "Financial", "Technology", "Financial", "Commodities"],
+            "Industry": ["Semiconductors", "Crypto", "Software", "Fintech", "Gold"],
+            "Days Seen": [5, 4, 3, 3, 2],
+            "Total Days": [5, 5, 5, 5, 5],
+            "Max ATR%": [6.0, 5.5, 4.0, 4.5, 2.0],
+            "Max EPS%": [80.0, 30.0, 40.0, 25.0, None],
+            "Max Appearances": [3, 2, 2, 1, 1],
+            "Screeners Hit": ["Growth, 52 Week High", "10% Change, 52 Week High", "Growth", "Growth", "Growth"],
+            "Base Score": [120.0, 100.0, 80.0, 70.0, 50.0],
+            "Signal Score": [150.0, 130.0, 100.0, 70.0, 50.0],
+            "EP": [True, True, False, False, False],
+            "IPO": [False, False, False, False, False],
+            "MULTI": [True, False, False, False, False],
+            "HIGH": [False, False, False, False, False],
+        })
+
+    def test_skips_without_api_key(self):
+        with patch("finviz_weekly_agent.ANTHROPIC_API_KEY", ""):
+            result = research_catalysts(self._make_persistence_df())
+        self.assertEqual(result, {})
+
+    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("finviz_weekly_agent.requests.post")
+    def test_returns_research_for_top5(self, mock_post):
+        mock_resp = MagicMock()
+        mock_resp.ok = True
+        mock_resp.json.return_value = {
+            "content": [
+                {"type": "text", "text": "NVDA beat earnings by 20%, GPU demand surging."}
+            ]
+        }
+        mock_post.return_value = mock_resp
+
+        result = research_catalysts(self._make_persistence_df())
+        self.assertEqual(len(result), 5)
+        self.assertIn("NVDA", result)
+        self.assertIn("beat earnings", result["NVDA"])
+        # Should have made 5 API calls (one per top-5 ticker)
+        self.assertEqual(mock_post.call_count, 5)
+
+    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("finviz_weekly_agent.requests.post")
+    def test_handles_api_failure_gracefully(self, mock_post):
+        mock_post.side_effect = Exception("connection timeout")
+        result = research_catalysts(self._make_persistence_df())
+        self.assertEqual(len(result), 5)
+        # All should be empty strings on failure
+        for v in result.values():
+            self.assertEqual(v, "")
+
+    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("finviz_weekly_agent.requests.post")
+    def test_uses_web_search_tool(self, mock_post):
+        """Verify the API call includes the web_search tool."""
+        mock_resp = MagicMock()
+        mock_resp.ok = True
+        mock_resp.json.return_value = {"content": [{"type": "text", "text": "Research result."}]}
+        mock_post.return_value = mock_resp
+
+        research_catalysts(self._make_persistence_df())
+        # Check first call's payload has tools with web_search
+        call_json = mock_post.call_args_list[0][1]["json"]
+        tools = call_json.get("tools", [])
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]["type"], "web_search_20250305")
+
+
+# ----------------------------
+# Tests: Agent 3 — Synthesised AI Brief
+# ----------------------------
+
+class TestSynthesisedBrief(unittest.TestCase):
+
+    def _make_persistence_df(self):
+        return pd.DataFrame({
+            "Ticker": ["NVDA", "COIN"],
+            "Company": ["Nvidia", "Coinbase"],
+            "Sector": ["Technology", "Financial"],
+            "Industry": ["Semiconductors", "Crypto"],
+            "Days Seen": [5, 4],
+            "Total Days": [5, 5],
+            "Max ATR%": [6.0, 5.5],
+            "Max EPS%": [80.0, 30.0],
+            "Max Appearances": [3, 2],
+            "Screeners Hit": ["Growth, 52 Week High", "10% Change"],
+            "Base Score": [120.0, 100.0],
+            "Signal Score": [150.0, 130.0],
+            "EP": [True, False],
+            "IPO": [False, False],
+            "MULTI": [True, False],
+            "HIGH": [False, False],
+        })
+
+    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("finviz_weekly_agent.requests.post")
+    def test_includes_catalyst_research_in_prompt(self, mock_post):
+        """When research is provided, the prompt should contain the catalyst context."""
+        mock_resp = MagicMock()
+        mock_resp.ok = True
+        mock_resp.json.return_value = {
+            "content": [{"text": "Weekly brief with catalysts."}]
+        }
+        mock_post.return_value = mock_resp
+
+        research = {"NVDA": "Beat Q4 earnings, data center revenue +40%."}
+        result = generate_weekly_ai_brief(
+            self._make_persistence_df(), {}, ["2026-03-15", "2026-03-21"],
+            research=research,
+        )
+        # Check the prompt sent to API contains the research
+        call_json = mock_post.call_args[1]["json"]
+        prompt_text = call_json["messages"][0]["content"]
+        self.assertIn("Beat Q4 earnings", prompt_text)
+        self.assertIn("catalyst research", prompt_text.lower())
+
+    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("finviz_weekly_agent.requests.post")
+    def test_works_without_research(self, mock_post):
+        """Should still work when research=None (backward compatible)."""
+        mock_resp = MagicMock()
+        mock_resp.ok = True
+        mock_resp.json.return_value = {
+            "content": [{"text": "Weekly brief without catalysts."}]
+        }
+        mock_post.return_value = mock_resp
+
+        result = generate_weekly_ai_brief(
+            self._make_persistence_df(), {}, ["2026-03-15", "2026-03-21"],
+        )
+        self.assertEqual(result, "Weekly brief without catalysts.")
 
 
 if __name__ == "__main__":
