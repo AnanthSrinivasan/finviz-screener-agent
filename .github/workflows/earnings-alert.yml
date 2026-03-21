@@ -2,27 +2,31 @@ name: Earnings Alert
 
 on:
   schedule:
-    # 21:00 CET = 20:00 UTC (winter) / 19:00 UTC (summer)
-    # Running at 19:00 UTC covers both — fires before the daily screener
-    - cron: '0 19 * * 1-5'
+    # 22:30 UTC = 00:30 CET / 23:30 CEST
+    # Runs 1 hour after daily screener (21:30 UTC) so enriched CSVs with
+    # ATR%, Quality Score, Stage are already committed to data/
+    - cron: '30 22 * * 1-5'
   workflow_dispatch:  # allow manual trigger for testing
 
 jobs:
   earnings-alert:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TZ: Europe/Luxembourg
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 pandas
+        run: pip install -r requirements.txt
 
       - name: Run earnings alert
         env:
