@@ -2,6 +2,7 @@
 # Finviz Weekly Review Agent
 # ----------------------------
 import os
+import time
 import logging
 import random
 import datetime
@@ -716,48 +717,62 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
             f"Be specific. 3-4 sentences max. No fluff."
         )
 
-        try:
-            resp = requests.post(
-                ANTHROPIC_API_URL,
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-6",
-                    "max_tokens": 400,
-                    "tools": [
-                        {
-                            "type": "web_search_20250305",
-                            "name": "web_search",
-                            "max_uses": 3,
-                        }
-                    ],
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-                timeout=90,
-            )
-            if not resp.ok:
-                log.error(f"Catalyst research HTTP {resp.status_code} for {ticker}: {resp.text}")
+        for attempt in range(3):
+            try:
+                resp = requests.post(
+                    ANTHROPIC_API_URL,
+                    headers={
+                        "x-api-key": ANTHROPIC_API_KEY,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": "claude-sonnet-4-6",
+                        "max_tokens": 400,
+                        "tools": [
+                            {
+                                "type": "web_search_20250305",
+                                "name": "web_search",
+                                "max_uses": 3,
+                            }
+                        ],
+                        "messages": [{"role": "user", "content": prompt}],
+                    },
+                    timeout=90,
+                )
+                if resp.status_code == 429:
+                    wait = 30 * (attempt + 1)
+                    log.warning(f"Catalyst research rate limited for {ticker}, retrying in {wait}s ({attempt + 1}/3)...")
+                    time.sleep(wait)
+                    continue
+                if not resp.ok:
+                    log.error(f"Catalyst research HTTP {resp.status_code} for {ticker}: {resp.text}")
+                    research[ticker] = ""
+                    break
+
+                # Extract text blocks from the response (skip tool_use / search_result blocks)
+                content_blocks = resp.json().get("content", [])
+                text_parts = [b["text"] for b in content_blocks if b.get("type") == "text" and b.get("text")]
+                summary = " ".join(text_parts).strip()
+
+                if summary:
+                    research[ticker] = summary
+                    log.info(f"Catalyst research for {ticker}: {summary[:80]}...")
+                else:
+                    research[ticker] = ""
+                    log.warning(f"No catalyst text returned for {ticker}")
+                break
+
+            except Exception as e:
+                log.error(f"Catalyst research failed for {ticker}: {e}")
                 research[ticker] = ""
-                continue
-
-            # Extract text blocks from the response (skip tool_use / search_result blocks)
-            content_blocks = resp.json().get("content", [])
-            text_parts = [b["text"] for b in content_blocks if b.get("type") == "text" and b.get("text")]
-            summary = " ".join(text_parts).strip()
-
-            if summary:
-                research[ticker] = summary
-                log.info(f"Catalyst research for {ticker}: {summary[:80]}...")
-            else:
-                research[ticker] = ""
-                log.warning(f"No catalyst text returned for {ticker}")
-
-        except Exception as e:
-            log.error(f"Catalyst research failed for {ticker}: {e}")
+                break
+        else:
+            log.error(f"Catalyst research failed for {ticker} after 3 rate-limit retries.")
             research[ticker] = ""
+
+        # Delay between tickers to stay within rate limits
+        time.sleep(15)
 
     found = sum(1 for v in research.values() if v)
     log.info(f"Catalyst research complete: {found}/{len(research)} tickers with results.")
