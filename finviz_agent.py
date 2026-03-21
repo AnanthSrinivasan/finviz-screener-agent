@@ -182,7 +182,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             table = soup.find("table", class_="snapshot-table2")
             if not table:
                 log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
-                return None, None, None, None, None, None
+                return None, None, None, None, None, None, None, None, None
 
             data = {}
             for row in table.find_all("tr"):
@@ -233,7 +233,18 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             avg_vol_raw = data.get("Avg Volume", "0").strip()
             avg_vol = parse_finviz_float(avg_vol_raw, default=0.0)
 
-            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol
+            # SMA % distance fields — Weinstein Stage + Minervini alignment
+            # Finviz returns these as "X.XX%" — positive = price above MA
+            def parse_sma_pct(field):
+                raw = data.get(field, "0%").replace("%", "").strip()
+                try: return float(raw)
+                except: return 0.0
+
+            sma20_pct  = parse_sma_pct("SMA20")
+            sma50_pct  = parse_sma_pct("SMA50")
+            sma200_pct = parse_sma_pct("SMA200")
+
+            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol, sma20_pct, sma50_pct, sma200_pct
 
         except requests.HTTPError as e:
             if e.response.status_code == 429:
@@ -247,7 +258,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             log.error(f"{ticker}: unexpected error — {e}")
             break
 
-    return None, None, None, None, None, None
+    return None, None, None, None, None, None, None, None, None
 
 
 def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -> dict:
@@ -258,6 +269,153 @@ def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -
             ticker = futures[future]
             results[ticker] = future.result()
     return results
+
+
+# ----------------------------
+# Part 2b: Weinstein Stage Analysis
+# ----------------------------
+def compute_stage(row: pd.Series) -> dict:
+    """
+    Stan Weinstein Stage Analysis using SMA % distance fields from Finviz.
+
+    Finviz returns SMA20/50/200 as % distance from price:
+      positive = price is ABOVE that MA
+      negative = price is BELOW that MA
+
+    Stage 2 (uptrend) = mandatory gate for all trades.
+    Stage 3 (distribution) = avoid, this is where SLV Feb entry was.
+    Stage 4 (downtrend) = avoid completely.
+    Stage 1 (basing) = no juice yet, wait.
+
+    Returns dict with stage number, badge, and MA alignment details.
+    """
+    sma20  = float(row.get('SMA20%',  0) or 0)
+    sma50  = float(row.get('SMA50%',  0) or 0)
+    sma200 = float(row.get('SMA200%', 0) or 0)
+
+    # Stage 2 — price above all MAs, MAs properly stacked
+    # Price > SMA20 > SMA50 > SMA200 approximated by:
+    # all pct values positive AND sma20 > sma50 (20-day closest = highest above price)
+    stage2 = (
+        sma20  > 0 and
+        sma50  > 0 and
+        sma200 > 0 and
+        sma20  >= sma50    # 20-day MA closest to price from below = stacked
+    )
+
+    # Perfect Minervini alignment — tighter condition
+    # sma20 > sma50 > sma200 all positive = cleanest Stage 2
+    perfect = stage2 and (sma50 >= sma200)
+
+    # Stage 3 — distribution, price rolled below 50-day but above 200-day
+    stage3 = (sma200 > 0 and sma50 < 0)
+
+    # Stage 4 — downtrend, price below 200-day
+    stage4 = (sma200 < 0)
+
+    # Stage 1 — basing near 200-day, price not yet above 50-day cleanly
+    stage1 = (
+        not stage2 and not stage3 and not stage4 and
+        abs(sma200) < 8    # within 8% of 200-day — basing zone
+    )
+
+    if   stage4:   stage_num = 4
+    elif stage3:   stage_num = 3
+    elif stage2:   stage_num = 2
+    elif stage1:   stage_num = 1
+    else:          stage_num = 0  # transitional
+
+    badges = {
+        2: "🟢 Stage 2",
+        1: "🔵 Stage 1",
+        3: "🔴 Stage 3",
+        4: "⚫ Stage 4",
+        0: "⚪ Transitional",
+    }
+
+    return {
+        "stage":   stage_num,
+        "badge":   badges.get(stage_num, "⚪"),
+        "perfect": perfect,
+        "sma20":   round(sma20,  1),
+        "sma50":   round(sma50,  1),
+        "sma200":  round(sma200, 1),
+    }
+
+
+# ----------------------------
+# Part 2c: Minervini VCP Detection
+# ----------------------------
+def compute_vcp(row: pd.Series) -> dict:
+    """
+    Minervini Volatility Contraction Pattern — daily chart approximation.
+
+    VCP characteristics:
+    1. Stock is in Stage 2 (prerequisite — run this only if stage == 2)
+    2. ATR% is contracting — tightening price range
+    3. Volume dry-up — relative volume below average during base
+    4. Price holding above key MAs — not breaking down
+    5. Each pullback shallower than the last — not directly measurable
+       from snapshot but distance from 52w high tells us how deep we are
+
+    We approximate with available Finviz snapshot data.
+    Full VCP requires historical ATR series — this is a good approximation.
+
+    Returns dict with vcp_possible flag, confidence, and reasoning.
+    """
+    atr_pct      = float(row.get('ATR%',          0) or 0)
+    rel_vol      = float(row.get('Rel Volume',     1) or 1)
+    dist_high    = float(row.get('Dist From High%',0) or 0)  # negative = below high
+    sma20        = float(row.get('SMA20%',         0) or 0)
+    stage_data   = row.get('Stage', {}) or {}
+    stage        = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
+
+    # VCP only meaningful in Stage 2
+    if stage != 2:
+        return {"vcp_possible": False, "confidence": 0, "reason": "Not Stage 2"}
+
+    signals = []
+    confidence = 0
+
+    # 1. Tight base — ATR% low relative to stock's norm
+    # Below 6% ATR = tight daily range = consolidating
+    if atr_pct < 4:
+        signals.append(f"tight range ATR {atr_pct:.1f}%")
+        confidence += 30
+    elif atr_pct < 6:
+        signals.append(f"moderate tightness ATR {atr_pct:.1f}%")
+        confidence += 15
+
+    # 2. Volume dry-up — low relative volume = no selling pressure
+    if rel_vol < 0.8:
+        signals.append(f"volume dry-up RVol {rel_vol:.1f}x")
+        confidence += 30
+    elif rel_vol < 1.0:
+        signals.append(f"below-avg volume RVol {rel_vol:.1f}x")
+        confidence += 15
+
+    # 3. Shallow pullback from high — tight flag
+    # Between -5% and -25% from high = tight correction
+    if -20 < dist_high <= -3:
+        signals.append(f"tight pullback {dist_high:.0f}% from high")
+        confidence += 25
+    elif -30 < dist_high <= -20:
+        signals.append(f"moderate pullback {dist_high:.0f}% from high")
+        confidence += 10
+
+    # 4. Price holding above 20-day MA — not breaking down
+    if sma20 > 0:
+        signals.append("holding above 20-day MA")
+        confidence += 15
+
+    vcp_possible = confidence >= 50
+
+    return {
+        "vcp_possible": vcp_possible,
+        "confidence":   confidence,
+        "signals":      signals,
+        "reason":       " · ".join(signals) if signals else "no VCP signals",
+    }
 
 
 # ----------------------------
@@ -323,6 +481,29 @@ def compute_quality_score(row: pd.Series) -> float:
         elif apps >= 2: score += 10
         else:           score += 0
 
+    # --- Weinstein Stage adjustment ---
+    # Stage 2 = strong bonus. Stage 3/4 = hard penalty.
+    # This is the most important filter — no Stage 3 entries.
+    stage_data = row.get('Stage', {})
+    if isinstance(stage_data, dict):
+        stage_num = stage_data.get('stage', 0)
+        perfect   = stage_data.get('perfect', False)
+        if stage_num == 2:
+            score += 25              # Stage 2 mandatory bonus
+            if perfect:
+                score += 10          # perfect MA alignment (Minervini)
+        elif stage_num == 3:
+            score -= 25              # distribution — avoid
+        elif stage_num == 4:
+            score -= 40              # downtrend — near-eliminate
+        elif stage_num == 1:
+            score -= 10              # basing — no juice yet
+
+    # --- VCP bonus ---
+    vcp_data = row.get('VCP', {})
+    if isinstance(vcp_data, dict) and vcp_data.get('vcp_possible'):
+        score += 15                  # VCP on top of Stage 2 = highest conviction
+
     # --- Distance from 52w high (0-10 pts) ---
     # Beaten down = more room to re-rate = higher score
     # Extended near highs = lower score (risk of being chased)
@@ -339,65 +520,169 @@ def compute_quality_score(row: pd.Series) -> float:
 
 
 # ----------------------------
-# Part 3: Chart Gallery with Sector
+# Part 3: Chart Gallery — Sectioned by Trade Type
 # ----------------------------
+def _classify_ticker(row) -> str:
+    """
+    Classify ticker into one of four gallery sections.
+
+    IPO Lifecycle  — came from IPO screener, evaluate on lifecycle not SMAs
+    Stage 2 Leader — Weinstein Stage 2 confirmed, wealth-building trade
+    Momentum       — high RVol + significant move, 2-4 week play any stage
+    Watch          — everything else, lower conviction
+
+    Returns section key string.
+    """
+    screeners  = str(row.get('Screeners', '') or '')
+    stage_data = row.get('Stage', {}) or {}
+    stage_num  = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
+    rel_vol    = float(row.get('Rel Volume', 1) or 1)
+    atr_pct    = float(row.get('ATR%', 0)       or 0)
+
+    # IPO Lifecycle — from IPO screener, own rules apply
+    if 'IPO' in screeners:
+        return 'ipo'
+
+    # Stage 2 Leader — confirmed uptrend
+    if stage_num == 2:
+        return 'stage2'
+
+    # Momentum / Catalyst — high relative volume + real move, any stage
+    if rel_vol >= 2.0 and atr_pct >= 4.0:
+        return 'momentum'
+
+    # Everything else
+    return 'watch'
+
+
+def _build_card(t: str, row, finviz_base: str) -> str:
+    """Build a single chart card HTML string."""
+    chart_url   = f"{finviz_base}/chart.ashx?t={t}&ty=c&ta=1&p=d&s=m"
+    finviz_url  = f"{finviz_base}/quote.ashx?t={t}"
+
+    atr       = f"{row['ATR%']:.1f}%"            if pd.notna(row.get('ATR%'))          else "—"
+    eps       = f"{row['EPS Y/Y TTM']:.1f}%"     if pd.notna(row.get('EPS Y/Y TTM'))   else "—"
+    apps      = row['Appearances']                if pd.notna(row.get('Appearances'))   else "—"
+    screeners = row.get('Screeners', '')          or ""
+    sector    = row.get('Sector', '')             or ""
+    industry  = row.get('Industry', '')           or ""
+    company   = row.get('Company', '')            or ""
+    mktcap    = row.get('Market Cap', '')         or ""
+    qscore    = f"{row['Quality Score']:.0f}"    if pd.notna(row.get('Quality Score')) else "—"
+    dist      = f"{row['Dist From High%']:.0f}%" if pd.notna(row.get('Dist From High%')) else "—"
+    rel_vol   = f"{row['Rel Volume']:.1f}x"      if pd.notna(row.get('Rel Volume'))    else "—"
+    sma20     = f"{row['SMA20%']:+.1f}%"         if pd.notna(row.get('SMA20%'))        else "—"
+    sma50     = f"{row['SMA50%']:+.1f}%"         if pd.notna(row.get('SMA50%'))        else "—"
+    sma200    = f"{row['SMA200%']:+.1f}%"        if pd.notna(row.get('SMA200%'))       else "—"
+
+    stage_data    = row.get('Stage', {}) or {}
+    stage_num     = stage_data.get('stage',   0)     if isinstance(stage_data, dict) else 0
+    stage_badge   = stage_data.get('badge',   '')     if isinstance(stage_data, dict) else ''
+    stage_perfect = stage_data.get('perfect', False)  if isinstance(stage_data, dict) else False
+
+    vcp_data  = row.get('VCP', {}) or {}
+    vcp_ok    = vcp_data.get('vcp_possible', False) if isinstance(vcp_data, dict) else False
+    vcp_rsn   = vcp_data.get('reason', '')           if isinstance(vcp_data, dict) else ''
+
+    # Card border by stage
+    if   stage_num == 2 and vcp_ok: card_border = "#facc15"  # gold = Stage 2 + VCP
+    elif stage_num == 2:             card_border = "#4ade80"  # green = Stage 2
+    elif stage_num == 3:             card_border = "#f87171"  # red = Stage 3 avoid
+    elif stage_num == 4:             card_border = "#6b7280"  # grey = Stage 4 avoid
+    else:                            card_border = "#2d3148"  # default
+
+    # Quality score colour
+    qs_int = int(float(qscore)) if qscore != "—" else 0
+    if   qs_int >= 60: qs_color = "#4ade80"
+    elif qs_int >= 35: qs_color = "#facc15"
+    else:              qs_color = "#64748b"
+
+    sector_html = ""
+    if sector:
+        label = sector + (f" · {industry}" if industry else "")
+        sector_html = f'<div class="sector-tag">{label}</div>'
+
+    vcp_badge     = '<span class="tag-vcp">VCP</span>' if vcp_ok else ''
+    perfect_badge = '<span class="tag-perf">⚡ aligned</span>' if stage_perfect else ''
+
+    # SMA alignment row — shows MA stack at a glance
+    sma_html = (
+        f'<div class="sma-row">' 
+        f'<span title="vs 20-day MA">20d {sma20}</span>' 
+        f'<span title="vs 50-day MA">50d {sma50}</span>' 
+        f'<span title="vs 200-day MA">200d {sma200}</span>' 
+        f'</div>'
+    )
+
+    return f"""
+    <div class="chart-item" style="border-color:{card_border}">
+      <div class="chart-header">
+        <div>
+          <a href="{finviz_url}" target="_blank" class="ticker-link">{t}</a>
+          {f'<span class="company">{company}</span>' if company else ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+          <span class="badge">{apps} screen{'s' if apps != 1 else ''}</span>
+          <span style="font-size:10px;font-weight:700;color:{qs_color}">Q {qscore}</span>
+        </div>
+      </div>
+      <div class="stage-row">
+        <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}
+      </div>
+      {sector_html}
+      {sma_html}
+      <a href="{finviz_url}" target="_blank">
+        <img src="{chart_url}" alt="{t}" loading="lazy" class="chart-img">
+      </a>
+      <div class="meta">
+        <span title="ATR%">ATR {atr}</span>
+        <span title="EPS Y/Y TTM">EPS {eps}</span>
+        {f'<span title="Market Cap">{mktcap}</span>' if mktcap else ''}
+        <span title="Relative Volume">RVol {rel_vol}</span>
+        <span title="Distance from 52w High">{dist} hi</span>
+      </div>
+      <div class="screeners">{screeners}</div>
+    </div>"""
+
+
 def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
 
-    chart_items = []
+    # Classify all tickers into sections
+    sections = {
+        'stage2':   {'title': '🟢 Stage 2 Leaders',          'subtitle': 'Weinstein Stage 2 confirmed — wealth-building trades',       'cards': []},
+        'ipo':      {'title': '🚀 IPO Lifecycle',             'subtitle': 'IPO screener — evaluate on lifecycle, not SMA rules',         'cards': []},
+        'momentum': {'title': '⚡ Momentum / Catalyst',       'subtitle': 'High relative volume + significant move — 2-4 week plays',    'cards': []},
+        'watch':    {'title': '👀 Watch List',                'subtitle': 'Transitional or lower conviction — monitor, do not chase',    'cards': []},
+    }
+
     for t in tickers:
         rows = filter_df[filter_df['Ticker'] == t]
-        row  = rows.iloc[0] if not rows.empty else None
+        if rows.empty:
+            continue
+        row = rows.iloc[0]
+        section = _classify_ticker(row)
+        card    = _build_card(t, row, FINVIZ_BASE)
+        sections[section]['cards'].append(card)
 
-        chart_url = f"{FINVIZ_BASE}/chart.ashx?t={t}&ty=c&ta=1&p=d&s=m"
-        atr      = f"{row['ATR%']:.1f}%"           if row is not None and pd.notna(row.get('ATR%'))          else "—"
-        eps      = f"{row['EPS Y/Y TTM']:.1f}%"    if row is not None and pd.notna(row.get('EPS Y/Y TTM'))   else "—"
-        apps     = row['Appearances']               if row is not None else "—"
-        screeners= row['Screeners']                 if row is not None else "—"
-        sector   = row.get('Sector', '')            if row is not None else ""
-        industry = row.get('Industry', '')          if row is not None else ""
-        company  = row.get('Company', '')           if row is not None else ""
-        mktcap   = row.get('Market Cap', '')        if row is not None else ""
-        qscore   = f"{row['Quality Score']:.0f}"   if row is not None and pd.notna(row.get('Quality Score')) else "—"
-        dist     = f"{row['Dist From High%']:.0f}%" if row is not None and pd.notna(row.get('Dist From High%')) else "—"
-        rel_vol  = f"{row['Rel Volume']:.1f}x"     if row is not None and pd.notna(row.get('Rel Volume'))    else "—"
+    # Build section HTML
+    sections_html = ""
+    for key, sec in sections.items():
+        if not sec['cards']:
+            continue
+        count = len(sec['cards'])
+        sections_html += f"""
+    <div class="section">
+      <div class="section-header">
+        <h2>{sec['title']} <span class="section-count">{count}</span></h2>
+        <p class="section-sub">{sec['subtitle']}</p>
+      </div>
+      <div class="chart-grid">{"".join(sec['cards'])}</div>
+    </div>"""
 
-        sector_html = ""
-        if sector:
-            label = sector + (f" · {industry}" if industry else "")
-            sector_html = f'<div class="sector-tag">{label}</div>'
-
-        # Quality score colour — green high, amber mid, grey low
-        qs_int = int(float(qscore)) if qscore != "—" else 0
-        if qs_int >= 60:   qs_color = "#4ade80"
-        elif qs_int >= 35: qs_color = "#facc15"
-        else:              qs_color = "#64748b"
-
-        chart_items.append(f"""
-        <div class="chart-item">
-          <div class="chart-header">
-            <div>
-              <span class="ticker">{t}</span>
-              {f'<span class="company">{company}</span>' if company else ''}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
-              <span class="badge">{apps} screen{'s' if apps != 1 else ''}</span>
-              <span style="font-size:10px;font-weight:700;color:{qs_color}">Q {qscore}</span>
-            </div>
-          </div>
-          {sector_html}
-          <img src="{chart_url}" alt="{t}" loading="lazy">
-          <div class="meta">
-            <span title="ATR%">ATR {atr}</span>
-            <span title="EPS Y/Y TTM">EPS {eps}</span>
-            {f'<span title="Market Cap">{mktcap}</span>' if mktcap else ''}
-            <span title="Relative Volume">RVol {rel_vol}</span>
-            <span title="Distance from 52w High">{dist} hi</span>
-          </div>
-          <div class="screeners">{screeners}</div>
-        </div>""")
+    total = sum(len(s['cards']) for s in sections.values())
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -408,29 +693,58 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
          background: #0f1117; color: #e2e8f0; padding: 24px; }}
-  h1 {{ font-size: 1.4rem; font-weight: 600; margin-bottom: 6px; }}
-  .subtitle {{ color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }}
-  .chart-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }}
+
+  .page-title {{ font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }}
+  .page-sub   {{ color: #64748b; font-size: 0.82rem; margin-bottom: 32px; }}
+
+  .section       {{ margin-bottom: 40px; }}
+  .section-header {{ margin-bottom: 14px; border-left: 3px solid #334155; padding-left: 12px; }}
+  h2             {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-items:center; gap:8px; }}
+  .section-count {{ background: #1e2130; color: #64748b; font-size: 0.72rem;
+                   padding: 1px 7px; border-radius: 10px; font-weight: 500; }}
+  .section-sub   {{ font-size: 0.75rem; color: #64748b; margin-top: 4px; }}
+
+  .chart-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }}
+
   .chart-item {{ background: #1e2130; border: 1px solid #2d3148; border-radius: 10px;
-                padding: 12px; transition: border-color .2s; }}
-  .chart-item:hover {{ border-color: #4f6ef7; }}
-  .chart-header {{ display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }}
-  .ticker {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display: block; }}
-  .company {{ font-size: 0.72rem; color: #64748b; display: block; margin-top: 2px; }}
-  .badge {{ background: #2d3f6e; color: #7aa2f7; font-size: 0.72rem; font-weight: 600;
-            padding: 2px 8px; border-radius: 20px; white-space: nowrap; margin-left: 8px; flex-shrink: 0; }}
-  .sector-tag {{ font-size: 0.72rem; color: #38bdf8; background: #0c2240;
-                 border-radius: 4px; padding: 2px 7px; display: inline-block; margin-bottom: 8px; }}
-  .chart-item img {{ width: 100%; border-radius: 6px; display: block; }}
-  .meta {{ display: flex; gap: 8px; margin-top: 10px; font-size: 0.78rem; color: #94a3b8; flex-wrap: wrap; }}
-  .meta span {{ background: #161b27; padding: 3px 8px; border-radius: 4px; }}
-  .screeners {{ margin-top: 6px; font-size: 0.72rem; color: #64748b; line-height: 1.4; }}
+                padding: 12px; transition: border-color .15s; }}
+  .chart-item:hover {{ opacity: .92; }}
+
+  .chart-header {{ display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 5px; }}
+  .ticker-link  {{ font-size: 1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; display: block; }}
+  .ticker-link:hover {{ color: #a5b4fc; text-decoration: underline; }}
+  .company      {{ font-size: 0.7rem; color: #64748b; display: block; margin-top: 1px; }}
+  .badge        {{ background: #2d3f6e; color: #7aa2f7; font-size: 0.7rem; font-weight: 600;
+                  padding: 2px 7px; border-radius: 20px; white-space: nowrap; margin-left: 6px; flex-shrink: 0; }}
+
+  .stage-row    {{ display: flex; align-items: center; gap: 4px; margin: 5px 0; flex-wrap: wrap; }}
+  .stage-badge  {{ font-size: 0.72rem; color: #94a3b8; }}
+  .tag-vcp      {{ font-size: 9px; background: #713f12; color: #fde68a;
+                  padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
+  .tag-perf     {{ font-size: 9px; background: #14532d; color: #86efac;
+                  padding: 1px 5px; border-radius: 3px; font-weight: 600; }}
+
+  .sector-tag   {{ font-size: 0.7rem; color: #38bdf8; background: #0c2240;
+                  border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
+
+  .sma-row      {{ display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }}
+  .sma-row span {{ background: #131825; padding: 1px 5px; border-radius: 3px; }}
+
+  .chart-img    {{ width: 100%; border-radius: 6px; display: block; cursor: pointer;
+                  transition: opacity .15s; }}
+  .chart-img:hover {{ opacity: .85; }}
+
+  .meta         {{ display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap; }}
+  .meta span    {{ background: #161b27; padding: 2px 6px; border-radius: 4px; }}
+  .screeners    {{ margin-top: 5px; font-size: 0.7rem; color: #64748b; line-height: 1.4; }}
+
+  hr.divider    {{ border: none; border-top: 1px solid #1e2130; margin: 32px 0; }}
 </style>
 </head>
 <body>
-  <h1>Finviz Chart Gallery</h1>
-  <p class="subtitle">{today} · {len(tickers)} tickers · ATR% &gt; {ATR_THRESHOLD}</p>
-  <div class="chart-grid">{''.join(chart_items)}</div>
+  <div class="page-title">Finviz Chart Gallery</div>
+  <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
+  {sections_html}
 </body>
 </html>"""
 
@@ -589,14 +903,30 @@ if __name__ == "__main__":
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")
     snapshot_results = fetch_snapshots_concurrent(summary_df['Ticker'].tolist())
 
-    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[0])
-    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[1])
-    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[2])
-    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[3])
-    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[4])
-    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*6)[5])
+    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[0])
+    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[1])
+    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[2])
+    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[3])
+    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[4])
+    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[5])
+    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[6])
+    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[7])
+    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[8])
 
-    # Step 3: Compute quality score + filter
+    # Step 3: Compute Stage, VCP, then Quality Score
+    log.info("Computing Weinstein Stage analysis...")
+    summary_df['Stage'] = summary_df.apply(compute_stage, axis=1)
+
+    stage_counts = summary_df['Stage'].apply(lambda x: x.get('stage', 0) if isinstance(x, dict) else 0).value_counts()
+    for s, count in sorted(stage_counts.items()):
+        labels = {1:"Basing", 2:"Uptrend", 3:"Distribution", 4:"Downtrend", 0:"Transitional"}
+        log.info(f"  Stage {s} ({labels.get(s,'?')}): {count} tickers")
+
+    log.info("Computing VCP signals...")
+    summary_df['VCP'] = summary_df.apply(compute_vcp, axis=1)
+    vcp_count = summary_df['VCP'].apply(lambda x: x.get('vcp_possible', False) if isinstance(x, dict) else False).sum()
+    log.info(f"  VCP possible: {vcp_count} tickers")
+
     summary_df['Quality Score'] = summary_df.apply(compute_quality_score, axis=1)
     filter_df = summary_df[summary_df['ATR%'] > ATR_THRESHOLD].copy()
     filter_df = filter_df.sort_values('Quality Score', ascending=False)
