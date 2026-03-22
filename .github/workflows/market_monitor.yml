@@ -1,0 +1,48 @@
+name: Market Monitor
+
+on:
+  schedule:
+    # 22:00 UTC = 23:00 CET — runs after daily screener at 21:30 UTC
+    # Weekdays only
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Luxembourg
+      SLACK_WEBHOOK_MARKET_ALERTS: ${{ secrets.SLACK_WEBHOOK_MARKET_ALERTS }}
+      SLACK_WEBHOOK_MARKET_DAILY: ${{ secrets.SLACK_WEBHOOK_MARKET_DAILY }}
+      DATA_DIR: "data"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run market monitor
+        run: python finviz_market_monitor.py
+
+      - name: Commit monitor data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/market_monitor_*.json
+          git diff --cached --quiet || git commit -m "chore: market monitor $(date +%Y-%m-%d)"
+          git push
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_MARKET_ALERTS }}" \
+            -H 'Content-type: application/json' \
+            --data '{"text": ":x: *Market monitor failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

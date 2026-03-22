@@ -59,6 +59,43 @@ def make_session() -> requests.Session:
 
 
 # ----------------------------
+# Market Monitor Integration
+# ----------------------------
+
+MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
+
+
+def load_market_state() -> dict | None:
+    """
+    Load the most recent market monitor state for Agent 3 context.
+    Returns the latest day's record, or None if unavailable.
+    """
+    if not os.path.exists(MARKET_HISTORY_FILE):
+        return None
+    try:
+        with open(MARKET_HISTORY_FILE) as f:
+            history = json.load(f)
+        if not history:
+            return None
+        return history[-1]
+    except Exception as e:
+        log.warning(f"Could not load market monitor state: {e}")
+        return None
+
+
+def any_thrust_in_history() -> bool:
+    """Check if any thrust was detected in the last 30 trading days."""
+    if not os.path.exists(MARKET_HISTORY_FILE):
+        return False
+    try:
+        with open(MARKET_HISTORY_FILE) as f:
+            history = json.load(f)
+        return any(d.get("thrust_detected") for d in history)
+    except Exception:
+        return False
+
+
+# ----------------------------
 # Part 1: Score & Rank
 # ----------------------------
 
@@ -915,7 +952,8 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
 
 def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
                               dates_found: list, fng_data: dict = None,
-                              crypto_data: dict = None, research: dict = None) -> str:
+                              crypto_data: dict = None, research: dict = None,
+                              market_state: dict = None) -> str:
     if not ANTHROPIC_API_KEY:
         log.info("ANTHROPIC_API_KEY not set — skipping AI brief.")
         return ""
@@ -981,13 +1019,51 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
                 + "\n".join(catalyst_lines) + "\n"
             )
 
+    # Market monitor context
+    market_ctx = ""
+    if market_state:
+        thrust_recent = any_thrust_in_history()
+        market_ctx = (
+            f"\n\nCURRENT MARKET STATE: {market_state.get('market_state', 'UNKNOWN')}\n"
+            f"5-DAY RATIO: {market_state.get('ratio_5day', 'n/a')}\n"
+            f"10-DAY RATIO: {market_state.get('ratio_10day', 'n/a')}\n"
+            f"T2108: {market_state.get('t2108_equiv', 'n/a')}%\n"
+            f"SPY ABOVE 200D MA: {market_state.get('spy_above_200d', 'n/a')}\n"
+            f"THRUST LAST 30 DAYS: {thrust_recent}\n"
+        )
+
+    market_rules = ""
+    if market_state:
+        state = market_state.get("market_state", "UNKNOWN")
+        if state in ("RED", "BLACKOUT"):
+            market_rules = (
+                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
+                "- Market state is RED/BLACKOUT — do NOT recommend actionable Monday entries.\n"
+                "- Frame the top 5 as 'names to watch when conditions improve'.\n"
+                "- Note what breadth signal would trigger re-entry (e.g. 5-day ratio > 1.5, thrust).\n"
+            )
+        elif state in ("CAUTION",):
+            market_rules = (
+                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
+                "- Market state is CAUTION — recommend entries but at HALF SIZE only.\n"
+                "- Be more selective — only highest conviction setups.\n"
+                "- Note that full sizing requires GREEN confirmation.\n"
+            )
+        elif state in ("GREEN", "THRUST"):
+            market_rules = (
+                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
+                "- Market state is GREEN/THRUST — full size entries are appropriate.\n"
+                "- Recommend entries with specific price levels.\n"
+                "- Size guidance: 10-15% for high conviction names.\n"
+            )
+
     prompt = (
         f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
         "Top 5 names this week, ranked by unified signal score "
         "(persistence + EP bonus + IPO bonus + multi-screen bonus + 52w high bonus):\n"
         f"{newline.join(ticker_lines)}\n\n"
         f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
-        f"{fng_ctx}{crypto_ctx}{research_ctx}\n\n"
+        f"{fng_ctx}{crypto_ctx}{research_ctx}{market_ctx}{market_rules}\n\n"
         "Write a sharp weekly brief (4-6 paragraphs):\n"
         "1. For each of the top 5: why it ranks here, and critically — use the catalyst research "
         "to explain the *real-world reason* behind the screener activity (earnings beat, analyst upgrade, "
@@ -1187,12 +1263,19 @@ if __name__ == "__main__":
     log.info("Running Agent 2 — catalyst research for top 3 (actionable only)...")
     research    = research_catalysts(actionable_df)
 
+    # Load market monitor state for Agent 3
+    market_state = load_market_state()
+    if market_state:
+        log.info(f"Market state: {market_state['market_state']} | 5d ratio: {market_state.get('ratio_5day')}")
+    else:
+        log.info("Market monitor data not available — Agent 3 will run without market context")
+
     # Cooldown — Agent 2 exhausts token bucket; give it time to refill before Agent 3
     log.info("Cooldown 45s before Agent 3...")
     time.sleep(45)
 
     log.info("Running Agent 3 — synthesised AI brief...")
-    ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research)
+    ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research, market_state)
     weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
     log.info(f"Report: {weekly_html}")
 

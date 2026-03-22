@@ -878,5 +878,642 @@ class TestRegressionGuards(unittest.TestCase):
         self.assertEqual(len(result), 1)
 
 
+# ============================================================
+# Market Monitor Tests
+# ============================================================
+
+from finviz_market_monitor import (
+    calculate_metrics,
+    classify_market_state,
+    is_blackout,
+    build_daily_record,
+    THRUST_THRESHOLD,
+    DANGER_DOWN_THRESHOLD,
+)
+from finviz_weekly_agent import load_market_state, any_thrust_in_history
+
+
+def _make_monitor_day(**overrides) -> dict:
+    """Build a market monitor daily record with sensible defaults."""
+    base = {
+        "date": "2026-03-20",
+        "up_4_today": 50,
+        "down_4_today": 100,
+        "up_25_quarter": 200,
+        "down_25_quarter": 400,
+        "above_40ma_count": 600,
+        "total_universe": 1500,
+        "t2108_equiv": 40.0,
+        "thrust_detected": False,
+        "fg": 45.0,
+        "spy_price": 550.0,
+        "spy_sma200_pct": 2.0,
+        "spy_above_200d": True,
+        "market_state": "RED",
+        "state_message": "No new trades",
+        "ratio_today": 0.5,
+        "ratio_5day": 0.6,
+        "ratio_10day": 0.7,
+        "blackout": False,
+    }
+    base.update(overrides)
+    return base
+
+
+class TestCalculateMetrics(unittest.TestCase):
+    """Tests for breadth ratio calculations and thrust detection."""
+
+    def test_daily_ratio_basic(self):
+        """Daily ratio = up_4 / down_4."""
+        today = {"up_4_today": 100, "down_4_today": 50,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertAlmostEqual(metrics["ratio_today"], 2.0)
+
+    def test_daily_ratio_zero_down(self):
+        """Zero down stocks should not divide by zero."""
+        today = {"up_4_today": 100, "down_4_today": 0,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertEqual(metrics["ratio_today"], 100.0)
+
+    def test_5day_ratio_with_history(self):
+        """5-day ratio uses last 4 history days + today."""
+        history = [
+            {"up_4_today": 80, "down_4_today": 40},
+            {"up_4_today": 60, "down_4_today": 30},
+            {"up_4_today": 100, "down_4_today": 50},
+            {"up_4_today": 70, "down_4_today": 35},
+        ]
+        today = {"up_4_today": 90, "down_4_today": 45,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics(history, today)
+        # (80+60+100+70+90) / (40+30+50+35+45) = 400/200 = 2.0
+        self.assertAlmostEqual(metrics["ratio_5day"], 2.0)
+
+    def test_5day_ratio_short_history(self):
+        """With less than 4 history days, uses what's available + today."""
+        history = [{"up_4_today": 100, "down_4_today": 50}]
+        today = {"up_4_today": 100, "down_4_today": 50,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics(history, today)
+        self.assertAlmostEqual(metrics["ratio_5day"], 2.0)
+
+    def test_10day_ratio_with_full_history(self):
+        """10-day ratio uses last 9 history days + today."""
+        history = [{"up_4_today": 50, "down_4_today": 100}] * 9
+        today = {"up_4_today": 50, "down_4_today": 100,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics(history, today)
+        self.assertAlmostEqual(metrics["ratio_10day"], 0.5)
+
+    def test_thrust_detected_at_threshold(self):
+        """Thrust fires when up_4 >= THRUST_THRESHOLD."""
+        today = {"up_4_today": THRUST_THRESHOLD, "down_4_today": 10,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertTrue(metrics["thrust"])
+
+    def test_thrust_not_detected_below_threshold(self):
+        """Thrust does not fire below threshold."""
+        today = {"up_4_today": THRUST_THRESHOLD - 1, "down_4_today": 10,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertFalse(metrics["thrust"])
+
+    def test_t2108_calculation(self):
+        """T2108 = above_40ma / total_universe * 100."""
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 750, "total_universe": 1500,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertAlmostEqual(metrics["t2108"], 50.0)
+
+    def test_t2108_zero_universe(self):
+        """T2108 should be 0 when total universe is 0."""
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 0, "total_universe": 0,
+                 "spy_sma200_pct": 1.0}
+        metrics = calculate_metrics([], today)
+        self.assertEqual(metrics["t2108"], 0)
+
+    def test_spy_above_200d_positive(self):
+        """SPY is above 200d MA when sma200_pct > 0."""
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": 3.5}
+        metrics = calculate_metrics([], today)
+        self.assertTrue(metrics["spy_above_200d"])
+
+    def test_spy_below_200d_negative(self):
+        """SPY is below 200d MA when sma200_pct < 0."""
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": -2.0}
+        metrics = calculate_metrics([], today)
+        self.assertFalse(metrics["spy_above_200d"])
+
+    def test_spy_200d_none(self):
+        """SPY above 200d should be False when data unavailable."""
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 700, "total_universe": 1500,
+                 "spy_sma200_pct": None}
+        metrics = calculate_metrics([], today)
+        self.assertFalse(metrics["spy_above_200d"])
+
+
+class TestBlackoutPeriods(unittest.TestCase):
+    """Tests for seasonal blackout detection."""
+
+    def test_september_is_blackout(self):
+        self.assertTrue(is_blackout(datetime.date(2026, 9, 1)))
+        self.assertTrue(is_blackout(datetime.date(2026, 9, 15)))
+        self.assertTrue(is_blackout(datetime.date(2026, 9, 30)))
+
+    def test_october_before_16_is_blackout(self):
+        self.assertTrue(is_blackout(datetime.date(2026, 10, 1)))
+        self.assertTrue(is_blackout(datetime.date(2026, 10, 15)))
+
+    def test_october_after_15_is_not_blackout(self):
+        self.assertFalse(is_blackout(datetime.date(2026, 10, 16)))
+        self.assertFalse(is_blackout(datetime.date(2026, 10, 31)))
+
+    def test_february_is_blackout(self):
+        self.assertTrue(is_blackout(datetime.date(2026, 2, 1)))
+        self.assertTrue(is_blackout(datetime.date(2026, 2, 28)))
+
+    def test_march_before_16_is_blackout(self):
+        self.assertTrue(is_blackout(datetime.date(2026, 3, 1)))
+        self.assertTrue(is_blackout(datetime.date(2026, 3, 15)))
+
+    def test_march_after_15_is_not_blackout(self):
+        self.assertFalse(is_blackout(datetime.date(2026, 3, 16)))
+        self.assertFalse(is_blackout(datetime.date(2026, 3, 31)))
+
+    def test_normal_months_not_blackout(self):
+        self.assertFalse(is_blackout(datetime.date(2026, 4, 15)))
+        self.assertFalse(is_blackout(datetime.date(2026, 6, 1)))
+        self.assertFalse(is_blackout(datetime.date(2026, 7, 4)))
+        self.assertFalse(is_blackout(datetime.date(2026, 11, 15)))
+        self.assertFalse(is_blackout(datetime.date(2026, 12, 25)))
+        self.assertFalse(is_blackout(datetime.date(2026, 1, 15)))
+
+
+class TestClassifyMarketState(unittest.TestCase):
+    """Tests for market state classification logic."""
+
+    def _make_metrics(self, **overrides):
+        base = {
+            "ratio_today": 1.0,
+            "ratio_5day": 1.0,
+            "ratio_10day": 1.0,
+            "thrust": False,
+            "t2108": 50.0,
+            "spy_above_200d": True,
+        }
+        base.update(overrides)
+        return base
+
+    def test_blackout_overrides_everything(self):
+        """Blackout should override even thrust signals."""
+        metrics = self._make_metrics(thrust=True)
+        today = {"up_4_today": 600, "down_4_today": 10}
+        state, _ = classify_market_state(
+            metrics, fg=80.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 9, 15)
+        )
+        self.assertEqual(state, "BLACKOUT")
+
+    def test_thrust_is_highest_priority_outside_blackout(self):
+        """THRUST should take priority over GREEN when not in blackout."""
+        metrics = self._make_metrics(
+            thrust=True, ratio_5day=3.0, ratio_10day=2.0, t2108=60.0
+        )
+        today = {"up_4_today": 600, "down_4_today": 10}
+        state, msg = classify_market_state(
+            metrics, fg=50.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertEqual(state, "THRUST")
+        self.assertIn("600", msg)
+
+    def test_green_all_conditions_met(self):
+        """GREEN when all conditions satisfied."""
+        metrics = self._make_metrics(
+            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0
+        )
+        today = {"up_4_today": 100, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=45.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertEqual(state, "GREEN")
+
+    def test_green_fails_without_spy_above_200d(self):
+        """GREEN requires SPY above 200d MA."""
+        metrics = self._make_metrics(
+            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0, spy_above_200d=False
+        )
+        today = {"up_4_today": 100, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=45.0, spy_price=500.0, spy_above_200d=False,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertNotEqual(state, "GREEN")
+
+    def test_green_fails_low_fg(self):
+        """GREEN requires F&G >= 35."""
+        metrics = self._make_metrics(
+            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0
+        )
+        today = {"up_4_today": 100, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=20.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertNotEqual(state, "GREEN")
+
+    def test_green_fails_low_t2108(self):
+        """GREEN requires T2108 >= 40."""
+        metrics = self._make_metrics(
+            ratio_5day=2.5, ratio_10day=2.0, t2108=30.0
+        )
+        today = {"up_4_today": 100, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=50.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertNotEqual(state, "GREEN")
+
+    def test_caution_half_conditions(self):
+        """CAUTION when partial conditions met."""
+        metrics = self._make_metrics(
+            ratio_5day=1.6, ratio_10day=1.0, t2108=35.0
+        )
+        today = {"up_4_today": 60, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertEqual(state, "CAUTION")
+
+    def test_caution_fails_without_spy_above_200d(self):
+        """CAUTION also requires SPY above 200d MA."""
+        metrics = self._make_metrics(
+            ratio_5day=1.6, spy_above_200d=False
+        )
+        today = {"up_4_today": 60, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=500.0, spy_above_200d=False,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertNotEqual(state, "CAUTION")
+
+    def test_danger_state(self):
+        """DANGER when down stocks high and 5-day ratio very low."""
+        metrics = self._make_metrics(
+            ratio_5day=0.3, spy_above_200d=False
+        )
+        today = {"up_4_today": 10, "down_4_today": 200}
+        state, _ = classify_market_state(
+            metrics, fg=10.0, spy_price=450.0, spy_above_200d=False,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertEqual(state, "DANGER")
+
+    def test_danger_requires_high_down_count(self):
+        """DANGER needs down_4 >= DANGER_DOWN_THRESHOLD."""
+        metrics = self._make_metrics(
+            ratio_5day=0.3, spy_above_200d=False
+        )
+        today = {"up_4_today": 10, "down_4_today": DANGER_DOWN_THRESHOLD - 1}
+        state, _ = classify_market_state(
+            metrics, fg=10.0, spy_price=450.0, spy_above_200d=False,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertNotEqual(state, "DANGER")
+
+    def test_red_default(self):
+        """RED when nothing else matches."""
+        metrics = self._make_metrics(
+            ratio_5day=0.8, ratio_10day=0.6, spy_above_200d=False
+        )
+        today = {"up_4_today": 30, "down_4_today": 80}
+        state, _ = classify_market_state(
+            metrics, fg=20.0, spy_price=500.0, spy_above_200d=False,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        self.assertEqual(state, "RED")
+
+    def test_none_fg_handled(self):
+        """None F&G should not crash — treated as 0."""
+        metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=2.0, t2108=55.0)
+        today = {"up_4_today": 100, "down_4_today": 40}
+        state, _ = classify_market_state(
+            metrics, fg=None, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15)
+        )
+        # F&G is None → treated as 0, so GREEN won't trigger (needs >= 35)
+        self.assertNotEqual(state, "GREEN")
+
+
+class TestBuildDailyRecord(unittest.TestCase):
+    """Tests for daily record construction."""
+
+    def test_record_has_all_fields(self):
+        """Daily record should contain all expected fields."""
+        today_data = {
+            "up_4_today": 43, "down_4_today": 198,
+            "up_25_quarter": 312, "down_25_quarter": 847,
+            "above_40ma_count": 412, "total_universe": 1587,
+            "fg": 14.6, "spy_price": 548.23, "spy_sma200_pct": -4.0,
+        }
+        metrics = {
+            "ratio_today": 0.22, "ratio_5day": 0.38, "ratio_10day": 0.51,
+            "thrust": False, "t2108": 25.96, "spy_above_200d": False,
+        }
+        record = build_daily_record(
+            datetime.date(2026, 3, 22), today_data, metrics, "RED", "No new trades"
+        )
+
+        expected_fields = [
+            "date", "up_4_today", "down_4_today", "ratio_today",
+            "ratio_5day", "ratio_10day", "up_25_quarter", "down_25_quarter",
+            "above_40ma_count", "total_universe", "t2108_equiv",
+            "thrust_detected", "fg", "spy_price", "spy_sma200_pct",
+            "spy_above_200d", "market_state", "state_message", "blackout",
+        ]
+        for field in expected_fields:
+            self.assertIn(field, record, f"Missing field: {field}")
+
+    def test_record_values_match_inputs(self):
+        """Record values should reflect input data."""
+        today_data = {
+            "up_4_today": 43, "down_4_today": 198,
+            "up_25_quarter": 312, "down_25_quarter": 847,
+            "above_40ma_count": 412, "total_universe": 1587,
+            "fg": 14.6, "spy_price": 548.23, "spy_sma200_pct": -4.0,
+        }
+        metrics = {
+            "ratio_today": 0.22, "ratio_5day": 0.38, "ratio_10day": 0.51,
+            "thrust": False, "t2108": 25.96, "spy_above_200d": False,
+        }
+        record = build_daily_record(
+            datetime.date(2026, 3, 22), today_data, metrics, "RED", "No new trades"
+        )
+
+        self.assertEqual(record["date"], "2026-03-22")
+        self.assertEqual(record["up_4_today"], 43)
+        self.assertEqual(record["market_state"], "RED")
+        self.assertFalse(record["thrust_detected"])
+        self.assertEqual(record["fg"], 14.6)
+
+    def test_blackout_flag_matches_date(self):
+        """Blackout flag should reflect the date."""
+        today_data = {"up_4_today": 0, "down_4_today": 0}
+        metrics = {"ratio_today": 0, "ratio_5day": 0, "ratio_10day": 0,
+                   "thrust": False, "t2108": 0, "spy_above_200d": False}
+
+        # March 10 is blackout
+        record = build_daily_record(
+            datetime.date(2026, 3, 10), today_data, metrics, "BLACKOUT", "blackout"
+        )
+        self.assertTrue(record["blackout"])
+
+        # April 15 is not blackout
+        record = build_daily_record(
+            datetime.date(2026, 4, 15), today_data, metrics, "RED", "red"
+        )
+        self.assertFalse(record["blackout"])
+
+
+class TestMarketStateIntegration(unittest.TestCase):
+    """Tests for market state integration with weekly agent."""
+
+    def test_load_market_state_missing_file(self):
+        """load_market_state returns None when file doesn't exist."""
+        import finviz_weekly_agent as wa
+        original = wa.MARKET_HISTORY_FILE
+        wa.MARKET_HISTORY_FILE = "/tmp/nonexistent_market_monitor_history.json"
+        result = load_market_state()
+        self.assertIsNone(result)
+        wa.MARKET_HISTORY_FILE = original
+
+    def test_load_market_state_empty_history(self):
+        """load_market_state returns None for empty history."""
+        import finviz_weekly_agent as wa
+        original = wa.MARKET_HISTORY_FILE
+        tmp = os.path.join(tempfile.mkdtemp(), "empty_history.json")
+        with open(tmp, "w") as f:
+            json.dump([], f)
+        wa.MARKET_HISTORY_FILE = tmp
+        result = load_market_state()
+        self.assertIsNone(result)
+        wa.MARKET_HISTORY_FILE = original
+
+    def test_load_market_state_returns_latest(self):
+        """load_market_state returns the most recent record."""
+        import finviz_weekly_agent as wa
+        original = wa.MARKET_HISTORY_FILE
+        tmp = os.path.join(tempfile.mkdtemp(), "test_history.json")
+        history = [
+            _make_monitor_day(date="2026-03-19", market_state="RED"),
+            _make_monitor_day(date="2026-03-20", market_state="CAUTION"),
+        ]
+        with open(tmp, "w") as f:
+            json.dump(history, f)
+        wa.MARKET_HISTORY_FILE = tmp
+        result = load_market_state()
+        self.assertEqual(result["market_state"], "CAUTION")
+        self.assertEqual(result["date"], "2026-03-20")
+        wa.MARKET_HISTORY_FILE = original
+
+    def test_any_thrust_in_history_true(self):
+        """any_thrust_in_history returns True when thrust detected."""
+        import finviz_weekly_agent as wa
+        original = wa.MARKET_HISTORY_FILE
+        tmp = os.path.join(tempfile.mkdtemp(), "thrust_history.json")
+        history = [
+            _make_monitor_day(date="2026-03-18", thrust_detected=False),
+            _make_monitor_day(date="2026-03-19", thrust_detected=True),
+            _make_monitor_day(date="2026-03-20", thrust_detected=False),
+        ]
+        with open(tmp, "w") as f:
+            json.dump(history, f)
+        wa.MARKET_HISTORY_FILE = tmp
+        self.assertTrue(any_thrust_in_history())
+        wa.MARKET_HISTORY_FILE = original
+
+    def test_any_thrust_in_history_false(self):
+        """any_thrust_in_history returns False when no thrust."""
+        import finviz_weekly_agent as wa
+        original = wa.MARKET_HISTORY_FILE
+        tmp = os.path.join(tempfile.mkdtemp(), "no_thrust_history.json")
+        history = [
+            _make_monitor_day(date="2026-03-19", thrust_detected=False),
+            _make_monitor_day(date="2026-03-20", thrust_detected=False),
+        ]
+        with open(tmp, "w") as f:
+            json.dump(history, f)
+        wa.MARKET_HISTORY_FILE = tmp
+        self.assertFalse(any_thrust_in_history())
+        wa.MARKET_HISTORY_FILE = original
+
+
+class TestMarketStateTransitions(unittest.TestCase):
+    """Tests for realistic state transition scenarios."""
+
+    def _make_metrics(self, **overrides):
+        base = {
+            "ratio_today": 1.0, "ratio_5day": 1.0, "ratio_10day": 1.0,
+            "thrust": False, "t2108": 50.0, "spy_above_200d": True,
+        }
+        base.update(overrides)
+        return base
+
+    def test_red_to_thrust_transition(self):
+        """Market should go from RED to THRUST on massive up day."""
+        # Day 1: RED
+        m1 = self._make_metrics(ratio_5day=0.4, spy_above_200d=False)
+        s1, _ = classify_market_state(
+            m1, fg=15.0, spy_price=450.0, spy_above_200d=False,
+            today_data={"up_4_today": 20, "down_4_today": 150},
+            date=datetime.date(2026, 4, 8)
+        )
+        self.assertEqual(s1, "RED")
+
+        # Day 2: THRUST (500+ stocks up 4%)
+        m2 = self._make_metrics(thrust=True, ratio_5day=0.6)
+        s2, _ = classify_market_state(
+            m2, fg=12.0, spy_price=455.0, spy_above_200d=False,
+            today_data={"up_4_today": 520, "down_4_today": 30},
+            date=datetime.date(2026, 4, 9)
+        )
+        self.assertEqual(s2, "THRUST")
+
+    def test_thrust_to_green_confirmation(self):
+        """After thrust, market should confirm to GREEN when all conditions met."""
+        metrics = self._make_metrics(
+            ratio_5day=2.5, ratio_10day=1.8, t2108=52.0
+        )
+        state, _ = classify_market_state(
+            metrics, fg=35.0, spy_price=580.0, spy_above_200d=True,
+            today_data={"up_4_today": 120, "down_4_today": 50},
+            date=datetime.date(2026, 4, 24)
+        )
+        self.assertEqual(state, "GREEN")
+
+    def test_green_to_danger_fast_deterioration(self):
+        """Market can go from GREEN to DANGER if breadth collapses."""
+        metrics = self._make_metrics(
+            ratio_5day=0.3, spy_above_200d=False
+        )
+        state, _ = classify_market_state(
+            metrics, fg=18.0, spy_price=480.0, spy_above_200d=False,
+            today_data={"up_4_today": 15, "down_4_today": 250},
+            date=datetime.date(2026, 5, 10)
+        )
+        self.assertEqual(state, "DANGER")
+
+    def test_caution_to_green_when_ratios_improve(self):
+        """CAUTION upgrades to GREEN when all conditions are met."""
+        # CAUTION state
+        m1 = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2, t2108=38.0)
+        s1, _ = classify_market_state(
+            m1, fg=30.0, spy_price=560.0, spy_above_200d=True,
+            today_data={"up_4_today": 70, "down_4_today": 45},
+            date=datetime.date(2026, 4, 20)
+        )
+        self.assertEqual(s1, "CAUTION")
+
+        # GREEN state — ratios improved
+        m2 = self._make_metrics(ratio_5day=2.2, ratio_10day=1.6, t2108=45.0)
+        s2, _ = classify_market_state(
+            m2, fg=40.0, spy_price=575.0, spy_above_200d=True,
+            today_data={"up_4_today": 90, "down_4_today": 40},
+            date=datetime.date(2026, 4, 24)
+        )
+        self.assertEqual(s2, "GREEN")
+
+    def test_entering_blackout_period(self):
+        """State should switch to BLACKOUT regardless of breadth."""
+        metrics = self._make_metrics(ratio_5day=3.0, ratio_10day=2.5, t2108=60.0)
+        state, _ = classify_market_state(
+            metrics, fg=55.0, spy_price=600.0, spy_above_200d=True,
+            today_data={"up_4_today": 150, "down_4_today": 30},
+            date=datetime.date(2026, 9, 1)
+        )
+        self.assertEqual(state, "BLACKOUT")
+
+    def test_exiting_blackout_period(self):
+        """After blackout ends, normal classification resumes."""
+        metrics = self._make_metrics(ratio_5day=0.7, spy_above_200d=False)
+        state, _ = classify_market_state(
+            metrics, fg=25.0, spy_price=530.0, spy_above_200d=False,
+            today_data={"up_4_today": 40, "down_4_today": 90},
+            date=datetime.date(2026, 10, 16)
+        )
+        self.assertNotEqual(state, "BLACKOUT")
+
+
+class TestHistoryRolling(unittest.TestCase):
+    """Tests for rolling history management."""
+
+    def test_history_stays_at_30_days(self):
+        """History should keep at most 30 days."""
+        import finviz_market_monitor as mm
+        tmp_dir = tempfile.mkdtemp()
+        original_dir = mm.DATA_DIR
+        original_file = mm.HISTORY_FILE
+        mm.DATA_DIR = tmp_dir
+        mm.HISTORY_FILE = os.path.join(tmp_dir, "market_monitor_history.json")
+
+        # Create 35-day history
+        history = [_make_monitor_day(date=f"2026-02-{i:02d}") for i in range(1, 29)]
+        history += [_make_monitor_day(date=f"2026-03-{i:02d}") for i in range(1, 8)]
+        self.assertEqual(len(history), 35)
+
+        # Simulate appending one more and trimming
+        history.append(_make_monitor_day(date="2026-03-08"))
+        history = history[-30:]
+        mm.save_history(history)
+
+        loaded = mm.load_history()
+        self.assertEqual(len(loaded), 30)
+
+        mm.DATA_DIR = original_dir
+        mm.HISTORY_FILE = original_file
+
+    def test_save_and_load_roundtrip(self):
+        """History should survive save/load cycle."""
+        import finviz_market_monitor as mm
+        tmp_dir = tempfile.mkdtemp()
+        original_dir = mm.DATA_DIR
+        original_file = mm.HISTORY_FILE
+        mm.DATA_DIR = tmp_dir
+        mm.HISTORY_FILE = os.path.join(tmp_dir, "market_monitor_history.json")
+
+        history = [
+            _make_monitor_day(date="2026-03-19", market_state="RED"),
+            _make_monitor_day(date="2026-03-20", market_state="THRUST"),
+        ]
+        mm.save_history(history)
+        loaded = mm.load_history()
+
+        self.assertEqual(len(loaded), 2)
+        self.assertEqual(loaded[0]["market_state"], "RED")
+        self.assertEqual(loaded[1]["market_state"], "THRUST")
+
+        mm.DATA_DIR = original_dir
+        mm.HISTORY_FILE = original_file
+
+
 if __name__ == "__main__":
     unittest.main()
