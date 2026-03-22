@@ -2,6 +2,7 @@
 # Finviz Weekly Review Agent
 # ----------------------------
 import os
+import json
 import time
 import logging
 import random
@@ -88,6 +89,60 @@ def load_weekly_data(data_dir: str, lookback_days: int = 7) -> tuple:
     return combined_df, daily_dfs, sorted(dates_found)
 
 
+def load_daily_quality(data_dir: str, lookback_days: int = 7) -> dict:
+    """
+    Load daily quality JSON files and merge into a single dict.
+    For tickers appearing on multiple days, keep the most recent data.
+    Returns {ticker: {q_rank, stage, stage_label, section}}.
+    """
+    today = datetime.date.today()
+    quality = {}
+
+    for i in range(lookback_days):
+        date = today - datetime.timedelta(days=i)
+        path = os.path.join(data_dir, f"daily_quality_{date.strftime('%Y-%m-%d')}.json")
+        if os.path.exists(path):
+            try:
+                with open(path) as f:
+                    day_data = json.load(f)
+                # Older days don't overwrite newer data
+                for ticker, meta in day_data.items():
+                    if ticker not in quality:
+                        quality[ticker] = meta
+                log.info(f"Loaded daily quality: {path} ({len(day_data)} tickers)")
+            except Exception as e:
+                log.warning(f"Could not load {path}: {e}")
+
+    log.info(f"Daily quality data: {len(quality)} unique tickers from up to {lookback_days} days")
+    return quality
+
+
+def _compute_quality_modifier(q_rank: int, stage: int) -> int:
+    """
+    Compute signal score modifier based on daily chart grid quality data.
+    Stage 2 + high Q-rank = strong bonus. Stage 4 = heavy penalty.
+    """
+    if stage == 2:
+        if q_rank >= 60:
+            return 30
+        elif q_rank >= 40:
+            return 15
+        return 0
+    elif stage == 0:  # Transitional
+        if q_rank >= 60:
+            return 10
+        elif q_rank >= 40:
+            return 0
+        return -20
+    elif stage == 1:
+        return -10
+    elif stage == 4:
+        return -40
+    elif stage == 3:
+        return -20
+    return 0
+
+
 def _detect_signals(screeners_hit: set, max_appearances: int) -> dict:
     """
     Detect setup signals for a ticker based on which screeners fired.
@@ -139,9 +194,13 @@ def _detect_signals(screeners_hit: set, max_appearances: int) -> dict:
     return signals
 
 
-def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd.DataFrame:
+def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
+                             daily_quality: dict = None) -> pd.DataFrame:
     if combined_df.empty:
         return pd.DataFrame()
+
+    if daily_quality is None:
+        daily_quality = {}
 
     records = defaultdict(lambda: {
         "days_seen": 0, "dates": [], "max_atr": None, "max_eps": None,
@@ -189,6 +248,16 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd
         signals = _detect_signals(r["screeners_hit"], r["max_appearances"])
         signal_score = round(base_score + signals["bonuses"], 1)
 
+        # Quality modifier from daily chart grid data
+        dq = daily_quality.get(ticker, {})
+        q_rank = dq.get("q_rank", 0)
+        stage = dq.get("stage", 0)
+        stage_label = dq.get("stage_label", "—")
+        section = dq.get("section", "")
+        quality_mod = _compute_quality_modifier(q_rank, stage) if dq else 0
+        signal_score = round(signal_score + quality_mod, 1)
+        is_watch = section == "watch"
+
         rows.append({
             "Ticker":          ticker,
             "Company":         r["company"],
@@ -204,6 +273,10 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list) -> pd
             "Screeners Hit":   ", ".join(sorted(r["screeners_hit"])),
             "Base Score":      round(base_score, 1),
             "Signal Score":    signal_score,
+            "Q Rank":          q_rank if dq else None,
+            "Stage":           stage_label,
+            "Quality Mod":     quality_mod,
+            "Watch":           is_watch,
             # Individual signal flags for badges
             "EP":              signals.get("EP",    False),
             "IPO":             signals.get("IPO",   False),
@@ -405,8 +478,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
     week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else today
 
-    # --- TOP 5: unified signal score ranking ---
-    top5         = persistence_df.head(5)
+    # --- TOP 5: unified signal score ranking (Watch List excluded) ---
+    actionable  = persistence_df[~persistence_df["Watch"]].copy()
+    top5         = actionable.head(5)
     rank_colors  = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
     focus_cards  = ""
 
@@ -416,6 +490,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         total      = row["Total Days"]
         atr        = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
         eps        = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
+        q_rank     = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
+        stage      = row.get("Stage", "—")
         badges     = _build_badges(row)
         chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
         fv_url     = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
@@ -434,6 +510,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<div class='focus-company'>{row['Company']}</div>"
             f"<div class='focus-badges'>{badges}</div>"
             f"<div class='focus-persist'>{days}/{total} days · {score_note}</div>"
+            f"<div class='focus-quality'>{q_rank} · {stage}</div>"
             f"<div class='focus-meta'>ATR {atr} · EPS {eps}</div>"
             f"<div class='focus-screeners'>{row['Screeners Hit']}</div>"
             f"<a href='{chart_url}' target='_blank'>"
@@ -474,14 +551,18 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         bar_color = "#4f6ef7" if pct >= 80 else "#38bdf8" if pct >= 60 else "#64748b"
         atr       = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
         eps       = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
+        q_rank    = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "—"
+        stage     = row.get("Stage", "—")
+        is_watch  = row.get("Watch", False)
         badge_str = ""
+        if is_watch: badge_str += "<span class='watch-tag'>[Watch]</span> "
         if row.get("EP"):    badge_str += "⚡"
         if row.get("IPO"):   badge_str += "🚀"
         if row.get("MULTI"): badge_str += "x3"
         if row.get("HIGH") and not row.get("EP"): badge_str += "↑hi"
         fv_url    = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
         chart_url = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
-        row_cls   = "ep-row" if (row.get("EP") or row.get("IPO")) else ""
+        row_cls   = "watch-row" if is_watch else ("ep-row" if (row.get("EP") or row.get("IPO")) else "")
 
         leaderboard_rows += (
             f"<tr class='{row_cls}'>"
@@ -495,6 +576,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<span>{days}/{total}d</span></div></td>"
             f"<td class='center bold'>{row['Signal Score']:.0f}</td>"
             f"<td class='center dim'>{row['Base Score']:.0f}</td>"
+            f"<td class='center'>{q_rank}</td>"
+            f"<td class='center'>{stage}</td>"
             f"<td class='center'>{atr}</td>"
             f"<td class='center'>{eps}</td>"
             f"<td class='screeners'>{row['Screeners Hit']}</td>"
@@ -569,6 +652,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         "<table class='lb-table'><thead><tr>"
         "<th>#</th><th>Ticker</th><th>Company</th><th>Sector</th>"
         "<th>Persistence</th><th>Signal</th><th>Base</th>"
+        "<th>Q</th><th>Stage</th>"
         "<th>ATR%</th><th>EPS%</th><th>Screeners</th><th>Chart</th>"
         "</tr></thead><tbody>" + leaderboard_rows + "</tbody></table>"
     ) if leaderboard_rows else ""
@@ -603,6 +687,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .badge-multi   { font-size: 0.64rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
 .badge-high    { font-size: 0.64rem; background: #1f2d40; color: #7dd3fc; padding: 1px 6px; border-radius: 3px; }
 .focus-persist { font-size: 0.71rem; color: #94a3b8; margin-bottom: 2px; }
+.focus-quality { font-size: 0.72rem; color: #7aa2f7; font-weight: 600; margin-bottom: 2px; }
 .focus-meta    { font-size: 0.69rem; color: #475569; margin-bottom: 5px; }
 .focus-screeners { font-size: 0.63rem; color: #374151; margin-bottom: 9px; line-height: 1.4; }
 .focus-chart   { width: 100%; border-radius: 6px; display: block; }
@@ -621,6 +706,9 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .lb-table tr:hover td { background: #181d2b; }
 .lb-table tr.ep-row td { background: #1a1a0e; }
 .lb-table tr.ep-row:hover td { background: #22220f; }
+.lb-table tr.watch-row td { background: #1a1210; opacity: 0.7; }
+.lb-table tr.watch-row:hover td { background: #221510; opacity: 1; }
+.watch-tag { font-size: 0.6rem; background: #7f1d1d; color: #fca5a5; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
 .tlink       { color: #7aa2f7; font-weight: 700; text-decoration: none; }
 .tlink:hover { color: #a5b4fc; }
 .chart-link  { color: #38bdf8; font-size: 0.69rem; text-decoration: none; }
@@ -709,8 +797,17 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
         if row.get("HIGH") and not row.get("EP"): sig_tags.append("52w high")
         signal_ctx = (" Signals: " + ", ".join(sig_tags) + ".") if sig_tags else ""
 
+        # Quality context from daily chart grid
+        q_rank = row.get("Q Rank")
+        stage_label = row.get("Stage", "—")
+        days_seen = row.get("Days Seen", "?")
+        total_days = row.get("Total Days", "?")
+        quality_ctx = ""
+        if pd.notna(q_rank) and q_rank:
+            quality_ctx = f"\nQ-RANK: {int(q_rank)} · STAGE: {stage_label} · PERSISTENCE: {days_seen}/{total_days} days"
+
         prompt = (
-            f"Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.{signal_ctx}\n"
+            f"Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.{signal_ctx}{quality_ctx}\n"
             f"Find: recent earnings beats or misses, analyst upgrades/downgrades, "
             f"sector tailwinds, any catalyst in the past 2 weeks that explains "
             f"why this stock appeared in momentum screeners all week.\n"
@@ -798,6 +895,8 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
     for _, row in top5.iterrows():
         atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "n/a"
         eps      = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "n/a"
+        q_rank   = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
+        stage    = row.get("Stage", "—")
         sig_tags = []
         if row.get("EP"):    sig_tags.append("EPISODIC PIVOT (gap+high+multi-screen)")
         if row.get("IPO"):   sig_tags.append("IPO LIFECYCLE")
@@ -807,6 +906,7 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         bonus   = int(row["Signal Score"] - row["Base Score"])
         ticker_lines.append(
             f"{row['Ticker']} ({row['Sector']} / {row['Industry']}) "
+            f"| {q_rank} · {stage} "
             f"| {row['Days Seen']}/{row['Total Days']} days "
             f"| signal score {row['Signal Score']:.0f} (base {row['Base Score']:.0f}, +{bonus} bonus) "
             f"| ATR {atr} | EPS {eps} "
@@ -861,6 +961,9 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         "sector rotation, product launch, etc). Don't just say 'appeared in screeners' — say *why*.\n"
         "2. Sector themes and macro backdrop — what's supporting or fighting these names?\n"
         "3. Monday plan — specific names, specific entry triggers to watch.\n\n"
+        "Only recommend names as actionable if they are Stage 2 (Uptrend) or high-quality "
+        "Transitional (Q > 60). Flag extended names explicitly. The Monday plan should only "
+        "include names where both screener persistence and chart quality agree.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
     )
 
@@ -912,18 +1015,21 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
         return
 
     week_range   = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
-    top5         = persistence_df.head(5)
+    actionable   = persistence_df[~persistence_df["Watch"]].copy() if "Watch" in persistence_df.columns else persistence_df
+    top5         = actionable.head(5)
     ticker_lines = []
 
     for _, row in top5.iterrows():
         atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
+        q_rank   = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
+        stage    = row.get("Stage", "—")
         tags     = []
         if row.get("EP"):    tags.append("⚡EP")
         if row.get("IPO"):   tags.append("🚀IPO")
         if row.get("MULTI"): tags.append("x3")
         tag_str  = " " + " ".join(tags) if tags else ""
         ticker_lines.append(
-            f"*{row['Ticker']}*{tag_str} · {row['Sector']} · "
+            f"*{row['Ticker']}*{tag_str} · {q_rank} · {stage} · {row['Sector']} · "
             f"{row['Days Seen']}/{row['Total Days']}d · score {row['Signal Score']:.0f}\n"
             f" _{row['Screeners Hit']}_"
         )
@@ -1002,18 +1108,29 @@ if __name__ == "__main__":
         exit(1)
     log.info(f"Loaded {len(dates_found)} trading days: {dates_found}")
 
-    persistence_df = build_persistence_scores(combined_df, dates_found)
+    log.info("Loading daily quality data...")
+    daily_quality = load_daily_quality(DATA_DIR, lookback_days=7)
+
+    persistence_df = build_persistence_scores(combined_df, dates_found, daily_quality)
     log.info(f"{len(persistence_df)} unique tickers scored")
 
-    top5 = persistence_df.head(5)
-    log.info("Top 5 by signal score:")
+    # Filter Watch List tickers from top 5 — they appear in full leaderboard with [Watch] tag
+    actionable_df = persistence_df[~persistence_df["Watch"]].copy()
+    watch_count = persistence_df["Watch"].sum()
+    if watch_count:
+        log.info(f"Filtered {int(watch_count)} Watch List tickers from top 5 selection")
+
+    top5 = actionable_df.head(5)
+    log.info("Top 5 by signal score (Watch List excluded):")
     for _, row in top5.iterrows():
         tags = []
         if row["EP"]:    tags.append("EP")
         if row["IPO"]:   tags.append("IPO")
         if row["MULTI"]: tags.append("MULTI")
+        q_str = f" Q{row['Q Rank']}" if pd.notna(row.get("Q Rank")) else ""
+        stage_str = f" {row['Stage']}" if row.get("Stage") and row["Stage"] != "—" else ""
         tag_str = " [" + ",".join(tags) + "]" if tags else ""
-        log.info(f"  {row['Ticker']}{tag_str} signal={row['Signal Score']} base={row['Base Score']}")
+        log.info(f"  {row['Ticker']}{tag_str}{q_str} · {stage_str} · signal={row['Signal Score']} base={row['Base Score']} mod={row['Quality Mod']}")
 
     os.makedirs(DATA_DIR, exist_ok=True)
     persistence_df.to_csv(
@@ -1027,15 +1144,15 @@ if __name__ == "__main__":
     log.info("Fetching crypto...")
     crypto_data = fetch_crypto_data()
 
-    log.info("Running Agent 2 — catalyst research for top 3...")
-    research    = research_catalysts(persistence_df)
+    log.info("Running Agent 2 — catalyst research for top 3 (actionable only)...")
+    research    = research_catalysts(actionable_df)
 
     # Cooldown — Agent 2 exhausts token bucket; give it time to refill before Agent 3
     log.info("Cooldown 45s before Agent 3...")
     time.sleep(45)
 
     log.info("Running Agent 3 — synthesised AI brief...")
-    ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data, research)
+    ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research)
     weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
     log.info(f"Report: {weekly_html}")
 

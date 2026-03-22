@@ -846,6 +846,26 @@ if __name__ == "__main__":
     summary_df.to_csv(csv_path, index=False)
     log.info(f"Enriched CSV re-saved: {csv_path}")
 
+    # ── Write daily quality JSON for weekly agent signal merge ──
+    import json
+    quality_data = {}
+    for _, row in summary_df.iterrows():
+        t = row['Ticker']
+        stage_data = row.get('Stage', {}) or {}
+        stage_num = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
+        stage_labels = {1: "Basing", 2: "Uptrend", 3: "Distribution", 4: "Downtrend", 0: "Transitional"}
+        section = _classify_ticker(row)
+        quality_data[t] = {
+            "q_rank": round(float(row.get('Quality Score', 0) or 0)),
+            "stage": stage_num,
+            "stage_label": stage_labels.get(stage_num, "Transitional"),
+            "section": section,
+        }
+    quality_path = f"data/daily_quality_{today}.json"
+    with open(quality_path, "w") as f:
+        json.dump(quality_data, f, indent=2)
+    log.info(f"Daily quality JSON written: {quality_path} ({len(quality_data)} tickers)")
+
     if not filter_df.empty:
         top3 = filter_df.head(3)[['Ticker','Quality Score','Market Cap','Appearances']].to_string(index=False)
         log.info(f"Top 3 by quality score:\n{top3}")
