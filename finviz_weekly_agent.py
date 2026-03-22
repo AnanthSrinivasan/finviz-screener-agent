@@ -167,6 +167,10 @@ def _detect_signals(screeners_hit: set, max_appearances: int) -> dict:
 
     52 Week High +10
       Making new highs = price leadership. Simple but powerful.
+
+    Character Change (CHAR) is detected separately in build_persistence_scores (+25).
+      200d gain > 50% + RVol > 2.5x + Week 20%+ Gain screener on the same day.
+      Stock that was dead/ignored is now surging with institutional volume.
     """
     has_gap   = "10% Change" in screeners_hit or "Week 20%+ Gain" in screeners_hit
     has_high  = "52 Week High" in screeners_hit
@@ -206,6 +210,7 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         "days_seen": 0, "dates": [], "max_atr": None, "max_eps": None,
         "max_appearances": 0, "screeners_hit": set(),
         "sector": "", "industry": "", "company": "", "market_cap": "",
+        "has_char_change": False,
     })
 
     for _, row in combined_df.iterrows():
@@ -228,6 +233,15 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
             for s in str(screeners).split(","):
                 r["screeners_hit"].add(s.strip())
 
+        # Character change detection: 200d gain > 50%, RVol > 2.5x, Week 20%+ Gain
+        sma200 = row.get("SMA200%")
+        rvol = row.get("Rel Volume")
+        screeners_str = str(screeners)
+        if (pd.notna(sma200) and float(sma200) > 50 and
+                pd.notna(rvol) and float(rvol) > 2.5 and
+                "Week 20%+ Gain" in screeners_str):
+            r["has_char_change"] = True
+
         for field in ("sector", "industry", "company", "market_cap"):
             col = {"sector": "Sector", "industry": "Industry",
                    "company": "Company", "market_cap": "Market Cap"}[field]
@@ -247,6 +261,11 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         # Signal detection — adds bonuses that can push EP/IPO names into top 5
         signals = _detect_signals(r["screeners_hit"], r["max_appearances"])
         signal_score = round(base_score + signals["bonuses"], 1)
+
+        # Character change bonus: +25 for 200d gain > 50% + RVol > 2.5x + Week 20%+ Gain
+        if r["has_char_change"]:
+            signals["CHAR"] = True
+            signal_score += 25
 
         # Quality modifier from daily chart grid data
         dq = daily_quality.get(ticker, {})
@@ -282,6 +301,7 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
             "IPO":             signals.get("IPO",   False),
             "MULTI":           signals.get("MULTI", False),
             "HIGH":            signals.get("HIGH",  False),
+            "CHAR":            signals.get("CHAR",  False),
         })
 
     # Sort by unified signal score — EP/IPO names compete fairly for top 5
@@ -311,6 +331,8 @@ def _build_badges(row) -> str:
         badges += "<span class='badge-multi'>x3 screens</span>"
     if row.get("HIGH") and not row.get("EP"):
         badges += "<span class='badge-high'>52w High</span>"
+    if row.get("CHAR"):
+        badges += "<span class='badge-char'>🔄 Char Change</span>"
     return badges
 
 
@@ -560,6 +582,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         if row.get("IPO"):   badge_str += "🚀"
         if row.get("MULTI"): badge_str += "x3"
         if row.get("HIGH") and not row.get("EP"): badge_str += "↑hi"
+        if row.get("CHAR"):  badge_str += "🔄"
         fv_url    = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
         chart_url = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
         row_cls   = "watch-row" if is_watch else ("ep-row" if (row.get("EP") or row.get("IPO")) else "")
@@ -646,7 +669,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         f"<h2>Recurring Names — signal score &gt; {threshold:.0f} ({leaderboard_count} names)</h2>"
         "<p class='lb-note'>"
         "Ranked by signal score (persistence + bonuses). "
-        "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high. "
+        "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high · 🔄 = character change. "
         "Signal score = base + bonuses. Base score shown in grey."
         "</p>"
         "<table class='lb-table'><thead><tr>"
@@ -686,6 +709,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .badge-ipo     { font-size: 0.64rem; background: #1a3a1a; color: #86efac; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
 .badge-multi   { font-size: 0.64rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
 .badge-high    { font-size: 0.64rem; background: #1f2d40; color: #7dd3fc; padding: 1px 6px; border-radius: 3px; }
+.badge-char    { font-size: 0.64rem; background: #3b1f4a; color: #c084fc; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
 .focus-persist { font-size: 0.71rem; color: #94a3b8; margin-bottom: 2px; }
 .focus-quality { font-size: 0.72rem; color: #7aa2f7; font-weight: 600; margin-bottom: 2px; }
 .focus-meta    { font-size: 0.69rem; color: #475569; margin-bottom: 5px; }
@@ -802,9 +826,17 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
         stage_label = row.get("Stage", "—")
         days_seen = row.get("Days Seen", "?")
         total_days = row.get("Total Days", "?")
+        is_watch = row.get("Watch", False)
+        is_char = row.get("CHAR", False)
         quality_ctx = ""
         if pd.notna(q_rank) and q_rank:
-            quality_ctx = f"\nQ-RANK: {int(q_rank)} · STAGE: {stage_label} · PERSISTENCE: {days_seen}/{total_days} days"
+            category = "WATCH LIST — not actionable" if is_watch else "ACTIONABLE"
+            quality_ctx = (
+                f"\nQ-RANK: {int(q_rank)} · STAGE: {stage_label} · CATEGORY: {category}"
+                f" · PERSISTENCE: {days_seen}/{total_days} days"
+            )
+            if is_char:
+                quality_ctx += " · CHARACTER CHANGE (200d gain >50%, RVol >2.5x)"
 
         prompt = (
             f"Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.{signal_ctx}{quality_ctx}\n"
@@ -902,6 +934,7 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         if row.get("IPO"):   sig_tags.append("IPO LIFECYCLE")
         if row.get("MULTI"): sig_tags.append("3+ SCREENERS SAME DAY")
         if row.get("HIGH") and not row.get("EP"): sig_tags.append("52W HIGH")
+        if row.get("CHAR"): sig_tags.append("CHARACTER CHANGE (200d gain >50%, RVol >2.5x)")
         sig_str = " | " + " + ".join(sig_tags) if sig_tags else ""
         bonus   = int(row["Signal Score"] - row["Base Score"])
         ticker_lines.append(
@@ -961,9 +994,15 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         "sector rotation, product launch, etc). Don't just say 'appeared in screeners' — say *why*.\n"
         "2. Sector themes and macro backdrop — what's supporting or fighting these names?\n"
         "3. Monday plan — specific names, specific entry triggers to watch.\n\n"
-        "Only recommend names as actionable if they are Stage 2 (Uptrend) or high-quality "
-        "Transitional (Q > 60). Flag extended names explicitly. The Monday plan should only "
-        "include names where both screener persistence and chart quality agree.\n\n"
+        "QUALITY RULES — follow strictly:\n"
+        "- Only recommend names as Monday actionable if they are Stage 2 (Uptrend) or "
+        "high-quality Transitional (Q > 60). These are the only names that belong in the Monday plan.\n"
+        "- Watch List names (Transitional with low Q, Stage 3/4, or section='watch') are NOT actionable. "
+        "If any appear in the data, explicitly flag them as 'watch only — not actionable' and explain why.\n"
+        "- Character Change names (🔄 CHAR) are worth highlighting — they signal a dead/ignored stock "
+        "surging with institutional volume. Mention the pattern if present.\n"
+        "- Flag extended names explicitly.\n"
+        "- The Monday plan should only include names where both screener persistence and chart quality agree.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
     )
 
@@ -1127,6 +1166,7 @@ if __name__ == "__main__":
         if row["EP"]:    tags.append("EP")
         if row["IPO"]:   tags.append("IPO")
         if row["MULTI"]: tags.append("MULTI")
+        if row.get("CHAR"): tags.append("CHAR")
         q_str = f" Q{row['Q Rank']}" if pd.notna(row.get("Q Rank")) else ""
         stage_str = f" {row['Stage']}" if row.get("Stage") and row["Stage"] != "—" else ""
         tag_str = " [" + ",".join(tags) + "]" if tags else ""
