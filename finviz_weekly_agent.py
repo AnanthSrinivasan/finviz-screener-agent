@@ -687,7 +687,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 
 def research_catalysts(persistence_df: pd.DataFrame) -> dict:
     """
-    Agent 2: For each of the top 5 tickers by signal score, call Claude API
+    Agent 2: For each of the top 3 tickers by signal score, call Claude API
     with web_search tool to find real catalysts that explain the screener activity.
     Returns {ticker: research_summary_string}.
     """
@@ -695,10 +695,10 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
         log.info("ANTHROPIC_API_KEY not set — skipping catalyst research.")
         return {}
 
-    top5 = persistence_df.head(5)
+    top3 = persistence_df.head(3)
     research = {}
 
-    for _, row in top5.iterrows():
+    for _, row in top3.iterrows():
         ticker = row["Ticker"]
         sector = row.get("Sector", "")
         industry = row.get("Industry", "")
@@ -728,7 +728,7 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
                     },
                     json={
                         "model": "claude-sonnet-4-6",
-                        "max_tokens": 400,
+                        "max_tokens": 600,
                         "tools": [
                             {
                                 "type": "web_search_20250305",
@@ -875,7 +875,7 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
                 },
                 json={
                     "model":      "claude-sonnet-4-6",
-                    "max_tokens": 1200,
+                    "max_tokens": 2000,
                     "messages":   [{"role": "user", "content": prompt}],
                 },
                 timeout=60,
@@ -1027,10 +1027,13 @@ if __name__ == "__main__":
     log.info("Fetching crypto...")
     crypto_data = fetch_crypto_data()
 
-    log.info("Running Agent 2 — catalyst research for top 5...")
+    log.info("Running Agent 2 — catalyst research for top 3...")
     research    = research_catalysts(persistence_df)
 
-    # No explicit cooldown needed — Agent 2's 15s inter-ticker delays provide natural spacing
+    # Cooldown — Agent 2 exhausts token bucket; give it time to refill before Agent 3
+    log.info("Cooldown 45s before Agent 3...")
+    time.sleep(45)
+
     log.info("Running Agent 3 — synthesised AI brief...")
     ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data, research)
     weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)

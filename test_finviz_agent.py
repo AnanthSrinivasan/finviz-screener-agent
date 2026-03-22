@@ -496,7 +496,7 @@ class TestCatalystResearch(unittest.TestCase):
     @patch("finviz_weekly_agent.time.sleep")
     @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
     @patch("finviz_weekly_agent.requests.post")
-    def test_returns_research_for_top5(self, mock_post, _mock_sleep):
+    def test_returns_research_for_top3(self, mock_post, _mock_sleep):
         mock_resp = MagicMock()
         mock_resp.ok = True
         mock_resp.json.return_value = {
@@ -507,11 +507,11 @@ class TestCatalystResearch(unittest.TestCase):
         mock_post.return_value = mock_resp
 
         result = research_catalysts(self._make_persistence_df())
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 3)
         self.assertIn("NVDA", result)
         self.assertIn("beat earnings", result["NVDA"])
-        # Should have made 5 API calls (one per top-5 ticker)
-        self.assertEqual(mock_post.call_count, 5)
+        # Should have made 3 API calls (one per top-3 ticker)
+        self.assertEqual(mock_post.call_count, 3)
 
     @patch("finviz_weekly_agent.time.sleep")
     @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
@@ -519,7 +519,7 @@ class TestCatalystResearch(unittest.TestCase):
     def test_handles_api_failure_gracefully(self, mock_post, _mock_sleep):
         mock_post.side_effect = Exception("connection timeout")
         result = research_catalysts(self._make_persistence_df())
-        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result), 3)
         # All should be empty strings on failure
         for v in result.values():
             self.assertEqual(v, "")
