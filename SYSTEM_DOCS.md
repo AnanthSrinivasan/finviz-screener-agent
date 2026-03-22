@@ -39,7 +39,7 @@ flowchart TB
     subgraph AGENTS["Python Agents"]
         direction LR
         A1["<b>finviz_agent.py</b><br/>5 screeners · Quality Score<br/>Stage analysis · VCP detection<br/>Sector badge · AI summary"]
-        A2["<b>finviz_weekly_agent.py</b><br/>Persistence scoring<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
+        A2["<b>finviz_weekly_agent.py</b><br/>Signal merge + persistence scoring<br/>Character change detection<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
         A3["<b>finviz_earnings_alert.py</b><br/>Quality &gt; 50 filter<br/>Sector filter<br/>7-day earnings window"]
         A4["<b>finviz_position_monitor.py</b><br/>$4,500 hard stop 🚨<br/>ATR exit system<br/>Peel levels"]
     end
@@ -176,17 +176,27 @@ Tickers outside core sectors get `⚠️ Outside Edge` and drop to Watch List.
 **Unified Signal Score:**
 
 ```
-Signal Score = Base Persistence Score + Signal Bonuses
+Signal Score = Base Score + Signal Bonuses + Quality Modifier + Character Change
 
 Base Score = (days_seen / total_days) × 100
            + (screener_diversity × 10)
            + 20 if multi-screener same day
 
 Signal Bonuses:
-  +30  EP  — gap/surge + 52w high + multi-screen same day
+  +30  EP    — gap/surge + 52w high + multi-screen same day
+  +25  CHAR  — character change (200d gain >50%, RVol >2.5x, Week 20%+ Gain)
   +20  3+ screeners same day
   +15  IPO screener (lifecycle play)
   +10  52w high alone
+
+Quality Modifier (from daily quality JSON):
+  +30  Stage 2 + Q ≥ 60    (strong conviction)
+  +15  Stage 2 + Q ≥ 40    (good)
+  +10  Transitional + Q ≥ 60
+    0  Transitional + Q ≥ 40
+  −10  Stage 1              (basing)
+  −20  Transitional + low Q / Stage 3
+  −40  Stage 4              (downtrend — heavy penalty)
 ```
 
 EP/IPO names compete in the same ranking as persistence leaders. A 3/7 day EP with score 123 ranks above a passive 7/7 single-screener name at 110. Badges explain *why* a name ranks where it does.
@@ -198,19 +208,36 @@ EP/IPO names compete in the same ranking as persistence leaders. A 3/7 day EP wi
 
 All three required. A single `10% Change` without a new high is not an EP.
 
-**Agent 2 — Catalyst Research (built):**
-After persistence scores are computed, the top 5 tickers are sent to Claude API with `web_search` tool enabled. Each call finds real-world catalysts (earnings beats, analyst upgrades, sector tailwinds) explaining why the ticker appeared in screeners. Results stored as `{ticker: summary}`.
+**CHAR criteria (Character Change):**
+- `SMA200%` > 50 (stock is 50%+ above 200-day MA)
+- `Rel Volume` > 2.5x (institutional volume)
+- `Week 20%+ Gain` screener fired
 
-**Agent 3 — Synthesiser (built):**
-Takes Agent 2 research + macro data + Fear & Greed + crypto data and generates the weekly AI brief. The prompt instructs Claude to explain *why* each ticker ranks where it does using catalyst context, not just screener data.
+All three required on the same day. Signals a dead/ignored stock surging with institutional conviction.
+
+**Signal merge — daily quality data drives weekly ranking:**
+1. Daily agent writes `daily_quality_YYYY-MM-DD.json` with Q-rank, Weinstein stage, stage label, and chart grid section for every ticker
+2. Weekly agent loads up to 7 days of quality JSONs; most recent day wins per ticker
+3. Quality modifier adjusts signal score (Stage 2 + high Q = boost, Stage 4 = heavy penalty)
+4. Watch List: tickers with `section == "watch"` are excluded from top 5 cards, Agent 2 research, Agent 3 brief, and Slack recommendations — but still shown in the full leaderboard with `[Watch]` tag
+
+**Agent 2 — Catalyst Research:**
+Top 3 actionable tickers (Watch List excluded) sent to Claude API with `web_search` tool. Each prompt includes Q-rank, stage, category (actionable vs watch), and CHAR flag. Finds real-world catalysts (earnings beats, analyst upgrades, sector tailwinds) explaining screener activity. Results stored as `{ticker: summary}`.
+
+**Agent 3 — Synthesiser:**
+Takes Agent 2 research + macro data + Fear & Greed + crypto data and generates the weekly AI brief. Quality rules enforced in prompt:
+- Only Stage 2 or high-quality Transitional (Q > 60) recommended as Monday actionable
+- Watch List names explicitly flagged as not actionable
+- Character Change names highlighted when present
+- Extended names flagged explicitly
 
 **Report structure:**
-1. Crypto snapshot (BTC, ETH)
-2. Fear & Greed
-3. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3)
-4. Top 5 this week (focus cards with weekly charts)
+1. Top 5 this week (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. 🔄 CHAR)
+2. Crypto snapshot (BTC, ETH)
+3. Fear & Greed
+4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3)
 5. Macro snapshot (colour-coded ▲▼)
-6. Recurring names leaderboard (score > 50% of max, cap 30)
+6. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, 🔄 CHAR badge)
 
 ---
 
@@ -337,8 +364,9 @@ data/
   finviz_screeners_YYYY-MM-DD.csv          # enriched daily (ATR%, Quality Score, Stage, VCP)
   finviz_screeners_YYYY-MM-DD.html         # plain HTML table
   finviz_chart_grid_YYYY-MM-DD.html        # chart gallery
+  daily_quality_YYYY-MM-DD.json            # Q-rank, stage, section — feeds weekly signal merge
   finviz_weekly_YYYY-MM-DD.html            # weekly report
-  finviz_weekly_persistence_YYYY-MM-DD.csv # weekly signal scores
+  finviz_weekly_persistence_YYYY-MM-DD.csv # weekly signal scores (incl. quality mod, CHAR flag)
   alerts_state.json                        # breadth/F&G alert state
   positions_YYYY-MM-DD.json                # position snapshots
 ```
