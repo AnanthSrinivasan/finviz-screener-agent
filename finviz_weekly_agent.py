@@ -740,9 +740,10 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
                     },
                     timeout=90,
                 )
-                if resp.status_code == 429:
+                if resp.status_code in (429, 529):
                     wait = 30 * (attempt + 1)
-                    log.warning(f"Catalyst research rate limited for {ticker}, retrying in {wait}s ({attempt + 1}/3)...")
+                    reason = "rate limited" if resp.status_code == 429 else "overloaded"
+                    log.warning(f"Catalyst research {reason} for {ticker}, retrying in {wait}s ({attempt + 1}/3)...")
                     time.sleep(wait)
                     continue
                 if not resp.ok:
@@ -879,9 +880,10 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
                 },
                 timeout=60,
             )
-            if resp.status_code == 429:
+            if resp.status_code in (429, 529):
                 wait = 30 * (attempt + 1)
-                log.warning(f"AI brief rate limited (429), retrying in {wait}s (attempt {attempt + 1}/3)...")
+                reason = "rate limited" if resp.status_code == 429 else "overloaded"
+                log.warning(f"AI brief {reason} ({resp.status_code}), retrying in {wait}s (attempt {attempt + 1}/3)...")
                 time.sleep(wait)
                 continue
             if not resp.ok:
@@ -893,8 +895,8 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         except Exception as e:
             log.error(f"Weekly AI brief failed: {e}")
             return ""
-    log.error("AI brief failed after 3 rate-limit retries.")
-    return ""
+    log.warning("AI brief unavailable this week — exhausted 3 retries (429/529).")
+    return "AI synthesis unavailable due to API load — see individual catalyst notes below."
 
 
 # ----------------------------
@@ -1028,10 +1030,7 @@ if __name__ == "__main__":
     log.info("Running Agent 2 — catalyst research for top 5...")
     research    = research_catalysts(persistence_df)
 
-    # Cooldown — Agent 2 web_search calls consume rate limit; wait before Agent 3
-    log.info("Rate-limit cooldown (60s) before Agent 3...")
-    time.sleep(60)
-
+    # No explicit cooldown needed — Agent 2's 15s inter-ticker delays provide natural spacing
     log.info("Running Agent 3 — synthesised AI brief...")
     ai_brief    = generate_weekly_ai_brief(persistence_df, macro_data, dates_found, fng_data, crypto_data, research)
     weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
