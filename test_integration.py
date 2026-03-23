@@ -13,6 +13,7 @@ import json
 import os
 import tempfile
 import unittest
+import unittest.mock
 
 import pandas as pd
 
@@ -27,6 +28,8 @@ from finviz_weekly_agent import (
     _compute_quality_modifier,
     _detect_signals,
     build_persistence_scores,
+    compute_revenue_growth,
+    is_character_change_deep,
 )
 
 
@@ -526,6 +529,235 @@ class TestCharacterChangeSignal(unittest.TestCase):
         char_no = result[result["Ticker"] == "CHAR_NO"].iloc[0]
 
         self.assertGreater(char_yes["Signal Score"], char_no["Signal Score"])
+
+
+# ============================================================
+# Part 6b: Character Change Deep Check (yfinance-backed)
+# ============================================================
+
+class TestRevenueGrowthComputation(unittest.TestCase):
+    """Tests for compute_revenue_growth helper."""
+
+    def test_basic_growth(self):
+        """Revenue growing 10% each quarter."""
+        rev = [100, 110, 121, 133.1]
+        growth = compute_revenue_growth(rev)
+        self.assertEqual(len(growth), 3)
+        self.assertAlmostEqual(growth[0], 10.0, places=0)
+
+    def test_declining_revenue(self):
+        """Revenue declining should show negative growth."""
+        rev = [200, 180, 160]
+        growth = compute_revenue_growth(rev)
+        self.assertLess(growth[0], 0)
+        self.assertLess(growth[1], 0)
+
+    def test_single_quarter(self):
+        """Insufficient data returns empty list."""
+        growth = compute_revenue_growth([100])
+        self.assertEqual(growth, [])
+
+    def test_empty_input(self):
+        growth = compute_revenue_growth([])
+        self.assertEqual(growth, [])
+
+    def test_zero_previous_revenue(self):
+        """Zero in prior quarter should produce 0 growth, not crash."""
+        rev = [0, 100, 200]
+        growth = compute_revenue_growth(rev)
+        self.assertEqual(growth[0], 0.0)
+        self.assertGreater(growth[1], 0)
+
+    def test_accelerating_growth(self):
+        """Each quarter growing faster than the last."""
+        rev = [100, 105, 115, 135]  # +5%, +9.5%, +17.4%
+        growth = compute_revenue_growth(rev)
+        self.assertLess(growth[0], growth[1])
+        self.assertLess(growth[1], growth[2])
+
+
+class TestIsCharacterChangeDeep(unittest.TestCase):
+    """Tests for the 4-condition character change deep check.
+
+    These tests mock yfinance by patching fetch_earnings_history.
+    """
+
+    def _mock_earnings(self, eps_values, revenue_values):
+        """Create a mock earnings result."""
+        return {
+            "eps_history": eps_values,
+            "revenue_history": revenue_values,
+        }
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_all_conditions_met_is_cc(self, mock_fetch):
+        """All 4 conditions met → is_cc = True."""
+        # EPS: clearly improving across 4 quarters
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        result = is_character_change_deep("SEDG", sma200_pct=15.0, rvol=3.0)
+        self.assertTrue(result["is_cc"])
+        self.assertFalse(result["is_cc_watch"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_eps_not_improving_no_cc(self, mock_fetch):
+        """EPS flat/declining → no CC."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[2.0, 2.0, 1.5, 1.0],
+            revenue_values=[100, 110, 120, 135],
+        )
+        result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=3.0)
+        self.assertFalse(result["is_cc"])
+        self.assertFalse(result["is_cc_watch"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_sma200_negative_no_cc(self, mock_fetch):
+        """Below 200-day MA → no CC (MA not cleared)."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        result = is_character_change_deep("TEST", sma200_pct=-5.0, rvol=3.0)
+        self.assertFalse(result["is_cc"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_sma200_too_high_no_cc(self, mock_fetch):
+        """SMA200% > 60 means stock ran too far — not a fresh clearing."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        result = is_character_change_deep("TEST", sma200_pct=65.0, rvol=3.0)
+        self.assertFalse(result["is_cc"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_low_rvol_no_cc(self, mock_fetch):
+        """RVol < 2.0 → no volume confirmation."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=1.5)
+        self.assertFalse(result["is_cc"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_cc_watch_when_sales_positive_but_not_accelerating(self, mock_fetch):
+        """EPS improving + volume + MA cleared, but sales flat → CC_WATCH."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 120, 125, 130, 133],  # growing but decelerating
+        )
+        result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=2.5)
+        self.assertFalse(result["is_cc"])
+        self.assertTrue(result["is_cc_watch"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_sma200_none_no_cc(self, mock_fetch):
+        """None SMA200 → immediate return, no CC."""
+        result = is_character_change_deep("TEST", sma200_pct=None, rvol=3.0)
+        self.assertFalse(result["is_cc"])
+        mock_fetch.assert_not_called()
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_no_earnings_data_no_cc(self, mock_fetch):
+        """yfinance returns None → no CC."""
+        mock_fetch.return_value = None
+        result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=3.0)
+        self.assertFalse(result["is_cc"])
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_cc_deep_gets_35_bonus_in_scoring(self, mock_fetch):
+        """Deep CC confirmed should add +35 to signal score."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        cc_result = is_character_change_deep("SEDG", sma200_pct=15.0, rvol=3.0)
+        self.assertTrue(cc_result["is_cc"])
+
+        combined = _make_daily_csv_df([{
+            "Ticker": "SEDG", "Screeners": "Growth",
+            "Appearances": 1, "date": "2026-03-20",
+        }])
+        combined["SMA200%"] = [15.0]
+        combined["Rel Volume"] = [3.0]
+        dates = ["2026-03-20"]
+
+        # With cc_results
+        result = build_persistence_scores(combined, dates, cc_results={"SEDG": cc_result})
+        sedg = result[result["Ticker"] == "SEDG"].iloc[0]
+        self.assertTrue(sedg["CC_DEEP"])
+        self.assertGreaterEqual(sedg["Signal Score"], sedg["Base Score"] + 35)
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_cc_watch_gets_25_bonus_in_scoring(self, mock_fetch):
+        """CC Watch should add +25 to signal score (same as old CHAR)."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 120, 125, 130, 133],
+        )
+        cc_result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=2.5)
+        self.assertTrue(cc_result["is_cc_watch"])
+
+        combined = _make_daily_csv_df([{
+            "Ticker": "TEST", "Screeners": "Growth",
+            "Appearances": 1, "date": "2026-03-20",
+        }])
+        combined["SMA200%"] = [15.0]
+        combined["Rel Volume"] = [2.5]
+        dates = ["2026-03-20"]
+
+        result = build_persistence_scores(combined, dates, cc_results={"TEST": cc_result})
+        test = result[result["Ticker"] == "TEST"].iloc[0]
+        self.assertTrue(test["CC_WATCH"])
+        self.assertGreaterEqual(test["Signal Score"], test["Base Score"] + 25)
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_cc_deep_overrides_simple_heuristic(self, mock_fetch):
+        """When deep CC fires, the simple CHAR heuristic bonus (+25) should not stack.
+        Deep CC gives +35, not +35 + 25."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        cc_result = is_character_change_deep("SEDG", sma200_pct=15.0, rvol=3.0)
+
+        # This ticker also meets simple CHAR heuristic (SMA200 > 50, RVol > 2.5, Week 20%+)
+        combined = _make_daily_csv_df([{
+            "Ticker": "SEDG", "Screeners": "Week 20%+ Gain, Growth",
+            "Appearances": 1, "date": "2026-03-20",
+        }])
+        combined["SMA200%"] = [55.0]  # meets simple heuristic too
+        combined["Rel Volume"] = [3.0]
+        dates = ["2026-03-20"]
+
+        # Without cc_results → simple heuristic (+25)
+        result_simple = build_persistence_scores(combined, dates)
+        sedg_simple = result_simple[result_simple["Ticker"] == "SEDG"].iloc[0]
+
+        # With cc_results → deep CC (+35)
+        result_deep = build_persistence_scores(combined, dates, cc_results={"SEDG": cc_result})
+        sedg_deep = result_deep[result_deep["Ticker"] == "SEDG"].iloc[0]
+
+        # Deep should be exactly 10 more than simple (35 vs 25)
+        self.assertAlmostEqual(
+            sedg_deep["Signal Score"] - sedg_simple["Signal Score"], 10.0,
+            msg="Deep CC (+35) should be exactly 10 more than simple CHAR (+25)"
+        )
+
+    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    def test_conditions_tracking(self, mock_fetch):
+        """Result should track which conditions passed and failed."""
+        mock_fetch.return_value = self._mock_earnings(
+            eps_values=[-2.0, -1.0, 0.5, 1.0, 2.0, 3.0],
+            revenue_values=[100, 110, 125, 145, 170, 205],
+        )
+        result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=3.0)
+        self.assertGreater(len(result["conditions_met"]), 0)
+        self.assertIsInstance(result["eps_trend"], list)
+        self.assertIsInstance(result["sales_trend"], list)
 
 
 # ============================================================

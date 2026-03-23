@@ -1,6 +1,6 @@
 # Finviz Screener Agent — System Documentation
 
-**Last updated:** 2026-03-21  
+**Last updated:** 2026-03-23
 **Repo:** https://github.com/AnanthSrinivasan/finviz-screener-agent  
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
@@ -34,20 +34,23 @@ flowchart TB
         W2["weekly-finviz.yml<br/><i>Sunday 18:00 UTC</i>"]
         W3["earnings-alert.yml<br/><i>Mon-Fri 22:30 UTC</i>"]
         W4["position-monitor.yml<br/><i>every 30 min</i>"]
+        W5["market_monitor.yml<br/><i>Mon-Fri 22:00 UTC</i>"]
     end
 
     subgraph AGENTS["Python Agents"]
         direction LR
         A1["<b>finviz_agent.py</b><br/>5 screeners · Quality Score<br/>Stage analysis · VCP detection<br/>Sector badge · AI summary"]
-        A2["<b>finviz_weekly_agent.py</b><br/>Signal merge + persistence scoring<br/>Character change detection<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
+        A2["<b>finviz_weekly_agent.py</b><br/>Signal merge + persistence scoring<br/>Character change deep check (yfinance)<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
         A3["<b>finviz_earnings_alert.py</b><br/>Quality &gt; 50 filter<br/>Sector filter<br/>7-day earnings window"]
         A4["<b>finviz_position_monitor.py</b><br/>$4,500 hard stop 🚨<br/>ATR exit system<br/>Peel levels"]
+        A5["<b>finviz_market_monitor.py</b><br/>Breadth ratios · T2108 equiv<br/>Market state classification<br/>State change alerts"]
     end
 
     W1 --> A1
     W2 --> A2
     W3 --> A3
     W4 --> A4
+    W5 --> A5
 
     subgraph EXT["External Data Sources"]
         direction LR
@@ -55,16 +58,20 @@ flowchart TB
         E2[("CoinGecko API<br/>CNN Fear &amp; Greed")]
         E3[("Anthropic API<br/><i>Claude Sonnet</i><br/>daily summaries<br/>web_search catalysts<br/>synthesised brief")]
         E4[("SnapTrade API<br/>Robinhood positions")]
+        E5[("yfinance<br/>quarterly earnings<br/>revenue history")]
     end
 
     E1 -.-> A1
     E1 -.-> A2
     E1 -.-> A3
+    E1 -.-> A5
     E2 -.-> A2
+    E2 -.-> A5
     E3 -.-> A1
     E3 -.-> A2
     E3 -.-> A4
     E4 -.-> A4
+    E5 -.-> A2
 
     subgraph OUT["Outputs"]
         direction LR
@@ -76,6 +83,7 @@ flowchart TB
     A1 --> O2
     A2 --> O1
     A2 --> O2
+    A5 --> O1
 
     O1 --> GP["GitHub Pages<br/>live reports index"]
     O2 --> GP
@@ -86,12 +94,16 @@ flowchart TB
         S2["<b>#weekly-alerts</b><br/>top 5 + catalyst brief"]
         S3["<b>#general-alerts</b><br/>earnings · hard stops · breadth"]
         S4["<b>#positions</b><br/>ATR exits + P&amp;L"]
+        S5["<b>#market-alerts</b><br/>state changes only"]
+        S6["<b>#market-daily</b><br/>daily breadth summary"]
     end
 
     A1 ==> S1
     A2 ==> S2
     A3 ==> S3
     A4 ==> S4
+    A5 ==> S5
+    A5 ==> S6
 
     subgraph RISK["Risk Rules (hard-coded)"]
         direction LR
@@ -183,8 +195,10 @@ Base Score = (days_seen / total_days) × 100
            + 20 if multi-screener same day
 
 Signal Bonuses:
+  +35  CC    — character change confirmed (yfinance: 3+ qtrs improving EPS + sales accelerating)
   +30  EP    — gap/surge + 52w high + multi-screen same day
-  +25  CHAR  — character change (200d gain >50%, RVol >2.5x, Week 20%+ Gain)
+  +25  CC_WATCH — character change watch (EPS improving, sales need confirmation)
+  +25  CHAR  — character change heuristic fallback (200d gain >50%, RVol >2.5x)
   +20  3+ screeners same day
   +15  IPO screener (lifecycle play)
   +10  52w high alone
@@ -208,12 +222,27 @@ EP/IPO names compete in the same ranking as persistence leaders. A 3/7 day EP wi
 
 All three required. A single `10% Change` without a new high is not an EP.
 
-**CHAR criteria (Character Change):**
+**Character Change Detection (upgraded 2026-03-23):**
+
+Three tiers — deep check takes priority, simple heuristic is the fallback:
+
+**⚡ CC Confirmed (+35) — yfinance deep check on top 25 candidates:**
+1. 3+ consecutive quarters of improving EPS (every quarter better than prior)
+2. Sales growth accelerating last 2 quarters (both positive, latest > prior)
+3. Price cleared 200-day MA within reasonable range (SMA200% between 0-60%)
+4. Volume confirming (RVol ≥ 2.0)
+
+**⚡ CC Watch (+25) — 3 of 4 conditions met:**
+- EPS improving + MA cleared + volume confirming, but sales positive without accelerating
+
+**🔄 CHAR Heuristic (+25) — fallback when yfinance data unavailable:**
 - `SMA200%` > 50 (stock is 50%+ above 200-day MA)
 - `Rel Volume` > 2.5x (institutional volume)
 - `Week 20%+ Gain` screener fired
 
-All three required on the same day. Signals a dead/ignored stock surging with institutional conviction.
+Deep check runs weekly via yfinance on the top 25 candidates. Daily agent shows `⚡ CC?` hint badge on cards where EPS > 0 + RVol ≥ 2.0 + Stage 2/high-momentum — confirmed in the weekly deep check.
+
+**HTML report:** Dedicated "Character Change Alerts" section above leaderboard showing EPS trends, sales growth, and which conditions passed/failed.
 
 **Signal merge — daily quality data drives weekly ranking:**
 1. Daily agent writes `daily_quality_YYYY-MM-DD.json` with Q-rank, Weinstein stage, stage label, and chart grid section for every ticker
@@ -225,19 +254,21 @@ All three required on the same day. Signals a dead/ignored stock surging with in
 Top 3 actionable tickers (Watch List excluded) sent to Claude API with `web_search` tool. Each prompt includes Q-rank, stage, category (actionable vs watch), and CHAR flag. Finds real-world catalysts (earnings beats, analyst upgrades, sector tailwinds) explaining screener activity. Results stored as `{ticker: summary}`.
 
 **Agent 3 — Synthesiser:**
-Takes Agent 2 research + macro data + Fear & Greed + crypto data and generates the weekly AI brief. Quality rules enforced in prompt:
+Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market monitor state** and generates the weekly AI brief. Quality rules enforced in prompt:
 - Only Stage 2 or high-quality Transitional (Q > 60) recommended as Monday actionable
 - Watch List names explicitly flagged as not actionable
-- Character Change names highlighted when present
+- CC Confirmed names highlighted with fundamental turnaround context; CC Watch flagged with caveat
 - Extended names flagged explicitly
+- **Market state conditioning:** RED/BLACKOUT → "names to watch" only, no actionable entries. CAUTION → half size. GREEN/THRUST → full size with price levels.
 
 **Report structure:**
-1. Top 5 this week (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. 🔄 CHAR)
+1. Top 5 this week (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. ⚡CC/🔄 CHAR)
 2. Crypto snapshot (BTC, ETH)
 3. Fear & Greed
-4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3)
+4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
 5. Macro snapshot (colour-coded ▲▼)
-6. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, 🔄 CHAR badge)
+6. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
+7. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges)
 
 ---
 
@@ -298,7 +329,57 @@ F&G extremes, NYSE/Nasdaq breadth, ATR compression, commodity breakouts. State p
 
 ---
 
-### 3.6 Position Monitor — `finviz_position_monitor.py` ✅ UPDATED
+### 3.6 Market Monitor — `finviz_market_monitor.py` ✅ NEW
+
+**Schedule:** 22:00 UTC Mon-Fri
+**Slack:** `#market-alerts` via `SLACK_WEBHOOK_MARKET_ALERTS` (state changes only), `#market-daily` via `SLACK_WEBHOOK_MARKET_DAILY` (every day)
+
+Standalone daily agent that classifies overall market conditions using Finviz breadth data.
+
+**6 Finviz fetches daily** (with rate-limit delays):
+1. Stocks up 4%+ today (breadth up)
+2. Stocks down 4%+ today (breadth down)
+3. Stocks up 25%+ in a quarter
+4. Stocks down 25%+ in a quarter
+5. Stocks above 40-day SMA (T2108 equivalent)
+6. Total liquid universe count
+
+Also fetches: SPY price + SMA200% from quote page, CNN Fear & Greed.
+
+**Calculations:**
+- Daily ratio: up_4 / down_4
+- 5-day rolling ratio (sum of last 5 days' up / sum of last 5 days' down)
+- 10-day rolling ratio
+- T2108 equivalent: % of universe above 40-day SMA
+- Thrust detection: up_4 ≥ 500
+
+**Market state classification (priority order):**
+
+| State | Condition | Action |
+|-------|-----------|--------|
+| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | No new trades |
+| THRUST | 500+ stocks up 4% in one day | Build watchlist, wait for confirmation |
+| GREEN | 5d ratio ≥ 2.0, 10d ≥ 1.5, F&G ≥ 35, SPY above 200d MA, T2108 ≥ 40% | Full size entries |
+| CAUTION | 5d ratio ≥ 1.5, F&G ≥ 25, SPY above 200d MA | Half size only |
+| DANGER | 175+ stocks down 4% and 5d ratio < 0.5 | No entries, raise stops |
+| RED | Default | No new trades |
+
+**Data storage:**
+- `data/market_monitor_YYYY-MM-DD.json` — daily snapshot
+- `data/market_monitor_history.json` — rolling 30-day history (weekly agent reads this)
+
+**Weekly agent integration:**
+Agent 3 reads market state and conditions its recommendations. RED/BLACKOUT → watchlist framing only. CAUTION → half size. GREEN/THRUST → full size.
+
+**Scaled thresholds** (from ~1500 liquid universe, scaled from Stockbee's 6000):
+- Thrust: 500 (scaled from 2000 in 6K universe)
+- Danger: 175 (scaled from 700 in 6K universe)
+
+Validate `total_universe` count on first run and re-scale if needed.
+
+---
+
+### 3.7 Position Monitor — `finviz_position_monitor.py` ✅ UPDATED
 
 **Schedule:** Every 30 min during market hours  
 **Slack:** `#positions` via `SLACK_WEBHOOK_POSITIONS`
@@ -332,8 +413,11 @@ $4,500 hard stop rule: no single position loses more than this. Period.
 | `SLACK_WEBHOOK_WEEKLY` | `#weekly-alerts` | Weekly review + winners watchlist | `#general-alerts` |
 | `SLACK_WEBHOOK_ALERTS` | `#general-alerts` | Earnings alerts + hard stop fires + breadth alerts | `#general-alerts` |
 | `SLACK_WEBHOOK_POSITIONS` | `#positions` | Live P&L, ATR exits, peel levels | `#general-alerts` |
+| `SLACK_WEBHOOK_MARKET_ALERTS` | `#market-alerts` | Market state changes + confirmation alerts | `#market-alerts` |
+| `SLACK_WEBHOOK_MARKET_DAILY` | `#market-daily` | Daily breadth summary (every trading day) | `#market-alerts` |
 
 `#general-alerts` also receives all workflow failure notifications — single place to check if anything is broken.
+`#market-alerts` stays quiet when market grinds in RED — only pings on meaningful state changes.
 
 ---
 
@@ -368,6 +452,8 @@ data/
   finviz_weekly_YYYY-MM-DD.html            # weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # weekly signal scores (incl. quality mod, CHAR flag)
   alerts_state.json                        # breadth/F&G alert state
+  market_monitor_YYYY-MM-DD.json           # daily market breadth snapshot
+  market_monitor_history.json              # rolling 30-day history (weekly agent reads this)
   positions_YYYY-MM-DD.json                # position snapshots
 ```
 
@@ -390,6 +476,8 @@ Not needed yet. Revisit if automated execution is added.
 | `SLACK_WEBHOOK_WEEKLY` | weekly-finviz.yml, winners-watchlist.yml |
 | `SLACK_WEBHOOK_ALERTS` | earnings-alert.yml, alerts-finviz.yml, all failure hooks |
 | `SLACK_WEBHOOK_POSITIONS` | position-monitor.yml |
+| `SLACK_WEBHOOK_MARKET_ALERTS` | market_monitor.yml |
+| `SLACK_WEBHOOK_MARKET_DAILY` | market_monitor.yml |
 | `ANTHROPIC_API_KEY` | finviz_agent.py, finviz_weekly_agent.py, finviz_position_monitor.py |
 | `PAGES_BASE_URL` | all agents (gallery links in Slack) |
 | `SNAPTRADE_CLIENT_ID` | finviz_position_monitor.py |
@@ -421,14 +509,16 @@ Not needed yet. Revisit if automated execution is added.
 | # | Item | Status |
 |---|------|--------|
 | 1 | Winners watchlist + re-entry detector | ✅ Built |
-| 2 | Separate Slack channels (4 webhooks) | ✅ Built |
+| 2 | Separate Slack channels (4 webhooks → 6) | ✅ Built |
 | 3 | Position monitor $4,500 hard stop | ✅ Built |
 | 4 | Earnings alert quality filter | ✅ Built (Claude Code) |
 | 5 | Sector discipline badge in daily gallery | ✅ Built (Claude Code) |
 | 6 | Agent 2 — catalyst research per ticker | ✅ Built |
 | 7 | Agent 3 — synthesiser weekly brief | ✅ Built |
-| 8 | Automated order execution via SnapTrade | 🔲 Deferred — guardrails discussion first |
-| 9 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
+| 8 | Market monitor — daily breadth + state classification | ✅ Built |
+| 9 | Character change deep check (yfinance quarterly earnings) | ✅ Built |
+| 10 | Automated order execution via SnapTrade | 🔲 Deferred — guardrails discussion first |
+| 11 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
 
 ---
 

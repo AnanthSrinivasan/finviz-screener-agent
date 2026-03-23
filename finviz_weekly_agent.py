@@ -96,7 +96,213 @@ def any_thrust_in_history() -> bool:
 
 
 # ----------------------------
-# Part 1: Score & Rank
+# Part 1a: Character Change Deep Check (yfinance)
+# ----------------------------
+
+def fetch_earnings_history(ticker: str) -> dict | None:
+    """
+    Fetch quarterly earnings + revenue history from yfinance.
+    Returns dict with eps_history, sales_history, or None on failure.
+    """
+    try:
+        import yfinance as yf
+        stock = yf.Ticker(ticker)
+
+        # Quarterly earnings — EPS actual values
+        earnings = stock.quarterly_earnings
+        if earnings is None or earnings.empty:
+            log.debug(f"{ticker}: no quarterly earnings data")
+            return None
+
+        # Quarterly financials — revenue
+        financials = stock.quarterly_financials
+        revenue_history = []
+        if financials is not None and not financials.empty:
+            if "Total Revenue" in financials.index:
+                rev_row = financials.loc["Total Revenue"].dropna().sort_index()
+                revenue_history = rev_row.tolist()
+
+        # Extract EPS actuals, sorted chronologically (oldest first)
+        if "Earnings" in earnings.columns:
+            eps_values = earnings["Earnings"].dropna().tolist()
+        elif "Actual" in earnings.columns:
+            eps_values = earnings["Actual"].dropna().tolist()
+        else:
+            eps_values = []
+
+        # yfinance returns most recent first — reverse to chronological
+        eps_values = list(reversed(eps_values))
+        revenue_history = list(reversed(revenue_history))
+
+        if len(eps_values) < 4:
+            log.debug(f"{ticker}: only {len(eps_values)} quarters of EPS data")
+            return None
+
+        return {
+            "eps_history": eps_values,
+            "revenue_history": revenue_history,
+        }
+    except Exception as e:
+        log.warning(f"{ticker}: yfinance earnings fetch failed — {e}")
+        return None
+
+
+def compute_revenue_growth(revenue_history: list) -> list:
+    """Compute quarter-over-quarter revenue growth percentages."""
+    if len(revenue_history) < 2:
+        return []
+    growth = []
+    for i in range(1, len(revenue_history)):
+        prev = revenue_history[i - 1]
+        curr = revenue_history[i]
+        if prev and prev != 0:
+            growth.append(round((curr / prev - 1) * 100, 1))
+        else:
+            growth.append(0.0)
+    return growth
+
+
+def is_character_change_deep(ticker: str, sma200_pct: float | None,
+                              rvol: float | None) -> dict:
+    """
+    Full 4-condition character change check using yfinance quarterly data.
+
+    Conditions:
+    1. 3+ consecutive quarters of improving EPS
+    2. Sales growth accelerating last 2 quarters (both positive)
+    3. Price cleared 200-day MA (SMA200% between 0 and ~60%)
+    4. Volume confirming (RVol >= 2.0)
+
+    Returns dict with 'is_cc', 'is_cc_watch', 'details'.
+    """
+    result = {
+        "is_cc": False,
+        "is_cc_watch": False,
+        "eps_trend": [],
+        "sales_trend": [],
+        "conditions_met": [],
+        "conditions_failed": [],
+        "note": "",
+    }
+
+    # Condition 3: 200-day MA cleared (SMA200% > 0 means above it)
+    if sma200_pct is None:
+        result["conditions_failed"].append("200d MA data unavailable")
+        return result
+    ma_cleared = 0 < sma200_pct <= 60
+    if ma_cleared:
+        result["conditions_met"].append(f"200d MA cleared (SMA200: +{sma200_pct:.1f}%)")
+    else:
+        result["conditions_failed"].append(f"200d MA not cleared (SMA200: {sma200_pct:+.1f}%)")
+
+    # Condition 4: Volume confirming
+    rvol_val = float(rvol) if rvol is not None and pd.notna(rvol) else 0
+    if rvol_val >= 2.0:
+        result["conditions_met"].append(f"RVol confirming ({rvol_val:.1f}x)")
+    else:
+        result["conditions_failed"].append(f"RVol low ({rvol_val:.1f}x, need 2.0x)")
+
+    # Fetch quarterly earnings
+    earnings = fetch_earnings_history(ticker)
+    if not earnings:
+        result["conditions_failed"].append("Earnings data unavailable")
+        return result
+
+    eps_values = earnings["eps_history"]
+    result["eps_trend"] = [round(e, 2) for e in eps_values[-6:]]
+
+    # Condition 1: 3+ consecutive quarters of improving EPS
+    recent_eps = eps_values[-4:]  # last 4 quarters
+    eps_improving = all(
+        recent_eps[i] > recent_eps[i - 1]
+        for i in range(1, len(recent_eps))
+    )
+    if eps_improving:
+        result["conditions_met"].append(
+            f"EPS improving 3+ qtrs ({' → '.join(f'{e:.2f}' for e in recent_eps)})"
+        )
+    else:
+        result["conditions_failed"].append(
+            f"EPS not consistently improving ({' → '.join(f'{e:.2f}' for e in recent_eps)})"
+        )
+
+    # Condition 2: Sales growth accelerating last 2 quarters
+    rev_growth = compute_revenue_growth(earnings["revenue_history"])
+    result["sales_trend"] = [round(g, 1) for g in rev_growth[-4:]]
+    if len(rev_growth) >= 2:
+        recent_sales = rev_growth[-2:]
+        sales_accelerating = recent_sales[-1] > recent_sales[-2] and recent_sales[-2] > 0
+        if sales_accelerating:
+            result["conditions_met"].append(
+                f"Sales accelerating ({recent_sales[-2]:+.1f}% → {recent_sales[-1]:+.1f}%)"
+            )
+        else:
+            result["conditions_failed"].append(
+                f"Sales not accelerating ({recent_sales[-2]:+.1f}% → {recent_sales[-1]:+.1f}%)"
+            )
+    else:
+        result["conditions_failed"].append("Insufficient revenue history")
+
+    # Evaluate: all 4 = CC, 3/4 with sales still growing = CC_WATCH
+    all_passed = len(result["conditions_failed"]) == 0
+    if all_passed:
+        result["is_cc"] = True
+        return result
+
+    # CC_WATCH: EPS improving + MA cleared + volume — but sales dip
+    if (eps_improving and ma_cleared and rvol_val >= 2.0
+            and len(rev_growth) >= 2 and rev_growth[-1] > 0):
+        result["is_cc_watch"] = True
+        result["note"] = "Sales growth positive but not accelerating — watch for confirmation"
+
+    return result
+
+
+def run_character_change_checks(persistence_df: pd.DataFrame,
+                                 combined_df: pd.DataFrame,
+                                 max_candidates: int = 25) -> dict:
+    """
+    Run deep character change checks on top candidates.
+    Returns {ticker: cc_result_dict}.
+    """
+    import time as _time
+    candidates = persistence_df.head(max_candidates)
+    cc_results = {}
+
+    for _, row in candidates.iterrows():
+        ticker = row["Ticker"]
+
+        # Get SMA200% and RVol from the most recent daily data
+        ticker_rows = combined_df[combined_df["Ticker"] == ticker]
+        if ticker_rows.empty:
+            continue
+        latest = ticker_rows.iloc[-1]
+        sma200_pct = latest.get("SMA200%")
+        rvol = latest.get("Rel Volume")
+
+        if pd.notna(sma200_pct):
+            sma200_pct = float(sma200_pct)
+        else:
+            sma200_pct = None
+
+        # Quick pre-filter: skip if SMA200% clearly wrong direction
+        if sma200_pct is not None and sma200_pct < -10:
+            continue
+
+        log.info(f"CC check: {ticker} (SMA200: {sma200_pct}, RVol: {rvol})")
+        result = is_character_change_deep(ticker, sma200_pct, rvol)
+        if result["is_cc"] or result["is_cc_watch"]:
+            cc_results[ticker] = result
+            status = "CC" if result["is_cc"] else "CC_WATCH"
+            log.info(f"  → {status}: {', '.join(result['conditions_met'])}")
+
+        _time.sleep(0.5)  # Rate limit yfinance
+
+    return cc_results
+
+
+# ----------------------------
+# Part 1b: Score & Rank
 # ----------------------------
 
 def load_weekly_data(data_dir: str, lookback_days: int = 7) -> tuple:
@@ -236,12 +442,15 @@ def _detect_signals(screeners_hit: set, max_appearances: int) -> dict:
 
 
 def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
-                             daily_quality: dict = None) -> pd.DataFrame:
+                             daily_quality: dict = None,
+                             cc_results: dict = None) -> pd.DataFrame:
     if combined_df.empty:
         return pd.DataFrame()
 
     if daily_quality is None:
         daily_quality = {}
+    if cc_results is None:
+        cc_results = {}
 
     records = defaultdict(lambda: {
         "days_seen": 0, "dates": [], "max_atr": None, "max_eps": None,
@@ -299,8 +508,18 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         signals = _detect_signals(r["screeners_hit"], r["max_appearances"])
         signal_score = round(base_score + signals["bonuses"], 1)
 
-        # Character change bonus: +25 for 200d gain > 50% + RVol > 2.5x + Week 20%+ Gain
-        if r["has_char_change"]:
+        # Character change: deep check (+35) takes priority over simple heuristic (+25)
+        cc = cc_results.get(ticker)
+        if cc and cc.get("is_cc"):
+            signals["CHAR"] = True
+            signals["CC_DEEP"] = True
+            signal_score += 35
+        elif cc and cc.get("is_cc_watch"):
+            signals["CHAR"] = True
+            signals["CC_WATCH"] = True
+            signal_score += 25
+        elif r["has_char_change"]:
+            # Fallback: simple heuristic (200d gain >50%, RVol >2.5x, Week 20%+ Gain)
             signals["CHAR"] = True
             signal_score += 25
 
@@ -339,6 +558,8 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
             "MULTI":           signals.get("MULTI", False),
             "HIGH":            signals.get("HIGH",  False),
             "CHAR":            signals.get("CHAR",  False),
+            "CC_DEEP":         signals.get("CC_DEEP", False),
+            "CC_WATCH":        signals.get("CC_WATCH", False),
         })
 
     # Sort by unified signal score — EP/IPO names compete fairly for top 5
@@ -368,7 +589,11 @@ def _build_badges(row) -> str:
         badges += "<span class='badge-multi'>x3 screens</span>"
     if row.get("HIGH") and not row.get("EP"):
         badges += "<span class='badge-high'>52w High</span>"
-    if row.get("CHAR"):
+    if row.get("CC_DEEP"):
+        badges += "<span class='badge-cc'>⚡ CC</span>"
+    elif row.get("CC_WATCH"):
+        badges += "<span class='badge-cc-watch'>⚡ CC Watch</span>"
+    elif row.get("CHAR"):
         badges += "<span class='badge-char'>🔄 Char Change</span>"
     return badges
 
@@ -531,7 +756,8 @@ def _fng_context(score: float, prev_month: float) -> str:
 
 def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
                           dates_found: list, ai_brief: str,
-                          fng_data: dict = None, crypto_data: dict = None) -> str:
+                          fng_data: dict = None, crypto_data: dict = None,
+                          cc_results: dict = None) -> str:
     today      = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
@@ -619,7 +845,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         if row.get("IPO"):   badge_str += "🚀"
         if row.get("MULTI"): badge_str += "x3"
         if row.get("HIGH") and not row.get("EP"): badge_str += "↑hi"
-        if row.get("CHAR"):  badge_str += "🔄"
+        if row.get("CC_DEEP"):    badge_str += "⚡CC"
+        elif row.get("CC_WATCH"): badge_str += "⚡W"
+        elif row.get("CHAR"):     badge_str += "🔄"
         fv_url    = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
         chart_url = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
         row_cls   = "watch-row" if is_watch else ("ep-row" if (row.get("EP") or row.get("IPO")) else "")
@@ -701,12 +929,54 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         "</tr></thead><tbody>" + macro_rows + "</tbody></table>"
     ) if macro_rows else ""
 
+    # --- CHARACTER CHANGE ALERTS ---
+    cc_html = ""
+    if cc_results is None:
+        cc_results = {}
+    if cc_results:
+        cc_cards = ""
+        for ticker, cc in cc_results.items():
+            status = "⚡ CONFIRMED" if cc.get("is_cc") else "⚡ WATCH"
+            status_cls = "cc-confirmed" if cc.get("is_cc") else "cc-watch"
+            # Find ticker's row in persistence_df for context
+            ticker_row = persistence_df[persistence_df["Ticker"] == ticker]
+            q_rank = "Q?"
+            stage = "—"
+            if not ticker_row.empty:
+                r = ticker_row.iloc[0]
+                q_rank = f"Q{int(r['Q Rank'])}" if pd.notna(r.get("Q Rank")) else "Q?"
+                stage = r.get("Stage", "—")
+            eps_trend = " → ".join(str(e) for e in cc.get("eps_trend", []))
+            sales_trend = " → ".join(f"{g:+.1f}%" for g in cc.get("sales_trend", []))
+            conditions = "<br>".join(cc.get("conditions_met", []))
+            note = f"<div class='cc-note'>{cc['note']}</div>" if cc.get("note") else ""
+            fv_url = f"{FINVIZ_BASE}/quote.ashx?t={ticker}"
+            cc_cards += (
+                f"<div class='cc-card {status_cls}'>"
+                f"<div class='cc-header'>"
+                f"<a href='{fv_url}' target='_blank' class='cc-ticker'>{ticker}</a>"
+                f"<span class='cc-status'>{status}</span>"
+                f"<span class='cc-quality'>{q_rank} · {stage}</span>"
+                f"</div>"
+                f"<div class='cc-trend'><b>EPS:</b> {eps_trend}</div>"
+                f"<div class='cc-trend'><b>Sales growth:</b> {sales_trend}</div>"
+                f"<div class='cc-conditions'>{conditions}</div>"
+                f"{note}"
+                f"</div>"
+            )
+        cc_html = (
+            "<h2>⚡ Character Change Alerts</h2>"
+            "<p class='lb-note'>Names showing fundamental reversal pattern — "
+            "3+ quarters improving EPS + accelerating sales + 200MA cleared + volume confirmation</p>"
+            "<div class='cc-grid'>" + cc_cards + "</div>"
+        )
+
     leaderboard_count = len(leaderboard_df)
     leaderboard_html = (
         f"<h2>Recurring Names — signal score &gt; {threshold:.0f} ({leaderboard_count} names)</h2>"
         "<p class='lb-note'>"
         "Ranked by signal score (persistence + bonuses). "
-        "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high · 🔄 = character change. "
+        "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high · ⚡CC = character change (confirmed) · ⚡W = CC watch · 🔄 = char change (heuristic). "
         "Signal score = base + bonuses. Base score shown in grey."
         "</p>"
         "<table class='lb-table'><thead><tr>"
@@ -747,6 +1017,8 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .badge-multi   { font-size: 0.64rem; background: #1e3a5f; color: #60a5fa; padding: 1px 6px; border-radius: 3px; }
 .badge-high    { font-size: 0.64rem; background: #1f2d40; color: #7dd3fc; padding: 1px 6px; border-radius: 3px; }
 .badge-char    { font-size: 0.64rem; background: #3b1f4a; color: #c084fc; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.badge-cc      { font-size: 0.64rem; background: #451a03; color: #fbbf24; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+.badge-cc-watch { font-size: 0.64rem; background: #3b2f1a; color: #d4a556; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
 .focus-persist { font-size: 0.71rem; color: #94a3b8; margin-bottom: 2px; }
 .focus-quality { font-size: 0.72rem; color: #7aa2f7; font-weight: 600; margin-bottom: 2px; }
 .focus-meta    { font-size: 0.69rem; color: #475569; margin-bottom: 5px; }
@@ -759,6 +1031,18 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .macro-table td { padding: 7px 10px; border-bottom: 1px solid #161b27; }
 .macro-table tr:hover td { background: #181d2b; }
 .mname { color: #64748b; font-size: 0.75rem; }
+/* Character Change Alerts */
+.cc-grid       { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 12px; margin-bottom: 24px; }
+.cc-card       { background: #1a1f2e; border-radius: 10px; padding: 14px 16px; border: 1px solid #252d40; }
+.cc-card.cc-confirmed { border-left: 3px solid #fbbf24; }
+.cc-card.cc-watch     { border-left: 3px solid #d4a556; }
+.cc-header     { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.cc-ticker     { font-size: 1.05rem; font-weight: 700; color: #7aa2f7; text-decoration: none; }
+.cc-status     { font-size: 0.7rem; font-weight: 700; color: #fbbf24; }
+.cc-quality    { font-size: 0.68rem; color: #64748b; }
+.cc-trend      { font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; line-height: 1.5; }
+.cc-conditions { font-size: 0.7rem; color: #4ade80; margin-top: 6px; line-height: 1.6; }
+.cc-note       { font-size: 0.7rem; color: #d4a556; margin-top: 4px; font-style: italic; }
 /* Leaderboard */
 .lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
 .lb-table th { text-align: left; padding: 6px 9px; color: #475569; font-weight: 500;
@@ -817,6 +1101,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
         + "<h2>Top 5 This Week</h2>"
         + "<div class='focus-grid'>" + focus_cards + "</div>"
         + macro_html
+        + cc_html
         + leaderboard_html
         + "</body></html>"
     )
@@ -872,7 +1157,11 @@ def research_catalysts(persistence_df: pd.DataFrame) -> dict:
                 f"\nQ-RANK: {int(q_rank)} · STAGE: {stage_label} · CATEGORY: {category}"
                 f" · PERSISTENCE: {days_seen}/{total_days} days"
             )
-            if is_char:
+            if row.get("CC_DEEP"):
+                quality_ctx += " · CHARACTER CHANGE CONFIRMED (fundamental reversal: 3+ qtrs improving EPS + sales accelerating + 200MA cleared + volume)"
+            elif row.get("CC_WATCH"):
+                quality_ctx += " · CHARACTER CHANGE WATCH (EPS improving + volume confirming — sales need confirmation)"
+            elif is_char:
                 quality_ctx += " · CHARACTER CHANGE (200d gain >50%, RVol >2.5x)"
 
         prompt = (
@@ -972,7 +1261,12 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         if row.get("IPO"):   sig_tags.append("IPO LIFECYCLE")
         if row.get("MULTI"): sig_tags.append("3+ SCREENERS SAME DAY")
         if row.get("HIGH") and not row.get("EP"): sig_tags.append("52W HIGH")
-        if row.get("CHAR"): sig_tags.append("CHARACTER CHANGE (200d gain >50%, RVol >2.5x)")
+        if row.get("CC_DEEP"):
+            sig_tags.append("CHARACTER CHANGE CONFIRMED (fundamental reversal: improving EPS + accelerating sales + 200MA cleared)")
+        elif row.get("CC_WATCH"):
+            sig_tags.append("CHARACTER CHANGE WATCH (EPS improving, sales need confirmation)")
+        elif row.get("CHAR"):
+            sig_tags.append("CHARACTER CHANGE (200d gain >50%, RVol >2.5x)")
         sig_str = " | " + " + ".join(sig_tags) if sig_tags else ""
         bonus   = int(row["Signal Score"] - row["Base Score"])
         ticker_lines.append(
@@ -1075,8 +1369,12 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
         "high-quality Transitional (Q > 60). These are the only names that belong in the Monday plan.\n"
         "- Watch List names (Transitional with low Q, Stage 3/4, or section='watch') are NOT actionable. "
         "If any appear in the data, explicitly flag them as 'watch only — not actionable' and explain why.\n"
-        "- Character Change names (🔄 CHAR) are worth highlighting — they signal a dead/ignored stock "
-        "surging with institutional volume. Mention the pattern if present.\n"
+        "- Character Change CONFIRMED (⚡ CC) names are the highest-conviction reversal plays — "
+        "they have 3+ quarters of improving EPS, accelerating sales, cleared 200MA, and volume confirmation. "
+        "These are Stage 1→2 character change trades, not sector trades. Highlight the fundamental turnaround.\n"
+        "- Character Change WATCH (⚡ CC Watch) names meet most criteria but sales need confirmation. "
+        "Worth mentioning but flag the caveat.\n"
+        "- Simple CHAR (🔄) names show price/volume character change but haven't been verified fundamentally.\n"
         "- Flag extended names explicitly.\n"
         "- The Monday plan should only include names where both screener persistence and chart quality agree.\n\n"
         "Be direct. Name names. No disclaimers. Plain paragraphs."
@@ -1139,9 +1437,12 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
         q_rank   = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
         stage    = row.get("Stage", "—")
         tags     = []
-        if row.get("EP"):    tags.append("⚡EP")
-        if row.get("IPO"):   tags.append("🚀IPO")
-        if row.get("MULTI"): tags.append("x3")
+        if row.get("EP"):       tags.append("⚡EP")
+        if row.get("IPO"):      tags.append("🚀IPO")
+        if row.get("MULTI"):    tags.append("x3")
+        if row.get("CC_DEEP"):  tags.append("⚡CC")
+        elif row.get("CC_WATCH"): tags.append("⚡CCw")
+        elif row.get("CHAR"):   tags.append("🔄")
         tag_str  = " " + " ".join(tags) if tags else ""
         ticker_lines.append(
             f"*{row['Ticker']}*{tag_str} · {q_rank} · {stage} · {row['Sector']} · "
@@ -1226,8 +1527,21 @@ if __name__ == "__main__":
     log.info("Loading daily quality data...")
     daily_quality = load_daily_quality(DATA_DIR, lookback_days=7)
 
-    persistence_df = build_persistence_scores(combined_df, dates_found, daily_quality)
-    log.info(f"{len(persistence_df)} unique tickers scored")
+    # First pass: score without CC deep check to identify candidates
+    persistence_df_initial = build_persistence_scores(combined_df, dates_found, daily_quality)
+    log.info(f"{len(persistence_df_initial)} unique tickers scored (initial pass)")
+
+    # Run deep character change checks on top 25 candidates
+    log.info("Running character change deep checks (yfinance)...")
+    cc_results = run_character_change_checks(persistence_df_initial, combined_df, max_candidates=25)
+    if cc_results:
+        log.info(f"Character change signals: {list(cc_results.keys())}")
+    else:
+        log.info("No character change signals detected")
+
+    # Second pass: re-score with CC results applied
+    persistence_df = build_persistence_scores(combined_df, dates_found, daily_quality, cc_results)
+    log.info(f"{len(persistence_df)} unique tickers scored (with CC bonuses)")
 
     # Filter Watch List tickers from top 5 — they appear in full leaderboard with [Watch] tag
     actionable_df = persistence_df[~persistence_df["Watch"]].copy()
@@ -1242,7 +1556,9 @@ if __name__ == "__main__":
         if row["EP"]:    tags.append("EP")
         if row["IPO"]:   tags.append("IPO")
         if row["MULTI"]: tags.append("MULTI")
-        if row.get("CHAR"): tags.append("CHAR")
+        if row.get("CC_DEEP"): tags.append("CC")
+        elif row.get("CC_WATCH"): tags.append("CC_WATCH")
+        elif row.get("CHAR"): tags.append("CHAR")
         q_str = f" Q{row['Q Rank']}" if pd.notna(row.get("Q Rank")) else ""
         stage_str = f" {row['Stage']}" if row.get("Stage") and row["Stage"] != "—" else ""
         tag_str = " [" + ",".join(tags) + "]" if tags else ""
@@ -1276,7 +1592,7 @@ if __name__ == "__main__":
 
     log.info("Running Agent 3 — synthesised AI brief...")
     ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research, market_state)
-    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data)
+    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results)
     log.info(f"Report: {weekly_html}")
 
     send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data)

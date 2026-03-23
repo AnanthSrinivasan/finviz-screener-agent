@@ -532,6 +532,13 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
         if top_sectors and sector and sector in top_sectors else ''
     )
 
+    # CC quick filter: EPS positive + Stage 2 or high-momentum = potential character change
+    eps_val = float(row.get('EPS Y/Y TTM', 0) or 0) if pd.notna(row.get('EPS Y/Y TTM')) else 0
+    rvol_val = float(row.get('Rel Volume', 0) or 0) if pd.notna(row.get('Rel Volume')) else 0
+    cc_hint = (eps_val > 0 and rvol_val >= 2.0
+               and (stage_num == 2 or (rvol_val >= 2.5 and atr_pct >= 4.0)))
+    cc_hint_badge = '<span class="tag-cc-hint">⚡ CC?</span>' if cc_hint else ''
+
     sma_html = (
         f'<div class="sma-row">'
         f'<span title="vs 20-day MA">20d {sma20}</span>'
@@ -553,7 +560,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     </div>
   </div>
   <div class="stage-row">
-    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}
+    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}
   </div>
   {sector_html}
   {sma_html}
@@ -650,6 +657,8 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-ite
              padding: 1px 5px; border-radius: 3px; font-weight: 600; }}
 .tag-sector-lead {{ font-size: 9px; background: #312e81; color: #a5b4fc;
                     padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
+.tag-cc-hint {{ font-size: 9px; background: #451a03; color: #fbbf24;
+                padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
 .sector-tag {{ font-size: 0.7rem; color: #38bdf8; background: #0c2240;
                border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
 .sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }}
