@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Finviz Chart Gallery — 2026-03-24</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #0f1117; color: #e2e8f0; padding: 24px; }
+.page-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+.page-sub   { color: #64748b; font-size: 0.82rem; margin-bottom: 32px; }
+.section    { margin-bottom: 40px; }
+.section-header { margin-bottom: 14px; border-left: 3px solid #334155; padding-left: 12px; }
+h2 { font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-items:center; gap:8px; }
+.section-count { background: #1e2130; color: #64748b; font-size: 0.72rem;
+                  padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+.section-sub { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+.chart-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.chart-item  { background: #1e2130; border: 1px solid #2d3148; border-radius: 10px;
+                padding: 12px; transition: border-color .15s; }
+.chart-item:hover { opacity: .92; }
+.chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 5px; }
+.ticker-link  { font-size: 1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; display: block; }
+.ticker-link:hover { color: #a5b4fc; text-decoration: underline; }
+.company  { font-size: 0.7rem; color: #64748b; display: block; margin-top: 1px; }
+.badge    { background: #2d3f6e; color: #7aa2f7; font-size: 0.7rem; font-weight: 600;
+             padding: 2px 7px; border-radius: 20px; white-space: nowrap; margin-left: 6px; flex-shrink: 0; }
+.stage-row { display: flex; align-items: center; gap: 4px; margin: 5px 0; flex-wrap: wrap; }
+.stage-badge { font-size: 0.72rem; color: #94a3b8; }
+.tag-vcp  { font-size: 9px; background: #713f12; color: #fde68a;
+             padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.tag-perf { font-size: 9px; background: #14532d; color: #86efac;
+             padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+.tag-sector-lead { font-size: 9px; background: #312e81; color: #a5b4fc;
+                    padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.tag-cc-hint { font-size: 9px; background: #451a03; color: #fbbf24;
+                padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.sector-tag { font-size: 0.7rem; color: #38bdf8; background: #0c2240;
+               border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }
+.sma-row { display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }
+.sma-row span { background: #131825; padding: 1px 5px; border-radius: 3px; }
+.chart-img { width: 100%; border-radius: 6px; display: block; cursor: pointer; transition: opacity .15s; }
+.chart-img:hover { opacity: .85; }
+.meta { display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap; }
+.meta span { background: #161b27; padding: 2px 6px; border-radius: 4px; }
+.screeners { margin-top: 5px; font-size: 0.7rem; color: #64748b; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="page-title">Finviz Chart Gallery</div>
+<p class="page-sub">2026-03-24 · 56 tickers · ATR% &gt; 3.0 · Click any ticker or chart to open in Finviz</p>
+
+<div class="section">
+  <div class="section-header">
+    <h2>🟢 Stage 2 Leaders <span class="section-count">5</span></h2>
+    <p class="section-sub">Weinstein Stage 2 confirmed — wealth-building trades</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CXW" target="_blank" class="ticker-link">CXW</a>
+      <span class="company">CoreCivic Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 74</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Security & Protection Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +9.8%</span><span title="vs 50-day MA">50d +8.0%</span><span title="vs 200-day MA">200d +4.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CXW" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CXW&ty=c&ta=1&p=d&s=m" alt="CXW" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 74.8%</span>
+    <span title="Market Cap">1.98B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-14% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LUNR" target="_blank" class="ticker-link">LUNR</a>
+      <span class="company">Intuitive Machines Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 63</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Aerospace & Defense</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +12.8%</span><span title="vs 50-day MA">50d +10.3%</span><span title="vs 200-day MA">200d +57.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LUNR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LUNR&ty=c&ta=1&p=d&s=m" alt="LUNR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 9.7%</span>
+    <span title="EPS Y/Y TTM">EPS 84.5%</span>
+    <span title="Market Cap">4.40B</span>
+    <span title="Relative Volume">RVol 1.7x</span>
+    <span title="Distance from 52w High">-13% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SATL" target="_blank" class="ticker-link">SATL</a>
+      <span class="company">Satellogic Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 62</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-cc-hint">⚡ CC?</span>
+  </div>
+  <div class="sector-tag">Industrials · Aerospace & Defense</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +53.4%</span><span title="vs 50-day MA">50d +38.9%</span><span title="vs 200-day MA">200d +61.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SATL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SATL&ty=c&ta=1&p=d&s=m" alt="SATL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 9.1%</span>
+    <span title="EPS Y/Y TTM">EPS 89.1%</span>
+    <span title="Market Cap">708.62M</span>
+    <span title="Relative Volume">RVol 2.7x</span>
+    <span title="Distance from 52w High">-16% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LAUR" target="_blank" class="ticker-link">LAUR</a>
+      <span class="company">Laureate Education Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 61</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span>
+  </div>
+  <div class="sector-tag">Consumer Defensive · Education & Training Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.0%</span><span title="vs 50-day MA">50d +0.6%</span><span title="vs 200-day MA">200d +16.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LAUR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LAUR&ty=c&ta=1&p=d&s=m" alt="LAUR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.3%</span>
+    <span title="EPS Y/Y TTM">EPS -1.0%</span>
+    <span title="Market Cap">4.90B</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">-9% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FUBO" target="_blank" class="ticker-link">FUBO</a>
+      <span class="company">fuboTV Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 61</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span>
+  </div>
+  <div class="sector-tag">Communication Services · Broadcasting</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1026.3%</span><span title="vs 50-day MA">50d +694.5%</span><span title="vs 200-day MA">200d +334.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FUBO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FUBO&ty=c&ta=1&p=d&s=m" alt="FUBO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.1%</span>
+    <span title="EPS Y/Y TTM">EPS 153.6%</span>
+    <span title="Market Cap">1.43B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">180% hi</span>
+  </div>
+  <div class="screeners">52 Week High</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>🚀 IPO Lifecycle <span class="section-count">15</span></h2>
+    <p class="section-sub">IPO screener — evaluate on lifecycle, not SMA rules</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=GEV" target="_blank" class="ticker-link">GEV</a>
+      <span class="company">GE Vernova Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 65</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Specialty Industrial Machinery</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.0%</span><span title="vs 50-day MA">50d +13.2%</span><span title="vs 200-day MA">200d +37.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=GEV" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GEV&ty=c&ta=1&p=d&s=m" alt="GEV" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.4%</span>
+    <span title="EPS Y/Y TTM">EPS 220.8%</span>
+    <span title="Market Cap">237.90B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-1% hi</span>
+  </div>
+  <div class="screeners">IPO, 52 Week High</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VG" target="_blank" class="ticker-link">VG</a>
+      <span class="company">Venture Global Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 64</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-cc-hint">⚡ CC?</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas Midstream</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +29.6%</span><span title="vs 50-day MA">50d +52.3%</span><span title="vs 200-day MA">200d +38.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VG&ty=c&ta=1&p=d&s=m" alt="VG" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.6%</span>
+    <span title="EPS Y/Y TTM">EPS 51.8%</span>
+    <span title="Market Cap">38.82B</span>
+    <span title="Relative Volume">RVol 2.9x</span>
+    <span title="Distance from 52w High">-19% hi</span>
+  </div>
+  <div class="screeners">Growth, IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SNDK" target="_blank" class="ticker-link">SNDK</a>
+      <span class="company">Sandisk Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 47</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Computer Hardware</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +8.6%</span><span title="vs 50-day MA">50d +20.9%</span><span title="vs 200-day MA">200d +193.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SNDK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d&s=m" alt="SNDK" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.8%</span>
+    <span title="EPS Y/Y TTM">EPS -328.0%</span>
+    <span title="Market Cap">103.69B</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">-10% hi</span>
+  </div>
+  <div class="screeners">Growth, IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=BTSG" target="_blank" class="ticker-link">BTSG</a>
+      <span class="company">BrightSpring Health Services Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 41</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Health Information Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +2.2%</span><span title="vs 50-day MA">50d +5.1%</span><span title="vs 200-day MA">200d +35.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=BTSG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BTSG&ty=c&ta=1&p=d&s=m" alt="BTSG" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.1%</span>
+    <span title="EPS Y/Y TTM">EPS 893.6%</span>
+    <span title="Market Cap">8.15B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CTRI" target="_blank" class="ticker-link">CTRI</a>
+      <span class="company">Centuri Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 36</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Utilities · Utilities - Regulated Gas</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.0%</span><span title="vs 50-day MA">50d +2.5%</span><span title="vs 200-day MA">200d +26.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CTRI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CTRI&ty=c&ta=1&p=d&s=m" alt="CTRI" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.4%</span>
+    <span title="EPS Y/Y TTM">EPS 432.2%</span>
+    <span title="Market Cap">3.04B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=APGE" target="_blank" class="ticker-link">APGE</a>
+      <span class="company">Apogee Therapeutics Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 36</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +10.9%</span><span title="vs 50-day MA">50d +10.9%</span><span title="vs 200-day MA">200d +42.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=APGE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=APGE&ty=c&ta=1&p=d&s=m" alt="APGE" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.0%</span>
+    <span title="EPS Y/Y TTM">EPS -30.4%</span>
+    <span title="Market Cap">5.51B</span>
+    <span title="Relative Volume">RVol 3.6x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KRMN" target="_blank" class="ticker-link">KRMN</a>
+      <span class="company">Karman Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 34</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Aerospace & Defense</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.8%</span><span title="vs 50-day MA">50d +4.2%</span><span title="vs 200-day MA">200d +43.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KRMN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KRMN&ty=c&ta=1&p=d&s=m" alt="KRMN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.8%</span>
+    <span title="EPS Y/Y TTM">EPS -28.0%</span>
+    <span title="Market Cap">13.55B</span>
+    <span title="Relative Volume">RVol 0.6x</span>
+    <span title="Distance from 52w High">-14% hi</span>
+  </div>
+  <div class="screeners">Growth, IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KGS" target="_blank" class="ticker-link">KGS</a>
+      <span class="company">Kodiak Gas Services Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 26</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas Equipment & Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.0%</span><span title="vs 50-day MA">50d +20.5%</span><span title="vs 200-day MA">200d +53.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KGS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KGS&ty=c&ta=1&p=d&s=m" alt="KGS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.5%</span>
+    <span title="EPS Y/Y TTM">EPS 50.7%</span>
+    <span title="Market Cap">5.02B</span>
+    <span title="Relative Volume">RVol 1.0x</span>
+    <span title="Distance from 52w High">0% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ULS" target="_blank" class="ticker-link">ULS</a>
+      <span class="company">UL Solutions Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 24</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Specialty Business Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.4%</span><span title="vs 50-day MA">50d +10.8%</span><span title="vs 200-day MA">200d +14.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ULS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ULS&ty=c&ta=1&p=d&s=m" alt="ULS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.4%</span>
+    <span title="EPS Y/Y TTM">EPS -1.0%</span>
+    <span title="Market Cap">17.30B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CAVA" target="_blank" class="ticker-link">CAVA</a>
+      <span class="company">Cava Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 24</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Restaurants</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.9%</span><span title="vs 50-day MA">50d +19.5%</span><span title="vs 200-day MA">200d +27.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CAVA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CAVA&ty=c&ta=1&p=d&s=m" alt="CAVA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.2%</span>
+    <span title="EPS Y/Y TTM">EPS -51.6%</span>
+    <span title="Market Cap">10.13B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-14% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CGON" target="_blank" class="ticker-link">CGON</a>
+      <span class="company">Cg Oncology Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 21</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.5%</span><span title="vs 50-day MA">50d +13.7%</span><span title="vs 200-day MA">200d +62.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CGON" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CGON&ty=c&ta=1&p=d&s=m" alt="CGON" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.1%</span>
+    <span title="EPS Y/Y TTM">EPS -80.1%</span>
+    <span title="Market Cap">5.48B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#6b7280">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ALAB" target="_blank" class="ticker-link">ALAB</a>
+      <span class="company">Astera Labs Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 12</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Semiconductors</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.8%</span><span title="vs 50-day MA">50d -13.7%</span><span title="vs 200-day MA">200d -19.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ALAB" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ALAB&ty=c&ta=1&p=d&s=m" alt="ALAB" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 8.0%</span>
+    <span title="EPS Y/Y TTM">EPS 342.4%</span>
+    <span title="Market Cap">21.08B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-53% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#f87171">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CORZ" target="_blank" class="ticker-link">CORZ</a>
+      <span class="company">Core Scientific Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 10</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔴 Stage 3</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.1%</span><span title="vs 50-day MA">50d -4.1%</span><span title="vs 200-day MA">200d +3.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CORZ" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CORZ&ty=c&ta=1&p=d&s=m" alt="CORZ" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.5%</span>
+    <span title="EPS Y/Y TTM">EPS 128.3%</span>
+    <span title="Market Cap">5.23B</span>
+    <span title="Relative Volume">RVol 1.0x</span>
+    <span title="Distance from 52w High">-30% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#6b7280">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ARM" target="_blank" class="ticker-link">ARM</a>
+      <span class="company">Arm Holdings plc. ADR</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 0</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Semiconductors</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +10.1%</span><span title="vs 50-day MA">50d +15.1%</span><span title="vs 200-day MA">200d -0.9%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ARM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ARM&ty=c&ta=1&p=d&s=m" alt="ARM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.5%</span>
+    <span title="EPS Y/Y TTM">EPS -2.0%</span>
+    <span title="Market Cap">145.38B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-25% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#6b7280">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CART" target="_blank" class="ticker-link">CART</a>
+      <span class="company">Maplebear Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q -21</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Internet Retail</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.5%</span><span title="vs 50-day MA">50d +1.7%</span><span title="vs 200-day MA">200d -9.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CART" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CART&ty=c&ta=1&p=d&s=m" alt="CART" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS -2.3%</span>
+    <span title="Market Cap">9.17B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-29% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>⚡ Momentum / Catalyst <span class="section-count">3</span></h2>
+    <p class="section-sub">High relative volume + significant move — 2-4 week plays</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=PL" target="_blank" class="ticker-link">PL</a>
+      <span class="company">Planet Labs PBC</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 39</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Aerospace & Defense</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +29.1%</span><span title="vs 50-day MA">50d +33.8%</span><span title="vs 200-day MA">200d +135.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=PL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PL&ty=c&ta=1&p=d&s=m" alt="PL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 8.2%</span>
+    <span title="EPS Y/Y TTM">EPS -86.8%</span>
+    <span title="Market Cap">11.46B</span>
+    <span title="Relative Volume">RVol 2.3x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ANNA" target="_blank" class="ticker-link">ANNA</a>
+      <span class="company">AleAnna Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 35</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas E&P</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +47.2%</span><span title="vs 50-day MA">50d +78.6%</span><span title="vs 200-day MA">200d +31.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ANNA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ANNA&ty=c&ta=1&p=d&s=m" alt="ANNA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 17.8%</span>
+    <span title="EPS Y/Y TTM">EPS -985.3%</span>
+    <span title="Market Cap">363.60M</span>
+    <span title="Relative Volume">RVol 3.7x</span>
+    <span title="Distance from 52w High">-70% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=BW" target="_blank" class="ticker-link">BW</a>
+      <span class="company">Babcock & Wilcox Enterprises Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 30</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-cc-hint">⚡ CC?</span>
+  </div>
+  <div class="sector-tag">Industrials · Specialty Industrial Machinery</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +15.8%</span><span title="vs 50-day MA">50d +35.1%</span><span title="vs 200-day MA">200d +181.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=BW" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BW&ty=c&ta=1&p=d&s=m" alt="BW" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 11.4%</span>
+    <span title="EPS Y/Y TTM">EPS 38.8%</span>
+    <span title="Market Cap">1.90B</span>
+    <span title="Relative Volume">RVol 2.5x</span>
+    <span title="Distance from 52w High">-13% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>👀 Watch List <span class="section-count">33</span></h2>
+    <p class="section-sub">Transitional or lower conviction — monitor, do not chase</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LITE" target="_blank" class="ticker-link">LITE</a>
+      <span class="company">Lumentum Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 50</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Communication Equipment</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +7.5%</span><span title="vs 50-day MA">50d +33.5%</span><span title="vs 200-day MA">200d +164.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LITE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LITE&ty=c&ta=1&p=d&s=m" alt="LITE" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 9.5%</span>
+    <span title="EPS Y/Y TTM">EPS 146.6%</span>
+    <span title="Market Cap">52.05B</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank" class="ticker-link">MRVL</a>
+      <span class="company">Marvell Technology Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 49</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Semiconductors</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.4%</span><span title="vs 50-day MA">50d +9.5%</span><span title="vs 200-day MA">200d +12.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MRVL&ty=c&ta=1&p=d&s=m" alt="MRVL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.9%</span>
+    <span title="EPS Y/Y TTM">EPS 405.2%</span>
+    <span title="Market Cap">78.83B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-12% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CIEN" target="_blank" class="ticker-link">CIEN</a>
+      <span class="company">CIENA Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 48</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Communication Equipment</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +16.5%</span><span title="vs 50-day MA">50d +35.7%</span><span title="vs 200-day MA">200d +123.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CIEN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CIEN&ty=c&ta=1&p=d&s=m" alt="CIEN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.9%</span>
+    <span title="EPS Y/Y TTM">EPS 193.4%</span>
+    <span title="Market Cap">57.68B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-3% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=EQT" target="_blank" class="ticker-link">EQT</a>
+      <span class="company">EQT Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 47</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas E&P</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.3%</span><span title="vs 50-day MA">50d +12.0%</span><span title="vs 200-day MA">200d +17.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=EQT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EQT&ty=c&ta=1&p=d&s=m" alt="EQT" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.1%</span>
+    <span title="EPS Y/Y TTM">EPS 694.2%</span>
+    <span title="Market Cap">40.72B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-3% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AR" target="_blank" class="ticker-link">AR</a>
+      <span class="company">Antero Resources Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 47</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas E&P</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +9.2%</span><span title="vs 50-day MA">50d +18.4%</span><span title="vs 200-day MA">200d +22.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AR&ty=c&ta=1&p=d&s=m" alt="AR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.7%</span>
+    <span title="EPS Y/Y TTM">EPS 1000.6%</span>
+    <span title="Market Cap">13.13B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=DELL" target="_blank" class="ticker-link">DELL</a>
+      <span class="company">Dell Technologies Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 43</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Computer Hardware</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +12.4%</span><span title="vs 50-day MA">50d +27.1%</span><span title="vs 200-day MA">200d +24.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=DELL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=DELL&ty=c&ta=1&p=d&s=m" alt="DELL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.5%</span>
+    <span title="EPS Y/Y TTM">EPS 39.6%</span>
+    <span title="Market Cap">106.28B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-3% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=NVT" target="_blank" class="ticker-link">NVT</a>
+      <span class="company">nVent Electric plc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 43</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Electrical Equipment & Parts</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.3%</span><span title="vs 50-day MA">50d +6.6%</span><span title="vs 200-day MA">200d +23.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=NVT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NVT&ty=c&ta=1&p=d&s=m" alt="NVT" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.7%</span>
+    <span title="EPS Y/Y TTM">EPS 116.2%</span>
+    <span title="Market Cap">19.57B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-3% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ADEA" target="_blank" class="ticker-link">ADEA</a>
+      <span class="company">Adeia Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 41</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +11.6%</span><span title="vs 50-day MA">50d +22.4%</span><span title="vs 200-day MA">200d +52.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ADEA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ADEA&ty=c&ta=1&p=d&s=m" alt="ADEA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 71.9%</span>
+    <span title="Market Cap">2.67B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">3% hi</span>
+  </div>
+  <div class="screeners">Growth, 52 Week High</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=RSI" target="_blank" class="ticker-link">RSI</a>
+      <span class="company">Rush Street Interactive Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 39</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Gambling</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +6.6%</span><span title="vs 50-day MA">50d +15.3%</span><span title="vs 200-day MA">200d +18.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=RSI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RSI&ty=c&ta=1&p=d&s=m" alt="RSI" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.2%</span>
+    <span title="EPS Y/Y TTM">EPS 1215.5%</span>
+    <span title="Market Cap">5.05B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AXTI" target="_blank" class="ticker-link">AXTI</a>
+      <span class="company">AXT Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">3 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 39</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Semiconductor Equipment & Materials</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +44.2%</span><span title="vs 50-day MA">50d +107.3%</span><span title="vs 200-day MA">200d +417.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AXTI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AXTI&ty=c&ta=1&p=d&s=m" alt="AXTI" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 10.5%</span>
+    <span title="EPS Y/Y TTM">EPS -79.1%</span>
+    <span title="Market Cap">3.58B</span>
+    <span title="Relative Volume">RVol 1.7x</span>
+    <span title="Distance from 52w High">6% hi</span>
+  </div>
+  <div class="screeners">10% Change, 52 Week High, Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=GLNG" target="_blank" class="ticker-link">GLNG</a>
+      <span class="company">Golar Lng</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 37</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Energy · Oil & Gas Midstream</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +13.9%</span><span title="vs 50-day MA">50d +21.4%</span><span title="vs 200-day MA">200d +29.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=GLNG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GLNG&ty=c&ta=1&p=d&s=m" alt="GLNG" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.4%</span>
+    <span title="EPS Y/Y TTM">EPS 33.8%</span>
+    <span title="Market Cap">5.52B</span>
+    <span title="Relative Volume">RVol 2.9x</span>
+    <span title="Distance from 52w High">-1% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AAOI" target="_blank" class="ticker-link">AAOI</a>
+      <span class="company">Applied Optoelectronics Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 36</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Communication Equipment</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +2.6%</span><span title="vs 50-day MA">50d +53.7%</span><span title="vs 200-day MA">200d +166.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AAOI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AAOI&ty=c&ta=1&p=d&s=m" alt="AAOI" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 12.6%</span>
+    <span title="EPS Y/Y TTM">EPS 84.7%</span>
+    <span title="Market Cap">7.20B</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">-26% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FIGS" target="_blank" class="ticker-link">FIGS</a>
+      <span class="company">Figs Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 36</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Apparel Manufacturing</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.3%</span><span title="vs 50-day MA">50d +18.2%</span><span title="vs 200-day MA">200d +66.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FIGS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FIGS&ty=c&ta=1&p=d&s=m" alt="FIGS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.7%</span>
+    <span title="EPS Y/Y TTM">EPS 1187.7%</span>
+    <span title="Market Cap">2.49B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-14% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FIVE" target="_blank" class="ticker-link">FIVE</a>
+      <span class="company">Five Below Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 35</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Specialty Retail</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.5%</span><span title="vs 50-day MA">50d +10.7%</span><span title="vs 200-day MA">200d +39.7%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FIVE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FIVE&ty=c&ta=1&p=d&s=m" alt="FIVE" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 41.1%</span>
+    <span title="Market Cap">12.73B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-3% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=DOCN" target="_blank" class="ticker-link">DOCN</a>
+      <span class="company">DigitalOcean Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 34</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +30.8%</span><span title="vs 50-day MA">50d +39.5%</span><span title="vs 200-day MA">200d +98.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=DOCN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=DOCN&ty=c&ta=1&p=d&s=m" alt="DOCN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.3%</span>
+    <span title="EPS Y/Y TTM">EPS 208.2%</span>
+    <span title="Market Cap">7.91B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-1% hi</span>
+  </div>
+  <div class="screeners">52 Week High</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VIRT" target="_blank" class="ticker-link">VIRT</a>
+      <span class="company">Virtu Financial Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 33</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Financial · Capital Markets</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.0%</span><span title="vs 50-day MA">50d +9.9%</span><span title="vs 200-day MA">200d +12.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VIRT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VIRT&ty=c&ta=1&p=d&s=m" alt="VIRT" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.2%</span>
+    <span title="EPS Y/Y TTM">EPS 72.1%</span>
+    <span title="Market Cap">6.63B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ANET" target="_blank" class="ticker-link">ANET</a>
+      <span class="company">Arista Networks Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 33</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔵 Stage 1</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Computer Hardware</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.5%</span><span title="vs 50-day MA">50d +0.6%</span><span title="vs 200-day MA">200d +4.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ANET" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ANET&ty=c&ta=1&p=d&s=m" alt="ANET" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.4%</span>
+    <span title="EPS Y/Y TTM">EPS 23.0%</span>
+    <span title="Market Cap">170.74B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-18% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LASR" target="_blank" class="ticker-link">LASR</a>
+      <span class="company">nLIGHT Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 31</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Semiconductors</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +8.6%</span><span title="vs 50-day MA">50d +28.1%</span><span title="vs 200-day MA">200d +101.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LASR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LASR&ty=c&ta=1&p=d&s=m" alt="LASR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 8.0%</span>
+    <span title="EPS Y/Y TTM">EPS 62.9%</span>
+    <span title="Market Cap">3.90B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=CRCL" target="_blank" class="ticker-link">CRCL</a>
+      <span class="company">Circle Internet Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 27</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔵 Stage 1</span>
+  </div>
+  <div class="sector-tag">Financial · Capital Markets</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +16.8%</span><span title="vs 50-day MA">50d +51.7%</span><span title="vs 200-day MA">200d +5.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=CRCL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CRCL&ty=c&ta=1&p=d&s=m" alt="CRCL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.6%</span>
+    <span title="EPS Y/Y TTM">EPS -247.4%</span>
+    <span title="Market Cap">31.26B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-58% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=IBRX" target="_blank" class="ticker-link">IBRX</a>
+      <span class="company">ImmunityBio Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 27</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.4%</span><span title="vs 50-day MA">50d +29.7%</span><span title="vs 200-day MA">200d +156.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=IBRX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=IBRX&ty=c&ta=1&p=d&s=m" alt="IBRX" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 9.9%</span>
+    <span title="EPS Y/Y TTM">EPS 34.9%</span>
+    <span title="Market Cap">9.66B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-24% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FSLY" target="_blank" class="ticker-link">FSLY</a>
+      <span class="company">Fastly Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 27</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +28.5%</span><span title="vs 50-day MA">50d +83.8%</span><span title="vs 200-day MA">200d +179.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FSLY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FSLY&ty=c&ta=1&p=d&s=m" alt="FSLY" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.4%</span>
+    <span title="EPS Y/Y TTM">EPS 27.4%</span>
+    <span title="Market Cap">4.36B</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">4% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SGN" target="_blank" class="ticker-link">SGN</a>
+      <span class="company">Signing Day Sports Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 27</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +161.4%</span><span title="vs 50-day MA">50d +358.9%</span><span title="vs 200-day MA">200d +101.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SGN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SGN&ty=c&ta=1&p=d&s=m" alt="SGN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 24.5%</span>
+    <span title="EPS Y/Y TTM">EPS 82.6%</span>
+    <span title="Market Cap">324.79M</span>
+    <span title="Relative Volume">RVol 0.0x</span>
+    <span title="Distance from 52w High">-61% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=TNGX" target="_blank" class="ticker-link">TNGX</a>
+      <span class="company">Tango Therapeutics Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 27</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +20.6%</span><span title="vs 50-day MA">50d +39.6%</span><span title="vs 200-day MA">200d +111.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=TNGX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=TNGX&ty=c&ta=1&p=d&s=m" alt="TNGX" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.6%</span>
+    <span title="EPS Y/Y TTM">EPS 28.1%</span>
+    <span title="Market Cap">2.71B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">52 Week High</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=PAYP" target="_blank" class="ticker-link">PAYP</a>
+      <span class="company">PayPay Corp ADR</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 26</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +19.5%</span><span title="vs 50-day MA">50d +19.5%</span><span title="vs 200-day MA">200d +19.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=PAYP" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PAYP&ty=c&ta=1&p=d&s=m" alt="PAYP" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 10.8%</span>
+    <span title="EPS Y/Y TTM">EPS 0.0%</span>
+    <span title="Market Cap">15.58B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">10% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=OVID" target="_blank" class="ticker-link">OVID</a>
+      <span class="company">Ovid Therapeutics Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 25</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +29.9%</span><span title="vs 50-day MA">50d +47.5%</span><span title="vs 200-day MA">200d +100.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=OVID" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=OVID&ty=c&ta=1&p=d&s=m" alt="OVID" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.8%</span>
+    <span title="EPS Y/Y TTM">EPS 29.6%</span>
+    <span title="Market Cap">336.28M</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-6% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=YOU" target="_blank" class="ticker-link">YOU</a>
+      <span class="company">Clear Secure Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 24</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +14.6%</span><span title="vs 50-day MA">50d +38.0%</span><span title="vs 200-day MA">200d +56.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=YOU" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=YOU&ty=c&ta=1&p=d&s=m" alt="YOU" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.4%</span>
+    <span title="EPS Y/Y TTM">EPS -36.3%</span>
+    <span title="Market Cap">7.13B</span>
+    <span title="Relative Volume">RVol 1.8x</span>
+    <span title="Distance from 52w High">6% hi</span>
+  </div>
+  <div class="screeners">52 Week High</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SLS" target="_blank" class="ticker-link">SLS</a>
+      <span class="company">SELLAS Life Sciences Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 24</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.1%</span><span title="vs 50-day MA">50d +22.5%</span><span title="vs 200-day MA">200d +113.9%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SLS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SLS&ty=c&ta=1&p=d&s=m" alt="SLS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 9.3%</span>
+    <span title="EPS Y/Y TTM">EPS 54.3%</span>
+    <span title="Market Cap">984.11M</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-11% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ADTN" target="_blank" class="ticker-link">ADTN</a>
+      <span class="company">ADTRAN Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 22</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Communication Equipment</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +15.3%</span><span title="vs 50-day MA">50d +21.1%</span><span title="vs 200-day MA">200d +31.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ADTN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ADTN&ty=c&ta=1&p=d&s=m" alt="ADTN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS 90.8%</span>
+    <span title="Market Cap">973.56M</span>
+    <span title="Relative Volume">RVol 1.3x</span>
+    <span title="Distance from 52w High">-2% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=BNAI" target="_blank" class="ticker-link">BNAI</a>
+      <span class="company">Brand Engagement Network Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 22</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.8%</span><span title="vs 50-day MA">50d +38.8%</span><span title="vs 200-day MA">200d +304.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=BNAI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BNAI&ty=c&ta=1&p=d&s=m" alt="BNAI" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 14.7%</span>
+    <span title="EPS Y/Y TTM">EPS 53.6%</span>
+    <span title="Market Cap">230.33M</span>
+    <span title="Relative Volume">RVol 0.0x</span>
+    <span title="Distance from 52w High">-54% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LWLG" target="_blank" class="ticker-link">LWLG</a>
+      <span class="company">Lightwave Logic Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 21</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Basic Materials · Specialty Chemicals</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +30.9%</span><span title="vs 50-day MA">50d +64.3%</span><span title="vs 200-day MA">200d +107.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LWLG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LWLG&ty=c&ta=1&p=d&s=m" alt="LWLG" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 10.3%</span>
+    <span title="EPS Y/Y TTM">EPS 18.5%</span>
+    <span title="Market Cap">1.10B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-8% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SNDX" target="_blank" class="ticker-link">SNDX</a>
+      <span class="company">Syndax Pharmaceuticals Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 20</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.6%</span><span title="vs 50-day MA">50d +11.8%</span><span title="vs 200-day MA">200d +45.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SNDX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SNDX&ty=c&ta=1&p=d&s=m" alt="SNDX" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.6%</span>
+    <span title="EPS Y/Y TTM">EPS 11.6%</span>
+    <span title="Market Cap">2.12B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=RCAT" target="_blank" class="ticker-link">RCAT</a>
+      <span class="company">Red Cat Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 15</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Industrials · Aerospace & Defense</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.2%</span><span title="vs 50-day MA">50d +8.7%</span><span title="vs 200-day MA">200d +44.8%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=RCAT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RCAT&ty=c&ta=1&p=d&s=m" alt="RCAT" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 13.1%</span>
+    <span title="EPS Y/Y TTM">EPS -38.5%</span>
+    <span title="Market Cap">1.84B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-19% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div>
+<div class="chart-item" style="border-color:#f87171">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=USAS" target="_blank" class="ticker-link">USAS</a>
+      <span class="company">Americas Gold and Silver Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q -4</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔴 Stage 3</span>
+  </div>
+  <div class="sector-tag">Basic Materials · Other Industrial Metals & Mining</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d -26.6%</span><span title="vs 50-day MA">50d -23.4%</span><span title="vs 200-day MA">200d +31.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=USAS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=USAS&ty=c&ta=1&p=d&s=m" alt="USAS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 12.3%</span>
+    <span title="EPS Y/Y TTM">EPS 39.7%</span>
+    <span title="Market Cap">1.62B</span>
+    <span title="Relative Volume">RVol 1.0x</span>
+    <span title="Distance from 52w High">-44% hi</span>
+  </div>
+  <div class="screeners">10% Change</div>
+</div></div>
+</div>
+</body>
+</html>
