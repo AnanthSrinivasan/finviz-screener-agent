@@ -389,6 +389,48 @@ def compute_vcp(row: pd.Series) -> dict:
 
 
 # ----------------------------
+# Part 2c-2: 10% Change Momentum Gate
+# ----------------------------
+
+def check_10pct_momentum_quality(row: pd.Series) -> tuple:
+    """
+    Gate for tickers surfaced by the '10% Change' screener.
+
+    A 10% move means nothing if it's a dead-cat bounce from lows on thin
+    volume in a Stage 4 downtrend.  Four checks must ALL pass:
+
+      1. Above 50-day MA  (SMA50% > 0)
+      2. Relative Volume >= 1.5x
+      3. Within 30% of 52-week high  (Dist From High% >= -30)
+      4. Stage must be 2 or 0 (Transitional) — not 3 or 4
+
+    Returns (passes, reasons) where reasons lists what failed.
+    Only call this for tickers with '10% Change' in their Screeners column.
+    """
+    reasons = []
+
+    sma50 = float(row.get('SMA50%', 0) or 0)
+    if sma50 <= 0:
+        reasons.append(f"below 50d MA ({sma50:+.1f}%)")
+
+    rel_vol = float(row.get('Rel Volume', 0) or 0)
+    if rel_vol < 1.5:
+        reasons.append(f"RVol {rel_vol:.1f}x < 1.5x")
+
+    dist_high = float(row.get('Dist From High%', -999) or -999)
+    if dist_high < -30:
+        reasons.append(f"{dist_high:.0f}% from 52w high")
+
+    stage_data = row.get('Stage', {}) or {}
+    stage_num = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
+    if stage_num in (3, 4):
+        labels = {3: "Distribution", 4: "Downtrend"}
+        reasons.append(f"Stage {stage_num} ({labels[stage_num]})")
+
+    return (len(reasons) == 0, reasons)
+
+
+# ----------------------------
 # Part 2d: Quality Score
 # ----------------------------
 
@@ -579,7 +621,8 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
 </div>"""
 
 
-def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
+def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
+                            excluded_df: pd.DataFrame | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -589,6 +632,7 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
         'ipo':      {'title': '🚀 IPO Lifecycle',          'subtitle': 'IPO screener — evaluate on lifecycle, not SMA rules',              'cards': []},
         'momentum': {'title': '⚡ Momentum / Catalyst',    'subtitle': 'High relative volume + significant move — 2-4 week plays',        'cards': []},
         'watch':    {'title': '👀 Watch List',             'subtitle': 'Transitional or lower conviction — monitor, do not chase',        'cards': []},
+        'excluded': {'title': '🚫 Excluded — check manually', 'subtitle': '10% Change tickers that failed momentum quality gate (below 50d MA, low RVol, far from highs, or Stage 3/4)', 'cards': []},
     }
 
     # Compute dominant sectors (top 2 by ticker count) for sector discipline badge
@@ -606,6 +650,13 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame) -> str:
         section = _classify_ticker(row)
         card    = _build_card(t, row, FINVIZ_BASE, top_sectors)
         sections[section]['cards'].append(card)
+
+    # Add excluded 10% Change tickers to the excluded section
+    if excluded_df is not None and not excluded_df.empty:
+        for _, row in excluded_df.iterrows():
+            t = row['Ticker']
+            card = _build_card(t, row, FINVIZ_BASE, top_sectors)
+            sections['excluded']['cards'].append(card)
 
     sections_html = ""
     for key, sec in sections.items():
@@ -846,11 +897,36 @@ if __name__ == "__main__":
     vcp_count = summary_df['VCP'].apply(lambda x: x.get('vcp_possible', False) if isinstance(x, dict) else False).sum()
     log.info(f"  VCP possible: {vcp_count} tickers")
 
+    # ── 10% Change momentum gate ──
+    # Tickers surfaced only/partly by '10% Change' must pass quality checks.
+    # Failures get excluded from scoring, gallery main sections, and top 5.
+    log.info("Applying 10%% Change momentum gate...")
+    excluded_flags = []
+    excluded_reasons_list = []
+    for _, row in summary_df.iterrows():
+        screeners = str(row.get('Screeners', '') or '')
+        if '10% Change' in screeners:
+            passes, reasons = check_10pct_momentum_quality(row)
+            excluded_flags.append(not passes)
+            excluded_reasons_list.append(", ".join(reasons) if reasons else "")
+        else:
+            excluded_flags.append(False)
+            excluded_reasons_list.append("")
+    summary_df['_10pct_excluded'] = excluded_flags
+    summary_df['_10pct_exclude_reasons'] = excluded_reasons_list
+    n_excluded = sum(excluded_flags)
+    if n_excluded:
+        excluded_tickers = summary_df.loc[summary_df['_10pct_excluded'], 'Ticker'].tolist()
+        log.info(f"  10%% Change gate excluded {n_excluded} tickers: {excluded_tickers}")
+    else:
+        log.info("  10%% Change gate: all passed.")
+
     summary_df['Quality Score'] = summary_df.apply(compute_quality_score, axis=1)
 
-    filter_df = summary_df[summary_df['ATR%'] > ATR_THRESHOLD].copy()
+    filter_df = summary_df[(summary_df['ATR%'] > ATR_THRESHOLD) & (~summary_df['_10pct_excluded'])].copy()
     filter_df = filter_df.sort_values('Quality Score', ascending=False)
-    log.info(f"Tickers with ATR% > {ATR_THRESHOLD}: {len(filter_df)}")
+    excluded_df = summary_df[(summary_df['ATR%'] > ATR_THRESHOLD) & (summary_df['_10pct_excluded'])].copy()
+    log.info(f"Tickers with ATR% > {ATR_THRESHOLD}: {len(filter_df)} active, {len(excluded_df)} excluded by 10%% gate")
 
     # ── FIX: re-save enriched CSV so earnings alert can read ATR%, Quality Score ──
     summary_df.to_csv(csv_path, index=False)
@@ -864,13 +940,17 @@ if __name__ == "__main__":
         stage_data = row.get('Stage', {}) or {}
         stage_num = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
         stage_labels = {1: "Basing", 2: "Uptrend", 3: "Distribution", 4: "Downtrend", 0: "Transitional"}
-        section = _classify_ticker(row)
-        quality_data[t] = {
+        is_excluded = bool(row.get('_10pct_excluded', False))
+        section = "excluded" if is_excluded else _classify_ticker(row)
+        entry = {
             "q_rank": round(float(row.get('Quality Score', 0) or 0)),
             "stage": stage_num,
             "stage_label": stage_labels.get(stage_num, "Transitional"),
             "section": section,
         }
+        if is_excluded:
+            entry["excluded_reason"] = row.get('_10pct_exclude_reasons', '')
+        quality_data[t] = entry
     quality_path = f"data/daily_quality_{today}.json"
     with open(quality_path, "w") as f:
         json.dump(quality_data, f, indent=2)
@@ -881,7 +961,7 @@ if __name__ == "__main__":
         log.info(f"Top 3 by quality score:\n{top3}")
 
     # Step 4: Gallery
-    gallery_path = generate_finviz_gallery(filter_df['Ticker'].tolist(), filter_df)
+    gallery_path = generate_finviz_gallery(filter_df['Ticker'].tolist(), filter_df, excluded_df)
     log.info(f"Chart gallery: {gallery_path}")
 
     # Step 5: AI summary

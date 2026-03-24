@@ -1,0 +1,40 @@
+name: Market Pulse
+
+on:
+  schedule:
+    - cron: '0 15 * * 1-5'    # 10:00am ET (15:00 UTC)
+    - cron: '10 17 * * 1-5'   # 12:10pm ET (17:10 UTC)
+    - cron: '20 19 * * 1-5'   # 2:20pm ET  (19:20 UTC)
+    - cron: '0 21 * * 1-5'    # 4:00pm ET  (21:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  run-pulse:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/New_York
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      DATA_DIR: "data"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run market pulse
+        run: python finviz_market_pulse.py
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-type: application/json' \
+            --data '{"text": ":x: *Market Pulse failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

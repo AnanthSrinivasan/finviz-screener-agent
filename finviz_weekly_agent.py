@@ -531,7 +531,7 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         section = dq.get("section", "")
         quality_mod = _compute_quality_modifier(q_rank, stage) if dq else 0
         signal_score = round(signal_score + quality_mod, 1)
-        is_watch = section == "watch"
+        is_watch = section in ("watch", "excluded")
 
         rows.append({
             "Ticker":          ticker,
