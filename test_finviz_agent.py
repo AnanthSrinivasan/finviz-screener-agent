@@ -15,6 +15,8 @@ from finviz_agent import (
     generate_finviz_gallery,
     generate_ai_summary,
     send_slack_notification,
+    _build_card,
+    _classify_ticker,
 )
 from finviz_earnings_alert import find_upcoming_earnings
 from finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
@@ -298,6 +300,262 @@ class TestGenerateGallery(unittest.TestCase):
             generate_finviz_gallery(["ENGY"], filter_df)
         html_content = "".join(written)
         self.assertNotIn("Lead Sector", html_content)
+
+
+# ----------------------------
+# Tests: _build_card & gallery with CC-hint trigger data
+# ----------------------------
+
+def _make_realistic_df():
+    """
+    Realistic multi-ticker DataFrame that exercises every branch in _build_card
+    and _classify_ticker:
+      - GEV:  Stage 2, high RVol (3.1), high ATR (5.8%), positive EPS → CC hint ON
+      - PLTR: Stage 2, moderate RVol (2.0), positive EPS → CC hint ON (stage2 path)
+      - HIMS: Not Stage 2 (stage 1), RVol 2.8, ATR 4.5%, positive EPS → CC hint ON (momentum path)
+      - SMCI: Not Stage 2 (stage 3), low RVol, low EPS → CC hint OFF, stage3 border
+      - CXW:  Stage 2, VCP confirmed, negative EPS → CC hint OFF (EPS fails)
+      - RKLB: IPO screener, stage 0 → classified as 'ipo'
+    """
+    return pd.DataFrame({
+        "Ticker":          ["GEV",     "PLTR",    "HIMS",    "SMCI",    "CXW",     "RKLB"],
+        "Appearances":     [3,          2,         2,         1,         1,          1],
+        "Screeners":       ["Growth, 52 Week High", "Growth", "10% Change, Growth", "Growth", "Growth", "IPO"],
+        "Company":         ["GE Vernova", "Palantir Technologies", "Hims & Hers Health",
+                            "Super Micro Computer", "CoreCivic", "Rocket Lab USA"],
+        "Sector":          ["Industrials", "Technology", "Healthcare",
+                            "Technology", "Industrials", "Industrials"],
+        "Industry":        ["Electrical Equipment", "Software - Infrastructure", "Health Information Services",
+                            "Computer Hardware", "Security & Protection Services", "Aerospace & Defense"],
+        "Country":         ["USA"] * 6,
+        "Market Cap":      ["93.5B",  "280.1B",  "8.2B",    "22.6B",   "1.98B",   "12.4B"],
+        "ATR%":            [5.8,       3.9,       4.5,       7.2,       3.1,        6.0],
+        "EPS Y/Y TTM":     [42.0,      35.0,      120.0,     -15.0,     -8.0,       None],
+        "Sales Y/Y TTM":   [28.0,      20.0,      70.0,      10.0,      5.0,        55.0],
+        "Dist From High%": [-8.0,      -12.0,     -25.0,     -45.0,     -18.0,      -30.0],
+        "Rel Volume":      [3.1,       2.0,       2.8,       0.9,       1.1,        1.8],
+        "Avg Volume":      [5_200_000, 80_000_000, 15_000_000, 30_000_000, 1_200_000, 8_000_000],
+        "SMA20%":          [4.2,       2.8,       6.1,       -3.5,      1.0,        5.5],
+        "SMA50%":          [8.1,       5.0,       12.0,      -8.0,      0.5,        10.0],
+        "SMA200%":         [15.0,      10.0,      25.0,      -20.0,     -2.0,       None],
+        "Stage": [
+            {"stage": 2, "badge": "🟢 Stage 2", "perfect": True,  "sma20": 4.2, "sma50": 8.1, "sma200": 15.0},
+            {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 2.8, "sma50": 5.0, "sma200": 10.0},
+            {"stage": 1, "badge": "🟡 Stage 1", "perfect": False, "sma20": 6.1, "sma50": 12.0, "sma200": 25.0},
+            {"stage": 3, "badge": "🔴 Stage 3", "perfect": False, "sma20": -3.5, "sma50": -8.0, "sma200": -20.0},
+            {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 1.0, "sma50": 0.5, "sma200": -2.0},
+            {"stage": 0, "badge": "",            "perfect": False, "sma20": 5.5, "sma50": 10.0, "sma200": None},
+        ],
+        "VCP": [
+            {"vcp_possible": False, "confidence": 0,  "reason": "no signals"},
+            {"vcp_possible": False, "confidence": 20, "reason": "weak"},
+            {"vcp_possible": True,  "confidence": 70, "reason": "tight range · volume dry-up"},
+            {"vcp_possible": False, "confidence": 0,  "reason": "downtrend"},
+            {"vcp_possible": True,  "confidence": 65, "reason": "narrowing range"},
+            {"vcp_possible": False, "confidence": 0,  "reason": "too volatile"},
+        ],
+        "Quality Score":   [74.0, 68.0, 62.0, 35.0, 40.0, 55.0],
+    })
+
+
+class TestBuildCardAllBranches(unittest.TestCase):
+    """Direct _build_card tests that exercise every conditional branch."""
+
+    def _row(self, df, ticker):
+        return df[df['Ticker'] == ticker].iloc[0]
+
+    def test_cc_hint_stage2_high_rvol(self):
+        """GEV: Stage 2 + EPS > 0 + RVol >= 2.0 → CC hint badge should appear."""
+        df = _make_realistic_df()
+        html = _build_card("GEV", self._row(df, "GEV"), "https://finviz.com")
+        self.assertIn("tag-cc-hint", html)
+        self.assertIn("CC?", html)
+
+    def test_cc_hint_stage2_moderate_rvol(self):
+        """PLTR: Stage 2 + EPS > 0 + RVol == 2.0 → CC hint via stage2 path."""
+        df = _make_realistic_df()
+        html = _build_card("PLTR", self._row(df, "PLTR"), "https://finviz.com")
+        self.assertIn("tag-cc-hint", html)
+
+    def test_cc_hint_momentum_path(self):
+        """HIMS: Not Stage 2, but RVol >= 2.5 + ATR >= 4.0 + EPS > 0 → CC hint."""
+        df = _make_realistic_df()
+        html = _build_card("HIMS", self._row(df, "HIMS"), "https://finviz.com")
+        self.assertIn("tag-cc-hint", html)
+
+    def test_no_cc_hint_negative_eps(self):
+        """CXW: Stage 2 but EPS < 0 → no CC hint."""
+        df = _make_realistic_df()
+        html = _build_card("CXW", self._row(df, "CXW"), "https://finviz.com")
+        self.assertNotIn("tag-cc-hint", html)
+
+    def test_no_cc_hint_low_rvol(self):
+        """SMCI: Stage 3, low RVol, negative EPS → no CC hint."""
+        df = _make_realistic_df()
+        html = _build_card("SMCI", self._row(df, "SMCI"), "https://finviz.com")
+        self.assertNotIn("tag-cc-hint", html)
+
+    def test_stage3_border_color(self):
+        """SMCI is stage 3 → red border."""
+        df = _make_realistic_df()
+        html = _build_card("SMCI", self._row(df, "SMCI"), "https://finviz.com")
+        self.assertIn("#f87171", html)
+
+    def test_stage2_vcp_border_color(self):
+        """CXW is stage 2 + VCP → yellow border."""
+        df = _make_realistic_df()
+        html = _build_card("CXW", self._row(df, "CXW"), "https://finviz.com")
+        self.assertIn("#facc15", html)
+        self.assertIn("tag-vcp", html)
+
+    def test_perfect_alignment_badge(self):
+        """GEV has stage.perfect=True → aligned badge."""
+        df = _make_realistic_df()
+        html = _build_card("GEV", self._row(df, "GEV"), "https://finviz.com")
+        self.assertIn("tag-perf", html)
+        self.assertIn("aligned", html)
+
+    def test_sector_lead_badge_with_top_sectors(self):
+        """Industrials has 3 tickers (GEV, CXW, RKLB) → should be top sector."""
+        df = _make_realistic_df()
+        top_sectors = {"Industrials", "Technology"}
+        html = _build_card("GEV", self._row(df, "GEV"), "https://finviz.com", top_sectors)
+        self.assertIn("tag-sector-lead", html)
+
+    def test_no_sector_lead_badge_minority(self):
+        """Healthcare has only 1 ticker (HIMS) → not in top_sectors."""
+        df = _make_realistic_df()
+        top_sectors = {"Industrials", "Technology"}
+        html = _build_card("HIMS", self._row(df, "HIMS"), "https://finviz.com", top_sectors)
+        self.assertNotIn("tag-sector-lead", html)
+
+    def test_none_sma200_renders_dash(self):
+        """RKLB has SMA200% = None → should render as '—'."""
+        df = _make_realistic_df()
+        html = _build_card("RKLB", self._row(df, "RKLB"), "https://finviz.com")
+        # SMA200 should be the em-dash fallback
+        self.assertIn("200d —", html)
+
+    def test_none_eps_renders_dash(self):
+        """RKLB has EPS Y/Y TTM = None → should render as '—'."""
+        df = _make_realistic_df()
+        html = _build_card("RKLB", self._row(df, "RKLB"), "https://finviz.com")
+        self.assertIn("EPS —", html)
+
+    def test_quality_score_color_high(self):
+        """GEV has QS 74 → green color."""
+        df = _make_realistic_df()
+        html = _build_card("GEV", self._row(df, "GEV"), "https://finviz.com")
+        self.assertIn("#4ade80", html)  # green for QS >= 60
+
+    def test_quality_score_color_mid(self):
+        """CXW has QS 40 → yellow color."""
+        df = _make_realistic_df()
+        html = _build_card("CXW", self._row(df, "CXW"), "https://finviz.com")
+        self.assertIn("#facc15", html)  # yellow for QS 35-59
+
+    def test_quality_score_color_low(self):
+        """SMCI has QS 35 → yellow boundary (>= 35)."""
+        df = _make_realistic_df()
+        html = _build_card("SMCI", self._row(df, "SMCI"), "https://finviz.com")
+        # QS 35 is exactly the boundary → yellow
+        self.assertIn("Q 35", html)
+
+
+class TestClassifyTicker(unittest.TestCase):
+    """Ensure _classify_ticker routes tickers to the correct gallery section."""
+
+    def _row(self, df, ticker):
+        return df[df['Ticker'] == ticker].iloc[0]
+
+    def test_ipo_classification(self):
+        df = _make_realistic_df()
+        self.assertEqual(_classify_ticker(self._row(df, "RKLB")), "ipo")
+
+    def test_stage2_classification(self):
+        df = _make_realistic_df()
+        self.assertEqual(_classify_ticker(self._row(df, "GEV")), "stage2")
+
+    def test_momentum_classification(self):
+        """HIMS: not stage 2, RVol 2.8 >= 2.0, ATR 4.5 >= 4.0 → momentum."""
+        df = _make_realistic_df()
+        self.assertEqual(_classify_ticker(self._row(df, "HIMS")), "momentum")
+
+    def test_watch_classification(self):
+        """SMCI: stage 3, low RVol → watch."""
+        df = _make_realistic_df()
+        self.assertEqual(_classify_ticker(self._row(df, "SMCI")), "watch")
+
+
+class TestGalleryEndToEndRealistic(unittest.TestCase):
+    """
+    End-to-end generate_finviz_gallery with realistic data that triggers
+    every _build_card branch — the exact scenario that caused today's crash.
+    """
+
+    def test_gallery_with_cc_hint_triggering_data(self):
+        """
+        Runs generate_finviz_gallery with 6 tickers including Stage 2 stocks
+        with RVol > 2.5 and ATR > 4%. This is the exact condition that was
+        untested and caused the atr_pct NameError crash in production.
+        """
+        df = _make_realistic_df()
+        tickers = df['Ticker'].tolist()
+        written = []
+        with patch("finviz_agent.os.makedirs"), \
+             patch("builtins.open", unittest.mock.mock_open()) as mock_file:
+            mock_file.return_value.__enter__.return_value.write.side_effect = written.append
+            path = generate_finviz_gallery(tickers, df)
+
+        html = "".join(written)
+
+        # Gallery was created
+        self.assertIn("finviz_chart_grid_", path)
+        self.assertTrue(path.endswith(".html"))
+
+        # All 6 tickers rendered
+        for t in tickers:
+            self.assertIn(t, html)
+
+        # Section headers present (at least stage2 and ipo sections have cards)
+        self.assertIn("Stage 2 Leaders", html)
+        self.assertIn("IPO Lifecycle", html)
+
+        # CC hint badges rendered for the 3 qualifying tickers (+ 1 CSS rule = 4 total)
+        self.assertEqual(html.count("tag-cc-hint"), 4)  # GEV, PLTR, HIMS + CSS def
+
+        # VCP badge for CXW and HIMS (+ 1 CSS rule = 3 total)
+        self.assertEqual(html.count("tag-vcp"), 3)
+
+        # Stage 3 red border for SMCI
+        self.assertIn("#f87171", html)
+
+        # Perfect alignment for GEV
+        self.assertIn("tag-perf", html)
+
+    def test_gallery_handles_missing_optional_fields(self):
+        """Gallery shouldn't crash when optional fields are None/NaN."""
+        df = _make_realistic_df()
+        # Null out several optional fields on one ticker
+        idx = df[df['Ticker'] == 'RKLB'].index[0]
+        df.at[idx, 'EPS Y/Y TTM'] = None
+        df.at[idx, 'Sales Y/Y TTM'] = None
+        df.at[idx, 'SMA200%'] = None
+        df.at[idx, 'Avg Volume'] = None
+        df.at[idx, 'Quality Score'] = None
+        df.at[idx, 'Dist From High%'] = None
+
+        written = []
+        with patch("finviz_agent.os.makedirs"), \
+             patch("builtins.open", unittest.mock.mock_open()) as mock_file:
+            mock_file.return_value.__enter__.return_value.write.side_effect = written.append
+            path = generate_finviz_gallery(["RKLB"], df)
+
+        html = "".join(written)
+        self.assertIn("RKLB", html)
+        # Null fields should render as em-dash, not crash
+        self.assertIn("EPS —", html)
+        self.assertIn("200d —", html)
 
 
 # ----------------------------
