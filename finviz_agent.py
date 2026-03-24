@@ -535,6 +535,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     # CC quick filter: EPS positive + Stage 2 or high-momentum = potential character change
     eps_val = float(row.get('EPS Y/Y TTM', 0) or 0) if pd.notna(row.get('EPS Y/Y TTM')) else 0
     rvol_val = float(row.get('Rel Volume', 0) or 0) if pd.notna(row.get('Rel Volume')) else 0
+    atr_pct = float(row.get('ATR%', 0) or 0) if pd.notna(row.get('ATR%')) else 0
     cc_hint = (eps_val > 0 and rvol_val >= 2.0
                and (stage_num == 2 or (rvol_val >= 2.5 and atr_pct >= 4.0)))
     cc_hint_badge = '<span class="tag-cc-hint">⚡ CC?</span>' if cc_hint else ''
