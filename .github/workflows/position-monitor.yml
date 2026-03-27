@@ -9,6 +9,19 @@ on:
     - cron: '0 12 * * 1-5'
     - cron: '0 22 * * 1-5'
   workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Ticker symbol'
+        required: false
+      shares:
+        description: 'Number of shares'
+        required: false
+      price:
+        description: 'Execution price'
+        required: false
+      side:
+        description: 'BUY or SELL'
+        required: false
 
 jobs:
   position-monitor:
@@ -19,8 +32,9 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_POSITIONS }}
       SNAPTRADE_CLIENT_ID: ${{ secrets.SNAPTRADE_CLIENT_ID }}
       SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}
-      SNAPTRADE_USER_ID: ${{ secrets.SNAPTRADE_USER_ID }}
+      SNAPTRADE_USER_ID: ${{ vars.SNAPTRADE_USER_ID }}
       SNAPTRADE_USER_SECRET: ${{ secrets.SNAPTRADE_USER_SECRET }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
@@ -36,7 +50,21 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run position monitor
+        env:
+          INPUT_TICKER: ${{ github.event.inputs.ticker }}
+          INPUT_SHARES: ${{ github.event.inputs.shares }}
+          INPUT_PRICE: ${{ github.event.inputs.price }}
+          INPUT_SIDE: ${{ github.event.inputs.side }}
         run: python finviz_position_monitor.py
+
+      - name: Commit state changes
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/positions.json data/trading_state.json
+          git diff --cached --quiet || git commit -m "Update positions/trading state [skip ci]"
+          git push
 
       - name: Notify on failure
         if: failure()
