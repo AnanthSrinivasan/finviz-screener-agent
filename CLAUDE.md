@@ -1,0 +1,152 @@
+# Finviz Screener Agent
+
+Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
+
+**Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)
+**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, yfinance, SnapTrade API, Claude API, Slack webhooks
+**Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
+
+## Architecture — 8 Agents + Test Suite
+
+| Agent | File | Schedule | Slack Channel |
+|-------|------|----------|---------------|
+| Daily Screener | `finviz_agent.py` | 21:30 UTC Mon-Fri | `#daily-alerts` |
+| Weekly Review | `finviz_weekly_agent.py` | 18:00 UTC Sunday | `#weekly-alerts` |
+| Market Monitor | `finviz_market_monitor.py` | 22:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
+| Position Monitor | `finviz_position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
+| Alerts | `finviz_alerts_agent.py` | 22:00 UTC Mon-Fri | `#general-alerts` |
+| Earnings Alert | `finviz_earnings_alert.py` | 22:30 UTC Mon-Fri | `#general-alerts` |
+| Market Pulse | `finviz_market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
+| Winners Watchlist | `finviz_winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
+
+**Supporting files:**
+- `generate_index.py` — Generates GitHub Pages index
+- `test_finviz_agent.py` — Unit tests (mocked, no API keys)
+- `test_integration.py` — Integration tests for signal merge pipeline
+
+## Workflows
+
+| Workflow | File | Trigger |
+|----------|------|---------|
+| Position Monitor | `position-monitor.yml` | Cron (hourly market hours) + workflow_dispatch (BUY/SELL) |
+| Daily Screener | `daily-finviz.yml` | Cron + workflow_dispatch |
+| Weekly Review | `weekly-finviz.yml` | Cron + workflow_dispatch |
+| Market Pulse | `market-pulse.yml` | Cron (4x daily) + workflow_dispatch |
+| Earnings Alert | `earnings-alert.yml` | Cron + workflow_dispatch |
+| Finviz Alerts | `alerts-finviz.yml` | Cron + workflow_dispatch |
+| Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
+| Test Suite | `test.yml` | On push to main / PRs |
+
+## Position Monitor — Rules Engine
+
+The position monitor has two layers:
+
+**Layer 1 — ATR-based (runs on every position from SnapTrade):**
+- Hard stop: $-4,500 per position (SLV Feb 2026 rule)
+- ATR exit: ATR multiple from SMA20 <= -1.5
+- Dynamic stop: 5% base + (ATR% × 0.5)
+- Peel signals: scaled by ATR% tiers (low/mid/high/extreme)
+- AI commentary via Claude API
+
+**Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
+- Rule 1: Stop loss check (positions.json stop price)
+- Rule 4: No averaging down (blocks BUY if price < entry)
+- Rule 5: Gain protection — breakeven stop at +20%, trailing stop at +30% (10% trail)
+- Rule 6: Market state gate — no entries in RED/BLACKOUT
+- Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight
+- Gain fading warning: was +20%+, now <+5%
+
+**Sizing modes** (in `trading_state.json`):
+- `suspended` — 3+ consecutive losses → paper trade only
+- `reduced` — 2 consecutive losses → max 5% position size
+- `aggressive` — 2+ consecutive wins + GREEN/THRUST market
+- `normal` — default
+
+**Manual trade input** via workflow_dispatch: ticker, shares, price, side (BUY/SELL).
+
+## SnapTrade Auth
+
+- Uses SDK's signature scheme: HMAC-SHA256 over JSON `{"content": null, "path": "/api/v1/...", "query": "..."}`, base64-encoded
+- Signature goes in `Signature` header; `clientId`, `timestamp`, `userId`, `userSecret` go in query params
+- `SNAPTRADE_USER_ID` is a GitHub **variable** (`vars.*`), NOT a secret — all others are secrets
+- SDK package `snaptrade` (v1.1.0) is deprecated but installed for reference; auth is hand-rolled matching the SDK pattern
+
+## Secrets & Variables
+
+| Name | Type | Used By |
+|------|------|---------|
+| `SLACK_WEBHOOK_URL` | secret | Daily screener, market pulse |
+| `SLACK_WEBHOOK_WEEKLY` | secret | Weekly agent, winners watchlist |
+| `SLACK_WEBHOOK_ALERTS` | secret | Alerts agent, earnings, failure notifications |
+| `SLACK_WEBHOOK_POSITIONS` | secret | Position monitor |
+| `SLACK_WEBHOOK_MARKET_ALERTS` | secret | Market monitor (state changes) |
+| `SLACK_WEBHOOK_MARKET_DAILY` | secret | Market monitor (daily summary) |
+| `ANTHROPIC_API_KEY` | secret | Daily agent, weekly agent, position monitor |
+| `PAGES_BASE_URL` | secret | All agents (gallery links in Slack) |
+| `SNAPTRADE_CLIENT_ID` | secret | Position monitor |
+| `SNAPTRADE_CONSUMER_KEY` | secret | Position monitor |
+| `SNAPTRADE_USER_ID` | **variable** | Position monitor |
+| `SNAPTRADE_USER_SECRET` | secret | Position monitor |
+
+## Data Files
+
+```
+data/
+  positions.json                          # Rules engine state (open/closed positions, stops, targets)
+  trading_state.json                      # Win/loss streaks, sizing mode, recent trades
+  watchlist.json                          # Market pulse watchlist
+  alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
+  market_monitor_history.json             # Rolling 30-day breadth history
+  market_monitor_YYYY-MM-DD.json          # Daily market breadth snapshot
+  daily_quality_YYYY-MM-DD.json           # Q-rank, stage, section per ticker
+  finviz_screeners_YYYY-MM-DD.csv         # Enriched daily screener data
+  finviz_screeners_YYYY-MM-DD.html        # HTML table
+  finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery
+  finviz_weekly_YYYY-MM-DD.html           # Weekly report
+  finviz_weekly_persistence_YYYY-MM-DD.csv # Weekly signal scores
+  positions_YYYY-MM-DD.json               # Position snapshots
+```
+
+## Trading Rules Encoded
+
+| Rule | Implementation |
+|------|---------------|
+| Weinstein Stage 2 required | `compute_stage()` — price above all 3 MAs, stacked, RVol >= 1.0, within 25% of high |
+| No Stage 3/4 entries | Quality Score penalizes (-25/-40), 10% gate excludes |
+| Market state conditioning | RED/BLACKOUT = no entries, CAUTION = half size, GREEN/THRUST = full |
+| Dynamic stop loss | `5% + ATR% * 0.5` — position monitor enforces |
+| Hard position cap | $-4,500 per position (SLV incident Feb 2026) |
+| ATR exit signal | ATR multiple from MA <= -1.5 |
+| Peel (scale out) | ATR multiple tiers: low/mid/high/extreme |
+| No averaging down | Rule 4 — BUY blocked if price < existing entry |
+| Breakeven stop | At +20% gain, stop moves to entry + 0.5% |
+| Trailing stop | At +30% gain, 10% trail from highest price seen |
+| Sizing suspension | 3 consecutive losses → paper trade only |
+
+## Quality Score (0-100)
+
+- Market Cap: 0-30 pts
+- Rel Volume: 0-25 pts
+- EPS Y/Y TTM: 0-20 pts
+- Multi-screener: 0-15 pts (3+ screens = 15)
+- Stage 2: +25 (+10 perfect alignment), Stage 3: -25, Stage 4: -40
+- VCP: +15
+- Distance from high: 0-10 pts
+
+## Market State Classification
+
+| State | Condition | Trading Action |
+|-------|-----------|---------------|
+| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | No new trades |
+| THRUST | 500+ stocks up 4% in one day | Build watchlist, wait for confirmation |
+| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA, T2108 >= 40% | Full size entries |
+| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | Half size only |
+| DANGER | 175+ stocks down 4% and 5d ratio < 0.5 | No entries, raise stops |
+| RED | Default | No new trades |
+
+## Development Notes
+
+- **Python version:** 3.11 on GitHub Actions, may be 3.12+ locally. Avoid f-string backslashes inside `{}` expressions (breaks on 3.11).
+- **Testing:** Run `gh workflow run <workflow>` + `gh run watch <id>` as integration test since SnapTrade secrets aren't available locally.
+- **Finviz scraping:** Rotating user agents, exponential backoff, no proxy. Rate-limit-friendly delays between requests.
+- **Weekly agent:** Uses Claude API with `web_search` tool for catalyst research (~$0.10-0.20/run).
