@@ -70,44 +70,41 @@ def make_session() -> requests.Session:
 
 
 # ----------------------------
-# SnapTrade Auth
+# SnapTrade Auth (matching SDK's sign_request pattern)
 # ----------------------------
-
-def snaptrade_headers(path: str, query_params: dict = None) -> dict:
-    timestamp = str(int(time.time()))
-    query_str = ""
-    if query_params:
-        sorted_params = "&".join(f"{k}={v}" for k, v in sorted(query_params.items()))
-        query_str = sorted_params
-    message = timestamp + path
-    if query_str:
-        message += "?" + query_str
-    signature = hmac.new(
-        SNAPTRADE_CONSUMER_KEY.encode(),
-        message.encode(),
-        hashlib.sha256
-    ).hexdigest()
-    return {
-        "Signature": signature,
-        "timestamp": timestamp,
-        "clientId": SNAPTRADE_CLIENT_ID,
-        "Content-Type": "application/json",
-    }
+from base64 import b64encode
+from urllib.parse import urlencode
 
 def snaptrade_get(path: str, params: dict = None) -> dict | list | None:
-    full_params = {
-        "clientId": SNAPTRADE_CLIENT_ID,
-        "userId": SNAPTRADE_USER_ID,
-        "userSecret": SNAPTRADE_USER_SECRET,
-    }
-    if params:
-        full_params.update(params)
-    headers = snaptrade_headers(path, full_params)
+    """Authenticated GET using SnapTrade's signature scheme."""
     try:
+        query_params = {
+            "clientId": SNAPTRADE_CLIENT_ID,
+            "timestamp": str(int(time.time())),
+            "userId": SNAPTRADE_USER_ID,
+            "userSecret": SNAPTRADE_USER_SECRET,
+        }
+        if params:
+            query_params.update(params)
+
+        # Signature: HMAC-SHA256 over JSON {"content":null,"path":...,"query":...}
+        request_path = f"/api/v1{path}"
+        query_string = urlencode(query_params)
+        sig_object = json.dumps(
+            {"content": None, "path": request_path, "query": query_string},
+            separators=(",", ":"), sort_keys=True,
+        )
+        sig_digest = hmac.new(
+            SNAPTRADE_CONSUMER_KEY.encode(),
+            sig_object.encode(),
+            hashlib.sha256,
+        ).digest()
+        signature = b64encode(sig_digest).decode()
+
         resp = requests.get(
             f"{SNAPTRADE_BASE}{path}",
-            params=full_params,
-            headers=headers,
+            params=query_params,
+            headers={"Signature": signature},
             timeout=15,
         )
         if not resp.ok:
