@@ -882,7 +882,8 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
     wins = trading_state["consecutive_wins"]
     losses = trading_state["consecutive_losses"]
 
-    sections = [f"\U0001f4cb Position Monitor \u2014 {time_str}\nMarket: {state_emoji.get(market_state, '\u26aa')} {market_state}"]
+    default_emoji = "\u26aa"
+    sections = [f"\U0001f4cb Position Monitor \u2014 {time_str}\nMarket: {state_emoji.get(market_state, default_emoji)} {market_state}"]
 
     if pos_lines:
         sections.append("*Open Positions:*\n" + "\n".join(pos_lines))
