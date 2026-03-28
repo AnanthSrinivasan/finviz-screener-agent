@@ -541,38 +541,116 @@ def load_latest_market_state() -> str:
         return "CAUTION"
 
 
-def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict) -> list:
+def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
+                              trading_state: dict, market_state: str) -> list:
     """
     Reconcile SnapTrade (source of truth for what exists) with positions.json
     (source of truth for rules-specific fields like stops/targets/gain protection).
 
-    Returns list of warning messages.
+    Auto-adds new positions detected in SnapTrade with sensible defaults.
+    Auto-closes positions gone from SnapTrade and updates win/loss streak.
+
+    Returns list of alert messages.
     """
-    warnings = []
+    alerts = []
+    today = datetime.date.today().isoformat()
     snap_tickers = {p["ticker"] for p in snaptrade_positions}
+    snap_by_ticker = {p["ticker"]: p for p in snaptrade_positions}
     rules_tickers = {p["ticker"] for p in positions_data["open_positions"]}
 
-    # Tickers in SnapTrade but NOT in positions.json
+    # --- AUTO-ADD: Tickers in SnapTrade but NOT in positions.json ---
     for ticker in snap_tickers - rules_tickers:
-        warnings.append(
-            f"\u26a0\ufe0f {ticker} found in SnapTrade but NOT in positions.json — "
-            f"add manually or trigger via workflow_dispatch BUY"
-        )
-        log.warning(f"Sync: {ticker} in SnapTrade but not in positions.json")
+        snap = snap_by_ticker[ticker]
+        entry_price = round(snap["avg_cost"], 2)
+        shares = snap["shares"]
 
-    # Tickers in positions.json but NOT in SnapTrade — closed externally
+        # Calculate initial stop via yfinance 50MA (same as workflow_dispatch BUY)
+        initial_stop = round(entry_price * 0.93, 2)  # fallback: 7% below entry
+        try:
+            import yfinance as yf
+            hist = yf.Ticker(ticker).history(period="60d")
+            if len(hist) >= 50:
+                ma50 = round(hist["Close"].rolling(50).mean().iloc[-1], 2)
+                if ma50 > 0:
+                    initial_stop = ma50
+        except Exception as e:
+            log.warning(f"yfinance 50MA lookup failed for {ticker}: {e} — using 7% stop")
+
+        new_position = {
+            "ticker": ticker,
+            "shares": int(shares) if shares == int(shares) else shares,
+            "entry_price": entry_price,
+            "entry_date": today,
+            "stop": initial_stop,
+            "stop_type": "auto_50ma",
+            "breakeven_stop_activated": False,
+            "target1": round(entry_price * 1.20, 2),
+            "target1_hit": False,
+            "target2": round(entry_price * 1.40, 2),
+            "thesis": "Auto-detected from SnapTrade — update thesis via workflow_dispatch",
+            "status": "active",
+            "highest_price_seen": round(snap["current_price"], 2),
+            "current_gain_pct": round(snap["pnl_pct"], 2),
+        }
+        positions_data["open_positions"].append(new_position)
+
+        alerts.append(
+            f"\U0001f7e2 AUTO-DETECTED NEW POSITION: {ticker}\n"
+            f"   {int(shares)} shares @ ${entry_price:.2f} (from SnapTrade)\n"
+            f"   Auto-stop: ${initial_stop:.2f} | T1: ${new_position['target1']:.2f} | T2: ${new_position['target2']:.2f}\n"
+            f"   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed"
+        )
+        log.info(f"Sync: auto-added {ticker} — {int(shares)} shares @ ${entry_price:.2f}")
+
+    # --- AUTO-CLOSE: Tickers in positions.json but NOT in SnapTrade ---
     closed_externally = []
     for pos in positions_data["open_positions"]:
         if pos["ticker"] not in snap_tickers:
+            ticker = pos["ticker"]
+            entry_price = pos["entry_price"]
+
+            # Use last known price for result calculation
+            last_price = pos.get("highest_price_seen", entry_price)
+            # Try to get current price from a recent metric fetch
+            result_pct = (last_price - entry_price) / entry_price * 100 if entry_price else 0
+
             pos["status"] = "closed_external"
-            pos["close_date"] = datetime.date.today().isoformat()
+            pos["close_date"] = today
+            pos["close_price"] = round(last_price, 2)
+            pos["result_pct"] = round(result_pct, 2)
             positions_data["closed_positions"].append(pos)
-            closed_externally.append(pos["ticker"])
-            warnings.append(
-                f"\u26a0\ufe0f {pos['ticker']} in positions.json but NOT in SnapTrade — "
-                f"moved to closed_positions (closed_external)"
+            closed_externally.append(ticker)
+
+            # Update win/loss streak
+            if result_pct > 0:
+                trading_state["total_wins"] += 1
+                trading_state["consecutive_wins"] += 1
+                trading_state["consecutive_losses"] = 0
+                result_label = "WIN"
+            else:
+                trading_state["total_losses"] += 1
+                trading_state["consecutive_losses"] += 1
+                trading_state["consecutive_wins"] = 0
+                result_label = "LOSS"
+
+            # Record trade
+            trading_state["recent_trades"].append({
+                "ticker": ticker,
+                "result": "win" if result_pct > 0 else "loss",
+                "result_pct": round(result_pct, 2),
+                "date": today,
+                "side": "SELL",
+                "source": "auto_detected",
+            })
+            trading_state["recent_trades"] = trading_state["recent_trades"][-20:]
+            trading_state["last_updated"] = today
+
+            alerts.append(
+                f"\U0001f534 AUTO-DETECTED CLOSE: {ticker}\n"
+                f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f} ({result_pct:+.1f}%) — {result_label}\n"
+                f"   Streak: {trading_state['consecutive_wins']}W / {trading_state['consecutive_losses']}L"
             )
-            log.warning(f"Sync: {pos['ticker']} closed externally")
+            log.info(f"Sync: auto-closed {ticker} — {result_pct:+.1f}% ({result_label})")
 
     # Remove closed positions from open list
     if closed_externally:
@@ -580,8 +658,11 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict) -
             p for p in positions_data["open_positions"]
             if p["ticker"] not in closed_externally
         ]
+        # Recalculate sizing mode after closes
+        sizing_alerts = update_sizing_mode(trading_state, market_state)
+        alerts.extend(sizing_alerts)
 
-    return warnings
+    return alerts
 
 
 def apply_minervini_rules(position: dict, current_price: float) -> tuple:
@@ -1009,9 +1090,9 @@ if __name__ == "__main__":
     market_state = load_latest_market_state()
     rules_alerts = []
 
-    # Step 9: Sync SnapTrade positions with positions.json
-    sync_warnings = sync_snaptrade_with_rules(positions, positions_data)
-    rules_alerts.extend(sync_warnings)
+    # Step 9: Sync SnapTrade positions with positions.json (auto-add/auto-close)
+    sync_alerts = sync_snaptrade_with_rules(positions, positions_data, trading_state, market_state)
+    rules_alerts.extend(sync_alerts)
 
     # Steps 10-12: Apply Minervini rules per position
     rules_state_modified = False
@@ -1057,7 +1138,7 @@ if __name__ == "__main__":
             log.error("Trade input missing shares or price — skipping")
 
     # Step 15: Save updated state files
-    if rules_state_modified or sync_warnings:
+    if rules_state_modified or sync_alerts:
         save_positions(positions_data)
     save_trading_state(trading_state)
 

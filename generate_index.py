@@ -111,7 +111,9 @@ def generate_index(reports: dict, base_url: str) -> str:
         </a>"""
 
     # Latest links for hero section
-    hero_links = ""
+    dashboard_url = f"{base_url}/dashboard.html" if base_url else "dashboard.html"
+
+    hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">📋 Dashboard</a>'
     if latest_weekly:
         hero_links += f'<a href="{report_url(latest_weekly)}" class="hero-btn btn-weekly">📊 Latest Weekly Review</a>'
     if latest_gallery:
@@ -142,6 +144,7 @@ def generate_index(reports: dict, base_url: str) -> str:
   .hero-btn:hover {{ opacity: .85; }}
   .btn-weekly {{ background: #2d3f6e; color: #7aa2f7; }}
   .btn-daily  {{ background: #0c2240; color: #38bdf8; }}
+  .btn-dash   {{ background: #1a1a2e; color: #a78bfa; }}
 
   /* Stats bar */
   .stats {{ display: flex; gap: 32px; padding: 20px 32px;

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Finviz Screener Agent</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+  a { color: #7aa2f7; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .dash-header { display: flex; align-items: center; gap: 16px; padding: 24px 32px 20px;
+                   border-bottom: 1px solid #1e2130; flex-wrap: wrap; }
+  .dash-header h1 { font-size: 1.3rem; font-weight: 700; }
+  .dash-meta { font-size: 0.75rem; color: #64748b; margin-left: auto; }
+  .back-link { font-size: 0.82rem; }
+
+  /* Top badges row */
+  .top-badges { display: flex; gap: 12px; padding: 16px 32px; border-bottom: 1px solid #1e2130; flex-wrap: wrap; align-items: center; }
+  .market-state-pill { padding: 6px 16px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;
+                         letter-spacing: 0.06em; }
+  .state-green { background: #064e3b; color: #34d399; }
+  .state-caution { background: #713f12; color: #fbbf24; }
+  .state-danger { background: #7f1d1d; color: #f87171; }
+  .state-red { background: #450a0a; color: #ef4444; }
+  .sizing-pill { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+  .sizing-normal { background: #1e293b; color: #94a3b8; }
+  .sizing-aggressive { background: #064e3b; color: #34d399; }
+  .sizing-reduced { background: #713f12; color: #fbbf24; }
+  .sizing-suspended { background: #450a0a; color: #ef4444; }
+
+  /* Sections */
+  .section { padding: 24px 32px; }
+  .section + .section { border-top: 1px solid #1e2130; }
+  .section-title { font-size: 0.72rem; font-weight: 600; color: #64748b;
+                     text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+  .sub-label { font-size: 0.68rem; font-weight: 600; color: #64748b;
+                text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+  /* Positions */
+  .positions-summary { display: flex; gap: 28px; margin-bottom: 16px; flex-wrap: wrap; }
+  .summary-item { display: flex; flex-direction: column; gap: 2px; }
+  .summary-label { font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .summary-val { font-size: 1.2rem; font-weight: 700; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 8px 12px; font-size: 0.68rem; color: #64748b;
+       text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #1e2130; font-weight: 600; }
+  td { padding: 10px 12px; border-bottom: 1px solid #141929; }
+  .ticker-cell { white-space: nowrap; }
+  .ticker { font-weight: 700; font-size: 0.88rem; }
+  .entry-date { display: block; font-size: 0.68rem; color: #64748b; }
+  .thesis-cell { font-size: 0.75rem; color: #94a3b8; max-width: 280px; }
+  .targets-cell { font-size: 0.75rem; white-space: nowrap; }
+  .risk-cell { font-size: 0.75rem; }
+
+  .pos { color: #34d399; }
+  .neg { color: #ef4444; }
+  .flat { color: #94a3b8; }
+
+  .target-hit { color: #34d399; font-weight: 600; }
+  .target-pending { color: #64748b; }
+  .be-badge { background: #064e3b; color: #34d399; font-size: 0.62rem; padding: 1px 5px;
+               border-radius: 3px; font-weight: 600; vertical-align: middle; }
+
+  /* Market grid */
+  .market-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .market-state-badge { padding: 8px 20px; border-radius: 8px; font-size: 1rem; font-weight: 800;
+                          letter-spacing: 0.08em; }
+  .market-msg { font-size: 0.82rem; color: #94a3b8; }
+  .market-date { font-size: 0.72rem; color: #64748b; margin-left: auto; }
+  .market-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .market-card { background: #141929; border: 1px solid #1e2130; border-radius: 10px; padding: 16px; }
+  .mc-label { font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .mc-val { font-size: 1.3rem; font-weight: 700; margin-bottom: 2px; }
+  .mc-sub { font-size: 0.72rem; color: #94a3b8; margin-bottom: 8px; }
+  .hist-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hist-item { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .hist-date { font-size: 0.58rem; color: #475569; }
+  .hist-val { font-size: 0.68rem; font-weight: 600; color: #94a3b8; }
+
+  .badge { font-size: 0.62rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; vertical-align: middle; }
+  .badge-green { background: #064e3b; color: #34d399; }
+  .badge-red { background: #450a0a; color: #ef4444; }
+
+  /* Watchlist */
+  .watchlist-summary { display: flex; gap: 16px; margin-bottom: 12px; }
+  .ws-count { font-size: 0.78rem; color: #94a3b8; }
+  .ws-badge { font-size: 0.68rem; padding: 2px 10px; border-radius: 4px; font-weight: 600; }
+  .ws-watching { background: #1e293b; color: #94a3b8; }
+  .ws-entered { background: #064e3b; color: #34d399; }
+  .ws-stopped { background: #450a0a; color: #ef4444; }
+  .ws-removed { background: #1e1e1e; color: #64748b; }
+
+  /* Alerts */
+  .alerts-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 640px) { .alerts-layout { grid-template-columns: 1fr; } }
+  .alerts-col { }
+  .alert-timeline { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+                  background: #141929; border-radius: 6px; border-left: 3px solid #f59e0b; }
+  .alert-date { font-size: 0.72rem; color: #64748b; white-space: nowrap; }
+  .alert-label { font-size: 0.78rem; font-weight: 600; color: #e2e8f0; }
+
+  .spark-row { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-bottom: 12px; }
+  .spark-bar { width: 18px; border-radius: 2px 2px 0 0; min-height: 4px; }
+
+  .commodities-row { display: flex; gap: 16px; }
+  .commodity-card { display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+                      background: #141929; border-radius: 6px; }
+  .comm-label { font-size: 0.68rem; color: #64748b; font-weight: 600; }
+  .comm-val { font-size: 0.82rem; font-weight: 700; }
+
+  /* Trading State */
+  .ts-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 640px) { .ts-grid { grid-template-columns: 1fr 1fr; } }
+  .ts-card { background: #141929; border: 1px solid #1e2130; border-radius: 10px; padding: 16px;
+              display: flex; flex-direction: column; gap: 4px; }
+  .ts-label { font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ts-badge { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.06em;
+               padding: 4px 14px; border-radius: 6px; align-self: flex-start; }
+  .ts-val { font-size: 1.3rem; font-weight: 700; }
+  .ts-desc { font-size: 0.72rem; color: #94a3b8; }
+  .override-badge { background: #713f12; color: #fbbf24; font-size: 0.62rem; padding: 2px 8px;
+                      border-radius: 4px; font-weight: 600; }
+
+  .streak-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .streak-dots { display: flex; gap: 4px; }
+  .streak-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-win { background: #34d399; }
+  .dot-loss { background: #ef4444; }
+  .dot-flat { background: #64748b; }
+  .ts-updated { font-size: 0.68rem; color: #475569; margin-left: auto; }
+
+  .empty-state { font-size: 0.82rem; color: #475569; padding: 16px 0; }
+
+  /* Footer */
+  .footer { padding: 20px 32px; border-top: 1px solid #1e2130;
+             font-size: 0.72rem; color: #334155; }
+</style>
+</head>
+<body>
+
+<div class="dash-header">
+  <h1>Dashboard</h1>
+  <a href="index.html" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 28 Mar 2026 14:48 UTC</div>
+</div>
+
+<div class="top-badges">
+  <div class="market-state-pill state-red">Market: RED</div>
+  <div class="sizing-pill sizing-normal">Sizing: NORMAL</div>
+</div>
+
+<div class="section">
+  <div class="section-title">Open Positions & P&L</div>
+  
+    <div class="positions-summary">
+      <div class="summary-item">
+        <span class="summary-label">Exposure</span>
+        <span class="summary-val">$12,094.00</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Unrealized P&L</span>
+        <span class="summary-val flat">$0.00 (+0.0%)</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Positions</span>
+        <span class="summary-val">2 open</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+    <table class="positions-table">
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">FIGS</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td>500</td>
+          <td>$15.60</td>
+          <td>$12.73</td>
+          <td class="flat">+0.0%</td>
+          <td class="flat">$0.00</td>
+          <td class="risk-cell neg">-18.4%</td>
+          <td class="targets-cell"><span class="target-pending">T1 $19</span> <span class="target-pending">T2 $22</span></td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">PLAB</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td>100</td>
+          <td>$42.94</td>
+          <td>$36.56</td>
+          <td class="flat">+0.0%</td>
+          <td class="flat">$0.00</td>
+          <td class="risk-cell neg">-14.9%</td>
+          <td class="targets-cell"><span class="target-pending">T1 $52</span> <span class="target-pending">T2 $60</span></td>
+        </tr></tbody>
+    </table>
+    </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Market State</div>
+  
+    <div class="market-header">
+      <div class="market-state-badge state-red">RED</div>
+      <span class="market-msg">No new trades</span>
+      <span class="market-date">Fri 27 Mar</span>
+    </div>
+    <div class="market-grid">
+      <div class="market-card">
+        <div class="mc-label">SPY</div>
+        <div class="mc-val">$634.09</div>
+        <div class="mc-sub neg">-4.2% from 200d <span class="badge badge-red">Below 200d</span></div>
+        <div class="hist-row"><div class="hist-item"><span class="hist-date">03-23</span><span class="hist-val">$655</span></div><div class="hist-item"><span class="hist-date">03-24</span><span class="hist-val">$653</span></div><div class="hist-item"><span class="hist-date">03-25</span><span class="hist-val">$657</span></div><div class="hist-item"><span class="hist-date">03-26</span><span class="hist-val">$645</span></div><div class="hist-item"><span class="hist-date">03-27</span><span class="hist-val">$634</span></div></div>
+      </div>
+      <div class="market-card">
+        <div class="mc-label">Fear & Greed</div>
+        <div class="mc-val neg">10</div>
+        <div class="mc-sub">Extreme Fear</div>
+        <div class="hist-row"><div class="hist-item"><span class="hist-date">03-23</span><span class="hist-val neg">16</span></div><div class="hist-item"><span class="hist-date">03-24</span><span class="hist-val neg">14</span></div><div class="hist-item"><span class="hist-date">03-25</span><span class="hist-val neg">19</span></div><div class="hist-item"><span class="hist-date">03-26</span><span class="hist-val neg">18</span></div><div class="hist-item"><span class="hist-date">03-27</span><span class="hist-val neg">10</span></div></div>
+      </div>
+      <div class="market-card">
+        <div class="mc-label">Breadth 5d / 10d</div>
+        <div class="mc-val">1.0 / 1.0</div>
+        <div class="mc-sub">Up/Down ratio</div>
+      </div>
+      <div class="market-card">
+        <div class="mc-label">T2108 Equiv</div>
+        <div class="mc-val">100%</div>
+        <div class="mc-sub">% above 40d MA</div>
+      </div>
+    </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Watchlist</div>
+  
+    <div class="watchlist-summary">
+      <span class="ws-count">4 watching</span>
+      <span class="ws-count">2 entered</span>
+    </div>
+    <div class="table-wrap">
+    <table class="watchlist-table">
+      <thead><tr><th>Ticker</th><th>Status</th><th>Entry</th><th>Stop</th><th>Thesis</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">CRCL</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-watching">watching</span></td>
+          <td>—</td>
+          <td>$100.00</td>
+          <td class="thesis-cell">CLARITY Act April 3, stablecoin infrastructure, IPO lifecycle</td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">CORZ</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-watching">watching</span></td>
+          <td>—</td>
+          <td>$14.00</td>
+          <td class="thesis-cell">CoreWeave merger optionality, AI infrastructure pivot, crypto tailwind</td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">FIGS</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-entered">entered</span></td>
+          <td>$15.60</td>
+          <td>—</td>
+          <td class="thesis-cell">Character change, 400% EPS beat, healthcare apparel turning profitable</td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">SEDG</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-watching">watching</span></td>
+          <td>—</td>
+          <td>$38.00</td>
+          <td class="thesis-cell">Character change, European solar demand, Iran energy crisis</td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">PLAB</span>
+            <span class="entry-date">Wed 25 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-entered">entered</span></td>
+          <td>$42.94</td>
+          <td>—</td>
+          <td class="thesis-cell">Photomask leader, semiconductor capex cycle</td>
+        </tr>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">SNDK</span>
+            <span class="entry-date">Tue 24 Mar</span>
+          </td>
+          <td><span class="ws-badge ws-watching">watching</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td class="thesis-cell">IPO lifecycle, 81% EPS beat, NAND cycle</td>
+        </tr></tbody>
+    </table>
+    </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Alerts & Sentiment</div>
+  
+    <div class="alerts-layout">
+      <div class="alerts-col">
+        <div class="sub-label">Recent Alerts</div>
+        <div class="alert-timeline">
+        <div class="alert-item">
+          <span class="alert-date">Fri 27 Mar</span>
+          <span class="alert-label">Slv Breakout In Fear</span>
+        </div>
+        <div class="alert-item">
+          <span class="alert-date">Fri 20 Mar</span>
+          <span class="alert-label">Fng Extreme Fear</span>
+        </div></div>
+      </div>
+      <div class="alerts-col">
+        <div class="sub-label">Fear & Greed (15d)</div>
+        <div class="spark-row"><div class="spark-bar" style="height:13px;background:#ef4444" title="2026-03-16: 22.8"></div><div class="spark-bar" style="height:12px;background:#ef4444" title="2026-03-17: 21.5"></div><div class="spark-bar" style="height:10px;background:#ef4444" title="2026-03-18: 18.2"></div><div class="spark-bar" style="height:10px;background:#ef4444" title="2026-03-19: 17.2"></div><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-03-20: 14.6"></div><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-03-23: 16.1"></div><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-03-24: 14.5"></div><div class="spark-bar" style="height:11px;background:#ef4444" title="2026-03-25: 19.3"></div><div class="spark-bar" style="height:10px;background:#ef4444" title="2026-03-26: 18.2"></div><div class="spark-bar" style="height:6px;background:#ef4444" title="2026-03-27: 10.2"></div></div>
+        <div class="commodities-row">
+        <div class="commodity-card">
+          <span class="comm-label">SLV 1w</span>
+          <span class="comm-val pos">+3.1%</span>
+        </div>
+        <div class="commodity-card">
+          <span class="comm-label">GLD 1w</span>
+          <span class="comm-val pos">+0.3%</span>
+        </div></div>
+      </div>
+    </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Trading State</div>
+  
+    <div class="ts-grid">
+      <div class="ts-card ts-mode">
+        <div class="ts-label">Sizing Mode</div>
+        <div class="ts-badge sizing-normal">NORMAL</div>
+        <div class="ts-desc">Standard position sizing</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Win Streak</div>
+        <div class="ts-val pos">0</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Loss Streak</div>
+        <div class="ts-val neg">0</div>
+      </div>
+      <div class="ts-card">
+        <div class="ts-label">Total W / L</div>
+        <div class="ts-val">0 / 0</div>
+      </div>
+    </div>
+    <div class="streak-row">
+      <span class="sub-label">Recent trades</span>
+      <div class="streak-dots"><span class="empty-state">No trades yet</span></div>
+      <span class="ts-updated">Updated Tue 24 Mar</span>
+    </div>
+</div>
+
+<div class="footer">
+  Generated 28 Mar 2026 14:48 UTC &middot;
+  <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
+     style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
+</div>
+
+</body>
+</html>

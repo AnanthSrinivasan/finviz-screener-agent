@@ -38,11 +38,17 @@ jobs:
           DATA_DIR: data
         run: python generate_index.py
 
+      - name: Regenerate dashboard
+        env:
+          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+          DATA_DIR: data
+        run: python generate_dashboard.py
+
       - name: Commit weekly report
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ index.html
+          git add data/ index.html dashboard.html
           git diff --cached --quiet || git commit -m "chore: weekly review $(date +%Y-%m-%d)"
           git push
 
