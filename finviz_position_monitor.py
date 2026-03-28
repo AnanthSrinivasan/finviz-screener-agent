@@ -96,6 +96,7 @@ def snaptrade_headers(path: str, query_params: dict = None) -> dict:
 
 def snaptrade_get(path: str, params: dict = None) -> dict | list | None:
     full_params = {
+        "clientId": SNAPTRADE_CLIENT_ID,
         "userId": SNAPTRADE_USER_ID,
         "userSecret": SNAPTRADE_USER_SECRET,
     }
