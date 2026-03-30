@@ -94,9 +94,9 @@ class TestComputeStage(unittest.TestCase):
     """Verify Weinstein stage assignment for various market conditions."""
 
     def test_stage2_confirmed_uptrend(self):
-        """All MAs stacked, volume ≥ 1.0, within 25% of high → Stage 2."""
+        """50MA above 200MA (sma200 > sma50), price near/above 50MA → Stage 2."""
         row = _make_row(**{
-            "SMA20%": 5.0, "SMA50%": 3.0, "SMA200%": 1.0,
+            "SMA20%": 5.0, "SMA50%": 10.0, "SMA200%": 25.0,
             "Rel Volume": 1.5, "Dist From High%": -10.0,
         })
         result = compute_stage(row)
@@ -104,25 +104,24 @@ class TestComputeStage(unittest.TestCase):
         self.assertIn("Stage 2", result["badge"])
 
     def test_stage2_perfect_minervini(self):
-        """Stage 2 with SMA50 ≥ SMA200 → perfect alignment."""
+        """Stage 2 + price above all MAs (sma20 > 0, sma50 > 0) → perfect alignment."""
         row = _make_row(**{
-            "SMA20%": 5.0, "SMA50%": 3.0, "SMA200%": 1.0,
+            "SMA20%": 5.0, "SMA50%": 10.0, "SMA200%": 25.0,
             "Rel Volume": 1.5, "Dist From High%": -5.0,
         })
         result = compute_stage(row)
         self.assertTrue(result["perfect"])
 
-    def test_stage2_not_perfect_when_sma50_below_sma200(self):
-        """Stage 2 can fire but perfect=False if SMA50 < SMA200."""
+    def test_stage2_not_perfect_on_pullback(self):
+        """Stage 2 with price below 20MA (pullback) → perfect=False."""
         row = _make_row(**{
-            "SMA20%": 5.0, "SMA50%": 0.5, "SMA200%": 1.0,
+            "SMA20%": -2.0, "SMA50%": 5.0, "SMA200%": 15.0,
             "Rel Volume": 1.2, "Dist From High%": -15.0,
         })
-        # SMA20 > SMA50 required for stage2: 5.0 >= 0.5 ✓
-        # But SMA50 < SMA200: not perfect
+        # MAs stacked (sma200 > sma50) → stage2, but sma20 < 0 → not perfect
         result = compute_stage(row)
-        if result["stage"] == 2:
-            self.assertFalse(result["perfect"])
+        self.assertEqual(result["stage"], 2)
+        self.assertFalse(result["perfect"])
 
     def test_not_stage2_when_no_volume(self):
         """MAs stacked but low volume → NOT Stage 2 (falls to Stage 1 since near 200d)."""
@@ -147,9 +146,9 @@ class TestComputeStage(unittest.TestCase):
         self.assertNotEqual(result["stage"], 2, "-30% from high should prevent Stage 2")
 
     def test_stage3_distribution(self):
-        """Price below 50-day but above 200-day → Stage 3."""
+        """Price meaningfully below 50-day (< -5%) but above 200-day → Stage 3."""
         row = _make_row(**{
-            "SMA20%": -2.0, "SMA50%": -5.0, "SMA200%": 3.0,
+            "SMA20%": -2.0, "SMA50%": -6.0, "SMA200%": 3.0,
             "Rel Volume": 1.0, "Dist From High%": -20.0,
         })
         result = compute_stage(row)
@@ -165,14 +164,13 @@ class TestComputeStage(unittest.TestCase):
         self.assertEqual(result["stage"], 4)
 
     def test_stage1_basing(self):
-        """Near 200-day, above 50-day but no volume/proximity → Stage 1."""
+        """Near 200-day, MAs not stacked for Stage 2 → Stage 1."""
         row = _make_row(**{
-            "SMA20%": 3.0, "SMA50%": 1.0, "SMA200%": 2.0,
-            "Rel Volume": 0.5,  # below 1.0 → not Stage 2
-            "Dist From High%": -35.0,  # beyond -25% → not Stage 2
+            "SMA20%": 3.0, "SMA50%": 5.0, "SMA200%": 2.0,
+            "Rel Volume": 0.5, "Dist From High%": -35.0,
         })
         result = compute_stage(row)
-        # MAs stacked above zero, SMA200=2% (within 8%) → Stage 1
+        # sma200(2) NOT > sma50(5) → not stage2, abs(sma200)=2 < 8 → stage1
         self.assertEqual(result["stage"], 1)
 
 
