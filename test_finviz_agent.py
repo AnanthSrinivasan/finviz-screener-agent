@@ -220,10 +220,10 @@ class TestGenerateGallery(unittest.TestCase):
             "Avg Volume": [50_000_000, 40_000_000],
             "SMA20%": [3.5, 4.0],
             "SMA50%": [2.1, 3.0],
-            "SMA200%": [1.0, 2.5],
+            "SMA200%": [15.0, 10.0],
             "Stage": [
-                {"stage": 2, "badge": "🟢 Stage 2", "perfect": True, "sma20": 3.5, "sma50": 2.1, "sma200": 1.0},
-                {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 4.0, "sma50": 3.0, "sma200": 2.5},
+                {"stage": 2, "badge": "🟢 Stage 2", "perfect": True, "sma20": 3.5, "sma50": 2.1, "sma200": 15.0},
+                {"stage": 2, "badge": "🟢 Stage 2", "perfect": True, "sma20": 4.0, "sma50": 3.0, "sma200": 10.0},
             ],
             "VCP": [
                 {"vcp_possible": False, "confidence": 0, "reason": "no signals"},
@@ -313,7 +313,7 @@ def _make_realistic_df():
       - GEV:  Stage 2, high RVol (3.1), high ATR (5.8%), positive EPS → CC hint ON
       - PLTR: Stage 2, moderate RVol (2.0), positive EPS → CC hint ON (stage2 path)
       - HIMS: Not Stage 2 (stage 1), RVol 2.8, ATR 4.5%, positive EPS → CC hint ON (momentum path)
-      - SMCI: Not Stage 2 (stage 3), low RVol, low EPS → CC hint OFF, stage3 border
+      - SMCI: Not Stage 2 (stage 4), low RVol, low EPS → CC hint OFF, stage4 border
       - CXW:  Stage 2, VCP confirmed, negative EPS → CC hint OFF (EPS fails)
       - RKLB: IPO screener, stage 0 → classified as 'ipo'
     """
@@ -336,15 +336,15 @@ def _make_realistic_df():
         "Rel Volume":      [3.1,       2.0,       2.8,       0.9,       1.1,        1.8],
         "Avg Volume":      [5_200_000, 80_000_000, 15_000_000, 30_000_000, 1_200_000, 8_000_000],
         "SMA20%":          [4.2,       2.8,       6.1,       -3.5,      1.0,        5.5],
-        "SMA50%":          [8.1,       5.0,       12.0,      -8.0,      0.5,        10.0],
-        "SMA200%":         [15.0,      10.0,      25.0,      -20.0,     -2.0,       None],
+        "SMA50%":          [8.1,       5.0,       12.0,      -8.0,      3.0,        10.0],
+        "SMA200%":         [15.0,      10.0,      10.0,      -20.0,     8.0,        None],
         "Stage": [
             {"stage": 2, "badge": "🟢 Stage 2", "perfect": True,  "sma20": 4.2, "sma50": 8.1, "sma200": 15.0},
-            {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 2.8, "sma50": 5.0, "sma200": 10.0},
-            {"stage": 1, "badge": "🟡 Stage 1", "perfect": False, "sma20": 6.1, "sma50": 12.0, "sma200": 25.0},
-            {"stage": 3, "badge": "🔴 Stage 3", "perfect": False, "sma20": -3.5, "sma50": -8.0, "sma200": -20.0},
-            {"stage": 2, "badge": "🟢 Stage 2", "perfect": False, "sma20": 1.0, "sma50": 0.5, "sma200": -2.0},
-            {"stage": 0, "badge": "",            "perfect": False, "sma20": 5.5, "sma50": 10.0, "sma200": None},
+            {"stage": 2, "badge": "🟢 Stage 2", "perfect": True,  "sma20": 2.8, "sma50": 5.0, "sma200": 10.0},
+            {"stage": 0, "badge": "⚪ Transitional", "perfect": False, "sma20": 6.1, "sma50": 12.0, "sma200": 10.0},
+            {"stage": 4, "badge": "⚫ Stage 4", "perfect": False, "sma20": -3.5, "sma50": -8.0, "sma200": -20.0},
+            {"stage": 2, "badge": "🟢 Stage 2", "perfect": True,  "sma20": 1.0, "sma50": 3.0, "sma200": 8.0},
+            {"stage": 0, "badge": "",            "perfect": False, "sma20": 5.5, "sma50": 10.0, "sma200": 0.0},
         ],
         "VCP": [
             {"vcp_possible": False, "confidence": 0,  "reason": "no signals"},
@@ -390,16 +390,16 @@ class TestBuildCardAllBranches(unittest.TestCase):
         self.assertNotIn("tag-cc-hint", html)
 
     def test_no_cc_hint_low_rvol(self):
-        """SMCI: Stage 3, low RVol, negative EPS → no CC hint."""
+        """SMCI: Stage 4, low RVol, negative EPS → no CC hint."""
         df = _make_realistic_df()
         html = _build_card("SMCI", self._row(df, "SMCI"), "https://finviz.com")
         self.assertNotIn("tag-cc-hint", html)
 
-    def test_stage3_border_color(self):
-        """SMCI is stage 3 → red border."""
+    def test_stage4_border_color(self):
+        """SMCI is stage 4 → gray border."""
         df = _make_realistic_df()
         html = _build_card("SMCI", self._row(df, "SMCI"), "https://finviz.com")
-        self.assertIn("#f87171", html)
+        self.assertIn("#6b7280", html)
 
     def test_stage2_vcp_border_color(self):
         """CXW is stage 2 + VCP → yellow border."""
@@ -482,7 +482,7 @@ class TestClassifyTicker(unittest.TestCase):
         self.assertEqual(_classify_ticker(self._row(df, "HIMS")), "momentum")
 
     def test_watch_classification(self):
-        """SMCI: stage 3, low RVol → watch."""
+        """SMCI: stage 4, low RVol → watch."""
         df = _make_realistic_df()
         self.assertEqual(_classify_ticker(self._row(df, "SMCI")), "watch")
 
@@ -527,8 +527,8 @@ class TestGalleryEndToEndRealistic(unittest.TestCase):
         # VCP badge for CXW and HIMS (+ 1 CSS rule = 3 total)
         self.assertEqual(html.count("tag-vcp"), 3)
 
-        # Stage 3 red border for SMCI
-        self.assertIn("#f87171", html)
+        # Stage 4 gray border for SMCI
+        self.assertIn("#6b7280", html)
 
         # Perfect alignment for GEV
         self.assertIn("tag-perf", html)

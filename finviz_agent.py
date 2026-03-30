@@ -263,44 +263,44 @@ def compute_stage(row: pd.Series) -> dict:
     """
     Stan Weinstein Stage Analysis using SMA % distance fields from Finviz.
 
-    Stage 2 now requires four conditions:
-    1. Price above all 3 MAs, 20-day stacked above 50-day (original)
-    2. Rel Volume >= 1.0 — rules out sleepy drifts above MAs with no conviction
-       (TAL-type situation: MAs stacked but no volume, no character change)
-    3. Distance from 52w high >= -25% — stock must be within striking distance
-       of highs, not still grinding deep in a Stage 1 base
+    Finviz SMA20/50/200 = % distance of price from that SMA:
+      positive = price is ABOVE the SMA
+      negative = price is BELOW the SMA
 
-    These guards won't catch every false positive (weekly range expansion would be
-    ideal) but eliminate the most common case: slow drift above all MAs with zero
-    volume. Stocks like TAL that pass the MA test but have no breakout volume and
-    sit -30%+ from highs now correctly show as Transitional, not Stage 2.
+    MA stacking is the primary structural signal. If sma200 > sma50, the
+    price is farther above the 200MA than the 50MA, which means the 50MA
+    sits above the 200MA — correct uptrend stacking.
+
+    50-day SMA is the structural gate. Stocks regularly pull back to (or
+    slightly below) their 20-day and even 50-day SMA during healthy Stage 2
+    uptrends — that's where Minervini enters. A -10% buffer on sma50
+    accommodates high-ATR pullbacks without losing Stage 2 classification.
+
+    Rel Volume and Distance from High are NOT gated here — they're already
+    captured in the Quality Score. Stage classification answers "what stage
+    is this stock in?", Quality Score answers "how good is this setup?"
     """
     sma20  = float(row.get('SMA20%',  0) or 0)
     sma50  = float(row.get('SMA50%',  0) or 0)
     sma200 = float(row.get('SMA200%', 0) or 0)
-    rel_vol   = float(row.get('Rel Volume',     1) or 1)
-    dist_high = float(row.get('Dist From High%', 0) or 0)  # negative = below high
 
-    # Stage 2 — confirmed uptrend with volume and proximity to highs
+    # Stage 2 — structural uptrend: MAs stacked, price near/above 50MA
     stage2 = (
-        sma20 > 0 and
-        sma50 > 0 and
-        sma200 > 0 and
-        sma20 >= sma50 and       # MAs properly stacked
-        rel_vol >= 1.0 and       # volume confirmation — not a sleepy drift
-        dist_high >= -25.0       # within 25% of 52w high — not still deep in base
+        sma200 > sma50 and       # 50MA above 200MA (structural stacking)
+        sma50 > -10              # price not deeply below 50MA (allows pullbacks)
     )
 
-    # Perfect Minervini alignment — tighter condition
-    perfect = stage2 and (sma50 >= sma200)
+    # Perfect Minervini alignment — price above all three MAs + stacked
+    perfect = stage2 and sma20 > 0 and sma50 > 0
 
-    # Stage 3 — distribution, price rolled below 50-day but above 200-day
-    stage3 = (sma200 > 0 and sma50 < 0)
+    # Stage 3 — distribution: price meaningfully below 50-day but above 200-day
+    # -5% buffer avoids false Stage 3 on normal pullbacks to the 50MA
+    stage3 = (sma200 > 0 and sma50 < -5)
 
-    # Stage 4 — downtrend, price below 200-day
+    # Stage 4 — downtrend: price below 200-day
     stage4 = (sma200 < 0)
 
-    # Stage 1 — basing near 200-day, price not yet above 50-day cleanly
+    # Stage 1 — basing near 200-day
     stage1 = (
         not stage2 and not stage3 and not stage4 and
         abs(sma200) < 8          # within 8% of 200-day — basing zone
@@ -310,7 +310,7 @@ def compute_stage(row: pd.Series) -> dict:
     elif stage3: stage_num = 3
     elif stage2: stage_num = 2
     elif stage1: stage_num = 1
-    else:        stage_num = 0   # transitional — MAs stacked but no volume/proximity
+    else:        stage_num = 0   # transitional
 
     badges = {
         2: "🟢 Stage 2",

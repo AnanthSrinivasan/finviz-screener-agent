@@ -43,7 +43,7 @@ The position monitor has two layers:
 
 **Layer 1 — ATR-based (runs on every position from SnapTrade):**
 - Hard stop: $-4,500 per position (SLV Feb 2026 rule)
-- ATR exit: ATR multiple from SMA20 <= -1.5
+- ATR exit: ATR multiple from SMA50 <= -1.5
 - Dynamic stop: 5% base + (ATR% × 0.5)
 - Peel signals: scaled by ATR% tiers (low/mid/high/extreme)
 - AI commentary via Claude API
@@ -111,13 +111,13 @@ data/
 
 | Rule | Implementation |
 |------|---------------|
-| Weinstein Stage 2 required | `compute_stage()` — price above all 3 MAs, stacked, RVol >= 1.0, within 25% of high |
+| Weinstein Stage 2 required | `compute_stage()` — 50MA above 200MA (sma200 > sma50), price not deeply below 50MA (sma50 > -10). Perfect alignment = also above 20MA. RVol/dist-from-high handled by Quality Score, not stage gate |
 | No Stage 3/4 entries | Quality Score penalizes (-25/-40), 10% gate excludes |
 | Market state conditioning | RED/BLACKOUT = no entries, CAUTION = half size, GREEN/THRUST = full |
 | Dynamic stop loss | `5% + ATR% * 0.5` — position monitor enforces |
 | Hard position cap | $-4,500 per position (SLV incident Feb 2026) |
-| ATR exit signal | ATR multiple from MA <= -1.5 |
-| Peel (scale out) | ATR multiple tiers: low/mid/high/extreme |
+| ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
+| Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Breakeven stop | At +20% gain, stop moves to entry + 0.5% |
 | Trailing stop | At +30% gain, 10% trail from highest price seen |

@@ -225,11 +225,11 @@ def fetch_position_metrics(ticker: str) -> dict:
         atr     = parse_float(data.get("ATR (14)", "0"))
         atr_pct = (atr / price * 100) if price > 0 else 0
 
-        sma20 = parse_float(data.get("SMA20", "0"))
-        if sma20 == 0:
-            sma20 = parse_float(data.get("SMA50", "0"))
+        sma50 = parse_float(data.get("SMA50", "0"))
+        if sma50 == 0:
+            sma50 = parse_float(data.get("SMA20", "0"))
 
-        pct_from_ma    = ((price / sma20) - 1) * 100 if sma20 > 0 else 0
+        pct_from_ma    = ((price / sma50) - 1) * 100 if sma50 > 0 else 0
         atr_multiple_ma = pct_from_ma / atr_pct if atr_pct > 0 else 0
 
         high_52w_raw   = data.get("52W High", "0").replace(",", "").strip()
@@ -243,7 +243,7 @@ def fetch_position_metrics(ticker: str) -> dict:
             "price":          price,
             "atr":            atr,
             "atr_pct":        round(atr_pct, 2),
-            "sma20":          sma20,
+            "sma50":          sma50,
             "pct_from_ma":    round(pct_from_ma, 2),
             "atr_multiple_ma":round(atr_multiple_ma, 2),
             "dist_from_high": round(dist_from_high, 2),
