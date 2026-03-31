@@ -1,0 +1,54 @@
+name: Alpaca Paper Executor
+
+on:
+  workflow_run:
+    workflows: ["Daily Finviz Screener"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    # On workflow_run, only proceed if the screener succeeded
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
+    env:
+      TZ: Europe/Luxembourg
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Alpaca executor
+        run: python alpaca_executor.py
+
+      - name: Commit paper stops
+        if: success()
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add data/paper_stops.json
+          git commit -m "update paper stops [skip ci]" || echo "no changes"
+          git pull --rebase
+          git push
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-type: application/json' \
+            --data '{"text": ":x: *Alpaca executor failed* `'"$(date '+%Y-%m-%d %H:%M')"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
