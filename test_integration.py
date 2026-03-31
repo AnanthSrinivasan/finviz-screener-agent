@@ -1745,5 +1745,253 @@ class TestHistoryRolling(unittest.TestCase):
         mm.HISTORY_FILE = original_file
 
 
+# ============================================================
+# Paper Trading Layer Tests
+# ============================================================
+
+from alpaca_executor import compute_allocation
+from finviz_agent import _update_watchlist
+
+
+class TestPaperPositionSizing(unittest.TestCase):
+    """compute_allocation() — Q score tiers, VCP flag, equity scaling."""
+
+    def _vcp(self, confirmed: bool) -> dict:
+        return {"vcp_possible": confirmed, "confidence": 80, "reason": "test"}
+
+    def test_below_threshold_skipped(self):
+        # Q=59 — below the 60 floor, should return 0 regardless of VCP
+        self.assertEqual(compute_allocation(59, self._vcp(True), 100_000), 0.0)
+
+    def test_exactly_at_threshold(self):
+        # Q=60 — first passing tier, 15%
+        self.assertAlmostEqual(compute_allocation(60, self._vcp(False), 100_000), 15_000)
+
+    def test_standard_tier(self):
+        # Q=75 — 15% tier
+        self.assertAlmostEqual(compute_allocation(75, self._vcp(False), 200_000), 30_000)
+
+    def test_strong_tier(self):
+        # Q=85 — 20% tier
+        self.assertAlmostEqual(compute_allocation(85, self._vcp(False), 100_000), 20_000)
+
+    def test_high_conviction_requires_vcp(self):
+        # Q=92 but no VCP — should be 20% (strong tier), NOT 25%
+        self.assertAlmostEqual(compute_allocation(92, self._vcp(False), 100_000), 20_000)
+
+    def test_high_conviction_with_vcp(self):
+        # Q=92 + VCP — 25% tier
+        self.assertAlmostEqual(compute_allocation(92, self._vcp(True), 100_000), 25_000)
+
+    def test_vcp_dict_missing_key(self):
+        # Malformed VCP dict — should not crash, treat as no VCP
+        result = compute_allocation(90, {}, 100_000)
+        self.assertAlmostEqual(result, 20_000)
+
+    def test_non_dict_vcp(self):
+        # Non-dict VCP value — should not crash
+        result = compute_allocation(90, None, 100_000)
+        self.assertAlmostEqual(result, 20_000)
+
+    def test_scales_with_equity(self):
+        # Allocation is a fixed % of equity — verify proportionality
+        small = compute_allocation(65, self._vcp(False), 50_000)
+        large = compute_allocation(65, self._vcp(False), 200_000)
+        self.assertAlmostEqual(large / small, 4.0)
+
+
+class TestPaperStopCalculation(unittest.TestCase):
+    """Stop = entry - 2 * ATR_dollar. ATR_dollar = (ATR% / 100) * price."""
+
+    def _stop(self, price: float, atr_pct: float) -> float:
+        atr_dollar = (atr_pct / 100) * price
+        return round(price - (2 * atr_dollar), 2)
+
+    def test_standard_stop(self):
+        # Price $100, ATR 5% → ATR_dollar=$5, stop=$90
+        self.assertAlmostEqual(self._stop(100, 5.0), 90.0)
+
+    def test_low_atr(self):
+        # Price $50, ATR 2% → ATR_dollar=$1, stop=$48
+        self.assertAlmostEqual(self._stop(50, 2.0), 48.0)
+
+    def test_high_atr(self):
+        # Price $200, ATR 10% → ATR_dollar=$20, stop=$160
+        self.assertAlmostEqual(self._stop(200, 10.0), 160.0)
+
+    def test_stop_is_below_entry(self):
+        # Stop must always be below entry for a long
+        for price in [20, 50, 100, 500]:
+            for atr in [1, 3, 5, 8, 12]:
+                self.assertLess(self._stop(price, atr), price)
+
+
+class TestCSVStageVCPParsing(unittest.TestCase):
+    """Stage and VCP columns in the CSV are stored as string repr of dicts.
+    ast.literal_eval must recover them correctly."""
+
+    def _parse(self, raw: str) -> dict:
+        import ast
+        if raw and raw not in ("", "nan"):
+            try:
+                return ast.literal_eval(raw)
+            except Exception:
+                return {}
+        return {}
+
+    def test_stage2_round_trip(self):
+        stage = {"stage": 2, "badge": "🟢 Stage 2", "perfect": True}
+        recovered = self._parse(str(stage))
+        self.assertEqual(recovered["stage"], 2)
+        self.assertTrue(recovered["perfect"])
+
+    def test_stage4_round_trip(self):
+        stage = {"stage": 4, "badge": "⚫ Stage 4", "perfect": False}
+        recovered = self._parse(str(stage))
+        self.assertEqual(recovered["stage"], 4)
+
+    def test_vcp_confirmed_round_trip(self):
+        vcp = {"vcp_possible": True, "confidence": 75, "reason": "ATR contraction"}
+        recovered = self._parse(str(vcp))
+        self.assertTrue(recovered["vcp_possible"])
+        self.assertEqual(recovered["confidence"], 75)
+
+    def test_vcp_not_confirmed(self):
+        vcp = {"vcp_possible": False, "confidence": 0, "reason": "Not Stage 2"}
+        recovered = self._parse(str(vcp))
+        self.assertFalse(recovered["vcp_possible"])
+
+    def test_empty_string_returns_empty_dict(self):
+        self.assertEqual(self._parse(""), {})
+
+    def test_nan_string_returns_empty_dict(self):
+        self.assertEqual(self._parse("nan"), {})
+
+    def test_malformed_returns_empty_dict(self):
+        self.assertEqual(self._parse("{bad json}"), {})
+
+
+class TestWatchlistAutoPopulation(unittest.TestCase):
+    """_update_watchlist() — only Stage 2 + Q>=60, no duplicates, max 5."""
+
+    def _make_filter_df(self, rows: list) -> pd.DataFrame:
+        """Build a minimal filter_df from list of (ticker, q_score, stage_num, vcp_ok, sector)."""
+        data = []
+        for ticker, qs, stage_num, vcp_ok, sector in rows:
+            data.append({
+                "Ticker":        ticker,
+                "Quality Score": qs,
+                "Stage":         {"stage": stage_num, "badge": "🟢 Stage 2", "perfect": stage_num == 2},
+                "VCP":           {"vcp_possible": vcp_ok, "confidence": 70, "reason": "test"},
+                "ATR%":          5.0,
+                "Sector":        sector,
+            })
+        return pd.DataFrame(data)
+
+    def test_adds_stage2_above_threshold(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("AAPL", 75, 2, False, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            tickers = [e["ticker"] for e in result["watchlist"]]
+            self.assertIn("AAPL", tickers)
+
+    def test_skips_below_q60(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("WEAK", 55, 2, False, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            self.assertEqual(result["watchlist"], [])
+
+    def test_skips_non_stage2(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("S3TICK", 80, 3, False, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            self.assertEqual(result["watchlist"], [])
+
+    def test_no_duplicates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            existing = {"watchlist": [{"ticker": "AAPL", "status": "watching"}]}
+            with open(wl_path, "w") as f:
+                json.dump(existing, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("AAPL", 85, 2, True, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            # Still only one AAPL entry
+            aapl_entries = [e for e in result["watchlist"] if e["ticker"] == "AAPL"]
+            self.assertEqual(len(aapl_entries), 1)
+
+    def test_max_5_additions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            tickers = [("T" + str(i), 60 + i, 2, False, "Tech") for i in range(8)]
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df(tickers)
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            self.assertLessEqual(len(result["watchlist"]), 5)
+
+    def test_vcp_entry_note(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("VCPTICK", 90, 2, True, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            entry = result["watchlist"][0]
+            self.assertIn("VCP", entry["entry_note"])
+
+    def test_source_field_is_screener_auto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            wl_path = os.path.join(tmp, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"watchlist": []}, f)
+            import finviz_agent
+            orig = finviz_agent.os.path.join
+            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+                df = self._make_filter_df([("AUTO", 70, 2, False, "Technology")])
+                _update_watchlist(df, "2026-03-31")
+            with open(wl_path) as f:
+                result = json.load(f)
+            self.assertEqual(result["watchlist"][0]["source"], "screener_auto")
+
+
 if __name__ == "__main__":
     unittest.main()

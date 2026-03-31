@@ -1,6 +1,6 @@
 # Finviz Screener Agent — System Documentation
 
-**Last updated:** 2026-03-23
+**Last updated:** 2026-03-31
 **Repo:** https://github.com/AnanthSrinivasan/finviz-screener-agent  
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
@@ -11,6 +11,10 @@
 An automated trading intelligence system built around Anantha's 2025 trading DNA.
 
 Not a black-box signal generator. The system surfaces, scores, and ranks setups that match a **proven edge** — crypto/fintech + macro commodities + Stage 2 momentum — and gets out of the way for the human decision.
+
+**Two parallel layers:**
+- **Intelligence layer** — screener, weekly review, market monitor, alerts. Unchanged, always runs. Human reads and decides.
+- **Paper execution layer** — autonomous Alpaca paper trading. Proves execution logic before touching real money. Real trades (Robinhood via SnapTrade) remain manual until paper P&L validates the approach.
 
 **2025 performance that defines the edge:**
 - 77% win rate on $1.2M traded, net +$54K
@@ -454,7 +458,9 @@ data/
   alerts_state.json                        # breadth/F&G alert state
   market_monitor_YYYY-MM-DD.json           # daily market breadth snapshot
   market_monitor_history.json              # rolling 30-day history (weekly agent reads this)
-  positions_YYYY-MM-DD.json                # position snapshots
+  positions_YYYY-MM-DD.json                # real Robinhood position snapshots (via SnapTrade)
+  watchlist.json                           # market pulse watchlist — manual entries + auto-populated by screener
+  paper_stops.json                         # paper trade stops {ticker: {stop_price, entry_price, atr_pct, entry_date}}
 ```
 
 Volume is ~100–200 tickers/day. GitHub Actions reads/writes CSV natively. Reports are static HTML on GitHub Pages. No server, no cost, fully auditable via git history.
@@ -484,6 +490,9 @@ Not needed yet. Revisit if automated execution is added.
 | `SNAPTRADE_CONSUMER_KEY` | finviz_position_monitor.py |
 | `SNAPTRADE_USER_ID` | finviz_position_monitor.py |
 | `SNAPTRADE_USER_SECRET` | finviz_position_monitor.py |
+| `ALPACA_API_KEY` | alpaca_executor.py, alpaca_monitor.py |
+| `ALPACA_SECRET_KEY` | alpaca_executor.py, alpaca_monitor.py |
+| `ALPACA_BASE_URL` | alpaca_executor.py, alpaca_monitor.py (`https://paper-api.alpaca.markets/v2`) |
 
 ---
 
@@ -517,12 +526,78 @@ Not needed yet. Revisit if automated execution is added.
 | 7 | Agent 3 — synthesiser weekly brief | ✅ Built |
 | 8 | Market monitor — daily breadth + state classification | ✅ Built |
 | 9 | Character change deep check (yfinance quarterly earnings) | ✅ Built |
-| 10 | Automated order execution via SnapTrade | 🔲 Deferred — guardrails discussion first |
-| 11 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
+| 10 | Paper execution layer (Alpaca) — proves logic before real money | 🟡 In Progress |
+| 11 | Intraday execution via Market Pulse (15-min bars, EMA entry timing) | 🔲 Next |
+| 12 | Automated real execution via SnapTrade (flip paper logic to live) | 🔲 After paper validates |
+| 13 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
 
 ---
 
-## 10. Agent 2 + 3 Implementation (completed 2026-03-21)
+## 10. Paper Trading Layer (added 2026-03-31)
+
+**Purpose:** Autonomous Alpaca paper execution that proves the trade logic before touching real money. The intelligence layer (screener, alerts, weekly) is completely unchanged. Paper trades run in parallel, isolated from Robinhood.
+
+**North star:** Paper P&L validates → same code flips to real SnapTrade execution → manual `workflow_dispatch` BUY becomes an override, not the primary entry.
+
+### 10.1 Watchlist Auto-Population
+
+`finviz_agent.py` now runs a Step 7 at the end of each daily screener run:
+- Takes Stage 2 + Q≥60 tickers from the filtered results
+- Adds up to 5 new entries to `data/watchlist.json` (status=`watching`, source=`screener_auto`)
+- Never overwrites existing entries (manual or previously auto-added)
+- Sets `entry_note` based on VCP confirmation and perfect alignment
+
+### 10.2 Paper Executor — `alpaca_executor.py`
+
+**Trigger:** `workflow_run` on Daily Finviz Screener success + manual `workflow_dispatch`
+
+**Flow:**
+1. SPY regime check (Alpaca bars → yfinance fallback) — RED exits immediately
+2. Load today's enriched CSV, parse Stage/VCP dict fields via `ast.literal_eval`
+3. Fetch open positions + account equity from Alpaca
+4. Gate: max 5 concurrent positions
+5. For each Stage 2 + Q≥60 ticker not already held:
+   - Compute allocation by Q score tier (see below)
+   - Fetch intraday price
+   - Call Claude (`claude-sonnet-4-6`) for bull/bear verdict
+   - VERDICT: BUY → place market day order
+   - VERDICT: SKIP → log reason to Slack
+6. Write stop reference to `paper_stops.json` (entry − 2×ATR)
+7. Commit `paper_stops.json` back to repo via git in workflow
+
+**Quality Score tiers for sizing:**
+
+| Q Score | Allocation | Rationale |
+|---------|-----------|-----------|
+| < 60 | Skip | Below "strong conviction" bar. Q=35 = Stage 2 + 1 screener + weak volume. Not a trade. |
+| 60–79 | 15% of equity | Standard conviction |
+| 80–89 | 20% of equity | Strong conviction |
+| 90+ AND VCP | 25% of equity | Highest conviction — multi-screener + VCP + fundamentals |
+
+### 10.3 Paper Monitor — `alpaca_monitor.py`
+
+**Trigger:** Runs as a step inside `position-monitor.yml` (after SnapTrade monitor)
+
+**For each open Alpaca paper position:**
+- Stop hit (`current_price ≤ stop_price`) → market sell
+- Stage 3 or 4 in latest screener CSV → market sell
+- Otherwise → hold, log current P&L to Slack with `[PAPER]` context
+
+Updates `paper_stops.json` to remove exited positions.
+
+### 10.4 Separation from Real System
+
+| Concern | Real (Robinhood) | Paper (Alpaca) |
+|---------|-----------------|----------------|
+| Positions state | `positions.json` | `paper_stops.json` |
+| Entry | Manual `workflow_dispatch` | Autonomous |
+| Exit monitoring | `finviz_position_monitor.py` | `alpaca_monitor.py` |
+| Hard stop | $4,500 per position | 2×ATR (tighter, not dollar-based) |
+| Slack channel | `#positions` | `#positions` (prefix `[PAPER]`) |
+
+---
+
+## 11. Agent 2 + 3 Implementation (completed 2026-03-21)
 
 ### Agent 2 — Catalyst Research ✅
 

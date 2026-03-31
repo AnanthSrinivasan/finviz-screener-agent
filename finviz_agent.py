@@ -970,4 +970,100 @@ if __name__ == "__main__":
     # Step 6: Slack
     send_slack_notification(summary_df, filter_df, gallery_path, today, ai_summary)
 
+    # Step 7: Auto-populate watchlist with top Stage 2 + Q≥60 tickers
+    _update_watchlist(filter_df, today)
+
     log.info("=== Done ===")
+
+
+# ----------------------------
+# Part 7: Watchlist Auto-Population
+# ----------------------------
+
+def _update_watchlist(filter_df: pd.DataFrame, today: str):
+    """
+    Promotes top Stage 2 + Q≥60 tickers from today's screener into
+    data/watchlist.json (status=watching).
+
+    Rules:
+    - Only Stage 2 tickers with Quality Score ≥ 60
+    - Max 5 new additions per day (top by Q score)
+    - Never overwrites an existing entry (watching, entered, or any status)
+    - Sets entry_note based on VCP confirmation and Q score tier
+    - Existing entries are left completely untouched
+    """
+    import json
+    watchlist_path = os.path.join("data", "watchlist.json")
+    try:
+        with open(watchlist_path) as f:
+            wl_data = json.load(f)
+        existing = wl_data.get("watchlist", [])
+    except Exception:
+        existing = []
+        wl_data = {"watchlist": existing}
+
+    existing_tickers = {e["ticker"] for e in existing}
+
+    # Filter: Stage 2 + Q≥60 + not already in watchlist
+    candidates = filter_df.copy()
+    if 'Quality Score' in candidates.columns:
+        candidates = candidates[candidates['Quality Score'] >= 60]
+
+    if candidates.empty:
+        log.info("Watchlist: no new Stage 2 + Q>=60 tickers to add today.")
+        return
+
+    stage2_mask = candidates['Stage'].apply(
+        lambda s: s.get('stage', 0) == 2 if isinstance(s, dict) else False
+    ) if 'Stage' in candidates.columns else pd.Series([False] * len(candidates))
+    candidates = candidates[stage2_mask]
+
+    candidates = candidates[~candidates['Ticker'].isin(existing_tickers)]
+    candidates = candidates.sort_values('Quality Score', ascending=False).head(5)
+
+    if candidates.empty:
+        log.info("Watchlist: no new Stage 2 + Q≥60 tickers to add today.")
+        return
+
+    added = []
+    for _, row in candidates.iterrows():
+        ticker  = row['Ticker']
+        qs      = float(row.get('Quality Score', 0) or 0)
+        vcp     = row.get('VCP', {})
+        atr_pct = float(row.get('ATR%', 0) or 0)
+        sector  = row.get('Sector', '')
+        stage_d = row.get('Stage', {})
+        perfect = stage_d.get('perfect', False) if isinstance(stage_d, dict) else False
+
+        vcp_ok = isinstance(vcp, dict) and vcp.get('vcp_possible', False)
+
+        if vcp_ok:
+            entry_note = "VCP setup — wait for volume contraction then breakout"
+        elif perfect:
+            entry_note = "Perfect Stage 2 alignment — 21 EMA pullback entry"
+        else:
+            entry_note = "Stage 2 confirmed — pullback to 10/21 EMA"
+
+        entry = {
+            "ticker":      ticker,
+            "entry_note":  entry_note,
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      (
+                sector
+                + " | Q=" + str(int(qs))
+                + (" | VCP" if vcp_ok else "")
+                + (" | ATR " + str(round(atr_pct, 1)) + "%" if atr_pct else "")
+            ),
+            "added":       today,
+            "status":      "watching",
+            "source":      "screener_auto",
+        }
+        existing.append(entry)
+        added.append(ticker)
+        log.info("Watchlist: added %s (Q=%.0f%s)", ticker, qs, " VCP" if vcp_ok else "")
+
+    wl_data["watchlist"] = existing
+    with open(watchlist_path, "w") as f:
+        json.dump(wl_data, f, indent=2)
+    log.info("Watchlist updated — added %d ticker(s): %s", len(added), added)

@@ -6,7 +6,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 **Stack:** Python 3.11 (GitHub Actions), Finviz scraping, yfinance, SnapTrade API, Claude API, Slack webhooks
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
-## Architecture — 8 Agents + Test Suite
+## Architecture — 10 Agents + Test Suite
 
 | Agent | File | Schedule | Slack Channel |
 |-------|------|----------|---------------|
@@ -18,6 +18,10 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Earnings Alert | `finviz_earnings_alert.py` | 22:30 UTC Mon-Fri | `#general-alerts` |
 | Market Pulse | `finviz_market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
 | Winners Watchlist | `finviz_winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
+| **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` |
+| **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
+
+**Note on naming:** `finviz_position_monitor.py` monitors real Robinhood positions via SnapTrade. The `finviz_` prefix is a repo naming convention only — it does not scrape Finviz at runtime.
 
 **Supporting files:**
 - `generate_index.py` — Generates GitHub Pages index
@@ -87,6 +91,9 @@ The position monitor has two layers:
 | `SNAPTRADE_CONSUMER_KEY` | secret | Position monitor |
 | `SNAPTRADE_USER_ID` | **variable** | Position monitor |
 | `SNAPTRADE_USER_SECRET` | secret | Position monitor |
+| `ALPACA_API_KEY` | secret | Paper executor, paper monitor |
+| `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor |
+| `ALPACA_BASE_URL` | secret | Paper executor, paper monitor (`https://paper-api.alpaca.markets/v2`) |
 
 ## Data Files
 
@@ -94,7 +101,8 @@ The position monitor has two layers:
 data/
   positions.json                          # Rules engine state (open/closed positions, stops, targets)
   trading_state.json                      # Win/loss streaks, sizing mode, recent trades
-  watchlist.json                          # Market pulse watchlist
+  watchlist.json                          # Market pulse watchlist (auto-populated by screener + manual entries)
+  paper_stops.json                        # Paper trade stop-loss references {ticker: {stop_price, entry_price, atr_pct, entry_date}}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
   market_monitor_history.json             # Rolling 30-day breadth history
   market_monitor_YYYY-MM-DD.json          # Daily market breadth snapshot

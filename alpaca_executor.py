@@ -213,19 +213,21 @@ def get_current_price(symbol: str) -> float:
 def compute_allocation(quality_score: float, vcp_dict: dict, portfolio_equity: float) -> float:
     """
     Returns dollar allocation based on Quality Score tier.
-    Q < 35       → 0 (skip)
-    Q 35–59      → 15% of equity
-    Q 60–79      → 20% of equity
-    Q 80+ + VCP  → 25% of equity
-    Q 80+ no VCP → 20% of equity
+    Thresholds match the system's own conviction levels (see SYSTEM_DOCS §3.1):
+      Q < 60       → skip — not good enough to auto-execute
+      Q 60–79      → 15% of equity (standard conviction)
+      Q 80–89      → 20% of equity (strong conviction)
+      Q 90+ + VCP  → 25% of equity (highest conviction)
+    Q=35 would mean Stage 2 (+25) + ~10pts more — one screener, weak volume.
+    That is not a trade. Earnings alert floor is Q>50; we set the bar higher.
     """
     vcp_confirmed = isinstance(vcp_dict, dict) and vcp_dict.get("vcp_possible", False)
 
-    if quality_score >= 80 and vcp_confirmed:
+    if quality_score >= 90 and vcp_confirmed:
         pct = 0.25
-    elif quality_score >= 60:
+    elif quality_score >= 80:
         pct = 0.20
-    elif quality_score >= 35:
+    elif quality_score >= 60:
         pct = 0.15
     else:
         return 0.0
@@ -434,9 +436,9 @@ if __name__ == "__main__":
 
         qs = row.get("Quality Score", 0)
 
-        # Step 4: Quality gate
-        if qs < 35:
-            log.info("Skipping %s — Q=%.0f below 35", ticker, qs)
+        # Step 4: Quality gate — must reach "strong conviction" bar
+        if qs < 60:
+            log.info("Skipping %s — Q=%.0f below 60 (min for auto-execution)", ticker, qs)
             continue
 
         # Stage 2 gate
