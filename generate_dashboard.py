@@ -229,7 +229,7 @@ def _build_market_html(market_latest, market_history):
     spy_above = market_latest.get("spy_above_200d", False)
     r5 = market_latest.get("ratio_5day", 0)
     r10 = market_latest.get("ratio_10day", 0)
-    t2108 = market_latest.get("t2108_equiv", 0)
+    t2108 = market_latest.get("t2108_equiv") or 0
     thrust = market_latest.get("thrust_detected", False)
     blackout = market_latest.get("blackout", False)
     date = market_latest.get("date", "")
