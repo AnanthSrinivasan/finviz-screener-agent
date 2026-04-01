@@ -25,6 +25,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4.2.2
 
+      - name: Pull latest
+        run: git pull --rebase
+
       - name: Set up Python
         uses: actions/setup-python@v5.4.0
         with:
@@ -41,10 +44,11 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git add data/paper_stops.json
-          git commit -m "update paper stops [skip ci]" || echo "no changes"
-          git pull --rebase
-          git push
+          if [ -f data/paper_stops.json ]; then
+            git add data/paper_stops.json
+          fi
+          git diff --staged --quiet || git commit -m "update paper stops [skip ci]"
+          git push || true
 
       - name: Notify on failure
         if: failure()
