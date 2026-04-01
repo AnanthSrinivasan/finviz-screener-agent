@@ -16,6 +16,7 @@ import random
 import logging
 import datetime
 import requests
+import pytz
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -28,13 +29,14 @@ FINVIZ_BASE        = "https://finviz.com"
 CNN_FNG_URL        = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
 DATA_DIR           = os.environ.get("DATA_DIR", "data")
 HISTORY_FILE       = os.path.join(DATA_DIR, "market_monitor_history.json")
+TRADING_STATE_FILE = os.path.join(DATA_DIR, "trading_state.json")
 SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
 
 # Scaled thresholds (from ~1500-ticker liquid universe)
-THRUST_THRESHOLD   = 500   # stocks up 4% in one day = breadth thrust
-DANGER_DOWN_THRESHOLD = 175  # stocks down 4% in one day = major deterioration
+THRUST_THRESHOLD      = 500   # stocks up 4% in one day = breadth thrust
+DANGER_DOWN_THRESHOLD = 175   # stocks down 4% in one day = major deterioration
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -77,78 +79,170 @@ def save_daily(record: dict):
     log.info(f"Daily record saved: {path}")
 
 
+def update_trading_state(record: dict):
+    """Save market state and metrics to data/trading_state.json."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    existing = {}
+    if os.path.exists(TRADING_STATE_FILE):
+        try:
+            with open(TRADING_STATE_FILE) as f:
+                existing = json.load(f)
+        except Exception as e:
+            log.warning("Could not load trading_state.json: %s", e)
+
+    # Compute spy_200ma from price and sma200_pct
+    spy_price = record.get("spy_price")
+    sma200_pct = record.get("spy_sma200_pct")
+    spy_200ma = None
+    if spy_price and sma200_pct is not None:
+        spy_200ma = round(spy_price / (1 + sma200_pct / 100), 2)
+
+    existing.update({
+        "market_state": record["market_state"],
+        "up_4pct_count": record["up_4_today"],
+        "down_4pct_count": record["down_4_today"],
+        "5d_ratio": record["ratio_5day"],
+        "10d_ratio": record["ratio_10day"],
+        "t2108": record.get("t2108_equiv"),
+        "spy_price": spy_price,
+        "spy_200ma": spy_200ma,
+        "fng": record.get("fg"),
+    })
+
+    if record["market_state"] == "THRUST":
+        existing["last_thrust_date"] = record["date"]
+
+    with open(TRADING_STATE_FILE, "w") as f:
+        json.dump(existing, f, indent=2)
+    log.info("trading_state.json updated: %s", record["market_state"])
+
+
 # ----------------------------
 # Finviz Screener Count Fetcher
 # ----------------------------
 def fetch_screener_count(session: requests.Session, url: str, label: str = "") -> int:
     """
-    Fetch a Finviz screener page and return the total result count.
-    Parses the 'Total:' indicator from the screener page header.
-    Falls back to counting visible rows if Total not found.
+    Fetch the total result count for a Finviz screener URL.
+
+    Strategy:
+      1. Fetch page 1 and try to parse the result counter (fast path).
+         Finviz renders the count in a <td class="count-text"> element.
+         Formats seen: "1 - 20 / 1234"  "of 1234"  "Total: 1234"
+         The old code only matched "Total: N" and silently fell back to
+         counting the 20 visible rows, which capped every result at 20.
+      2. If the header parse fails (e.g. 0 results or HTML change),
+         paginate: r=1, r=21, r=41 ... until a page returns fewer than 20
+         unique tickers.  Max 30 pages (600 results) — more than enough
+         for the up/down-4% screeners; large screeners (total_universe,
+         above_40ma) will always succeed via step 1.
     """
+    first_page_soup = None
+
+    # --- Step 1: fast path — parse result counter from page 1 ---
     try:
-        resp = session.get(url, timeout=15)
+        resp = session.get(url + "&r=1", timeout=15)
         if not resp.ok:
-            log.warning(f"HTTP {resp.status_code} fetching {label or url}")
+            log.warning("HTTP %s fetching %s", resp.status_code, label)
             return 0
         soup = BeautifulSoup(resp.text, "html.parser")
+        first_page_soup = soup
 
-        # Finviz shows total in a cell like "1 - 20 / Total: 43" or "Total: 43"
-        total_cell = soup.find("td", class_="count-text")
-        if total_cell:
-            match = re.search(r"Total:\s*(\d+)", total_cell.get_text())
+        count_td = soup.find("td", class_="count-text")
+        if count_td:
+            text = count_td.get_text(strip=True)
+            # Match "/ 1234", "of 1234", "Total: 1234", "Total 1234"
+            match = re.search(r'(?:/\s*|of\s+|[Tt]otal:?\s*)([\d,]+)', text)
+            if not match:
+                # Last number in the string as final attempt
+                match = re.search(r'([\d,]+)\s*$', text)
             if match:
-                count = int(match.group(1))
-                log.info(f"{label}: {count} (from Total header)")
+                count = int(match.group(1).replace(',', ''))
+                log.info("%s: %d (from count-text header)", label, count)
                 return count
 
-        # Fallback: search all text for "Total: N" pattern
+        # Broader scan of full page text
         page_text = soup.get_text()
-        match = re.search(r"Total[:\s]+(\d+)", page_text)
+        match = re.search(r'(?:/\s*|of\s+|[Tt]otal:?\s*)([\d,]+)', page_text)
         if match:
-            count = int(match.group(1))
-            log.info(f"{label}: {count} (from page text)")
+            count = int(match.group(1).replace(',', ''))
+            log.info("%s: %d (from page text scan)", label, count)
             return count
 
-        # Last fallback: count screener rows on this page
-        rows = soup.select('tr[valign="top"]')
-        row_count = 0
-        for row in rows:
+    except Exception as e:
+        log.error("Failed to fetch %s: %s", label, e)
+        return 0
+
+    # --- Step 2: pagination fallback ---
+    log.debug("%s: count header not found — paginating", label)
+    seen: set = set()
+
+    # Reuse already-fetched first page
+    if first_page_soup is not None:
+        for row in first_page_soup.select('tr[valign="top"]'):
             cols = row.find_all('td')
             if len(cols) >= 2:
-                row_count += 1
-        log.info(f"{label}: {row_count} (from row count — may undercount if paginated)")
-        return row_count
+                ticker = cols[1].text.strip()
+                if ticker:
+                    seen.add(ticker)
+        if len(seen) < 20:
+            # Fewer than a full page — we have everything
+            log.info("%s: %d (pagination, 1 page)", label, len(seen))
+            return len(seen)
 
-    except Exception as e:
-        log.error(f"Failed to fetch {label}: {e}")
-        return 0
+    for page in range(2, 31):  # pages 2-30  (max 600 results)
+        r = 1 + (page - 1) * 20
+        try:
+            time.sleep(1)
+            resp = session.get(url + "&r=" + str(r), timeout=15)
+            if not resp.ok:
+                log.warning("%s: HTTP %s on page %d", label, resp.status_code, page)
+                break
+            soup = BeautifulSoup(resp.text, "html.parser")
+            rows = soup.select('tr[valign="top"]')
+            new_this_page = 0
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) >= 2:
+                    ticker = cols[1].text.strip()
+                    if ticker and ticker not in seen:
+                        seen.add(ticker)
+                        new_this_page += 1
+            if new_this_page == 0 or new_this_page < 20:
+                break
+        except Exception as e:
+            log.error("%s: page %d failed: %s", label, page, e)
+            break
+
+    log.info("%s: %d (from pagination)", label, len(seen))
+    return len(seen)
 
 
 # ----------------------------
 # Data Fetchers
 # ----------------------------
 def fetch_breadth_data(session: requests.Session) -> dict:
-    """Fetch all 5 Finviz screener counts + SPY data + F&G."""
+    """Fetch all Finviz screener counts + T2108 + SPY data + F&G."""
 
     base_filters = "geo_usa,sh_avgvol_o500,sh_price_o5,exch_nysenasd"
 
-    # Fetch 1 — Stocks up 4%+ today
+    # Fetch 1 — Stocks up 4%+ today (change from open, broad liquid universe)
     url_up4 = (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f={base_filters},ta_change_u4"
+        f"&f=sh_avgvol_o200,sh_price_o5,ta_changeopen_u4"
         f"&o=-change"
     )
     up_4 = fetch_screener_count(session, url_up4, "Up 4%+ today")
+    log.info("Up 4%%: %d tickers today", up_4)
     time.sleep(FETCH_DELAY)
 
-    # Fetch 2 — Stocks down 4%+ today
+    # Fetch 2 — Stocks down 4%+ today (change from open, broad liquid universe)
     url_down4 = (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f={base_filters},ta_change_d4"
+        f"&f=sh_avgvol_o200,sh_price_o5,ta_changeopen_d4"
         f"&o=change"
     )
     down_4 = fetch_screener_count(session, url_down4, "Down 4%+ today")
+    log.info("Down 4%%: %d tickers today", down_4)
     time.sleep(FETCH_DELAY)
 
     # Fetch 3 — Stocks up 25%+ in a quarter
@@ -167,7 +261,7 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     down_25_quarter = fetch_screener_count(session, url_down25q, "Down 25%+ quarter")
     time.sleep(FETCH_DELAY)
 
-    # Fetch 5 — Stocks above 40-day SMA (T2108 equivalent)
+    # Fetch 5 — Stocks above 40-day SMA (universe reference only)
     url_above40 = (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
         f"&f={base_filters},ta_sma40_pa"
@@ -183,6 +277,18 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     total_universe = fetch_screener_count(session, url_total, "Total universe")
     time.sleep(FETCH_DELAY)
 
+    # T2108 — % of NYSE stocks above their 40-day MA
+    # Primary: Finviz quote page for $T2108
+    # Fallback: yfinance ^T2108
+    # If both fail: None (shown as "n/a" in Slack)
+    t2108 = fetch_t2108_finviz(session)
+    if t2108 is None:
+        log.info("T2108 Finviz fetch failed, trying yfinance fallback")
+        t2108 = _fetch_t2108_yfinance()
+    if t2108 is None:
+        log.warning("T2108: both fetches failed — will show n/a")
+    time.sleep(FETCH_DELAY)
+
     # SPY snapshot for price + SMA data
     spy_data = fetch_spy_data(session)
 
@@ -196,10 +302,40 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         "down_25_quarter": down_25_quarter,
         "above_40ma_count": above_40ma,
         "total_universe": total_universe,
+        "t2108": t2108,
         "spy_price": spy_data.get("price"),
         "spy_sma200_pct": spy_data.get("sma200_pct"),
         "fg": fg,
     }
+
+
+def fetch_t2108_finviz(session: requests.Session) -> float | None:
+    """Fetch T2108 from Finviz quote page for $T2108."""
+    try:
+        resp = session.get(f"{FINVIZ_BASE}/quote.ashx", params={"t": "$T2108"}, timeout=10)
+        if not resp.ok:
+            log.warning("T2108 Finviz fetch failed: HTTP %s", resp.status_code)
+            return None
+        soup = BeautifulSoup(resp.content, "html.parser")
+        table = soup.find("table", class_="snapshot-table2")
+        if not table:
+            log.warning("T2108 Finviz: snapshot-table2 not found")
+            return None
+        data = {}
+        for row in table.find_all("tr"):
+            cells = row.find_all("td")
+            for k, v in zip(cells[0::2], cells[1::2]):
+                data[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
+        price_raw = data.get("Price", "").replace(",", "")
+        val = round(float(price_raw), 2)
+        if 0 <= val <= 100:
+            log.info("T2108 (Finviz): %.2f%%", val)
+            return val
+        log.warning("T2108 Finviz value %.2f outside valid range 0-100, treating as failed", val)
+        return None
+    except Exception as e:
+        log.warning("T2108 Finviz fetch failed: %s", e)
+        return None
 
 
 def fetch_spy_data(session: requests.Session) -> dict:
@@ -237,6 +373,24 @@ def fetch_spy_data(session: requests.Session) -> dict:
     except Exception as e:
         log.error(f"SPY snapshot failed: {e}")
         return {}
+
+
+def _fetch_t2108_yfinance() -> float | None:
+    """
+    Fallback: fetch T2108 (% of NYSE stocks above 40-week MA) from yfinance.
+    """
+    try:
+        import yfinance as yf
+        hist = yf.download("^T2108", period="1d", progress=False)
+        if not hist.empty:
+            val = round(float(hist["Close"].iloc[-1]), 2)
+            if 0 <= val <= 100:
+                log.info("T2108 (yfinance fallback): %.2f%%", val)
+                return val
+            log.warning("T2108 yfinance value %.2f outside valid range 0-100, treating as failed", val)
+    except Exception as e:
+        log.warning("T2108 yfinance fallback failed: %s", e)
+    return None
 
 
 def fetch_fng() -> float | None:
@@ -282,10 +436,9 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
     # Thrust detection
     thrust = up_4 >= THRUST_THRESHOLD
 
-    # T2108 equivalent — % of universe above 40-day SMA
-    total_universe = today_data.get("total_universe", 0)
-    above_40ma = today_data.get("above_40ma_count", 0)
-    t2108 = (above_40ma / total_universe * 100) if total_universe > 0 else 0
+    # T2108 — pre-fetched in fetch_breadth_data (Finviz primary, yfinance fallback)
+    # Already validated in range 0-100, or None if both fetches failed
+    t2108 = today_data.get("t2108")
 
     # SPY above 200-day SMA (conservative proxy for 20-week MA)
     spy_sma200_pct = today_data.get("spy_sma200_pct")
@@ -296,7 +449,7 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
         "ratio_5day": round(ratio_5day, 2),
         "ratio_10day": round(ratio_10day, 2),
         "thrust": thrust,
-        "t2108": round(t2108, 2),
+        "t2108": t2108,
         "spy_above_200d": spy_above_200d,
     }
 
@@ -328,37 +481,39 @@ def classify_market_state(metrics: dict, fg: float | None,
                           date: datetime.date) -> tuple[str, str]:
     """
     Classify market into one of: THRUST, GREEN, CAUTION, DANGER, RED, BLACKOUT.
-    Returns (state, message).
+    Returns (state, message). Checked in priority order.
     """
-    # Check seasonal blackout first
+    # 1. Seasonal blackout
     if is_blackout(date):
         return "BLACKOUT", "Seasonal no-trade period active"
 
-    # THRUST — most important single signal
+    # 2. DANGER — deteriorating fast (checked before THRUST)
+    if (today_data["down_4_today"] >= DANGER_DOWN_THRESHOLD
+            and metrics["ratio_5day"] < 0.5):
+        return "DANGER", "Major breadth deterioration"
+
+    # 3. THRUST — breadth explosion to the upside
     if metrics["thrust"]:
         return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%"
 
-    # GREEN — full size entries
+    # 4. GREEN — full size entries
+    # t2108 may be None when both fetches failed; treat as 0 (condition fails)
     fg_val = fg if fg is not None else 0
+    t2108_val = metrics["t2108"] if metrics["t2108"] is not None else 0
     if (metrics["ratio_5day"] >= 2.0
             and metrics["ratio_10day"] >= 1.5
             and fg_val >= 35
             and spy_above_200d
-            and metrics["t2108"] >= 40):
+            and t2108_val >= 40):
         return "GREEN", "Full conditions met"
 
-    # CAUTION — half size
+    # 5. CAUTION — half size
     if (metrics["ratio_5day"] >= 1.5
             and fg_val >= 25
             and spy_above_200d):
         return "CAUTION", "Recovering — reduce size"
 
-    # DANGER — deteriorating fast
-    if (today_data["down_4_today"] >= DANGER_DOWN_THRESHOLD
-            and metrics["ratio_5day"] < 0.5):
-        return "DANGER", "Major breadth deterioration"
-
-    # RED — default when nothing confirms
+    # 6. RED — default
     return "RED", "No new trades"
 
 
@@ -394,6 +549,43 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
 # ----------------------------
 # Slack Alerts
 # ----------------------------
+def send_thrust_alert(record: dict):
+    """Send dedicated THRUST alert when 500+ stocks up 4%+."""
+    if not SLACK_WEBHOOK_ALERTS:
+        log.info("SLACK_WEBHOOK_MARKET_ALERTS not set — skipping THRUST alert.")
+        return
+
+    up_count = record["up_4_today"]
+    ratio = record["ratio_5day"]
+    spy_price = record.get("spy_price")
+    sma200_pct = record.get("spy_sma200_pct")
+
+    spy_200ma = None
+    if spy_price and sma200_pct is not None:
+        spy_200ma = round(spy_price / (1 + sma200_pct / 100), 2)
+
+    spy_str = f"${spy_price:.0f}" if spy_price else "n/a"
+    ma_str = f"${spy_200ma:.0f}" if spy_200ma else "n/a"
+
+    text = (
+        f"🚀 THRUST DAY — {up_count} stocks up 4%+\n"
+        f"This is Pradeep Bonde's tide-turning signal.\n"
+        f"Market breadth has exploded to the upside.\n"
+        f"Watch for follow-through over next 2-3 days.\n"
+        f"5d ratio: {ratio} | SPY: {spy_str} vs 200MA: {ma_str}\n"
+        f"Regime will flip GREEN if SPY reclaims 200MA with sustained breadth."
+    )
+
+    blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
+
+    try:
+        resp = requests.post(SLACK_WEBHOOK_ALERTS, json={"blocks": blocks}, timeout=10)
+        resp.raise_for_status()
+        log.info("THRUST alert sent: %d stocks up 4%%+", up_count)
+    except Exception as e:
+        log.error("THRUST alert failed: %s", e)
+
+
 def send_state_change_alert(record: dict, prev_state: str | None):
     """Send state change alert to #market-alerts."""
     if not SLACK_WEBHOOK_ALERTS:
@@ -411,7 +603,6 @@ def send_state_change_alert(record: dict, prev_state: str | None):
     fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
     spy_str = f"${record['spy_price']:.2f}" if record["spy_price"] is not None else "n/a"
 
-    # Build action guidance based on state
     if state == "THRUST":
         action = (
             "ACTION: Start building watchlist.\n"
@@ -421,7 +612,7 @@ def send_state_change_alert(record: dict, prev_state: str | None):
     elif state == "GREEN":
         action = (
             "ACTION: Full conditions met.\n"
-            f"Size at 10-15% for high conviction.\n"
+            "Size at 10-15% for high conviction.\n"
             "Current watchlist candidates: check weekly report."
         )
     elif state == "CAUTION":
@@ -479,6 +670,7 @@ def send_confirmation_alert(record: dict):
         return
 
     fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
+    t2108_str = str(round(record["t2108_equiv"])) + "%" if record.get("t2108_equiv") is not None else "n/a"
 
     text = (
         f"✅ *MARKET MONITOR — CONFIRMED RECOVERY*\n"
@@ -487,7 +679,7 @@ def send_confirmation_alert(record: dict):
         f"10-day ratio: {record['ratio_10day']} ✅\n"
         f"F&G: {fg_str} ✅\n"
         f"SPY above 200d MA: {'✅' if record['spy_above_200d'] else '❌'}\n"
-        f"T2108: {record['t2108_equiv']:.0f}% ✅\n\n"
+        f"T2108: {t2108_str} ✅\n\n"
         f"ACTION: Full conditions met.\n"
         f"Size at 10-15% for high conviction.\n"
         f"Current watchlist candidates: check weekly report."
@@ -505,7 +697,7 @@ def send_confirmation_alert(record: dict):
         log.error(f"Confirmation alert failed: {e}")
 
 
-def send_daily_summary(record: dict):
+def send_daily_summary(record: dict, last_thrust_date: str | None = None):
     """Send daily summary to #market-daily."""
     if not SLACK_WEBHOOK_DAILY:
         log.info("SLACK_WEBHOOK_MARKET_DAILY not set — skipping daily summary.")
@@ -520,18 +712,34 @@ def send_daily_summary(record: dict):
 
     fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
     spy_str = f"${record['spy_price']:.0f}" if record["spy_price"] is not None else "n/a"
+    t2108_str = str(round(record["t2108_equiv"])) + "%" if record.get("t2108_equiv") is not None else "n/a"
+
     sma_str = ""
     if record.get("spy_above_200d"):
         sma_str = " (above 200d MA)"
     elif record.get("spy_sma200_pct") is not None:
         sma_str = " (below 200d MA)"
 
+    # THRUST badge: show if active today, or days-since if fired recently
+    thrust_line = ""
+    if state == "THRUST":
+        thrust_line = "\n⚡ THRUST — breadth explosion signal firing today"
+    elif last_thrust_date:
+        try:
+            thrust_dt = datetime.date.fromisoformat(last_thrust_date)
+            today_dt = datetime.date.fromisoformat(record["date"])
+            days_ago = (today_dt - thrust_dt).days
+            if days_ago <= 30:
+                thrust_line = f"\n⚡ THRUST fired {days_ago}d ago ({last_thrust_date})"
+        except Exception:
+            pass
+
     text = (
         f"📊 Market Monitor — {record['date']}\n"
-        f"State: {emoji} {state}\n"
+        f"State: {emoji} {state}{thrust_line}\n"
         f"Up 4%: {record['up_4_today']} | Down 4%: {record['down_4_today']}\n"
         f"5d ratio: {record['ratio_5day']} | 10d ratio: {record['ratio_10day']}\n"
-        f"F&G: {fg_str} | T2108: {record['t2108_equiv']:.0f}%\n"
+        f"F&G: {fg_str} | T2108: {t2108_str}\n"
         f"SPY: {spy_str}{sma_str}"
     )
 
@@ -549,7 +757,8 @@ def send_daily_summary(record: dict):
 def run_market_monitor(date: datetime.date | None = None):
     """Main entry point for the market monitor."""
     if date is None:
-        date = datetime.date.today()
+        et = pytz.timezone('US/Eastern')
+        date = datetime.datetime.now(et).date()
 
     log.info(f"=== Market Monitor starting — {date.isoformat()} ===")
 
@@ -561,6 +770,16 @@ def run_market_monitor(date: datetime.date | None = None):
     prev_state = history[-1]["market_state"] if history else None
     log.info(f"Previous market state: {prev_state or 'UNKNOWN'}")
 
+    # Load last_thrust_date from trading_state.json
+    last_thrust_date = None
+    if os.path.exists(TRADING_STATE_FILE):
+        try:
+            with open(TRADING_STATE_FILE) as f:
+                ts = json.load(f)
+            last_thrust_date = ts.get("last_thrust_date")
+        except Exception:
+            pass
+
     # Fetch all breadth data
     session = make_session()
     today_data = fetch_breadth_data(session)
@@ -571,8 +790,9 @@ def run_market_monitor(date: datetime.date | None = None):
 
     # Calculate metrics
     metrics = calculate_metrics(history, today_data)
+    t2108_str = f"{metrics['t2108']:.1f}%" if metrics['t2108'] is not None else "n/a"
     log.info(f"Ratios — today: {metrics['ratio_today']} | 5d: {metrics['ratio_5day']} | 10d: {metrics['ratio_10day']}")
-    log.info(f"T2108: {metrics['t2108']:.1f}% | Thrust: {metrics['thrust']} | SPY above 200d: {metrics['spy_above_200d']}")
+    log.info(f"T2108: {t2108_str} | Thrust: {metrics['thrust']} | SPY above 200d: {metrics['spy_above_200d']}")
 
     # Classify market state
     state, message = classify_market_state(
@@ -590,8 +810,16 @@ def run_market_monitor(date: datetime.date | None = None):
     history = history[-30:]
     save_history(history)
 
+    # Update trading_state.json (track last_thrust_date before saving)
+    if state == "THRUST":
+        last_thrust_date = record["date"]
+    update_trading_state(record)
+
     # Send Slack alerts
     state_changed = prev_state is not None and state != prev_state
+
+    if state == "THRUST":
+        send_thrust_alert(record)
 
     if state_changed:
         send_state_change_alert(record, prev_state)
@@ -600,7 +828,7 @@ def run_market_monitor(date: datetime.date | None = None):
             send_confirmation_alert(record)
 
     # Always send daily summary
-    send_daily_summary(record)
+    send_daily_summary(record, last_thrust_date)
 
     log.info(f"=== Market Monitor complete — {state} ===")
     return record
