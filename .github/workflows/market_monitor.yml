@@ -34,6 +34,10 @@ jobs:
 
       - name: Run market monitor
         run: python finviz_market_monitor.py
+        env:
+          ALPACA_API_KEY:    ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL:   ${{ secrets.ALPACA_BASE_URL }}
 
       - name: Regenerate dashboard
         env:

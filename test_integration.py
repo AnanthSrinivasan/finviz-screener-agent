@@ -1129,6 +1129,10 @@ def _make_monitor_day(**overrides) -> dict:
         "date": "2026-03-20",
         "up_4_today": 50,
         "down_4_today": 100,
+        "breadth_source": "alpaca_4pct",
+        "universe_size": 2500,
+        "adv_total": 1800,
+        "dec_total": 900,
         "up_25_quarter": 200,
         "down_25_quarter": 400,
         "above_40ma_count": 600,
@@ -1228,18 +1232,15 @@ class TestCalculateMetrics(unittest.TestCase):
         self.assertAlmostEqual(metrics["t2108"], 50.0)
 
     def test_t2108_zero_universe(self):
-        """T2108 should be None when total universe is 0 (fetch failed).
-        The yfinance fallback is mocked to also fail here."""
-        import finviz_market_monitor as mm
+        """T2108 should be None when not present in today_data (all sources failed)."""
         today = {"up_4_today": 50, "down_4_today": 50,
                  "above_40ma_count": 0, "total_universe": 0,
                  "spy_sma200_pct": 1.0}
-        with unittest.mock.patch.object(mm, "_fetch_t2108_yfinance", return_value=None):
-            metrics = calculate_metrics([], today)
+        metrics = calculate_metrics([], today)
         self.assertIsNone(metrics["t2108"])
 
-    def test_t2108_yfinance_fallback(self):
-        """T2108 falls back to None when not in today_data (fetch failed)."""
+    def test_t2108_none_when_missing(self):
+        """T2108 is None when not present in today_data (all sources failed)."""
         today = {"up_4_today": 50, "down_4_today": 50,
                  "above_40ma_count": 0, "total_universe": 0,
                  "spy_sma200_pct": 1.0}
@@ -1486,8 +1487,10 @@ class TestBuildDailyRecord(unittest.TestCase):
         )
 
         expected_fields = [
-            "date", "up_4_today", "down_4_today", "ratio_today",
-            "ratio_5day", "ratio_10day", "up_25_quarter", "down_25_quarter",
+            "date", "up_4_today", "down_4_today", "breadth_source",
+            "universe_size", "adv_total", "dec_total",
+            "ratio_today", "ratio_5day", "ratio_10day",
+            "up_25_quarter", "down_25_quarter",
             "above_40ma_count", "total_universe", "t2108_equiv",
             "thrust_detected", "fg", "spy_price", "spy_sma200_pct",
             "spy_above_200d", "market_state", "state_message", "blackout",

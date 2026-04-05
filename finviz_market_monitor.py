@@ -36,10 +36,13 @@ SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
 
-# Thresholds calibrated to total NYSE+Nasdaq A/D counts (all advancers/decliners,
-# not 4%-filtered). Old Finviz values were 500/175 for 4%-filtered counts.
-THRUST_THRESHOLD      = 3500  # total advancers on a breadth-thrust day
-DANGER_DOWN_THRESHOLD = 3500  # total decliners on a major deterioration day
+# Bonde calibration: 500+ stocks up/down 4%+ = "Very High" pressure zone.
+# Universe: NYSE+NASDAQ common stocks, dollar volume > $250k OR volume > 100k.
+THRUST_THRESHOLD      = 500   # stocks up 4%+ entering Very High buying pressure
+DANGER_DOWN_THRESHOLD = 500   # stocks down 4%+ entering Very High selling pressure
+
+# Alpaca Data API base URL (constant — same for paper and live accounts)
+ALPACA_DATA_URL = "https://data.alpaca.markets/v2"
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -284,6 +287,123 @@ def fetch_breadth_adv_dec() -> dict | None:
 
 
 # ----------------------------
+# Breadth Source — Alpaca 4%-Filtered (Primary)
+# ----------------------------
+def fetch_breadth_alpaca() -> dict | None:
+    """
+    True 4%-filtered advance/decline counts via Alpaca market data API.
+    Uses ALPACA_API_KEY / ALPACA_SECRET_KEY (already configured as repo secrets).
+
+    Universe: NYSE + NASDAQ active tradable equities.
+    Filters applied to each snapshot:
+      - dollar volume (close * volume) > $250k  OR  volume > 100k  (Bonde's filter)
+      - close > $3  (noise filter)
+
+    Steps:
+      1. GET /v2/assets — all active NYSE+NASDAQ equities (broker API)
+      2. GET /v2/stocks/snapshots — batched 1000/call (data API)
+      3. Count tickers where (close - prev_close) / prev_close >= +4% or <= -4%
+
+    Returns None if keys are missing or both counts come back zero with no valid universe.
+    """
+    alpaca_key    = os.environ.get("ALPACA_API_KEY", "")
+    alpaca_secret = os.environ.get("ALPACA_SECRET_KEY", "")
+    alpaca_broker = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
+
+    if not alpaca_key or not alpaca_secret:
+        log.warning("Alpaca keys not configured — skipping 4pct breadth")
+        return None
+
+    headers = {
+        "APCA-API-KEY-ID":     alpaca_key,
+        "APCA-API-SECRET-KEY": alpaca_secret,
+    }
+
+    # Step 1 — get all active NYSE+NASDAQ equities
+    try:
+        resp = requests.get(
+            f"{alpaca_broker}/assets",
+            headers=headers,
+            params={"status": "active", "asset_class": "us_equity"},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        assets = resp.json()
+    except Exception as e:
+        log.error("Alpaca assets fetch failed: %s", e)
+        return None
+
+    tickers = [
+        a["symbol"] for a in assets
+        if a.get("exchange") in ("NYSE", "NASDAQ")
+        and a.get("tradable", False)
+        and a.get("status") == "active"
+    ]
+    log.info("Alpaca: %d active NYSE+NASDAQ tickers to check", len(tickers))
+    if not tickers:
+        log.error("Alpaca returned no tickers")
+        return None
+
+    # Step 2 — batch snapshots, 1000 per call
+    up_4    = 0
+    down_4  = 0
+    checked = 0
+
+    for i in range(0, len(tickers), 1000):
+        batch = tickers[i:i + 1000]
+        try:
+            resp = requests.get(
+                f"{ALPACA_DATA_URL}/stocks/snapshots",
+                headers=headers,
+                params={"symbols": ",".join(batch), "feed": "iex"},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            snapshots = resp.json()
+        except Exception as e:
+            log.error("Alpaca snapshots batch %d failed: %s", i // 1000 + 1, e)
+            continue
+
+        for snap in snapshots.values():
+            daily      = snap.get("dailyBar") or {}
+            prev_daily = snap.get("prevDailyBar") or {}
+
+            close      = daily.get("c") or 0
+            prev_close = prev_daily.get("c") or 0
+            volume     = daily.get("v") or 0
+
+            # Bonde filter: dollar vol > $250k OR volume > 100k; plus price > $3
+            if close <= 3 or prev_close <= 0:
+                continue
+            if (close * volume) < 250_000 and volume < 100_000:
+                continue
+
+            pct = (close - prev_close) / prev_close * 100
+            checked += 1
+
+            if pct >= 4.0:
+                up_4 += 1
+            elif pct <= -4.0:
+                down_4 += 1
+
+    log.info(
+        "Alpaca 4pct breadth: up=%d down=%d (universe=%d after filters)",
+        up_4, down_4, checked,
+    )
+
+    if checked < 100:
+        log.warning("Alpaca breadth universe < 100 — market likely closed or API issue")
+        return None
+
+    return {
+        "up_4_today":    up_4,
+        "down_4_today":  down_4,
+        "breadth_source": "alpaca_4pct",
+        "universe_size":  checked,
+    }
+
+
+# ----------------------------
 # Data Fetchers
 # ----------------------------
 def fetch_breadth_data(session: requests.Session) -> dict:
@@ -296,15 +416,24 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     Finviz fetch_screener_count() still used for quarterly/SMA supplemental metrics.
     """
 
-    # --- BREADTH: Advance/Decline counts ---
-    breadth = fetch_breadth_adv_dec()
-    if breadth is None:
-        log.error("Breadth fetch failed — check A/D symbols in yfinance.")
-        breadth = {"up_4_today": 0, "down_4_today": 0, "breadth_source": "none"}
+    # --- BREADTH: True 4%-filtered counts (Alpaca, primary) ---
+    alpaca_breadth = fetch_breadth_alpaca()
+    if alpaca_breadth:
+        up_4          = alpaca_breadth["up_4_today"]
+        down_4        = alpaca_breadth["down_4_today"]
+        breadth_source = "alpaca_4pct"
+        universe_size  = alpaca_breadth.get("universe_size", 0)
+    else:
+        log.error("Alpaca 4pct breadth failed — up/down 4pct counts unavailable")
+        up_4          = 0
+        down_4        = 0
+        breadth_source = "none"
+        universe_size  = 0
 
-    up_4          = breadth["up_4_today"]
-    down_4        = breadth["down_4_today"]
-    breadth_source = breadth.get("breadth_source", "adv_dec_index")
+    # --- A/D TOTALS: Always fetch as supplemental metric (all movers, not 4%-filtered) ---
+    ad_data   = fetch_breadth_adv_dec()
+    adv_total = ad_data["up_4_today"]   if ad_data else None
+    dec_total = ad_data["down_4_today"] if ad_data else None
 
     base_filters = "geo_usa,sh_avgvol_o500,sh_price_o5,exch_nysenasd"
 
@@ -354,16 +483,16 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         above_40ma = 0
         total_universe = 0
 
-    # T2108 — % of NYSE stocks above their 40-day MA
+    # T2108 — % of stocks above their 40-day MA
     # Primary: Finviz quote page for $T2108
-    # Fallback: yfinance ^T2108
+    # Fallback: compute from screener data (above_40ma / total_universe * 100)
     # If both fail: None (shown as "n/a" in Slack)
     t2108 = fetch_t2108_finviz(session)
+    if t2108 is None and total_universe > 500:
+        t2108 = round(above_40ma / total_universe * 100, 1)
+        log.info("T2108 (computed from screener): %.1f%%", t2108)
     if t2108 is None:
-        log.info("T2108 Finviz fetch failed, trying yfinance fallback")
-        t2108 = _fetch_t2108_yfinance()
-    if t2108 is None:
-        log.warning("T2108: both fetches failed — will show n/a")
+        log.warning("T2108: all sources failed — will show n/a")
     time.sleep(FETCH_DELAY)
 
     # SPY snapshot for price + SMA data
@@ -373,17 +502,20 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     fg = fetch_fng()
 
     return {
-        "up_4_today": up_4,
-        "down_4_today": down_4,
-        "breadth_source": breadth_source,
-        "up_25_quarter": up_25_quarter,
+        "up_4_today":      up_4,
+        "down_4_today":    down_4,
+        "breadth_source":  breadth_source,
+        "universe_size":   universe_size,
+        "adv_total":       adv_total,
+        "dec_total":       dec_total,
+        "up_25_quarter":   up_25_quarter,
         "down_25_quarter": down_25_quarter,
         "above_40ma_count": above_40ma,
-        "total_universe": total_universe,
-        "t2108": t2108,
-        "spy_price": spy_data.get("price"),
-        "spy_sma200_pct": spy_data.get("sma200_pct"),
-        "fg": fg,
+        "total_universe":  total_universe,
+        "t2108":           t2108,
+        "spy_price":       spy_data.get("price"),
+        "spy_sma200_pct":  spy_data.get("sma200_pct"),
+        "fg":              fg,
     }
 
 
@@ -453,22 +585,6 @@ def fetch_spy_data(session: requests.Session) -> dict:
         return {}
 
 
-def _fetch_t2108_yfinance() -> float | None:
-    """
-    Fallback: fetch T2108 (% of NYSE stocks above 40-week MA) from yfinance.
-    """
-    try:
-        import yfinance as yf
-        hist = yf.download("^T2108", period="1d", progress=False)
-        if not hist.empty:
-            val = round(float(hist["Close"].iloc[-1]), 2)
-            if 0 <= val <= 100:
-                log.info("T2108 (yfinance fallback): %.2f%%", val)
-                return val
-            log.warning("T2108 yfinance value %.2f outside valid range 0-100, treating as failed", val)
-    except Exception as e:
-        log.warning("T2108 yfinance fallback failed: %s", e)
-    return None
 
 
 def fetch_fng() -> float | None:
@@ -514,8 +630,8 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
     # Thrust detection
     thrust = up_4 >= THRUST_THRESHOLD
 
-    # T2108 — pre-fetched in fetch_breadth_data (Finviz primary, yfinance fallback)
-    # Already validated in range 0-100, or None if both fetches failed
+    # T2108 — pre-fetched in fetch_breadth_data (Finviz quote page, or computed from screener)
+    # Already validated in range 0-100, or None if unavailable
     t2108 = today_data.get("t2108")
 
     # SPY above 200-day SMA (conservative proxy for 20-week MA)
@@ -602,26 +718,29 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
                        state: str, message: str) -> dict:
     """Build the complete daily record for storage."""
     return {
-        "date": date.isoformat(),
-        "up_4_today": today_data["up_4_today"],
-        "down_4_today": today_data["down_4_today"],
-        "breadth_source": today_data.get("breadth_source", "unknown"),
-        "ratio_today": metrics["ratio_today"],
-        "ratio_5day": metrics["ratio_5day"],
-        "ratio_10day": metrics["ratio_10day"],
-        "up_25_quarter": today_data.get("up_25_quarter", 0),
-        "down_25_quarter": today_data.get("down_25_quarter", 0),
+        "date":             date.isoformat(),
+        "up_4_today":       today_data["up_4_today"],
+        "down_4_today":     today_data["down_4_today"],
+        "breadth_source":   today_data.get("breadth_source", "unknown"),
+        "universe_size":    today_data.get("universe_size", 0),
+        "adv_total":        today_data.get("adv_total"),
+        "dec_total":        today_data.get("dec_total"),
+        "ratio_today":      metrics["ratio_today"],
+        "ratio_5day":       metrics["ratio_5day"],
+        "ratio_10day":      metrics["ratio_10day"],
+        "up_25_quarter":    today_data.get("up_25_quarter", 0),
+        "down_25_quarter":  today_data.get("down_25_quarter", 0),
         "above_40ma_count": today_data.get("above_40ma_count", 0),
-        "total_universe": today_data.get("total_universe", 0),
-        "t2108_equiv": metrics["t2108"],
-        "thrust_detected": metrics["thrust"],
-        "fg": today_data.get("fg"),
-        "spy_price": today_data.get("spy_price"),
-        "spy_sma200_pct": today_data.get("spy_sma200_pct"),
-        "spy_above_200d": metrics["spy_above_200d"],
-        "market_state": state,
-        "state_message": message,
-        "blackout": is_blackout(date),
+        "total_universe":   today_data.get("total_universe", 0),
+        "t2108_equiv":      metrics["t2108"],
+        "thrust_detected":  metrics["thrust"],
+        "fg":               today_data.get("fg"),
+        "spy_price":        today_data.get("spy_price"),
+        "spy_sma200_pct":   today_data.get("spy_sma200_pct"),
+        "spy_above_200d":   metrics["spy_above_200d"],
+        "market_state":     state,
+        "state_message":    message,
+        "blackout":         is_blackout(date),
     }
 
 
@@ -719,12 +838,16 @@ def send_state_change_alert(record: dict, prev_state: str | None):
             "Monitor daily for state change."
         )
 
+    adv = record.get("adv_total")
+    dec = record.get("dec_total")
+    ad_str = f"{adv:,} / {dec:,}" if adv is not None and dec is not None else "n/a"
+
     text = (
         f"{emoji} *MARKET MONITOR — STATE CHANGE*\n"
         f"{record['date']}\n\n"
         f"Previous: {prev_str} → Now: *{state}*\n\n"
-        f"Stocks up 4% today: {record['up_4_today']}\n"
-        f"Stocks down 4% today: {record['down_4_today']}\n"
+        f"Stocks up 4%+ today: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
+        f"Adv / Dec (all movers): {ad_str}\n"
         f"5-day ratio: {record['ratio_5day']}\n"
         f"10-day ratio: {record['ratio_10day']}\n"
         f"F&G: {fg_str} | SPY: {spy_str}\n\n"
@@ -813,10 +936,15 @@ def send_daily_summary(record: dict, last_thrust_date: str | None = None):
         except Exception:
             pass
 
+    adv = record.get("adv_total")
+    dec = record.get("dec_total")
+    ad_str = f"{adv:,} / {dec:,}" if adv is not None and dec is not None else "n/a"
+
     text = (
         f"📊 Market Monitor — {record['date']}\n"
         f"State: {emoji} {state}{thrust_line}\n"
-        f"Up 4%: {record['up_4_today']} | Down 4%: {record['down_4_today']}\n"
+        f"Up 4%+: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
+        f"Adv / Dec (all): {ad_str}\n"
         f"5d ratio: {record['ratio_5day']} | 10d ratio: {record['ratio_10day']}\n"
         f"F&G: {fg_str} | T2108: {t2108_str}\n"
         f"SPY: {spy_str}{sma_str}"
@@ -863,7 +991,12 @@ def run_market_monitor(date: datetime.date | None = None):
     session = make_session()
     today_data = fetch_breadth_data(session)
 
-    log.info(f"Up 4%: {today_data['up_4_today']} | Down 4%: {today_data['down_4_today']}")
+    log.info(
+        "Up 4%%: %d | Down 4%%: %d | Universe: %d | Adv/Dec: %s/%s",
+        today_data["up_4_today"], today_data["down_4_today"],
+        today_data.get("universe_size", 0),
+        today_data.get("adv_total", "n/a"), today_data.get("dec_total", "n/a"),
+    )
     log.info(f"Up 25% qtr: {today_data['up_25_quarter']} | Down 25% qtr: {today_data['down_25_quarter']}")
     log.info(f"Above 40d SMA: {today_data['above_40ma_count']} / {today_data['total_universe']}")
 
