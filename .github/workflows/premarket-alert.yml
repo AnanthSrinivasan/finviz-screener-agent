@@ -1,0 +1,26 @@
+name: Pre-Market Gap-Up Alert
+
+on:
+  schedule:
+    - cron: '0 14 * * 1-5'   # 9:00 AM ET (14:00 UTC) Mon-Fri
+  workflow_dispatch:
+
+jobs:
+  premarket-alert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pre-market gap-up alert
+        run: python finviz_premarket_alert.py
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DATA_DIR: data
+          PREMARKET_THRESHOLD: "5.0"

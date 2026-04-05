@@ -1511,6 +1511,75 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
 
 
 # ----------------------------
+# Part 5b: Auto-Promote to Watchlist
+# ----------------------------
+
+def auto_promote_to_watchlist(
+    persistence_df: pd.DataFrame,
+    watchlist_path: str = "data/watchlist.json",
+    min_days: int = 3,
+    min_screens: int = 3,
+    slack_webhook: str = "",
+) -> list:
+    """
+    Auto-adds tickers to watchlist.json when they meet persistence thresholds
+    (appeared min_days+ days AND hit min_screens+ screeners this week).
+    Sends a Slack alert listing promoted tickers. Never re-adds existing entries.
+    Returns list of promoted tickers.
+    """
+    try:
+        with open(watchlist_path) as f:
+            watchlist = json.load(f)
+    except FileNotFoundError:
+        watchlist = {}
+
+    existing = set(watchlist.get("tickers", []))
+    promoted = []
+    today_str = datetime.date.today().isoformat()
+
+    for _, row in persistence_df.iterrows():
+        ticker   = str(row.get("Ticker", "")).strip()
+        days     = int(row.get("Days Seen", row.get("days_seen", 0)) or 0)
+        screens  = int(row.get("Screeners Hit", row.get("screens", 0)) or 0)
+
+        if not ticker or ticker in existing:
+            continue
+        if days < min_days or screens < min_screens:
+            continue
+
+        watchlist.setdefault("tickers", []).append(ticker)
+        watchlist.setdefault("auto_promoted", []).append({
+            "ticker":    ticker,
+            "added":     today_str,
+            "days_seen": days,
+            "screens":   screens,
+        })
+        promoted.append((ticker, days, screens))
+        existing.add(ticker)
+
+    if promoted:
+        os.makedirs(os.path.dirname(watchlist_path) if os.path.dirname(watchlist_path) else ".", exist_ok=True)
+        with open(watchlist_path, "w") as f:
+            json.dump(watchlist, f, indent=2)
+        log.info("Auto-promoted %d tickers to watchlist: %s", len(promoted), [t for t, _, _ in promoted])
+
+        if slack_webhook:
+            lines = [f":bookmark: *AUTO-PROMOTED TO WATCHLIST — {today_str}*"]
+            for t, d, s in promoted:
+                lines.append(f"• *{t}* — {s} screener{'s' if s != 1 else ''} × {d} days")
+            lines.append("_Review before trading. System added automatically._")
+            try:
+                resp = requests.post(slack_webhook, json={
+                    "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(lines)}}]
+                }, timeout=10)
+                resp.raise_for_status()
+            except Exception as e:
+                log.error("Auto-promote Slack alert failed: %s", e)
+
+    return [t for t, _, _ in promoted]
+
+
+# ----------------------------
 # Part 6: Main
 # ----------------------------
 
@@ -1568,6 +1637,20 @@ if __name__ == "__main__":
     persistence_df.to_csv(
         os.path.join(DATA_DIR, f"finviz_weekly_persistence_{today}.csv"), index=False
     )
+
+    # Auto-promote persistent tickers to watchlist (3+ days × 3+ screeners)
+    log.info("Checking for watchlist auto-promotions...")
+    promoted = auto_promote_to_watchlist(
+        persistence_df,
+        watchlist_path=os.path.join(DATA_DIR, "watchlist.json"),
+        min_days=3,
+        min_screens=3,
+        slack_webhook=SLACK_WEBHOOK_URL,
+    )
+    if promoted:
+        log.info("Auto-promoted to watchlist: %s", promoted)
+    else:
+        log.info("No tickers met auto-promotion threshold this week.")
 
     log.info("Fetching macro...")
     macro_data  = fetch_macro_snapshot()

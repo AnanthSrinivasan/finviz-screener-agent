@@ -17,6 +17,8 @@ import logging
 import datetime
 import requests
 import pytz
+import pandas as pd
+import yfinance as yf
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -34,9 +36,10 @@ SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
 
-# Scaled thresholds (from ~1500-ticker liquid universe)
-THRUST_THRESHOLD      = 500   # stocks up 4% in one day = breadth thrust
-DANGER_DOWN_THRESHOLD = 175   # stocks down 4% in one day = major deterioration
+# Thresholds calibrated to total NYSE+Nasdaq A/D counts (all advancers/decliners,
+# not 4%-filtered). Old Finviz values were 500/175 for 4%-filtered counts.
+THRUST_THRESHOLD      = 3500  # total advancers on a breadth-thrust day
+DANGER_DOWN_THRESHOLD = 3500  # total decliners on a major deterioration day
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -218,32 +221,92 @@ def fetch_screener_count(session: requests.Session, url: str, label: str = "") -
 
 
 # ----------------------------
+# Breadth Source — A/D Index Symbols
+# ----------------------------
+AD_SYMBOLS = {
+    "nyse_adv": "^NYADV",
+    "nyse_dec": "^NYDEC",
+    "nasd_adv": "^NAADV",
+    "nasd_dec": "^NADEC",
+}
+
+
+def fetch_breadth_adv_dec() -> dict | None:
+    """
+    Fetch NYSE + Nasdaq advance/decline counts from official exchange index symbols.
+    Single yfinance batch call — 4 tickers, no scraping, no throttling.
+
+    Returns total movers (all % changes), not 4%-filtered.
+    THRUST_THRESHOLD and DANGER_DOWN_THRESHOLD are calibrated to this scale.
+    """
+    try:
+        data = yf.download(
+            list(AD_SYMBOLS.values()),
+            period="1d",
+            interval="1d",
+            group_by="ticker",
+            auto_adjust=False,
+            progress=False,
+            threads=True,
+        )
+
+        def get_val(sym: str) -> int:
+            try:
+                return int(data[sym]["Close"].dropna().iloc[-1])
+            except Exception:
+                return 0
+
+        nyse_adv = get_val("^NYADV")
+        nyse_dec = get_val("^NYDEC")
+        nasd_adv = get_val("^NAADV")
+        nasd_dec = get_val("^NADEC")
+
+        total_adv = nyse_adv + nasd_adv
+        total_dec = nyse_dec + nasd_dec
+
+        if total_adv == 0 and total_dec == 0:
+            log.error("A/D fetch returned zeros — yfinance symbols may be unavailable")
+            return None
+
+        log.info(
+            "A/D breadth: NYSE adv=%d dec=%d | Nasdaq adv=%d dec=%d | Total adv=%d dec=%d",
+            nyse_adv, nyse_dec, nasd_adv, nasd_dec, total_adv, total_dec,
+        )
+        return {
+            "up_4_today":    total_adv,
+            "down_4_today":  total_dec,
+            "breadth_source": "adv_dec_index",
+        }
+
+    except Exception as e:
+        log.error("A/D breadth fetch failed: %s", e)
+        return None
+
+
+# ----------------------------
 # Data Fetchers
 # ----------------------------
 def fetch_breadth_data(session: requests.Session) -> dict:
-    """Fetch all Finviz screener counts + T2108 + SPY data + F&G."""
+    """
+    Fetch all breadth data + T2108 + SPY + F&G.
+    Up/Down 4% breadth uses a priority waterfall — no ticker list downloads:
+      1. Barchart total movers (server-rendered HTML, single page)
+      2. A/D exchange index symbols via yfinance (4 tickers)
+      3. Zero fallback (logs error)
+    Finviz fetch_screener_count() still used for quarterly/SMA supplemental metrics.
+    """
+
+    # --- BREADTH: Advance/Decline counts ---
+    breadth = fetch_breadth_adv_dec()
+    if breadth is None:
+        log.error("Breadth fetch failed — check A/D symbols in yfinance.")
+        breadth = {"up_4_today": 0, "down_4_today": 0, "breadth_source": "none"}
+
+    up_4          = breadth["up_4_today"]
+    down_4        = breadth["down_4_today"]
+    breadth_source = breadth.get("breadth_source", "adv_dec_index")
 
     base_filters = "geo_usa,sh_avgvol_o500,sh_price_o5,exch_nysenasd"
-
-    # Fetch 1 — Stocks up 4%+ today (change from open, broad liquid universe)
-    url_up4 = (
-        f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f=sh_avgvol_o200,sh_price_o5,ta_changeopen_u4"
-        f"&o=-change"
-    )
-    up_4 = fetch_screener_count(session, url_up4, "Up 4%+ today")
-    log.info("Up 4%%: %d tickers today", up_4)
-    time.sleep(FETCH_DELAY)
-
-    # Fetch 2 — Stocks down 4%+ today (change from open, broad liquid universe)
-    url_down4 = (
-        f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f=sh_avgvol_o200,sh_price_o5,ta_changeopen_d4"
-        f"&o=change"
-    )
-    down_4 = fetch_screener_count(session, url_down4, "Down 4%+ today")
-    log.info("Down 4%%: %d tickers today", down_4)
-    time.sleep(FETCH_DELAY)
 
     # Fetch 3 — Stocks up 25%+ in a quarter
     url_up25q = (
@@ -277,6 +340,20 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     total_universe = fetch_screener_count(session, url_total, "Total universe")
     time.sleep(FETCH_DELAY)
 
+    # Sanity check — if total universe < 500 Finviz is blocking this runner's IP.
+    # Zero out Finviz supplemental metrics; keep yfinance up_4/down_4 intact.
+    if total_universe < 500:
+        log.warning(
+            "FINVIZ BLOCK DETECTED: total_universe=%d (expected ~2000+). "
+            "Finviz supplemental metrics unreliable — zeroing quarterly/SMA counts. "
+            "Up/Down 4%% counts from yfinance are unaffected.",
+            total_universe
+        )
+        up_25_quarter = 0
+        down_25_quarter = 0
+        above_40ma = 0
+        total_universe = 0
+
     # T2108 — % of NYSE stocks above their 40-day MA
     # Primary: Finviz quote page for $T2108
     # Fallback: yfinance ^T2108
@@ -298,6 +375,7 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     return {
         "up_4_today": up_4,
         "down_4_today": down_4,
+        "breadth_source": breadth_source,
         "up_25_quarter": up_25_quarter,
         "down_25_quarter": down_25_quarter,
         "above_40ma_count": above_40ma,
@@ -527,6 +605,7 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
         "date": date.isoformat(),
         "up_4_today": today_data["up_4_today"],
         "down_4_today": today_data["down_4_today"],
+        "breadth_source": today_data.get("breadth_source", "unknown"),
         "ratio_today": metrics["ratio_today"],
         "ratio_5day": metrics["ratio_5day"],
         "ratio_10day": metrics["ratio_10day"],

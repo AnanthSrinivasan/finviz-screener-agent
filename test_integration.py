@@ -1219,20 +1219,32 @@ class TestCalculateMetrics(unittest.TestCase):
         self.assertFalse(metrics["thrust"])
 
     def test_t2108_calculation(self):
-        """T2108 = above_40ma / total_universe * 100."""
+        """T2108 is pre-fetched and passed through today_data["t2108"]."""
         today = {"up_4_today": 50, "down_4_today": 50,
                  "above_40ma_count": 750, "total_universe": 1500,
+                 "t2108": 50.0,
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
         self.assertAlmostEqual(metrics["t2108"], 50.0)
 
     def test_t2108_zero_universe(self):
-        """T2108 should be 0 when total universe is 0."""
+        """T2108 should be None when total universe is 0 (fetch failed).
+        The yfinance fallback is mocked to also fail here."""
+        import finviz_market_monitor as mm
+        today = {"up_4_today": 50, "down_4_today": 50,
+                 "above_40ma_count": 0, "total_universe": 0,
+                 "spy_sma200_pct": 1.0}
+        with unittest.mock.patch.object(mm, "_fetch_t2108_yfinance", return_value=None):
+            metrics = calculate_metrics([], today)
+        self.assertIsNone(metrics["t2108"])
+
+    def test_t2108_yfinance_fallback(self):
+        """T2108 falls back to None when not in today_data (fetch failed)."""
         today = {"up_4_today": 50, "down_4_today": 50,
                  "above_40ma_count": 0, "total_universe": 0,
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
-        self.assertEqual(metrics["t2108"], 0)
+        self.assertIsNone(metrics["t2108"])
 
     def test_spy_above_200d_positive(self):
         """SPY is above 200d MA when sma200_pct > 0."""
@@ -1407,11 +1419,11 @@ class TestClassifyMarketState(unittest.TestCase):
         self.assertNotEqual(state, "CAUTION")
 
     def test_danger_state(self):
-        """DANGER when down stocks high and 5-day ratio very low."""
+        """DANGER when down stocks high (A/D scale) and 5-day ratio very low."""
         metrics = self._make_metrics(
             ratio_5day=0.3, spy_above_200d=False
         )
-        today = {"up_4_today": 10, "down_4_today": 200}
+        today = {"up_4_today": 500, "down_4_today": DANGER_DOWN_THRESHOLD}
         state, _ = classify_market_state(
             metrics, fg=10.0, spy_price=450.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
@@ -1647,7 +1659,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         )
         state, _ = classify_market_state(
             metrics, fg=18.0, spy_price=480.0, spy_above_200d=False,
-            today_data={"up_4_today": 15, "down_4_today": 250},
+            today_data={"up_4_today": 500, "down_4_today": DANGER_DOWN_THRESHOLD},
             date=datetime.date(2026, 5, 10)
         )
         self.assertEqual(state, "DANGER")

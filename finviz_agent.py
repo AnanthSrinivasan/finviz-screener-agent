@@ -514,8 +514,12 @@ def _classify_ticker(row) -> str:
     stage_num  = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
     rel_vol    = float(row.get('Rel Volume', 1) or 1)
     atr_pct    = float(row.get('ATR%', 0) or 0)
+    dist_high  = float(row.get('Dist From High%', 0) or 0)
+    sma20      = float(row.get('SMA20%', 0) or 0)
 
-    if 'IPO' in screeners:
+    # IPO lifecycle: in IPO screener OR showing IPO washout-recovery pattern
+    # (deeply below 52w high but strongly above 20-day MA)
+    if 'IPO' in screeners or (dist_high <= -40 and sma20 >= 10):
         return 'ipo'
     if stage_num == 2:
         return 'stage2'
@@ -574,6 +578,14 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
         if top_sectors and sector and sector in top_sectors else ''
     )
 
+    # Overhead resistance badge — informational only, no Q-score impact.
+    # Fires when price is within 3-8% below the 52-week high (approaching resistance).
+    dist_high_val = float(row.get('Dist From High%', -999) or -999)
+    overhead_badge = (
+        '<span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>'
+        if -8 <= dist_high_val <= -3 else ''
+    )
+
     # CC quick filter: EPS positive + Stage 2 or high-momentum = potential character change
     eps_val = float(row.get('EPS Y/Y TTM', 0) or 0) if pd.notna(row.get('EPS Y/Y TTM')) else 0
     rvol_val = float(row.get('Rel Volume', 0) or 0) if pd.notna(row.get('Rel Volume')) else 0
@@ -603,7 +615,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     </div>
   </div>
   <div class="stage-row">
-    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}
+    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}{overhead_badge}
   </div>
   {sector_html}
   {sma_html}
@@ -711,6 +723,9 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-ite
                     padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
 .tag-cc-hint {{ font-size: 9px; background: #451a03; color: #fbbf24;
                 padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
+.tag-overhead {{ font-size: 9px; background: #1c1917; color: #f59e0b;
+                 padding: 1px 5px; border-radius: 3px; font-weight: 700;
+                 border: 1px solid #92400e; }}
 .sector-tag {{ font-size: 0.7rem; color: #38bdf8; background: #0c2240;
                border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
 .sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }}
@@ -993,12 +1008,23 @@ if __name__ == "__main__":
     # ── 10% Change momentum gate ──
     # Tickers surfaced only/partly by '10% Change' must pass quality checks.
     # Failures get excluded from scoring, gallery main sections, and top 5.
+    # EXCEPTION: IPO lifecycle stocks are never excluded — they appear in
+    # the IPO Lifecycle section regardless of stage or quality score.
+    # A stock is IPO lifecycle if: (a) 'IPO' is in its Screeners column, OR
+    # (b) it shows an IPO washout-recovery pattern: deeply below 52w high
+    # but strongly above its 20-day MA (IPO pop-and-drop + recovery).
     log.info("Applying 10%% Change momentum gate...")
     excluded_flags = []
     excluded_reasons_list = []
     for _, row in summary_df.iterrows():
         screeners = str(row.get('Screeners', '') or '')
-        if '10% Change' in screeners:
+        is_ipo_lifecycle = (
+            'IPO' in screeners or (
+                float(row.get('Dist From High%', 0) or 0) <= -40 and
+                float(row.get('SMA20%', 0) or 0) >= 10
+            )
+        )
+        if '10% Change' in screeners and not is_ipo_lifecycle:
             passes, reasons = check_10pct_momentum_quality(row)
             excluded_flags.append(not passes)
             excluded_reasons_list.append(", ".join(reasons) if reasons else "")

@@ -39,6 +39,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Earnings Alert | `earnings-alert.yml` | Cron + workflow_dispatch |
 | Finviz Alerts | `alerts-finviz.yml` | Cron + workflow_dispatch |
 | Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
+| Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET Mon-Fri + workflow_dispatch |
 | Test Suite | `test.yml` | On push to main / PRs |
 
 ## Position Monitor — Rules Engine
@@ -146,14 +147,15 @@ data/
 | State | Condition | Trading Action |
 |-------|-----------|---------------|
 | BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | No new trades |
-| THRUST | 500+ stocks up 4% in one day | Build watchlist, wait for confirmation |
+| THRUST | 3,500+ total NYSE+Nasdaq advancers in one day | Build watchlist, wait for confirmation |
 | GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA, T2108 >= 40% | Full size entries |
 | CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | Half size only |
-| DANGER | 175+ stocks down 4% and 5d ratio < 0.5 | No entries, raise stops |
+| DANGER | 3,500+ total NYSE+Nasdaq decliners and 5d ratio < 0.5 | No entries, raise stops |
 | RED | Default | No new trades |
 
 ## Development Notes
 
+- **Market breadth source:** Up/Down counts in `finviz_market_monitor.py` now come from NYSE/Nasdaq A/D index symbols (`^NYADV ^NYDEC ^NAADV ^NADEC`) via yfinance — total advancers/decliners (not 4%-filtered). THRUST=3500, DANGER=3500 are calibrated to this scale. `breadth_source` field in daily JSON shows which source ran. **Backlog:** replace with true 4%-filtered data source — A/D is a good complement but doesn't preserve the Bonde methodology precisely.
 - **Python version:** 3.11 on GitHub Actions, may be 3.12+ locally. Avoid f-string backslashes inside `{}` expressions (breaks on 3.11).
 - **Testing:** Run `gh workflow run <workflow>` + `gh run watch <id>` as integration test since SnapTrade secrets aren't available locally.
 - **Finviz scraping:** Rotating user agents, exponential backoff, no proxy. Rate-limit-friendly delays between requests.
