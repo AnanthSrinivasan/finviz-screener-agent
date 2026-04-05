@@ -293,5 +293,30 @@
     "market_state": "RED",
     "state_message": "No new trades",
     "blackout": false
+  },
+  {
+    "date": "2026-04-05",
+    "up_4_today": 193,
+    "down_4_today": 65,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2844,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 2.97,
+    "ratio_5day": 2.66,
+    "ratio_10day": 1.88,
+    "up_25_quarter": 0,
+    "down_25_quarter": 0,
+    "above_40ma_count": 0,
+    "total_universe": 0,
+    "t2108_equiv": null,
+    "thrust_detected": false,
+    "fg": 19.3,
+    "spy_price": 655.83,
+    "spy_sma200_pct": -1.02,
+    "spy_above_200d": false,
+    "market_state": "RED",
+    "state_message": "No new trades",
+    "blackout": false
   }
 ]
