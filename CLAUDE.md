@@ -144,18 +144,18 @@ data/
 
 ## Market State Classification
 
-| State | Condition | Trading Action |
-|-------|-----------|---------------|
-| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | No new trades |
-| THRUST | 3,500+ total NYSE+Nasdaq advancers in one day | Build watchlist, wait for confirmation |
-| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA, T2108 >= 40% | Full size entries |
-| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | Half size only |
-| DANGER | 3,500+ total NYSE+Nasdaq decliners and 5d ratio < 0.5 | No entries, raise stops |
-| RED | Default | No new trades |
+| State | Condition | Priority | Trading Action |
+|-------|-----------|----------|---------------|
+| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | 1 | No new trades |
+| DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | No entries, raise stops |
+| THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 3 | Build watchlist, wait for confirmation |
+| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 4 | Full size entries |
+| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 5 | Half size only |
+| RED | Default (nothing else matches) | 6 | No new trades |
 
 ## Development Notes
 
-- **Market breadth source:** Up/Down counts in `finviz_market_monitor.py` now come from NYSE/Nasdaq A/D index symbols (`^NYADV ^NYDEC ^NAADV ^NADEC`) via yfinance — total advancers/decliners (not 4%-filtered). THRUST=3500, DANGER=3500 are calibrated to this scale. `breadth_source` field in daily JSON shows which source ran. **Backlog:** replace with true 4%-filtered data source — A/D is a good complement but doesn't preserve the Bonde methodology precisely.
+- **Market breadth source:** Up/Down 4% counts come from Alpaca snapshots API (`fetch_breadth_alpaca`). Universe: NYSE+NASDAQ active equities, filtered to price > $3 and dollar vol > $250k OR volume > 100k (Bonde's filter). THRUST=500, DANGER=500 (Bonde "Very High pressure" calibration). A/D totals (`^NYADV ^NYDEC ^NAADV ^NADEC`) were removed — all four symbols are dead on Yahoo Finance as of April 2026. `breadth_source` field in daily JSON shows which source ran (`alpaca_4pct`).
 - **Python version:** 3.11 on GitHub Actions, may be 3.12+ locally. Avoid f-string backslashes inside `{}` expressions (breaks on 3.11).
 - **Testing:** Run `gh workflow run <workflow>` + `gh run watch <id>` as integration test since SnapTrade secrets aren't available locally.
 - **Finviz scraping:** Rotating user agents, exponential backoff, no proxy. Rate-limit-friendly delays between requests.
