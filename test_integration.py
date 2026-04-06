@@ -1402,8 +1402,8 @@ class TestClassifyMarketState(unittest.TestCase):
         )
         self.assertNotEqual(state, "DANGER")
 
-    def test_red_default(self):
-        """RED when nothing else matches."""
+    def test_red_explicit_bearish(self):
+        """RED when SPY below 200d MA and 5d ratio < 1.0."""
         metrics = self._make_metrics(
             ratio_5day=0.8, ratio_10day=0.6, spy_above_200d=False
         )
@@ -1413,6 +1413,39 @@ class TestClassifyMarketState(unittest.TestCase):
             today_data=today, date=datetime.date(2026, 4, 15)
         )
         self.assertEqual(state, "RED")
+
+    def test_cooling_fires_when_prev_green_and_conditions_fall(self):
+        """COOLING fires when previous state was GREEN and conditions no longer met."""
+        metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
+        today = {"up_4_today": 80, "down_4_today": 50}
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15),
+            prev_state="GREEN"
+        )
+        self.assertEqual(state, "COOLING")
+
+    def test_cooling_does_not_fire_without_prev_green(self):
+        """COOLING only fires when coming DOWN from GREEN, not from other states."""
+        metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
+        today = {"up_4_today": 80, "down_4_today": 50}
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15),
+            prev_state="CAUTION"
+        )
+        self.assertEqual(state, "CAUTION")
+
+    def test_cooling_does_not_fire_if_green_conditions_still_met(self):
+        """COOLING does not fire if GREEN conditions are still satisfied."""
+        metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=1.8)
+        today = {"up_4_today": 150, "down_4_today": 50}
+        state, _ = classify_market_state(
+            metrics, fg=40.0, spy_price=600.0, spy_above_200d=True,
+            today_data=today, date=datetime.date(2026, 4, 15),
+            prev_state="GREEN"
+        )
+        self.assertEqual(state, "GREEN")
 
     def test_none_fg_handled(self):
         """None F&G should not crash — treated as 0."""
@@ -1611,15 +1644,38 @@ class TestMarketStateTransitions(unittest.TestCase):
         )
         self.assertEqual(state, "GREEN")
 
+    def test_green_to_cooling_when_ratios_fade(self):
+        """GREEN transitions to COOLING when conditions weaken."""
+        metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
+            today_data={"up_4_today": 80, "down_4_today": 50},
+            date=datetime.date(2026, 5, 10),
+            prev_state="GREEN"
+        )
+        self.assertEqual(state, "COOLING")
+
+    def test_cooling_to_caution_when_prev_not_green(self):
+        """After COOLING, further weakening goes to CAUTION (not COOLING again)."""
+        metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
+        state, _ = classify_market_state(
+            metrics, fg=30.0, spy_price=570.0, spy_above_200d=True,
+            today_data={"up_4_today": 70, "down_4_today": 45},
+            date=datetime.date(2026, 5, 11),
+            prev_state="COOLING"
+        )
+        self.assertEqual(state, "CAUTION")
+
     def test_green_to_danger_fast_deterioration(self):
-        """Market can go from GREEN to DANGER if breadth collapses."""
+        """DANGER fires even from GREEN if breadth collapses hard enough (overrides COOLING)."""
         metrics = self._make_metrics(
             ratio_5day=0.3, spy_above_200d=False
         )
         state, _ = classify_market_state(
             metrics, fg=18.0, spy_price=480.0, spy_above_200d=False,
             today_data={"up_4_today": 500, "down_4_today": DANGER_DOWN_THRESHOLD},
-            date=datetime.date(2026, 5, 10)
+            date=datetime.date(2026, 5, 10),
+            prev_state="GREEN"
         )
         self.assertEqual(state, "DANGER")
 

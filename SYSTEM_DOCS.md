@@ -1,6 +1,6 @@
 # Finviz Screener Agent — System Documentation
 
-**Last updated:** 2026-03-31
+**Last updated:** 2026-04-06
 **Repo:** https://github.com/AnanthSrinivasan/finviz-screener-agent  
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
@@ -47,7 +47,7 @@ flowchart TB
         A2["<b>finviz_weekly_agent.py</b><br/>Signal merge + persistence scoring<br/>Character change deep check (yfinance)<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
         A3["<b>finviz_earnings_alert.py</b><br/>Quality &gt; 50 filter<br/>Sector filter<br/>7-day earnings window"]
         A4["<b>finviz_position_monitor.py</b><br/>$4,500 hard stop 🚨<br/>ATR exit system<br/>Peel levels"]
-        A5["<b>finviz_market_monitor.py</b><br/>Breadth ratios · T2108 equiv<br/>Market state classification<br/>State change alerts"]
+        A5["<b>finviz_market_monitor.py</b><br/>Alpaca 4pct breadth · F&amp;G<br/>7-state classification (COOLING new)<br/>State change alerts"]
     end
 
     W1 --> A1
@@ -338,35 +338,43 @@ F&G extremes, NYSE/Nasdaq breadth, ATR compression, commodity breakouts. State p
 **Schedule:** 22:00 UTC Mon-Fri
 **Slack:** `#market-alerts` via `SLACK_WEBHOOK_MARKET_ALERTS` (state changes only), `#market-daily` via `SLACK_WEBHOOK_MARKET_DAILY` (every day)
 
-Standalone daily agent that classifies overall market conditions using Finviz breadth data.
+Standalone daily agent that classifies overall market conditions using Alpaca breadth data.
 
-**6 Finviz fetches daily** (with rate-limit delays):
-1. Stocks up 4%+ today (breadth up)
-2. Stocks down 4%+ today (breadth down)
-3. Stocks up 25%+ in a quarter
-4. Stocks down 25%+ in a quarter
-5. Stocks above 40-day SMA (T2108 equivalent)
-6. Total liquid universe count
+**Breadth source — Alpaca snapshots API (true 4%-filtered):**
+- Universe: NYSE + NASDAQ active equities, price > $3, dollar vol > $250k OR volume > 100k (Bonde's filter)
+- ~2,800 stocks after filters (universe logged daily as `universe_size`)
+- THRUST = 500 stocks up 4%+ | DANGER = 500 stocks down 4%+ (Bonde "Very High pressure" calibration)
 
-Also fetches: SPY price + SMA200% from quote page, CNN Fear & Greed.
+**Other daily fetches** (Finviz — may be blocked by GitHub Actions IP):
+- Stocks up/down 25%+ in a quarter (supplemental only, zeroed when blocked)
+- SPY price + SMA200% from Finviz quote page
+- CNN Fear & Greed index
 
 **Calculations:**
 - Daily ratio: up_4 / down_4
 - 5-day rolling ratio (sum of last 5 days' up / sum of last 5 days' down)
 - 10-day rolling ratio
-- T2108 equivalent: % of universe above 40-day SMA
-- Thrust detection: up_4 ≥ 500
+- Thrust detection: up_4 ≥ 500 (single-day breadth explosion)
+
+**The state cycle flows directionally:**
+```
+RED → THRUST (signal) → CAUTION (building) → GREEN (full throttle)
+    → COOLING (fading) → CAUTION/RED → DANGER (hard stop) → RED → BLACKOUT → RED ...
+```
+
+COOLING and CAUTION are intentionally different states — same breadth readings, opposite action depending on whether you're going up or coming down from GREEN.
 
 **Market state classification (priority order):**
 
-| State | Condition | Action |
-|-------|-----------|--------|
-| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | No new trades |
-| THRUST | 500+ stocks up 4% in one day | Build watchlist, wait for confirmation |
-| GREEN | 5d ratio ≥ 2.0, 10d ≥ 1.5, F&G ≥ 35, SPY above 200d MA, T2108 ≥ 40% | Full size entries |
-| CAUTION | 5d ratio ≥ 1.5, F&G ≥ 25, SPY above 200d MA | Half size only |
-| DANGER | 175+ stocks down 4% and 5d ratio < 0.5 | No entries, raise stops |
-| RED | Default | No new trades |
+| State | Condition | Direction | Action |
+|-------|-----------|-----------|--------|
+| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | — | No new trades |
+| DANGER | 500+ stocks down 4%+ AND 5d ratio < 0.5 | ↓ hard | Raise stops, no entries |
+| COOLING | prev_state==GREEN AND GREEN conditions no longer met | ↓ fading | Trim, tighten stops, no new entries |
+| THRUST | 500+ stocks up 4%+ (Bonde "Very High" buying pressure) | ↑ signal | Build watchlist NOW |
+| GREEN | 5d ratio ≥ 2.0, 10d ≥ 1.5, F&G ≥ 35, SPY above 200d MA | ↑ bull | Full size entries |
+| CAUTION | 5d ratio ≥ 1.5, F&G ≥ 25, SPY above 200d MA | ↑ recovering | Half size, build watchlist |
+| RED | Everything else (SPY below 200d or weak breadth) | ↓ bear | No new trades |
 
 **Data storage:**
 - `data/market_monitor_YYYY-MM-DD.json` — daily snapshot
@@ -375,11 +383,7 @@ Also fetches: SPY price + SMA200% from quote page, CNN Fear & Greed.
 **Weekly agent integration:**
 Agent 3 reads market state and conditions its recommendations. RED/BLACKOUT → watchlist framing only. CAUTION → half size. GREEN/THRUST → full size.
 
-**Scaled thresholds** (from ~1500 liquid universe, scaled from Stockbee's 6000):
-- Thrust: 500 (scaled from 2000 in 6K universe)
-- Danger: 175 (scaled from 700 in 6K universe)
-
-Validate `total_universe` count on first run and re-scale if needed.
+**Breadth source note:** `^NYADV ^NYDEC ^NAADV ^NADEC` yfinance symbols confirmed dead (April 2026). Alpaca snapshots API is the primary source and works reliably in GitHub Actions.
 
 ---
 

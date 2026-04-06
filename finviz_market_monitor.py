@@ -592,40 +592,63 @@ def classify_market_state(metrics: dict, fg: float | None,
                           spy_price: float | None,
                           spy_above_200d: bool,
                           today_data: dict,
-                          date: datetime.date) -> tuple[str, str]:
+                          date: datetime.date,
+                          prev_state: str | None = None) -> tuple[str, str]:
     """
-    Classify market into one of: THRUST, GREEN, CAUTION, DANGER, RED, BLACKOUT.
-    Returns (state, message). Checked in priority order.
+    Classify market into one of 7 states, checked in priority order:
+      BLACKOUT → DANGER → COOLING → THRUST → GREEN → CAUTION → RED
+
+    The cycle flows:
+      RED → THRUST (signal) → CAUTION (building) → GREEN (full throttle)
+          → COOLING (fading from GREEN) → CAUTION/RED → DANGER → RED
+          → BLACKOUT → RED ...
+
+    COOLING is directional — only fires when coming DOWN from GREEN.
+    CAUTION is directional — only fires when coming UP toward GREEN.
+    RED is explicit — SPY below 200d MA or 5d ratio < 1.0, not a catch-all.
     """
-    # 1. Seasonal blackout
+    fg_val = fg if fg is not None else 0
+
+    # 1. Seasonal blackout — always overrides
     if is_blackout(date):
         return "BLACKOUT", "Seasonal no-trade period active"
 
-    # 2. DANGER — deteriorating fast (checked before THRUST)
+    # 2. DANGER — hard deterioration (checked before THRUST so a collapse day
+    #    with 500+ down doesn't accidentally fire THRUST)
     if (today_data["down_4_today"] >= DANGER_DOWN_THRESHOLD
             and metrics["ratio_5day"] < 0.5):
         return "DANGER", "Major breadth deterioration"
 
-    # 3. THRUST — breadth explosion to the upside
+    # 3. COOLING — market fading FROM GREEN (sell-off phase, tighten stops)
+    #    Only fires when previous state was GREEN and conditions have weakened.
+    #    Keeps you from misreading a deteriorating GREEN day as CAUTION (buy mode).
+    if (prev_state == "GREEN"
+            and not (metrics["ratio_5day"] >= 2.0
+                     and metrics["ratio_10day"] >= 1.5
+                     and fg_val >= 35
+                     and spy_above_200d)):
+        return "COOLING", "Market cooling from GREEN — trim and tighten"
+
+    # 4. THRUST — single-day breadth explosion (Bonde signal)
     if metrics["thrust"]:
         return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%"
 
-    # 4. GREEN — full size entries
-    fg_val = fg if fg is not None else 0
+    # 5. GREEN — full bull, all conditions met
     if (metrics["ratio_5day"] >= 2.0
             and metrics["ratio_10day"] >= 1.5
             and fg_val >= 35
             and spy_above_200d):
         return "GREEN", "Full conditions met"
 
-    # 5. CAUTION — half size
+    # 6. CAUTION — recovering/building phase (going UP toward GREEN)
+    #    Half size, get watchlist ready.
     if (metrics["ratio_5day"] >= 1.5
             and fg_val >= 25
             and spy_above_200d):
-        return "CAUTION", "Recovering — reduce size"
+        return "CAUTION", "Recovering — build watchlist, half size"
 
-    # 6. RED — default
-    return "RED", "No new trades"
+    # 7. RED — explicitly bearish: SPY below 200d MA or 5d ratio < 1.0
+    return "RED", "Bearish — no new trades"
 
 
 # ----------------------------
@@ -707,7 +730,7 @@ def send_state_change_alert(record: dict, prev_state: str | None):
     state = record["market_state"]
     state_emoji = {
         "THRUST": "🚨", "GREEN": "✅", "CAUTION": "🟡",
-        "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
+        "COOLING": "🧊", "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
     }
     emoji = state_emoji.get(state, "📊")
 
@@ -729,9 +752,15 @@ def send_state_change_alert(record: dict, prev_state: str | None):
         )
     elif state == "CAUTION":
         action = (
-            "ACTION: Half size only.\n"
-            "Be selective — only highest conviction setups.\n"
-            "Tighten stops on existing positions."
+            "ACTION: Market recovering — half size only.\n"
+            "Build watchlist now. Highest conviction setups only.\n"
+            "Wait for GREEN before sizing full."
+        )
+    elif state == "COOLING":
+        action = (
+            "ACTION: Market fading from GREEN — sell-off phase.\n"
+            "Trim extended positions. Tighten stops on all holdings.\n"
+            "Do NOT add new positions. Wait for re-entry signal."
         )
     elif state == "DANGER":
         action = (
@@ -820,7 +849,7 @@ def send_daily_summary(record: dict, last_thrust_date: str | None = None):
     state = record["market_state"]
     state_emoji = {
         "THRUST": "🚨", "GREEN": "✅", "CAUTION": "🟡",
-        "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
+        "COOLING": "🧊", "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
     }
     emoji = state_emoji.get(state, "📊")
 
@@ -918,7 +947,7 @@ def run_market_monitor(date: datetime.date | None = None):
     # Classify market state
     state, message = classify_market_state(
         metrics, today_data.get("fg"), today_data.get("spy_price"),
-        metrics["spy_above_200d"], today_data, date
+        metrics["spy_above_200d"], today_data, date, prev_state
     )
     log.info(f"Market state: {state} — {message}")
 
@@ -944,8 +973,8 @@ def run_market_monitor(date: datetime.date | None = None):
 
     if state_changed:
         send_state_change_alert(record, prev_state)
-        # Send confirmation alert when moving to GREEN from THRUST or CAUTION
-        if state == "GREEN" and prev_state in ("THRUST", "CAUTION"):
+        # Send confirmation alert when moving to GREEN from THRUST, CAUTION, or COOLING
+        if state == "GREEN" and prev_state in ("THRUST", "CAUTION", "COOLING"):
             send_confirmation_alert(record)
 
     # Always send daily summary

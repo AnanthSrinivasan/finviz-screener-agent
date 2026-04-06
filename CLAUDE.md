@@ -144,14 +144,17 @@ data/
 
 ## Market State Classification
 
-| State | Condition | Priority | Trading Action |
-|-------|-----------|----------|---------------|
-| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | 1 | No new trades |
-| DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | No entries, raise stops |
-| THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 3 | Build watchlist, wait for confirmation |
-| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 4 | Full size entries |
-| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 5 | Half size only |
-| RED | Default (nothing else matches) | 6 | No new trades |
+The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING → CAUTION/RED → DANGER → RED
+
+| State | Condition | Priority | Direction | Trading Action |
+|-------|-----------|----------|-----------|---------------|
+| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | 1 | — | No new trades |
+| DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | ↓ hard | No entries, raise stops immediately |
+| COOLING | prev_state == GREEN AND GREEN conditions no longer met | 3 | ↓ fading | Trim positions, tighten stops, no new entries |
+| THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 4 | ↑ signal | Start building watchlist NOW |
+| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 5 | ↑ bull | Full size entries |
+| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 6 | ↑ recovering | Half size, build watchlist, get ready |
+| RED | Everything else (SPY below 200d MA or 5d ratio < 1.0) | 7 | ↓ bear | No new trades |
 
 ## Development Notes
 
