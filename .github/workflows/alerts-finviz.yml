@@ -30,7 +30,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run alerts agent
-        run: python agents/alerts/finviz_alerts_agent.py
+        run: python agents/alerts/alerts_agent.py
 
       - name: Commit alerts state
         run: |

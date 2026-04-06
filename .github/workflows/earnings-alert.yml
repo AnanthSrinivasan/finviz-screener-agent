@@ -28,7 +28,7 @@ jobs:
       - name: Run earnings alert
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALERTS }}
-        run: python agents/alerts/finviz_earnings_alert.py
+        run: python agents/alerts/earnings_alert.py
 
       - name: Notify Slack on failure
         if: failure()

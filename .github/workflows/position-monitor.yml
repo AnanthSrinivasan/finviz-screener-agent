@@ -60,7 +60,7 @@ jobs:
           INPUT_SHARES: ${{ github.event.inputs.shares }}
           INPUT_PRICE: ${{ github.event.inputs.price }}
           INPUT_SIDE: ${{ github.event.inputs.side }}
-        run: python agents/trading/finviz_position_monitor.py
+        run: python agents/trading/position_monitor.py
 
       - name: Run Alpaca paper monitor
         env:

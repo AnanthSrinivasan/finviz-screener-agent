@@ -1233,7 +1233,7 @@ class TestAutoPromoteToWatchlist(unittest.TestCase):
 # Market Monitor Tests
 # ============================================================
 
-from agents.market.finviz_market_monitor import (
+from agents.market.market_monitor import (
     calculate_metrics,
     classify_market_state,
     is_blackout,
@@ -1846,7 +1846,7 @@ class TestHistoryRolling(unittest.TestCase):
 
     def test_history_stays_at_30_days(self):
         """History should keep at most 30 days."""
-        import agents.market.finviz_market_monitor as mm
+        import agents.market.market_monitor as mm
         tmp_dir = tempfile.mkdtemp()
         original_dir = mm.DATA_DIR
         original_file = mm.HISTORY_FILE
@@ -1871,7 +1871,7 @@ class TestHistoryRolling(unittest.TestCase):
 
     def test_save_and_load_roundtrip(self):
         """History should survive save/load cycle."""
-        import agents.market.finviz_market_monitor as mm
+        import agents.market.market_monitor as mm
         tmp_dir = tempfile.mkdtemp()
         original_dir = mm.DATA_DIR
         original_file = mm.HISTORY_FILE

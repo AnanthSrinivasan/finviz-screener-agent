@@ -12,16 +12,16 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 |-------|------|----------|---------------|
 | Daily Screener | `finviz_agent.py` | 21:30 UTC Mon-Fri | `#daily-alerts` |
 | Weekly Review | `finviz_weekly_agent.py` | 18:00 UTC Sunday | `#weekly-alerts` |
-| Market Monitor | `finviz_market_monitor.py` | 22:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
-| Position Monitor | `finviz_position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
-| Alerts | `finviz_alerts_agent.py` | 22:00 UTC Mon-Fri | `#general-alerts` |
-| Earnings Alert | `finviz_earnings_alert.py` | 22:30 UTC Mon-Fri | `#general-alerts` |
-| Market Pulse | `finviz_market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
-| Winners Watchlist | `finviz_winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
+| Market Monitor | `market_monitor.py` | 22:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
+| Position Monitor | `position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
+| Alerts | `alerts_agent.py` | 22:00 UTC Mon-Fri | `#general-alerts` |
+| Earnings Alert | `earnings_alert.py` | 22:30 UTC Mon-Fri | `#general-alerts` |
+| Market Pulse | `market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
+| Winners Watchlist | `winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
 | **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` |
 | **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
 
-**Note on naming:** `finviz_position_monitor.py` monitors real Robinhood positions via SnapTrade. The `finviz_` prefix is a repo naming convention only — it does not scrape Finviz at runtime.
+**Note on naming:** `position_monitor.py` monitors real Robinhood positions via SnapTrade. The `finviz_` prefix is a repo naming convention only — it does not scrape Finviz at runtime.
 
 **Supporting files:**
 - `generate_index.py` — Generates GitHub Pages index

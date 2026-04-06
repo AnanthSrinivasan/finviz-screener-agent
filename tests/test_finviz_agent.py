@@ -18,7 +18,7 @@ from agents.screener.finviz_agent import (
     _build_card,
     _classify_ticker,
 )
-from agents.alerts.finviz_earnings_alert import find_upcoming_earnings
+from agents.alerts.earnings_alert import find_upcoming_earnings
 from agents.screener.finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
 
 # ----------------------------
@@ -674,7 +674,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
     def _make_tickers(self, quality, sector):
         return {"FAKE": {"appearances": 3, "atr": 4.5, "quality": quality, "sector": sector, "screeners": "Growth", "market_cap": "1B"}}
 
-    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.earnings_alert.fetch_earnings_date")
     def test_skips_low_quality_score(self, mock_fetch):
         """Tickers with Quality Score <= 50 should be skipped without calling Finviz."""
         tickers = self._make_tickers(quality=40.0, sector="Technology")
@@ -682,7 +682,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.earnings_alert.fetch_earnings_date")
     def test_skips_missing_sector(self, mock_fetch):
         """Tickers with no sector should be skipped without calling Finviz."""
         tickers = self._make_tickers(quality=70.0, sector="")
@@ -690,7 +690,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.earnings_alert.fetch_earnings_date")
     def test_skips_none_quality(self, mock_fetch):
         """Tickers with None quality should be skipped."""
         tickers = self._make_tickers(quality=None, sector="Technology")
@@ -698,7 +698,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.earnings_alert.fetch_earnings_date")
     def test_passes_high_quality_with_sector(self, mock_fetch):
         """Tickers with Quality Score > 50 and a sector should proceed to Finviz lookup."""
         import datetime
@@ -711,7 +711,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["ticker"], "FAKE")
 
-    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.earnings_alert.fetch_earnings_date")
     def test_boundary_quality_score_excluded(self, mock_fetch):
         """Quality Score exactly 50 should be excluded (strictly greater than required)."""
         tickers = self._make_tickers(quality=50.0, sector="Technology")
