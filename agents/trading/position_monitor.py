@@ -44,11 +44,12 @@ ATR_MULTIPLE_WARN = float(os.environ.get("ATR_MULTIPLE_WARN", "-1.0"))
 MAX_POSITION_LOSS = float(os.environ.get("MAX_POSITION_LOSS", "-4500"))
 
 # --- Peel thresholds (positive side) ---
+# warn fires when ~75% of the way to signal — close enough to be actionable, not noise.
 PEEL_THRESHOLDS = {
     "low":     {"max_atr": 4.0,  "warn": 3.0, "signal": 4.0},
-    "mid":     {"max_atr": 7.0,  "warn": 4.0, "signal": 6.0},
-    "high":    {"max_atr": 10.0, "warn": 5.0, "signal": 8.0},
-    "extreme": {"max_atr": 999,  "warn": 7.0, "signal": 10.0},
+    "mid":     {"max_atr": 7.0,  "warn": 5.0, "signal": 6.0},
+    "high":    {"max_atr": 10.0, "warn": 6.5, "signal": 8.0},
+    "extreme": {"max_atr": 999,  "warn": 8.5, "signal": 10.0},
 }
 
 # --- Dynamic stop loss ---
@@ -1057,7 +1058,9 @@ if __name__ == "__main__":
 
             pnl        = (price - avg_cost) * shares
             pnl_pct    = ((price / avg_cost) - 1) * 100 if avg_cost > 0 else 0
-            stop_loss_pct = STOP_LOSS_BASE_PCT + (atr_pct * STOP_LOSS_ATR_MULT)
+            # Tighten stop base in bear market conditions
+            base_pct = 3.0 if market_state in ("RED", "DANGER") else STOP_LOSS_BASE_PCT
+            stop_loss_pct = base_pct + (atr_pct * STOP_LOSS_ATR_MULT)
 
             pos["stop_loss_pct"] = round(stop_loss_pct, 1)
             pos["pnl_pct"]       = round(pnl_pct, 2)
