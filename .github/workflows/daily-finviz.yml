@@ -30,19 +30,19 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Finviz agent
-        run: python finviz_agent.py
+        run: python agents/screener/finviz_agent.py
 
       - name: Regenerate index page
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
           DATA_DIR: data
-        run: python generate_index.py
+        run: python utils/generate_index.py
 
       - name: Regenerate dashboard
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
           DATA_DIR: data
-        run: python generate_dashboard.py
+        run: python utils/generate_dashboard.py
 
       - name: Commit output data
         run: |

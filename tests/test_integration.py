@@ -17,13 +17,13 @@ import unittest.mock
 
 import pandas as pd
 
-from finviz_agent import (
+from agents.screener.finviz_agent import (
     compute_stage,
     compute_vcp,
     compute_quality_score,
     _classify_ticker,
 )
-from finviz_weekly_agent import (
+from agents.screener.finviz_weekly_agent import (
     load_daily_quality,
     _compute_quality_modifier,
     _detect_signals,
@@ -587,7 +587,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
             "revenue_history": revenue_values,
         }
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_all_conditions_met_is_cc(self, mock_fetch):
         """All 4 conditions met → is_cc = True."""
         # EPS: clearly improving across 4 quarters
@@ -599,7 +599,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         self.assertTrue(result["is_cc"])
         self.assertFalse(result["is_cc_watch"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_eps_not_improving_no_cc(self, mock_fetch):
         """EPS flat/declining → no CC."""
         mock_fetch.return_value = self._mock_earnings(
@@ -610,7 +610,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         self.assertFalse(result["is_cc"])
         self.assertFalse(result["is_cc_watch"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_sma200_negative_no_cc(self, mock_fetch):
         """Below 200-day MA → no CC (MA not cleared)."""
         mock_fetch.return_value = self._mock_earnings(
@@ -620,7 +620,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         result = is_character_change_deep("TEST", sma200_pct=-5.0, rvol=3.0)
         self.assertFalse(result["is_cc"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_sma200_too_high_no_cc(self, mock_fetch):
         """SMA200% > 60 means stock ran too far — not a fresh clearing."""
         mock_fetch.return_value = self._mock_earnings(
@@ -630,7 +630,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         result = is_character_change_deep("TEST", sma200_pct=65.0, rvol=3.0)
         self.assertFalse(result["is_cc"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_low_rvol_no_cc(self, mock_fetch):
         """RVol < 2.0 → no volume confirmation."""
         mock_fetch.return_value = self._mock_earnings(
@@ -640,7 +640,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=1.5)
         self.assertFalse(result["is_cc"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_cc_watch_when_sales_positive_but_not_accelerating(self, mock_fetch):
         """EPS improving + volume + MA cleared, but sales flat → CC_WATCH."""
         mock_fetch.return_value = self._mock_earnings(
@@ -651,21 +651,21 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         self.assertFalse(result["is_cc"])
         self.assertTrue(result["is_cc_watch"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_sma200_none_no_cc(self, mock_fetch):
         """None SMA200 → immediate return, no CC."""
         result = is_character_change_deep("TEST", sma200_pct=None, rvol=3.0)
         self.assertFalse(result["is_cc"])
         mock_fetch.assert_not_called()
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_no_earnings_data_no_cc(self, mock_fetch):
         """yfinance returns None → no CC."""
         mock_fetch.return_value = None
         result = is_character_change_deep("TEST", sma200_pct=15.0, rvol=3.0)
         self.assertFalse(result["is_cc"])
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_cc_deep_gets_35_bonus_in_scoring(self, mock_fetch):
         """Deep CC confirmed should add +35 to signal score."""
         mock_fetch.return_value = self._mock_earnings(
@@ -689,7 +689,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         self.assertTrue(sedg["CC_DEEP"])
         self.assertGreaterEqual(sedg["Signal Score"], sedg["Base Score"] + 35)
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_cc_watch_gets_25_bonus_in_scoring(self, mock_fetch):
         """CC Watch should add +25 to signal score (same as old CHAR)."""
         mock_fetch.return_value = self._mock_earnings(
@@ -712,7 +712,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
         self.assertTrue(test["CC_WATCH"])
         self.assertGreaterEqual(test["Signal Score"], test["Base Score"] + 25)
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_cc_deep_overrides_simple_heuristic(self, mock_fetch):
         """When deep CC fires, the simple CHAR heuristic bonus (+25) should not stack.
         Deep CC gives +35, not +35 + 25."""
@@ -745,7 +745,7 @@ class TestIsCharacterChangeDeep(unittest.TestCase):
             msg="Deep CC (+35) should be exactly 10 more than simple CHAR (+25)"
         )
 
-    @unittest.mock.patch("finviz_weekly_agent.fetch_earnings_history")
+    @unittest.mock.patch("agents.screener.finviz_weekly_agent.fetch_earnings_history")
     def test_conditions_tracking(self, mock_fetch):
         """Result should track which conditions passed and failed."""
         mock_fetch.return_value = self._mock_earnings(
@@ -1112,7 +1112,7 @@ class TestRegressionGuards(unittest.TestCase):
 # Market Monitor Tests
 # ============================================================
 
-from finviz_market_monitor import (
+from agents.market.finviz_market_monitor import (
     calculate_metrics,
     classify_market_state,
     is_blackout,
@@ -1120,7 +1120,7 @@ from finviz_market_monitor import (
     THRUST_THRESHOLD,
     DANGER_DOWN_THRESHOLD,
 )
-from finviz_weekly_agent import load_market_state, any_thrust_in_history
+from agents.screener.finviz_weekly_agent import load_market_state, any_thrust_in_history
 
 
 def _make_monitor_day(**overrides) -> dict:
@@ -1533,7 +1533,7 @@ class TestMarketStateIntegration(unittest.TestCase):
 
     def test_load_market_state_missing_file(self):
         """load_market_state returns None when file doesn't exist."""
-        import finviz_weekly_agent as wa
+        import agents.screener.finviz_weekly_agent as wa
         original = wa.MARKET_HISTORY_FILE
         wa.MARKET_HISTORY_FILE = "/tmp/nonexistent_market_monitor_history.json"
         result = load_market_state()
@@ -1542,7 +1542,7 @@ class TestMarketStateIntegration(unittest.TestCase):
 
     def test_load_market_state_empty_history(self):
         """load_market_state returns None for empty history."""
-        import finviz_weekly_agent as wa
+        import agents.screener.finviz_weekly_agent as wa
         original = wa.MARKET_HISTORY_FILE
         tmp = os.path.join(tempfile.mkdtemp(), "empty_history.json")
         with open(tmp, "w") as f:
@@ -1554,7 +1554,7 @@ class TestMarketStateIntegration(unittest.TestCase):
 
     def test_load_market_state_returns_latest(self):
         """load_market_state returns the most recent record."""
-        import finviz_weekly_agent as wa
+        import agents.screener.finviz_weekly_agent as wa
         original = wa.MARKET_HISTORY_FILE
         tmp = os.path.join(tempfile.mkdtemp(), "test_history.json")
         history = [
@@ -1571,7 +1571,7 @@ class TestMarketStateIntegration(unittest.TestCase):
 
     def test_any_thrust_in_history_true(self):
         """any_thrust_in_history returns True when thrust detected."""
-        import finviz_weekly_agent as wa
+        import agents.screener.finviz_weekly_agent as wa
         original = wa.MARKET_HISTORY_FILE
         tmp = os.path.join(tempfile.mkdtemp(), "thrust_history.json")
         history = [
@@ -1587,7 +1587,7 @@ class TestMarketStateIntegration(unittest.TestCase):
 
     def test_any_thrust_in_history_false(self):
         """any_thrust_in_history returns False when no thrust."""
-        import finviz_weekly_agent as wa
+        import agents.screener.finviz_weekly_agent as wa
         original = wa.MARKET_HISTORY_FILE
         tmp = os.path.join(tempfile.mkdtemp(), "no_thrust_history.json")
         history = [
@@ -1725,7 +1725,7 @@ class TestHistoryRolling(unittest.TestCase):
 
     def test_history_stays_at_30_days(self):
         """History should keep at most 30 days."""
-        import finviz_market_monitor as mm
+        import agents.market.finviz_market_monitor as mm
         tmp_dir = tempfile.mkdtemp()
         original_dir = mm.DATA_DIR
         original_file = mm.HISTORY_FILE
@@ -1750,7 +1750,7 @@ class TestHistoryRolling(unittest.TestCase):
 
     def test_save_and_load_roundtrip(self):
         """History should survive save/load cycle."""
-        import finviz_market_monitor as mm
+        import agents.market.finviz_market_monitor as mm
         tmp_dir = tempfile.mkdtemp()
         original_dir = mm.DATA_DIR
         original_file = mm.HISTORY_FILE
@@ -1776,8 +1776,8 @@ class TestHistoryRolling(unittest.TestCase):
 # Paper Trading Layer Tests
 # ============================================================
 
-from alpaca_executor import compute_allocation
-from finviz_agent import _update_watchlist
+from agents.trading.alpaca_executor import compute_allocation
+from agents.screener.finviz_agent import _update_watchlist
 
 
 class TestPaperPositionSizing(unittest.TestCase):
@@ -1920,9 +1920,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("AAPL", 75, 2, False, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -1935,9 +1935,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("WEAK", 55, 2, False, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -1949,9 +1949,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("S3TICK", 80, 3, False, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -1964,9 +1964,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             existing = {"watchlist": [{"ticker": "AAPL", "status": "watching"}]}
             with open(wl_path, "w") as f:
                 json.dump(existing, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("AAPL", 85, 2, True, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -1980,10 +1980,10 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
             tickers = [("T" + str(i), 60 + i, 2, False, "Tech") for i in range(8)]
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df(tickers)
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -1995,9 +1995,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("VCPTICK", 90, 2, True, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:
@@ -2010,9 +2010,9 @@ class TestWatchlistAutoPopulation(unittest.TestCase):
             wl_path = os.path.join(tmp, "watchlist.json")
             with open(wl_path, "w") as f:
                 json.dump({"watchlist": []}, f)
-            import finviz_agent
+            import agents.screener.finviz_agent as finviz_agent
             orig = finviz_agent.os.path.join
-            with unittest.mock.patch("finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
+            with unittest.mock.patch("agents.screener.finviz_agent.os.path.join", side_effect=lambda *a: wl_path if a[-1] == "watchlist.json" else orig(*a)):
                 df = self._make_filter_df([("AUTO", 70, 2, False, "Technology")])
                 _update_watchlist(df, "2026-03-31")
             with open(wl_path) as f:

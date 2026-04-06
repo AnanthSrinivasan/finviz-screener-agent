@@ -60,21 +60,21 @@ jobs:
           INPUT_SHARES: ${{ github.event.inputs.shares }}
           INPUT_PRICE: ${{ github.event.inputs.price }}
           INPUT_SIDE: ${{ github.event.inputs.side }}
-        run: python finviz_position_monitor.py
+        run: python agents/trading/finviz_position_monitor.py
 
       - name: Run Alpaca paper monitor
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
-        run: python alpaca_monitor.py
+        run: python agents/trading/alpaca_monitor.py
 
       - name: Regenerate dashboard
         if: success()
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
           DATA_DIR: data
-        run: python generate_dashboard.py
+        run: python utils/generate_dashboard.py
 
       - name: Commit state changes
         if: success()

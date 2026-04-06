@@ -9,7 +9,7 @@ These tests use mocks — no real HTTP calls are made.
 import unittest
 from unittest.mock import patch, MagicMock
 import pandas as pd
-from finviz_agent import (
+from agents.screener.finviz_agent import (
     aggregate_and_save,
     get_snapshot_metrics,
     generate_finviz_gallery,
@@ -18,8 +18,8 @@ from finviz_agent import (
     _build_card,
     _classify_ticker,
 )
-from finviz_earnings_alert import find_upcoming_earnings
-from finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
+from agents.alerts.finviz_earnings_alert import find_upcoming_earnings
+from agents.screener.finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
 
 # ----------------------------
 # Helpers
@@ -67,14 +67,14 @@ def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0")
 
 class TestAggregateAndSave(unittest.TestCase):
 
-    @patch("finviz_agent.session")
+    @patch("agents.screener.finviz_agent.session")
     def test_basic_fetch_returns_dataframe(self, mock_session):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         mock_resp.text = make_mock_screener_html(["AAPL", "MSFT", "NVDA"])
         mock_session.get.return_value = mock_resp
 
-        with patch("finviz_agent.fetch_all_tickers") as mock_fetch:
+        with patch("agents.screener.finviz_agent.fetch_all_tickers") as mock_fetch:
             mock_fetch.return_value = (
                 pd.DataFrame({
                     "No.": [1, 2, 3],
@@ -95,27 +95,27 @@ class TestAggregateAndSave(unittest.TestCase):
                     "NVDA": {"Company": "Nvidia", "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA", "Market Cap": "2T"},
                 }
             )
-            with patch("finviz_agent.pd.DataFrame.to_csv"), \
-                 patch("finviz_agent.pd.DataFrame.to_html"), \
-                 patch("finviz_agent.os.makedirs"):
+            with patch("agents.screener.finviz_agent.pd.DataFrame.to_csv"), \
+                 patch("agents.screener.finviz_agent.pd.DataFrame.to_html"), \
+                 patch("agents.screener.finviz_agent.os.makedirs"):
                 summary_df, _, _ = aggregate_and_save({"Growth": "http://fake-url"})
 
         self.assertFalse(summary_df.empty)
         self.assertIn("Ticker", summary_df.columns)
         self.assertIn("Sector", summary_df.columns)
 
-    @patch("finviz_agent.fetch_all_tickers")
+    @patch("agents.screener.finviz_agent.fetch_all_tickers")
     def test_empty_screener_returns_empty_df(self, mock_fetch):
         mock_fetch.return_value = (
             pd.DataFrame(columns=["No.", "Ticker", "Company", "Sector", "Industry",
                                    "Country", "Market Cap", "P/E", "Volume", "Price", "Change"]),
             {}
         )
-        with patch("finviz_agent.os.makedirs"):
+        with patch("agents.screener.finviz_agent.os.makedirs"):
             summary_df, csv, html = aggregate_and_save({"Growth": "http://fake-url"})
         self.assertTrue(summary_df.empty)
 
-    @patch("finviz_agent.fetch_all_tickers")
+    @patch("agents.screener.finviz_agent.fetch_all_tickers")
     def test_deduplication_across_screeners(self, mock_fetch):
         """Same ticker appearing in two screeners should have Appearances=2."""
         shared_df = pd.DataFrame({
@@ -128,9 +128,9 @@ class TestAggregateAndSave(unittest.TestCase):
             shared_df,
             {"NVDA": {"Company": "Nvidia", "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA", "Market Cap": "2T"}}
         )
-        with patch("finviz_agent.pd.DataFrame.to_csv"), \
-             patch("finviz_agent.pd.DataFrame.to_html"), \
-             patch("finviz_agent.os.makedirs"):
+        with patch("agents.screener.finviz_agent.pd.DataFrame.to_csv"), \
+             patch("agents.screener.finviz_agent.pd.DataFrame.to_html"), \
+             patch("agents.screener.finviz_agent.os.makedirs"):
             summary_df, _, _ = aggregate_and_save({
                 "Growth": "http://fake1",
                 "IPO": "http://fake2",
@@ -146,7 +146,7 @@ class TestAggregateAndSave(unittest.TestCase):
 
 class TestGetSnapshotMetrics(unittest.TestCase):
 
-    @patch("finviz_agent.make_session")
+    @patch("agents.screener.finviz_agent.make_session")
     def test_parses_metrics_correctly(self, mock_make_session):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
@@ -164,7 +164,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         self.assertAlmostEqual(eps, 25.0, places=1)
         self.assertAlmostEqual(sales, 15.0, places=1)
 
-    @patch("finviz_agent.make_session")
+    @patch("agents.screener.finviz_agent.make_session")
     def test_returns_none_on_missing_table(self, mock_make_session):
         mock_resp = MagicMock()
         mock_resp.content = b"<html><body>no table here</body></html>"
@@ -177,7 +177,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         result = get_snapshot_metrics("FAKE")
         self.assertEqual(result, (None,) * 9)
 
-    @patch("finviz_agent.make_session")
+    @patch("agents.screener.finviz_agent.make_session")
     def test_retries_on_429(self, mock_make_session):
         """Should retry on rate limit and eventually return None after exhausting retries."""
         import requests as req
@@ -190,7 +190,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_session.get.return_value = mock_resp
         mock_make_session.return_value = mock_session
 
-        with patch("finviz_agent.time.sleep"):  # don't actually sleep in tests
+        with patch("agents.screener.finviz_agent.time.sleep"):  # don't actually sleep in tests
             result = get_snapshot_metrics("AAPL", max_retries=2)
 
         self.assertEqual(result, (None,) * 9)
@@ -234,7 +234,7 @@ class TestGenerateGallery(unittest.TestCase):
 
     def test_creates_html_file(self):
         filter_df = self._make_filter_df()
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             path = generate_finviz_gallery(["AAPL", "NVDA"], filter_df)
         self.assertIn("finviz_chart_grid_", path)
@@ -243,7 +243,7 @@ class TestGenerateGallery(unittest.TestCase):
     def test_html_contains_sector_tag(self):
         filter_df = self._make_filter_df()
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             generate_finviz_gallery(["AAPL"], filter_df)
@@ -254,7 +254,7 @@ class TestGenerateGallery(unittest.TestCase):
     def test_html_contains_company_name(self):
         filter_df = self._make_filter_df()
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             generate_finviz_gallery(["AAPL"], filter_df)
@@ -266,7 +266,7 @@ class TestGenerateGallery(unittest.TestCase):
         # Both AAPL and NVDA are Technology — it will be the top sector
         filter_df = self._make_filter_df()
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             generate_finviz_gallery(["AAPL", "NVDA"], filter_df)
@@ -294,7 +294,7 @@ class TestGenerateGallery(unittest.TestCase):
         # Now: Technology=2, Healthcare=2, Energy=1 → top2 = Technology & Healthcare; Energy is minority
 
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             generate_finviz_gallery(["ENGY"], filter_df)
@@ -502,7 +502,7 @@ class TestGalleryEndToEndRealistic(unittest.TestCase):
         df = _make_realistic_df()
         tickers = df['Ticker'].tolist()
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             path = generate_finviz_gallery(tickers, df)
@@ -546,7 +546,7 @@ class TestGalleryEndToEndRealistic(unittest.TestCase):
         df.at[idx, 'Dist From High%'] = None
 
         written = []
-        with patch("finviz_agent.os.makedirs"), \
+        with patch("agents.screener.finviz_agent.os.makedirs"), \
              patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             mock_file.return_value.__enter__.return_value.write.side_effect = written.append
             path = generate_finviz_gallery(["RKLB"], df)
@@ -581,12 +581,12 @@ class TestAiSummary(unittest.TestCase):
         })
 
     def test_returns_empty_string_without_api_key(self):
-        with patch("finviz_agent.ANTHROPIC_API_KEY", ""):
+        with patch("agents.screener.finviz_agent.ANTHROPIC_API_KEY", ""):
             result = generate_ai_summary(self._make_filter_df(), "2026-01-01")
         self.assertEqual(result, "")
 
-    @patch("finviz_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_agent.requests.post")
     def test_returns_summary_on_success(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.json.return_value = {
@@ -599,8 +599,8 @@ class TestAiSummary(unittest.TestCase):
         result = generate_ai_summary(self._make_filter_df(), "2026-01-01")
         self.assertEqual(result, "NVDA and AAPL are top picks today.")
 
-    @patch("finviz_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_agent.requests.post")
     def test_returns_empty_string_on_api_error(self, mock_post):
         mock_post.side_effect = Exception("connection error")
         result = generate_ai_summary(self._make_filter_df(), "2026-01-01")
@@ -628,14 +628,14 @@ class TestSlackNotification(unittest.TestCase):
         return summary_df, filter_df
 
     def test_skips_when_no_webhook(self):
-        with patch("finviz_agent.SLACK_WEBHOOK_URL", ""):
-            with patch("finviz_agent.requests.post") as mock_post:
+        with patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", ""):
+            with patch("agents.screener.finviz_agent.requests.post") as mock_post:
                 summary_df, filter_df = self._make_dfs()
                 send_slack_notification(summary_df, filter_df, "data/gallery.html", "2026-01-01", "")
                 mock_post.assert_not_called()
 
-    @patch("finviz_agent.SLACK_WEBHOOK_URL", "https://hooks.slack.com/fake")
-    @patch("finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hooks.slack.com/fake")
+    @patch("agents.screener.finviz_agent.requests.post")
     def test_sends_message_with_webhook(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
@@ -649,9 +649,9 @@ class TestSlackNotification(unittest.TestCase):
         payload = call_kwargs[1]["json"]
         self.assertIn("blocks", payload)
 
-    @patch("finviz_agent.SLACK_WEBHOOK_URL", "https://hooks.slack.com/fake")
-    @patch("finviz_agent.GITHUB_PAGES_BASE", "https://user.github.io/repo")
-    @patch("finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hooks.slack.com/fake")
+    @patch("agents.screener.finviz_agent.GITHUB_PAGES_BASE", "https://user.github.io/repo")
+    @patch("agents.screener.finviz_agent.requests.post")
     def test_includes_gallery_link_when_pages_set(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
@@ -674,7 +674,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
     def _make_tickers(self, quality, sector):
         return {"FAKE": {"appearances": 3, "atr": 4.5, "quality": quality, "sector": sector, "screeners": "Growth", "market_cap": "1B"}}
 
-    @patch("finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
     def test_skips_low_quality_score(self, mock_fetch):
         """Tickers with Quality Score <= 50 should be skipped without calling Finviz."""
         tickers = self._make_tickers(quality=40.0, sector="Technology")
@@ -682,7 +682,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
     def test_skips_missing_sector(self, mock_fetch):
         """Tickers with no sector should be skipped without calling Finviz."""
         tickers = self._make_tickers(quality=70.0, sector="")
@@ -690,7 +690,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
     def test_skips_none_quality(self, mock_fetch):
         """Tickers with None quality should be skipped."""
         tickers = self._make_tickers(quality=None, sector="Technology")
@@ -698,7 +698,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         mock_fetch.assert_not_called()
         self.assertEqual(result, [])
 
-    @patch("finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
     def test_passes_high_quality_with_sector(self, mock_fetch):
         """Tickers with Quality Score > 50 and a sector should proceed to Finviz lookup."""
         import datetime
@@ -711,7 +711,7 @@ class TestEarningsQualityFilter(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["ticker"], "FAKE")
 
-    @patch("finviz_earnings_alert.fetch_earnings_date")
+    @patch("agents.alerts.finviz_earnings_alert.fetch_earnings_date")
     def test_boundary_quality_score_excluded(self, mock_fetch):
         """Quality Score exactly 50 should be excluded (strictly greater than required)."""
         tickers = self._make_tickers(quality=50.0, sector="Technology")
@@ -747,13 +747,13 @@ class TestCatalystResearch(unittest.TestCase):
         })
 
     def test_skips_without_api_key(self):
-        with patch("finviz_weekly_agent.ANTHROPIC_API_KEY", ""):
+        with patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", ""):
             result = research_catalysts(self._make_persistence_df())
         self.assertEqual(result, {})
 
-    @patch("finviz_weekly_agent.time.sleep")
-    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_weekly_agent.requests.post")
+    @patch("agents.screener.finviz_weekly_agent.time.sleep")
+    @patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_weekly_agent.requests.post")
     def test_returns_research_for_top3(self, mock_post, _mock_sleep):
         mock_resp = MagicMock()
         mock_resp.ok = True
@@ -771,9 +771,9 @@ class TestCatalystResearch(unittest.TestCase):
         # Should have made 3 API calls (one per top-3 ticker)
         self.assertEqual(mock_post.call_count, 3)
 
-    @patch("finviz_weekly_agent.time.sleep")
-    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_weekly_agent.requests.post")
+    @patch("agents.screener.finviz_weekly_agent.time.sleep")
+    @patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_weekly_agent.requests.post")
     def test_handles_api_failure_gracefully(self, mock_post, _mock_sleep):
         mock_post.side_effect = Exception("connection timeout")
         result = research_catalysts(self._make_persistence_df())
@@ -782,9 +782,9 @@ class TestCatalystResearch(unittest.TestCase):
         for v in result.values():
             self.assertEqual(v, "")
 
-    @patch("finviz_weekly_agent.time.sleep")
-    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_weekly_agent.requests.post")
+    @patch("agents.screener.finviz_weekly_agent.time.sleep")
+    @patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_weekly_agent.requests.post")
     def test_uses_web_search_tool(self, mock_post, _mock_sleep):
         """Verify the API call includes the web_search tool."""
         mock_resp = MagicMock()
@@ -826,8 +826,8 @@ class TestSynthesisedBrief(unittest.TestCase):
             "HIGH": [False, False],
         })
 
-    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_weekly_agent.requests.post")
+    @patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_weekly_agent.requests.post")
     def test_includes_catalyst_research_in_prompt(self, mock_post):
         """When research is provided, the prompt should contain the catalyst context."""
         mock_resp = MagicMock()
@@ -848,8 +848,8 @@ class TestSynthesisedBrief(unittest.TestCase):
         self.assertIn("Beat Q4 earnings", prompt_text)
         self.assertIn("catalyst research", prompt_text.lower())
 
-    @patch("finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
-    @patch("finviz_weekly_agent.requests.post")
+    @patch("agents.screener.finviz_weekly_agent.ANTHROPIC_API_KEY", "sk-ant-fake")
+    @patch("agents.screener.finviz_weekly_agent.requests.post")
     def test_works_without_research(self, mock_post):
         """Should still work when research=None (backward compatible)."""
         mock_resp = MagicMock()

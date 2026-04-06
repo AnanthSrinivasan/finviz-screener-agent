@@ -19,7 +19,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run pre-market gap-up alert
-        run: python finviz_premarket_alert.py
+        run: python agents/alerts/finviz_premarket_alert.py
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           DATA_DIR: data

@@ -37,7 +37,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Alpaca executor
-        run: python alpaca_executor.py
+        run: python agents/trading/alpaca_executor.py
 
       - name: Commit paper stops
         if: success()
