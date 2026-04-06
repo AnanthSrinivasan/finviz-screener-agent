@@ -10,14 +10,16 @@ import json, glob, logging, os, sys
 from datetime import datetime, timezone, timedelta
 
 import requests
-import yfinance as yf
 import pandas as pd
 
 log = logging.getLogger("market_pulse")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-DATA_DIR = os.environ.get("DATA_DIR", "data")
+DATA_DIR          = os.environ.get("DATA_DIR", "data")
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
+ALPACA_API_KEY    = os.environ.get("ALPACA_API_KEY", "")
+ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
+ALPACA_DATA_URL   = "https://data.alpaca.markets"
 
 STATE_EMOJI = {
     "THRUST": "🟢", "GREEN": "🟢", "CAUTION": "🟡",
@@ -46,20 +48,30 @@ def load_latest_json(prefix: str) -> dict | None:
 
 
 def compute_emas(ticker: str) -> dict | None:
-    """Return current price, 10 EMA and 21 EMA using 60 days of daily data."""
+    """Return current price, 10 EMA and 21 EMA using Alpaca daily bars (65 days)."""
+    if not ALPACA_API_KEY:
+        return None
     try:
-        tk = yf.Ticker(ticker)
-        hist = tk.history(period="3mo")
-        if hist.empty or len(hist) < 21:
+        resp = requests.get(
+            f"{ALPACA_DATA_URL}/v2/stocks/{ticker}/bars",
+            headers={"APCA-API-KEY-ID": ALPACA_API_KEY, "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY},
+            params={"timeframe": "1Day", "limit": 65, "adjustment": "raw", "feed": "iex"},
+            timeout=10,
+        )
+        if not resp.ok:
+            log.warning("Alpaca bars failed for %s: %s", ticker, resp.status_code)
             return None
-        close = hist["Close"]
+        bars = resp.json().get("bars", [])
+        if len(bars) < 21:
+            return None
+        close = pd.Series([b["c"] for b in bars])
         ema10 = close.ewm(span=10, adjust=False).mean().iloc[-1]
         ema21 = close.ewm(span=21, adjust=False).mean().iloc[-1]
         price = close.iloc[-1]
         prev_close = close.iloc[-2] if len(close) >= 2 else price
         return {"price": price, "ema10": ema10, "ema21": ema21, "prev_close": prev_close}
     except Exception as e:
-        log.warning("yfinance error for %s: %s", ticker, e)
+        log.warning("Alpaca EMA fetch failed for %s: %s", ticker, e)
         return None
 
 

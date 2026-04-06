@@ -18,7 +18,6 @@ import datetime
 import requests
 import pytz
 import pandas as pd
-import yfinance as yf
 from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -222,68 +221,6 @@ def fetch_screener_count(session: requests.Session, url: str, label: str = "") -
     return len(seen)
 
 
-# ----------------------------
-# Breadth Source — A/D Index Symbols
-# ----------------------------
-AD_SYMBOLS = {
-    "nyse_adv": "^NYADV",
-    "nyse_dec": "^NYDEC",
-    "nasd_adv": "^NAADV",
-    "nasd_dec": "^NADEC",
-}
-
-
-def fetch_breadth_adv_dec() -> dict | None:
-    """
-    Fetch NYSE + Nasdaq advance/decline counts from official exchange index symbols.
-    Single yfinance batch call — 4 tickers, no scraping, no throttling.
-
-    Returns total movers (all % changes), not 4%-filtered.
-    THRUST_THRESHOLD and DANGER_DOWN_THRESHOLD are calibrated to this scale.
-    """
-    try:
-        data = yf.download(
-            list(AD_SYMBOLS.values()),
-            period="1d",
-            interval="1d",
-            group_by="ticker",
-            auto_adjust=False,
-            progress=False,
-            threads=True,
-        )
-
-        def get_val(sym: str) -> int:
-            try:
-                return int(data[sym]["Close"].dropna().iloc[-1])
-            except Exception:
-                return 0
-
-        nyse_adv = get_val("^NYADV")
-        nyse_dec = get_val("^NYDEC")
-        nasd_adv = get_val("^NAADV")
-        nasd_dec = get_val("^NADEC")
-
-        total_adv = nyse_adv + nasd_adv
-        total_dec = nyse_dec + nasd_dec
-
-        if total_adv == 0 and total_dec == 0:
-            log.error("A/D fetch returned zeros — yfinance symbols may be unavailable")
-            return None
-
-        log.info(
-            "A/D breadth: NYSE adv=%d dec=%d | Nasdaq adv=%d dec=%d | Total adv=%d dec=%d",
-            nyse_adv, nyse_dec, nasd_adv, nasd_dec, total_adv, total_dec,
-        )
-        return {
-            "up_4_today":    total_adv,
-            "down_4_today":  total_dec,
-            "breadth_source": "adv_dec_index",
-        }
-
-    except Exception as e:
-        log.error("A/D breadth fetch failed: %s", e)
-        return None
-
 
 # ----------------------------
 # Breadth Source — Alpaca 4%-Filtered (Primary)
@@ -407,12 +344,9 @@ def fetch_breadth_alpaca() -> dict | None:
 # ----------------------------
 def fetch_breadth_data(session: requests.Session) -> dict:
     """
-    Fetch all breadth data + T2108 + SPY + F&G.
-    Up/Down 4% breadth uses a priority waterfall — no ticker list downloads:
-      1. Barchart total movers (server-rendered HTML, single page)
-      2. A/D exchange index symbols via yfinance (4 tickers)
-      3. Zero fallback (logs error)
-    Finviz fetch_screener_count() still used for quarterly/SMA supplemental metrics.
+    Fetch all breadth data + SPY + F&G.
+    Up/Down 4% breadth via Alpaca snapshots API (primary). Zero fallback on failure.
+    Finviz fetch_screener_count() used for quarterly/SMA supplemental metrics.
     """
 
     # --- BREADTH: True 4%-filtered counts (Alpaca, primary) ---
@@ -429,10 +363,8 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         breadth_source = "none"
         universe_size  = 0
 
-    # --- A/D TOTALS: Always fetch as supplemental metric (all movers, not 4%-filtered) ---
-    ad_data   = fetch_breadth_adv_dec()
-    adv_total = ad_data["up_4_today"]   if ad_data else None
-    dec_total = ad_data["down_4_today"] if ad_data else None
+    adv_total = None
+    dec_total = None
 
     base_filters = "geo_usa,sh_avgvol_o500,sh_price_o5,exch_nysenasd"
 

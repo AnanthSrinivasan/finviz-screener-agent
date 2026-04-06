@@ -108,31 +108,23 @@ def fetch_earnings_history(ticker: str) -> dict | None:
         import yfinance as yf
         stock = yf.Ticker(ticker)
 
-        # Quarterly earnings — EPS actual values
-        earnings = stock.quarterly_earnings
-        if earnings is None or earnings.empty:
-            log.debug(f"{ticker}: no quarterly earnings data")
+        # Quarterly income statement — columns are dates (newest first), rows are line items
+        stmt = stock.quarterly_income_stmt
+        if stmt is None or stmt.empty:
+            log.debug(f"{ticker}: no quarterly income statement")
             return None
 
-        # Quarterly financials — revenue
-        financials = stock.quarterly_financials
+        # Revenue — sort_index() gives chronological (oldest first)
         revenue_history = []
-        if financials is not None and not financials.empty:
-            if "Total Revenue" in financials.index:
-                rev_row = financials.loc["Total Revenue"].dropna().sort_index()
-                revenue_history = rev_row.tolist()
+        if "Total Revenue" in stmt.index:
+            revenue_history = stmt.loc["Total Revenue"].dropna().sort_index().tolist()
 
-        # Extract EPS actuals, sorted chronologically (oldest first)
-        if "Earnings" in earnings.columns:
-            eps_values = earnings["Earnings"].dropna().tolist()
-        elif "Actual" in earnings.columns:
-            eps_values = earnings["Actual"].dropna().tolist()
-        else:
-            eps_values = []
-
-        # yfinance returns most recent first — reverse to chronological
-        eps_values = list(reversed(eps_values))
-        revenue_history = list(reversed(revenue_history))
+        # EPS — Basic EPS preferred, fall back to Diluted EPS
+        eps_values = []
+        for eps_key in ("Basic EPS", "Diluted EPS"):
+            if eps_key in stmt.index:
+                eps_values = stmt.loc[eps_key].dropna().sort_index().tolist()
+                break
 
         if len(eps_values) < 4:
             log.debug(f"{ticker}: only {len(eps_values)} quarters of EPS data")
@@ -1540,7 +1532,11 @@ def auto_promote_to_watchlist(
     for _, row in persistence_df.iterrows():
         ticker   = str(row.get("Ticker", "")).strip()
         days     = int(row.get("Days Seen", row.get("days_seen", 0)) or 0)
-        screens  = int(row.get("Screeners Hit", row.get("screens", 0)) or 0)
+        screens_raw = row.get("Screeners Hit", row.get("screens", 0))
+        if isinstance(screens_raw, str) and not screens_raw.strip().lstrip("-").isdigit():
+            screens = len([s for s in screens_raw.split(",") if s.strip()])
+        else:
+            screens = int(screens_raw or 0)
 
         if not ticker or ticker in existing:
             continue

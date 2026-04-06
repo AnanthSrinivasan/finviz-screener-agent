@@ -65,7 +65,7 @@ def get_spy_regime() -> tuple:
     """
     Returns (regime, spy_price, sma200).
     regime is 'GREEN' (SPY > SMA200) or 'RED' (SPY <= SMA200).
-    Tries Alpaca bars first, falls back to yfinance.
+    Uses Alpaca bars. Returns RED on failure.
     """
     # Try Alpaca bars
     try:
@@ -84,25 +84,11 @@ def get_spy_regime() -> tuple:
                 regime = "GREEN" if spy_price > sma200 else "RED"
                 log.info("SPY (Alpaca): %.2f, SMA200: %.2f, Regime: %s", spy_price, sma200, regime)
                 return regime, spy_price, sma200
-            log.warning("Only %d bars from Alpaca — falling back to yfinance", len(bars))
+            log.warning("Only %d bars from Alpaca — insufficient for SMA200", len(bars))
         else:
-            log.warning("Alpaca bars HTTP %s — falling back to yfinance", resp.status_code)
+            log.warning("Alpaca bars HTTP %s", resp.status_code)
     except Exception as e:
         log.error("Alpaca bars failed: %s", e)
-
-    # yfinance fallback
-    try:
-        import yfinance as yf
-        hist = yf.Ticker("SPY").history(period="1y")
-        if len(hist) >= 200:
-            closes = hist["Close"].tolist()
-            spy_price = closes[-1]
-            sma200 = sum(closes[-200:]) / 200
-            regime = "GREEN" if spy_price > sma200 else "RED"
-            log.info("SPY (yfinance): %.2f, SMA200: %.2f, Regime: %s", spy_price, sma200, regime)
-            return regime, spy_price, sma200
-    except Exception as e:
-        log.error("yfinance fallback failed: %s", e)
 
     log.error("Could not determine regime — defaulting RED (safe)")
     return "RED", 0.0, 0.0
@@ -181,7 +167,7 @@ def get_account() -> dict:
 
 
 def get_current_price(symbol: str) -> float:
-    """Get latest close price from Alpaca bars; fall back to yfinance."""
+    """Get latest close price from Alpaca bars."""
     try:
         resp = requests.get(
             f"{ALPACA_BASE_URL}/stocks/{symbol}/bars",
@@ -195,14 +181,6 @@ def get_current_price(symbol: str) -> float:
                 return float(bars[-1]["c"])
     except Exception as e:
         log.warning("Alpaca price failed for %s: %s", symbol, e)
-
-    try:
-        import yfinance as yf
-        hist = yf.Ticker(symbol).history(period="2d")
-        if not hist.empty:
-            return float(hist["Close"].iloc[-1])
-    except Exception as e:
-        log.warning("yfinance price failed for %s: %s", symbol, e)
 
     return 0.0
 

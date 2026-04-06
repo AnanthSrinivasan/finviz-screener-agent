@@ -19,8 +19,6 @@ import requests
 import pandas as pd
 from glob import glob
 
-import yfinance as yf
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -29,6 +27,9 @@ DATA_DIR             = os.environ.get("DATA_DIR", "data")
 PREMARKET_THRESHOLD  = float(os.environ.get("PREMARKET_THRESHOLD", "5.0"))
 TRADING_STATE_FILE   = os.path.join(DATA_DIR, "trading_state.json")
 POSITIONS_FILE       = os.path.join(DATA_DIR, "positions.json")
+ALPACA_API_KEY       = os.environ.get("ALPACA_API_KEY", "")
+ALPACA_SECRET_KEY    = os.environ.get("ALPACA_SECRET_KEY", "")
+ALPACA_DATA_URL      = "https://data.alpaca.markets"
 
 
 # ----------------------------
@@ -49,19 +50,29 @@ def load_market_state() -> str:
 # ----------------------------
 def get_premarket_change(ticker: str) -> tuple:
     """
-    Returns (premarket_pct_change, premarket_price).
+    Returns (premarket_pct_change, premarket_price) via Alpaca snapshot.
+    Uses latestTrade.p as current price and prevDailyBar.c as previous close.
     Returns (0.0, 0.0) if data is unavailable.
     """
+    if not ALPACA_API_KEY:
+        return 0.0, 0.0
     try:
-        t = yf.Ticker(ticker)
-        info = t.info
-        pre  = info.get("preMarketPrice")
-        prev = info.get("regularMarketPreviousClose")
+        resp = requests.get(
+            f"{ALPACA_DATA_URL}/v2/stocks/{ticker}/snapshot",
+            headers={"APCA-API-KEY-ID": ALPACA_API_KEY, "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY},
+            params={"feed": "iex"},
+            timeout=10,
+        )
+        if not resp.ok:
+            return 0.0, 0.0
+        snap = resp.json()
+        pre  = snap.get("latestTrade", {}).get("p")
+        prev = snap.get("prevDailyBar", {}).get("c")
         if pre and prev and prev > 0:
             pct = (pre - prev) / prev * 100
             return round(pct, 2), round(pre, 2)
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("Alpaca snapshot failed for %s: %s", ticker, e)
     return 0.0, 0.0
 
 

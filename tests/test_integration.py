@@ -30,6 +30,7 @@ from agents.screener.finviz_weekly_agent import (
     build_persistence_scores,
     compute_revenue_growth,
     is_character_change_deep,
+    auto_promote_to_watchlist,
 )
 
 
@@ -1106,6 +1107,127 @@ class TestRegressionGuards(unittest.TestCase):
         # Should not raise
         result = build_persistence_scores(minimal_df, ["2026-03-20"])
         self.assertEqual(len(result), 1)
+
+
+# ============================================================
+# Part 11: Weekly — auto_promote_to_watchlist
+# ============================================================
+
+class TestAutoPromoteToWatchlist(unittest.TestCase):
+    """Regression tests for auto_promote_to_watchlist.
+
+    Covers the bug where 'Screeners Hit' contained screener names
+    (e.g. '10% Change, 52 Week High') instead of an integer count,
+    causing a ValueError on int() conversion.
+    """
+
+    def _make_persistence_df(self, rows: list[dict]) -> pd.DataFrame:
+        return pd.DataFrame(rows)
+
+    def test_screener_names_string_counted_correctly(self):
+        """'Screeners Hit' as comma-separated names → count by splitting."""
+        df = self._make_persistence_df([{
+            "Ticker": "FLY",
+            "Days Seen": 4,
+            "Screeners Hit": "10% Change, 52 Week High, Growth",
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 1)
+        self.assertEqual(promoted[0][0], "FLY")
+        self.assertEqual(promoted[0][2], 3)  # 3 screeners counted
+
+    def test_screener_names_below_min_screens_not_promoted(self):
+        """2 screener names → count=2 → below min_screens=3 → not promoted."""
+        df = self._make_persistence_df([{
+            "Ticker": "MEH",
+            "Days Seen": 5,
+            "Screeners Hit": "Growth, 52 Week High",
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 0)
+
+    def test_integer_screens_value_still_works(self):
+        """'Screeners Hit' as an integer (old format) → still works."""
+        df = self._make_persistence_df([{
+            "Ticker": "OLD",
+            "Days Seen": 4,
+            "Screeners Hit": 4,
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 1)
+
+    def test_below_min_days_not_promoted(self):
+        """Days Seen < min_days → not promoted."""
+        df = self._make_persistence_df([{
+            "Ticker": "SHY",
+            "Days Seen": 2,
+            "Screeners Hit": "Growth, 52 Week High, IPO, Momentum",
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 0)
+
+    def test_existing_watchlist_ticker_not_re_added(self):
+        """Ticker already in watchlist.json → skipped."""
+        df = self._make_persistence_df([{
+            "Ticker": "NVDA",
+            "Days Seen": 5,
+            "Screeners Hit": "Growth, 52 Week High, IPO",
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            with open(wl_path, "w") as f:
+                json.dump({"tickers": ["NVDA"], "auto_promoted": []}, f)
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 0)
+
+    def test_new_watchlist_file_created(self):
+        """watchlist.json created from scratch when it doesn't exist."""
+        df = self._make_persistence_df([{
+            "Ticker": "NEW",
+            "Days Seen": 4,
+            "Screeners Hit": "Growth, 52 Week High, IPO",
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+            self.assertEqual(len(promoted), 1)
+            with open(wl_path) as f:
+                saved = json.load(f)
+            self.assertIn("NEW", saved["tickers"])
+
+    def test_screens_fallback_to_screens_column(self):
+        """Falls back to 'screens' column when 'Screeners Hit' is absent."""
+        df = self._make_persistence_df([{
+            "Ticker": "ALT",
+            "Days Seen": 4,
+            "screens": 3,
+        }])
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wl_path = os.path.join(tmpdir, "watchlist.json")
+            promoted = auto_promote_to_watchlist(
+                df, watchlist_path=wl_path, min_days=3, min_screens=3
+            )
+        self.assertEqual(len(promoted), 1)
 
 
 # ============================================================

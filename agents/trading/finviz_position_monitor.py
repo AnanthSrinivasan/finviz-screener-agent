@@ -184,6 +184,38 @@ def fetch_positions() -> list:
 # Part 2: Fetch Metrics from Finviz
 # ----------------------------
 
+def fetch_sma50_price(ticker: str, fallback_pct: float = 0.90) -> float:
+    """Return the 50MA dollar price derived from Finviz's SMA50 % field.
+    Falls back to price * fallback_pct if Finviz is unavailable."""
+    session = make_session()
+    try:
+        from bs4 import BeautifulSoup
+        import re
+        resp = session.get(f"{FINVIZ_BASE}/quote.ashx", params={"t": ticker}, timeout=10)
+        if not resp.ok:
+            return 0.0
+        soup = BeautifulSoup(resp.content, "html.parser")
+        table = soup.find("table", class_="snapshot-table2")
+        if not table:
+            return 0.0
+        data = {}
+        for row in table.find_all("tr"):
+            cells = row.find_all("td")
+            for key_cell, val_cell in zip(cells[0::2], cells[1::2]):
+                data[key_cell.get_text(strip=True).rstrip(".")] = val_cell.get_text(strip=True)
+        price_raw = data.get("Price", "0").replace(",", "").strip()
+        price = float(re.match(r"^[\d.]+", price_raw).group()) if re.match(r"^[\d.]+", price_raw) else 0.0
+        sma50_raw = data.get("SMA50") or data.get("SMA20") or ""
+        if not sma50_raw or sma50_raw == "-":
+            return 0.0
+        pct = float(sma50_raw.replace("%", "").replace(",", "").strip())
+        sma50_price = round(price / (1 + pct / 100), 2) if price > 0 else 0.0
+        return sma50_price if sma50_price > 0 else 0.0
+    except Exception as e:
+        log.warning(f"{ticker}: Finviz SMA50 fetch failed — {e}")
+        return 0.0
+
+
 def fetch_position_metrics(ticker: str) -> dict:
     session = make_session()
     try:
@@ -225,11 +257,19 @@ def fetch_position_metrics(ticker: str) -> dict:
         atr     = parse_float(data.get("ATR (14)", "0"))
         atr_pct = (atr / price * 100) if price > 0 else 0
 
-        sma50 = parse_float(data.get("SMA50", "0"))
-        if sma50 == 0:
-            sma50 = parse_float(data.get("SMA20", "0"))
+        # Finviz SMA50/SMA20 fields are already % distance from MA (e.g. "47.31%" or "-5.32%").
+        # Parse as signed float directly — do NOT treat as a dollar price.
+        def parse_signed_pct(raw):
+            if not raw or raw == '-':
+                return None
+            try:
+                return float(raw.replace('%', '').replace(',', '').strip())
+            except ValueError:
+                return None
 
-        pct_from_ma    = ((price / sma50) - 1) * 100 if sma50 > 0 else 0
+        pct_from_ma = parse_signed_pct(data.get("SMA50")) \
+                   or parse_signed_pct(data.get("SMA20")) \
+                   or 0.0
         atr_multiple_ma = pct_from_ma / atr_pct if atr_pct > 0 else 0
 
         high_52w_raw   = data.get("52W High", "0").replace(",", "").strip()
@@ -243,7 +283,6 @@ def fetch_position_metrics(ticker: str) -> dict:
             "price":          price,
             "atr":            atr,
             "atr_pct":        round(atr_pct, 2),
-            "sma50":          sma50,
             "pct_from_ma":    round(pct_from_ma, 2),
             "atr_multiple_ma":round(atr_multiple_ma, 2),
             "dist_from_high": round(dist_from_high, 2),
@@ -564,17 +603,11 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
         entry_price = round(snap["avg_cost"], 2)
         shares = snap["shares"]
 
-        # Calculate initial stop via yfinance 50MA (same as workflow_dispatch BUY)
+        # Calculate initial stop via Finviz SMA50
         initial_stop = round(entry_price * 0.93, 2)  # fallback: 7% below entry
-        try:
-            import yfinance as yf
-            hist = yf.Ticker(ticker).history(period="60d")
-            if len(hist) >= 50:
-                ma50 = round(hist["Close"].rolling(50).mean().iloc[-1], 2)
-                if ma50 > 0:
-                    initial_stop = ma50
-        except Exception as e:
-            log.warning(f"yfinance 50MA lookup failed for {ticker}: {e} — using 7% stop")
+        ma50 = fetch_sma50_price(ticker, fallback_pct=0.93)
+        if ma50 > 0:
+            initial_stop = ma50
 
         new_position = {
             "ticker": ticker,
@@ -828,17 +861,11 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             )
             return alerts
 
-        # Calculate initial stop via yfinance 50MA
+        # Calculate initial stop via Finviz SMA50
         initial_stop = round(price * 0.90, 2)  # fallback: 10% below entry
-        try:
-            import yfinance as yf
-            hist = yf.Ticker(ticker).history(period="60d")
-            if len(hist) >= 50:
-                ma50 = round(hist["Close"].rolling(50).mean().iloc[-1], 2)
-                if ma50 > 0:
-                    initial_stop = ma50
-        except Exception as e:
-            log.warning(f"yfinance 50MA lookup failed for {ticker}: {e} — using 10% stop")
+        ma50 = fetch_sma50_price(ticker, fallback_pct=0.90)
+        if ma50 > 0:
+            initial_stop = ma50
 
         target1 = round(price * 1.20, 2)
         target2 = round(price * 1.40, 2)

@@ -16,6 +16,8 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       DATA_DIR: "data"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
 
     steps:
       - name: Check out repository
