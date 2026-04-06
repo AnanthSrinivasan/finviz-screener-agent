@@ -1137,8 +1137,7 @@ class TestAutoPromoteToWatchlist(unittest.TestCase):
                 df, watchlist_path=wl_path, min_days=3, min_screens=3
             )
         self.assertEqual(len(promoted), 1)
-        self.assertEqual(promoted[0][0], "FLY")
-        self.assertEqual(promoted[0][2], 3)  # 3 screeners counted
+        self.assertEqual(promoted[0], "FLY")
 
     def test_screener_names_below_min_screens_not_promoted(self):
         """2 screener names → count=2 → below min_screens=3 → not promoted."""
@@ -1166,7 +1165,7 @@ class TestAutoPromoteToWatchlist(unittest.TestCase):
             promoted = auto_promote_to_watchlist(
                 df, watchlist_path=wl_path, min_days=3, min_screens=3
             )
-        self.assertEqual(len(promoted), 1)
+        self.assertEqual(promoted, ["OLD"])
 
     def test_below_min_days_not_promoted(self):
         """Days Seen < min_days → not promoted."""
@@ -1210,7 +1209,7 @@ class TestAutoPromoteToWatchlist(unittest.TestCase):
             promoted = auto_promote_to_watchlist(
                 df, watchlist_path=wl_path, min_days=3, min_screens=3
             )
-            self.assertEqual(len(promoted), 1)
+            self.assertEqual(promoted, ["NEW"])
             with open(wl_path) as f:
                 saved = json.load(f)
             self.assertIn("NEW", saved["tickers"])
@@ -1227,7 +1226,7 @@ class TestAutoPromoteToWatchlist(unittest.TestCase):
             promoted = auto_promote_to_watchlist(
                 df, watchlist_path=wl_path, min_days=3, min_screens=3
             )
-        self.assertEqual(len(promoted), 1)
+        self.assertEqual(promoted, ["ALT"])
 
 
 # ============================================================
