@@ -3,7 +3,7 @@
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
 **Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)
-**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, yfinance, SnapTrade API, Claude API, Slack webhooks
+**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, Alpaca API, SnapTrade API, Claude API, Slack webhooks. yfinance used only in `finviz_weekly_agent.py` for quarterly EPS/revenue history (character change check).
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
 ## Architecture — 10 Agents + Test Suite
@@ -21,7 +21,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` |
 | **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
 
-**Note on naming:** `position_monitor.py` monitors real Robinhood positions via SnapTrade. The `finviz_` prefix is a repo naming convention only — it does not scrape Finviz at runtime.
+**Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
 **Supporting files:**
 - `generate_index.py` — Generates GitHub Pages index
@@ -49,14 +49,14 @@ The position monitor has two layers:
 **Layer 1 — ATR-based (runs on every position from SnapTrade):**
 - Hard stop: $-4,500 per position (SLV Feb 2026 rule)
 - ATR exit: ATR multiple from SMA50 <= -1.5
-- Dynamic stop: 5% base + (ATR% × 0.5)
-- Peel signals: scaled by ATR% tiers (low/mid/high/extreme)
+- Dynamic stop: 5% base + (ATR% × 0.5). Tightens to 3% base in RED/DANGER market state.
+- Peel warn/signal scaled by ATR% tier: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
 - AI commentary via Claude API
 
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
 - Rule 1: Stop loss check (positions.json stop price)
-- Rule 4: No averaging down (blocks BUY if price < entry)
-- Rule 5: Gain protection — breakeven stop at +20%, trailing stop at +30% (10% trail)
+- Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
+- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at +20%; trailing stop at +30% (10% trail)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
 - Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight
 - Gain fading warning: was +20%+, now <+5%
@@ -92,8 +92,8 @@ The position monitor has two layers:
 | `SNAPTRADE_CONSUMER_KEY` | secret | Position monitor |
 | `SNAPTRADE_USER_ID` | **variable** | Position monitor |
 | `SNAPTRADE_USER_SECRET` | secret | Position monitor |
-| `ALPACA_API_KEY` | secret | Paper executor, paper monitor |
-| `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor |
+| `ALPACA_API_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
+| `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_BASE_URL` | secret | Paper executor, paper monitor (`https://paper-api.alpaca.markets/v2`) |
 
 ## Data Files
@@ -123,11 +123,13 @@ data/
 | Weinstein Stage 2 required | `compute_stage()` — 50MA above 200MA (sma200 > sma50), price not deeply below 50MA (sma50 > -10). Perfect alignment = also above 20MA. RVol/dist-from-high handled by Quality Score, not stage gate |
 | No Stage 3/4 entries | Quality Score penalizes (-25/-40), 10% gate excludes |
 | Market state conditioning | RED/BLACKOUT = no entries, CAUTION = half size, GREEN/THRUST = full |
-| Dynamic stop loss | `5% + ATR% * 0.5` — position monitor enforces |
+| Dynamic stop loss | `5% + ATR% * 0.5` (3% base in RED/DANGER) — position monitor enforces |
 | Hard position cap | $-4,500 per position (SLV incident Feb 2026) |
 | ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
-| Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme |
+| Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme (warn at ~75% of signal) |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
+| Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
+| ATR incremental trail | From entry onwards: stop = max(stop, price − 2×ATR). Silent. Disabled at +20% (breakeven takes over) |
 | Breakeven stop | At +20% gain, stop moves to entry + 0.5% |
 | Trailing stop | At +30% gain, 10% trail from highest price seen |
 | Sizing suspension | 3 consecutive losses → paper trade only |
@@ -160,6 +162,6 @@ The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING 
 
 - **Market breadth source:** Up/Down 4% counts come from Alpaca snapshots API (`fetch_breadth_alpaca`). Universe: NYSE+NASDAQ active equities, filtered to price > $3 and dollar vol > $250k OR volume > 100k (Bonde's filter). THRUST=500, DANGER=500 (Bonde "Very High pressure" calibration). A/D totals (`^NYADV ^NYDEC ^NAADV ^NADEC`) were removed — all four symbols are dead on Yahoo Finance as of April 2026. `breadth_source` field in daily JSON shows which source ran (`alpaca_4pct`).
 - **Python version:** 3.11 on GitHub Actions, may be 3.12+ locally. Avoid f-string backslashes inside `{}` expressions (breaks on 3.11).
-- **Testing:** Run `gh workflow run <workflow>` + `gh run watch <id>` as integration test since SnapTrade secrets aren't available locally.
+- **Testing:** Run `python -m unittest discover -s tests -t .` locally (212 tests, no API keys needed). Also `python -c "import agents.<module>"` to catch runtime errors. SnapTrade/Alpaca integration tests still require `gh workflow run <workflow>` + `gh run watch <id>`.
 - **Finviz scraping:** Rotating user agents, exponential backoff, no proxy. Rate-limit-friendly delays between requests.
 - **Weekly agent:** Uses Claude API with `web_search` tool for catalyst research (~$0.10-0.20/run).
