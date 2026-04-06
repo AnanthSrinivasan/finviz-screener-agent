@@ -699,14 +699,18 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
     return alerts
 
 
-def apply_minervini_rules(position: dict, current_price: float) -> tuple:
+def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0) -> tuple:
     """
     Apply Minervini rules to a single position.
     Returns (alerts_list, position_was_modified).
 
     Rules applied:
       1. Stop loss check (positions.json stop)
-      5. Gain protection (breakeven at +20%, trailing at +30%, fade warning)
+      5. Gain protection:
+         - ATR trailing: price - 2×ATR from entry onwards (incremental, silent)
+         - Breakeven stop at +20%
+         - Trailing stop at +30% (10% from high)
+         - Gain fading warning
       Targets: alert on target1/target2 hits
     """
     alerts = []
@@ -737,6 +741,17 @@ def apply_minervini_rules(position: dict, current_price: float) -> tuple:
         log.warning(f"{ticker}: Rules engine STOP HIT — ${current_price:.2f} <= ${stop:.2f}")
 
     # Rule 5 — Gain protection
+
+    # ATR trailing stop — raises incrementally from entry onwards (price - 2×ATR).
+    # Silent (no Slack alert) — just moves the floor up automatically every run.
+    # Only fires when price is profitable and stop would move higher than current stop.
+    if atr > 0 and gain_pct > 0 and not position.get("breakeven_stop_activated", False):
+        atr_trail = round(current_price - 2 * atr, 2)
+        if atr_trail > position.get("stop", 0):
+            position["stop"] = atr_trail
+            position["stop_type"] = "atr_trail"
+            modified = True
+            log.info(f"{ticker}: ATR trail stop raised to ${atr_trail:.2f} (price=${current_price:.2f}, 2×ATR=${2*atr:.2f})")
 
     # Breakeven stop activation at +20%
     if gain_pct >= 20 and not position.get("breakeven_stop_activated", False):
@@ -868,6 +883,37 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
         if ma50 > 0:
             initial_stop = ma50
 
+        sizing_note = ""
+        if market_state == "CAUTION":
+            sizing_note = "\n\u26a0\ufe0f Market is CAUTION \u2014 half sizing applies."
+
+        # --- Averaging up: merge into existing position ---
+        if existing:
+            old_shares = existing["shares"]
+            old_cost   = existing["entry_price"]
+            new_total  = old_shares + shares
+            new_avg    = round((old_shares * old_cost + shares * price) / new_total, 2)
+            existing["shares"]       = new_total
+            existing["entry_price"]  = new_avg
+            existing["avg_cost"]     = new_avg
+            # Recalculate targets from new avg cost
+            existing["target1"]      = round(new_avg * 1.20, 2)
+            existing["target2"]      = round(new_avg * 1.40, 2)
+            existing["target1_hit"]  = False  # reset — targets shift up
+            # Keep stop unchanged (already trailed up), but raise if new stop is higher
+            if initial_stop > existing.get("stop", 0):
+                existing["stop"]      = initial_stop
+                existing["stop_type"] = "50ma_add"
+            existing["highest_price_seen"] = max(existing.get("highest_price_seen", price), price)
+            alerts.append(
+                f"\U0001f7e2 ADDED TO {ticker}: +{shares} shares @ ${price:.2f}\n"
+                f"   Total: {new_total} shares | New avg: ${new_avg:.2f}\n"
+                f"   Stop: ${existing['stop']:.2f} | T1: ${existing['target1']:.2f} | T2: ${existing['target2']:.2f}"
+                f"{sizing_note}"
+            )
+            return alerts
+
+        # --- New position ---
         target1 = round(price * 1.20, 2)
         target2 = round(price * 1.40, 2)
 
@@ -888,10 +934,6 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             "current_gain_pct": 0.0,
         }
         positions_data["open_positions"].append(new_position)
-
-        sizing_note = ""
-        if market_state == "CAUTION":
-            sizing_note = "\n\u26a0\ufe0f Market is CAUTION \u2014 half sizing applies."
 
         alerts.append(
             f"\U0001f7e2 NEW POSITION: {ticker} {shares} shares @ ${price:.2f}\n"
@@ -1137,7 +1179,8 @@ if __name__ == "__main__":
             log.warning(f"{ticker}: no SnapTrade data — using last known price ${cur_price:.2f}")
 
         if cur_price > 0:
-            pos_alerts, modified = apply_minervini_rules(rpos, cur_price)
+            atr = snap.get("metrics", {}).get("atr", 0.0) if snap else 0.0
+            pos_alerts, modified = apply_minervini_rules(rpos, cur_price, atr=atr)
             rules_alerts.extend(pos_alerts)
             if modified:
                 rules_state_modified = True
