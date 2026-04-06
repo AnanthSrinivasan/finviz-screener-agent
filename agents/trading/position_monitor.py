@@ -1081,6 +1081,8 @@ if __name__ == "__main__":
         log.info("No open positions found — nothing to monitor.")
         exit(0)
 
+    market_state = load_latest_market_state()
+
     # === EXISTING FLOW: Fetch metrics, check hard stop / ATR / dynamic stop / peel ===
     positions_with_metrics = []
     alerts_to_fire         = []
@@ -1159,7 +1161,6 @@ if __name__ == "__main__":
     # Step 8: Load rules engine state
     positions_data = load_positions_json()
     trading_state = load_trading_state()
-    market_state = load_latest_market_state()
     rules_alerts = []
 
     # Step 9: Sync SnapTrade positions with positions.json (auto-add/auto-close)
