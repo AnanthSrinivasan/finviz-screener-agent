@@ -1135,9 +1135,6 @@ def _make_monitor_day(**overrides) -> dict:
         "dec_total": 900,
         "up_25_quarter": 200,
         "down_25_quarter": 400,
-        "above_40ma_count": 600,
-        "total_universe": 1500,
-        "t2108_equiv": 40.0,
         "thrust_detected": False,
         "fg": 45.0,
         "spy_price": 550.0,
@@ -1160,7 +1157,7 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_daily_ratio_basic(self):
         """Daily ratio = up_4 / down_4."""
         today = {"up_4_today": 100, "down_4_today": 50,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
         self.assertAlmostEqual(metrics["ratio_today"], 2.0)
@@ -1168,7 +1165,7 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_daily_ratio_zero_down(self):
         """Zero down stocks should not divide by zero."""
         today = {"up_4_today": 100, "down_4_today": 0,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
         self.assertEqual(metrics["ratio_today"], 100.0)
@@ -1182,7 +1179,7 @@ class TestCalculateMetrics(unittest.TestCase):
             {"up_4_today": 70, "down_4_today": 35},
         ]
         today = {"up_4_today": 90, "down_4_today": 45,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics(history, today)
         # (80+60+100+70+90) / (40+30+50+35+45) = 400/200 = 2.0
@@ -1192,7 +1189,7 @@ class TestCalculateMetrics(unittest.TestCase):
         """With less than 4 history days, uses what's available + today."""
         history = [{"up_4_today": 100, "down_4_today": 50}]
         today = {"up_4_today": 100, "down_4_today": 50,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics(history, today)
         self.assertAlmostEqual(metrics["ratio_5day"], 2.0)
@@ -1201,7 +1198,7 @@ class TestCalculateMetrics(unittest.TestCase):
         """10-day ratio uses last 9 history days + today."""
         history = [{"up_4_today": 50, "down_4_today": 100}] * 9
         today = {"up_4_today": 50, "down_4_today": 100,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics(history, today)
         self.assertAlmostEqual(metrics["ratio_10day"], 0.5)
@@ -1209,7 +1206,7 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_thrust_detected_at_threshold(self):
         """Thrust fires when up_4 >= THRUST_THRESHOLD."""
         today = {"up_4_today": THRUST_THRESHOLD, "down_4_today": 10,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
         self.assertTrue(metrics["thrust"])
@@ -1217,40 +1214,15 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_thrust_not_detected_below_threshold(self):
         """Thrust does not fire below threshold."""
         today = {"up_4_today": THRUST_THRESHOLD - 1, "down_4_today": 10,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 1.0}
         metrics = calculate_metrics([], today)
         self.assertFalse(metrics["thrust"])
 
-    def test_t2108_calculation(self):
-        """T2108 is pre-fetched and passed through today_data["t2108"]."""
-        today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 750, "total_universe": 1500,
-                 "t2108": 50.0,
-                 "spy_sma200_pct": 1.0}
-        metrics = calculate_metrics([], today)
-        self.assertAlmostEqual(metrics["t2108"], 50.0)
-
-    def test_t2108_zero_universe(self):
-        """T2108 should be None when not present in today_data (all sources failed)."""
-        today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 0, "total_universe": 0,
-                 "spy_sma200_pct": 1.0}
-        metrics = calculate_metrics([], today)
-        self.assertIsNone(metrics["t2108"])
-
-    def test_t2108_none_when_missing(self):
-        """T2108 is None when not present in today_data (all sources failed)."""
-        today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 0, "total_universe": 0,
-                 "spy_sma200_pct": 1.0}
-        metrics = calculate_metrics([], today)
-        self.assertIsNone(metrics["t2108"])
-
     def test_spy_above_200d_positive(self):
         """SPY is above 200d MA when sma200_pct > 0."""
         today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": 3.5}
         metrics = calculate_metrics([], today)
         self.assertTrue(metrics["spy_above_200d"])
@@ -1258,7 +1230,7 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_spy_below_200d_negative(self):
         """SPY is below 200d MA when sma200_pct < 0."""
         today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": -2.0}
         metrics = calculate_metrics([], today)
         self.assertFalse(metrics["spy_above_200d"])
@@ -1266,7 +1238,7 @@ class TestCalculateMetrics(unittest.TestCase):
     def test_spy_200d_none(self):
         """SPY above 200d should be False when data unavailable."""
         today = {"up_4_today": 50, "down_4_today": 50,
-                 "above_40ma_count": 700, "total_universe": 1500,
+
                  "spy_sma200_pct": None}
         metrics = calculate_metrics([], today)
         self.assertFalse(metrics["spy_above_200d"])
@@ -1318,7 +1290,6 @@ class TestClassifyMarketState(unittest.TestCase):
             "ratio_5day": 1.0,
             "ratio_10day": 1.0,
             "thrust": False,
-            "t2108": 50.0,
             "spy_above_200d": True,
         }
         base.update(overrides)
@@ -1337,7 +1308,7 @@ class TestClassifyMarketState(unittest.TestCase):
     def test_thrust_is_highest_priority_outside_blackout(self):
         """THRUST should take priority over GREEN when not in blackout."""
         metrics = self._make_metrics(
-            thrust=True, ratio_5day=3.0, ratio_10day=2.0, t2108=60.0
+            thrust=True, ratio_5day=3.0, ratio_10day=2.0
         )
         today = {"up_4_today": 600, "down_4_today": 10}
         state, msg = classify_market_state(
@@ -1350,7 +1321,7 @@ class TestClassifyMarketState(unittest.TestCase):
     def test_green_all_conditions_met(self):
         """GREEN when all conditions satisfied."""
         metrics = self._make_metrics(
-            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0
+            ratio_5day=2.5, ratio_10day=2.0
         )
         today = {"up_4_today": 100, "down_4_today": 40}
         state, _ = classify_market_state(
@@ -1362,7 +1333,7 @@ class TestClassifyMarketState(unittest.TestCase):
     def test_green_fails_without_spy_above_200d(self):
         """GREEN requires SPY above 200d MA."""
         metrics = self._make_metrics(
-            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0, spy_above_200d=False
+            ratio_5day=2.5, ratio_10day=2.0, spy_above_200d=False
         )
         today = {"up_4_today": 100, "down_4_today": 40}
         state, _ = classify_market_state(
@@ -1374,7 +1345,7 @@ class TestClassifyMarketState(unittest.TestCase):
     def test_green_fails_low_fg(self):
         """GREEN requires F&G >= 35."""
         metrics = self._make_metrics(
-            ratio_5day=2.5, ratio_10day=2.0, t2108=55.0
+            ratio_5day=2.5, ratio_10day=2.0
         )
         today = {"up_4_today": 100, "down_4_today": 40}
         state, _ = classify_market_state(
@@ -1383,22 +1354,10 @@ class TestClassifyMarketState(unittest.TestCase):
         )
         self.assertNotEqual(state, "GREEN")
 
-    def test_green_fails_low_t2108(self):
-        """GREEN requires T2108 >= 40."""
-        metrics = self._make_metrics(
-            ratio_5day=2.5, ratio_10day=2.0, t2108=30.0
-        )
-        today = {"up_4_today": 100, "down_4_today": 40}
-        state, _ = classify_market_state(
-            metrics, fg=50.0, spy_price=600.0, spy_above_200d=True,
-            today_data=today, date=datetime.date(2026, 4, 15)
-        )
-        self.assertNotEqual(state, "GREEN")
-
     def test_caution_half_conditions(self):
         """CAUTION when partial conditions met."""
         metrics = self._make_metrics(
-            ratio_5day=1.6, ratio_10day=1.0, t2108=35.0
+            ratio_5day=1.6, ratio_10day=1.0
         )
         today = {"up_4_today": 60, "down_4_today": 40}
         state, _ = classify_market_state(
@@ -1457,7 +1416,7 @@ class TestClassifyMarketState(unittest.TestCase):
 
     def test_none_fg_handled(self):
         """None F&G should not crash — treated as 0."""
-        metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=2.0, t2108=55.0)
+        metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=2.0)
         today = {"up_4_today": 100, "down_4_today": 40}
         state, _ = classify_market_state(
             metrics, fg=None, spy_price=600.0, spy_above_200d=True,
@@ -1475,12 +1434,11 @@ class TestBuildDailyRecord(unittest.TestCase):
         today_data = {
             "up_4_today": 43, "down_4_today": 198,
             "up_25_quarter": 312, "down_25_quarter": 847,
-            "above_40ma_count": 412, "total_universe": 1587,
             "fg": 14.6, "spy_price": 548.23, "spy_sma200_pct": -4.0,
         }
         metrics = {
             "ratio_today": 0.22, "ratio_5day": 0.38, "ratio_10day": 0.51,
-            "thrust": False, "t2108": 25.96, "spy_above_200d": False,
+            "thrust": False, "spy_above_200d": False,
         }
         record = build_daily_record(
             datetime.date(2026, 3, 22), today_data, metrics, "RED", "No new trades"
@@ -1491,7 +1449,6 @@ class TestBuildDailyRecord(unittest.TestCase):
             "universe_size", "adv_total", "dec_total",
             "ratio_today", "ratio_5day", "ratio_10day",
             "up_25_quarter", "down_25_quarter",
-            "above_40ma_count", "total_universe", "t2108_equiv",
             "thrust_detected", "fg", "spy_price", "spy_sma200_pct",
             "spy_above_200d", "market_state", "state_message", "blackout",
         ]
@@ -1503,12 +1460,11 @@ class TestBuildDailyRecord(unittest.TestCase):
         today_data = {
             "up_4_today": 43, "down_4_today": 198,
             "up_25_quarter": 312, "down_25_quarter": 847,
-            "above_40ma_count": 412, "total_universe": 1587,
             "fg": 14.6, "spy_price": 548.23, "spy_sma200_pct": -4.0,
         }
         metrics = {
             "ratio_today": 0.22, "ratio_5day": 0.38, "ratio_10day": 0.51,
-            "thrust": False, "t2108": 25.96, "spy_above_200d": False,
+            "thrust": False, "spy_above_200d": False,
         }
         record = build_daily_record(
             datetime.date(2026, 3, 22), today_data, metrics, "RED", "No new trades"
@@ -1524,7 +1480,7 @@ class TestBuildDailyRecord(unittest.TestCase):
         """Blackout flag should reflect the date."""
         today_data = {"up_4_today": 0, "down_4_today": 0}
         metrics = {"ratio_today": 0, "ratio_5day": 0, "ratio_10day": 0,
-                   "thrust": False, "t2108": 0, "spy_above_200d": False}
+                   "thrust": False, "spy_above_200d": False}
 
         # March 10 is blackout
         record = build_daily_record(
@@ -1618,7 +1574,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def _make_metrics(self, **overrides):
         base = {
             "ratio_today": 1.0, "ratio_5day": 1.0, "ratio_10day": 1.0,
-            "thrust": False, "t2108": 50.0, "spy_above_200d": True,
+            "thrust": False, "spy_above_200d": True,
         }
         base.update(overrides)
         return base
@@ -1646,7 +1602,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_thrust_to_green_confirmation(self):
         """After thrust, market should confirm to GREEN when all conditions met."""
         metrics = self._make_metrics(
-            ratio_5day=2.5, ratio_10day=1.8, t2108=52.0
+            ratio_5day=2.5, ratio_10day=1.8
         )
         state, _ = classify_market_state(
             metrics, fg=35.0, spy_price=580.0, spy_above_200d=True,
@@ -1670,7 +1626,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_caution_to_green_when_ratios_improve(self):
         """CAUTION upgrades to GREEN when all conditions are met."""
         # CAUTION state
-        m1 = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2, t2108=38.0)
+        m1 = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
         s1, _ = classify_market_state(
             m1, fg=30.0, spy_price=560.0, spy_above_200d=True,
             today_data={"up_4_today": 70, "down_4_today": 45},
@@ -1679,7 +1635,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         self.assertEqual(s1, "CAUTION")
 
         # GREEN state — ratios improved
-        m2 = self._make_metrics(ratio_5day=2.2, ratio_10day=1.6, t2108=45.0)
+        m2 = self._make_metrics(ratio_5day=2.2, ratio_10day=1.6)
         s2, _ = classify_market_state(
             m2, fg=40.0, spy_price=575.0, spy_above_200d=True,
             today_data={"up_4_today": 90, "down_4_today": 40},
@@ -1689,7 +1645,7 @@ class TestMarketStateTransitions(unittest.TestCase):
 
     def test_entering_blackout_period(self):
         """State should switch to BLACKOUT regardless of breadth."""
-        metrics = self._make_metrics(ratio_5day=3.0, ratio_10day=2.5, t2108=60.0)
+        metrics = self._make_metrics(ratio_5day=3.0, ratio_10day=2.5)
         state, _ = classify_market_state(
             metrics, fg=55.0, spy_price=600.0, spy_above_200d=True,
             today_data={"up_4_today": 150, "down_4_today": 30},

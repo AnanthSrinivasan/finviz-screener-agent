@@ -109,7 +109,6 @@ def update_trading_state(record: dict):
         "down_4pct_count": record["down_4_today"],
         "5d_ratio": record["ratio_5day"],
         "10d_ratio": record["ratio_10day"],
-        "t2108": record.get("t2108_equiv"),
         "spy_price": spy_price,
         "spy_200ma": spy_200ma,
         "fng": record.get("fg"),
@@ -453,48 +452,6 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     down_25_quarter = fetch_screener_count(session, url_down25q, "Down 25%+ quarter")
     time.sleep(FETCH_DELAY)
 
-    # Fetch 5 — Stocks above 40-day SMA (universe reference only)
-    url_above40 = (
-        f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f={base_filters},ta_sma40_pa"
-    )
-    above_40ma = fetch_screener_count(session, url_above40, "Above 40d SMA")
-    time.sleep(FETCH_DELAY)
-
-    # Total universe — no performance filter
-    url_total = (
-        f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f={base_filters}"
-    )
-    total_universe = fetch_screener_count(session, url_total, "Total universe")
-    time.sleep(FETCH_DELAY)
-
-    # Sanity check — if total universe < 500 Finviz is blocking this runner's IP.
-    # Zero out Finviz supplemental metrics; keep yfinance up_4/down_4 intact.
-    if total_universe < 500:
-        log.warning(
-            "FINVIZ BLOCK DETECTED: total_universe=%d (expected ~2000+). "
-            "Finviz supplemental metrics unreliable — zeroing quarterly/SMA counts. "
-            "Up/Down 4%% counts from yfinance are unaffected.",
-            total_universe
-        )
-        up_25_quarter = 0
-        down_25_quarter = 0
-        above_40ma = 0
-        total_universe = 0
-
-    # T2108 — % of stocks above their 40-day MA
-    # Primary: Finviz quote page for $T2108
-    # Fallback: compute from screener data (above_40ma / total_universe * 100)
-    # If both fail: None (shown as "n/a" in Slack)
-    t2108 = fetch_t2108_finviz(session)
-    if t2108 is None and total_universe > 500:
-        t2108 = round(above_40ma / total_universe * 100, 1)
-        log.info("T2108 (computed from screener): %.1f%%", t2108)
-    if t2108 is None:
-        log.warning("T2108: all sources failed — will show n/a")
-    time.sleep(FETCH_DELAY)
-
     # SPY snapshot for price + SMA data
     spy_data = fetch_spy_data(session)
 
@@ -510,42 +467,10 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         "dec_total":       dec_total,
         "up_25_quarter":   up_25_quarter,
         "down_25_quarter": down_25_quarter,
-        "above_40ma_count": above_40ma,
-        "total_universe":  total_universe,
-        "t2108":           t2108,
         "spy_price":       spy_data.get("price"),
         "spy_sma200_pct":  spy_data.get("sma200_pct"),
         "fg":              fg,
     }
-
-
-def fetch_t2108_finviz(session: requests.Session) -> float | None:
-    """Fetch T2108 from Finviz quote page for $T2108."""
-    try:
-        resp = session.get(f"{FINVIZ_BASE}/quote.ashx", params={"t": "$T2108"}, timeout=10)
-        if not resp.ok:
-            log.warning("T2108 Finviz fetch failed: HTTP %s", resp.status_code)
-            return None
-        soup = BeautifulSoup(resp.content, "html.parser")
-        table = soup.find("table", class_="snapshot-table2")
-        if not table:
-            log.warning("T2108 Finviz: snapshot-table2 not found")
-            return None
-        data = {}
-        for row in table.find_all("tr"):
-            cells = row.find_all("td")
-            for k, v in zip(cells[0::2], cells[1::2]):
-                data[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
-        price_raw = data.get("Price", "").replace(",", "")
-        val = round(float(price_raw), 2)
-        if 0 <= val <= 100:
-            log.info("T2108 (Finviz): %.2f%%", val)
-            return val
-        log.warning("T2108 Finviz value %.2f outside valid range 0-100, treating as failed", val)
-        return None
-    except Exception as e:
-        log.warning("T2108 Finviz fetch failed: %s", e)
-        return None
 
 
 def fetch_spy_data(session: requests.Session) -> dict:
@@ -630,10 +555,6 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
     # Thrust detection
     thrust = up_4 >= THRUST_THRESHOLD
 
-    # T2108 — pre-fetched in fetch_breadth_data (Finviz quote page, or computed from screener)
-    # Already validated in range 0-100, or None if unavailable
-    t2108 = today_data.get("t2108")
-
     # SPY above 200-day SMA (conservative proxy for 20-week MA)
     spy_sma200_pct = today_data.get("spy_sma200_pct")
     spy_above_200d = spy_sma200_pct is not None and spy_sma200_pct > 0
@@ -643,7 +564,6 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
         "ratio_5day": round(ratio_5day, 2),
         "ratio_10day": round(ratio_10day, 2),
         "thrust": thrust,
-        "t2108": t2108,
         "spy_above_200d": spy_above_200d,
     }
 
@@ -691,14 +611,11 @@ def classify_market_state(metrics: dict, fg: float | None,
         return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%"
 
     # 4. GREEN — full size entries
-    # t2108 may be None when both fetches failed; treat as 0 (condition fails)
     fg_val = fg if fg is not None else 0
-    t2108_val = metrics["t2108"] if metrics["t2108"] is not None else 0
     if (metrics["ratio_5day"] >= 2.0
             and metrics["ratio_10day"] >= 1.5
             and fg_val >= 35
-            and spy_above_200d
-            and t2108_val >= 40):
+            and spy_above_200d):
         return "GREEN", "Full conditions met"
 
     # 5. CAUTION — half size
@@ -730,9 +647,6 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
         "ratio_10day":      metrics["ratio_10day"],
         "up_25_quarter":    today_data.get("up_25_quarter", 0),
         "down_25_quarter":  today_data.get("down_25_quarter", 0),
-        "above_40ma_count": today_data.get("above_40ma_count", 0),
-        "total_universe":   today_data.get("total_universe", 0),
-        "t2108_equiv":      metrics["t2108"],
         "thrust_detected":  metrics["thrust"],
         "fg":               today_data.get("fg"),
         "spy_price":        today_data.get("spy_price"),
@@ -872,7 +786,6 @@ def send_confirmation_alert(record: dict):
         return
 
     fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
-    t2108_str = str(round(record["t2108_equiv"])) + "%" if record.get("t2108_equiv") is not None else "n/a"
 
     text = (
         f"✅ *MARKET MONITOR — CONFIRMED RECOVERY*\n"
@@ -880,8 +793,7 @@ def send_confirmation_alert(record: dict):
         f"5-day ratio: {record['ratio_5day']} ✅\n"
         f"10-day ratio: {record['ratio_10day']} ✅\n"
         f"F&G: {fg_str} ✅\n"
-        f"SPY above 200d MA: {'✅' if record['spy_above_200d'] else '❌'}\n"
-        f"T2108: {t2108_str} ✅\n\n"
+        f"SPY above 200d MA: {'✅' if record['spy_above_200d'] else '❌'}\n\n"
         f"ACTION: Full conditions met.\n"
         f"Size at 10-15% for high conviction.\n"
         f"Current watchlist candidates: check weekly report."
@@ -914,7 +826,6 @@ def send_daily_summary(record: dict, last_thrust_date: str | None = None):
 
     fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
     spy_str = f"${record['spy_price']:.0f}" if record["spy_price"] is not None else "n/a"
-    t2108_str = str(round(record["t2108_equiv"])) + "%" if record.get("t2108_equiv") is not None else "n/a"
 
     sma_str = ""
     if record.get("spy_above_200d"):
@@ -946,7 +857,7 @@ def send_daily_summary(record: dict, last_thrust_date: str | None = None):
         f"Up 4%+: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
         f"Adv / Dec (all): {ad_str}\n"
         f"5d ratio: {record['ratio_5day']} | 10d ratio: {record['ratio_10day']}\n"
-        f"F&G: {fg_str} | T2108: {t2108_str}\n"
+        f"F&G: {fg_str}\n"
         f"SPY: {spy_str}{sma_str}"
     )
 
@@ -998,13 +909,11 @@ def run_market_monitor(date: datetime.date | None = None):
         today_data.get("adv_total", "n/a"), today_data.get("dec_total", "n/a"),
     )
     log.info(f"Up 25% qtr: {today_data['up_25_quarter']} | Down 25% qtr: {today_data['down_25_quarter']}")
-    log.info(f"Above 40d SMA: {today_data['above_40ma_count']} / {today_data['total_universe']}")
 
     # Calculate metrics
     metrics = calculate_metrics(history, today_data)
-    t2108_str = f"{metrics['t2108']:.1f}%" if metrics['t2108'] is not None else "n/a"
     log.info(f"Ratios — today: {metrics['ratio_today']} | 5d: {metrics['ratio_5day']} | 10d: {metrics['ratio_10day']}")
-    log.info(f"T2108: {t2108_str} | Thrust: {metrics['thrust']} | SPY above 200d: {metrics['spy_above_200d']}")
+    log.info(f"Thrust: {metrics['thrust']} | SPY above 200d: {metrics['spy_above_200d']}")
 
     # Classify market state
     state, message = classify_market_state(
