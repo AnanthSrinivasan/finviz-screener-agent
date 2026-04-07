@@ -148,8 +148,8 @@
 
 <div class="dash-header">
   <h1>Dashboard</h1>
-  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 07 Apr 2026 00:23 UTC</div>
+  <a href="index.html" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 07 Apr 2026 17:41 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -159,7 +159,44 @@
 
 <div class="section">
   <div class="section-title">Open Positions & P&L</div>
-  <div class="empty-state">No open positions</div>
+  
+    <div class="positions-summary">
+      <div class="summary-item">
+        <span class="summary-label">Exposure</span>
+        <span class="summary-val">$6,888.00</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Unrealized P&L</span>
+        <span class="summary-val pos">$81.97 (+1.2%)</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Positions</span>
+        <span class="summary-val">1 open</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+    <table class="positions-table">
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="ticker-cell">
+            <span class="ticker">FLY</span>
+            <span class="entry-date">Mon 06 Apr</span>
+          </td>
+          <td>200</td>
+          <td>$34.44</td>
+          <td>$28.93</td>
+          <td class="pos">+1.2%</td>
+          <td class="pos">$81.97</td>
+          <td class="risk-cell neg">-16.0%</td>
+          <td class="targets-cell"><span class="target-pending">T1 $41</span> <span class="target-pending">T2 $48</span></td>
+        </tr></tbody>
+    </table>
+    </div>
 </div>
 
 <div class="section">
@@ -459,13 +496,13 @@
         </tr>
         <tr>
           <td class="ticker-cell">
-            <span class="ticker">AUPH</span>
-            <span class="entry-date">Mon 06 Apr</span>
+            <span class="ticker">CRWV</span>
+            <span class="entry-date">Tue 07 Apr</span>
           </td>
           <td><span class="ws-badge ws-watching">watching</span></td>
           <td>—</td>
           <td>—</td>
-          <td class="thesis-cell">Healthcare | Q=89 | VCP | ATR 3.8%</td>
+          <td class="thesis-cell">None</td>
         </tr></tbody>
     </table>
     </div>
@@ -493,15 +530,15 @@
       </div>
       <div class="alerts-col">
         <div class="sub-label">Fear & Greed (15d)</div>
-        <div class="spark-row"><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-03-23: 16.1"></div><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-03-24: 14.5"></div><div class="spark-bar" style="height:11px;background:#ef4444" title="2026-03-25: 19.3"></div><div class="spark-bar" style="height:10px;background:#ef4444" title="2026-03-26: 18.2"></div><div class="spark-bar" style="height:6px;background:#ef4444" title="2026-03-27: 10.2"></div><div class="spark-bar" style="height:5px;background:#ef4444" title="2026-03-31: 8.7"></div><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-04-01: 14.7"></div><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-04-02: 15.7"></div><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-04-03: 15.3"></div><div class="spark-bar" style="height:11px;background:#ef4444" title="2026-04-04: 19.3"></div></div>
+        <div class="spark-row"><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-03-24: 14.5"></div><div class="spark-bar" style="height:11px;background:#ef4444" title="2026-03-25: 19.3"></div><div class="spark-bar" style="height:10px;background:#ef4444" title="2026-03-26: 18.2"></div><div class="spark-bar" style="height:6px;background:#ef4444" title="2026-03-27: 10.2"></div><div class="spark-bar" style="height:5px;background:#ef4444" title="2026-03-31: 8.7"></div><div class="spark-bar" style="height:8px;background:#ef4444" title="2026-04-01: 14.7"></div><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-04-02: 15.7"></div><div class="spark-bar" style="height:9px;background:#ef4444" title="2026-04-03: 15.3"></div><div class="spark-bar" style="height:11px;background:#ef4444" title="2026-04-04: 19.3"></div><div class="spark-bar" style="height:13px;background:#ef4444" title="2026-04-07: 22.6"></div></div>
         <div class="commodities-row">
         <div class="commodity-card">
           <span class="comm-label">SLV 1w</span>
-          <span class="comm-val pos">+8.3%</span>
+          <span class="comm-val pos">+4.2%</span>
         </div>
         <div class="commodity-card">
           <span class="comm-label">GLD 1w</span>
-          <span class="comm-val pos">+7.2%</span>
+          <span class="comm-val pos">+3.1%</span>
         </div></div>
       </div>
     </div>
@@ -537,7 +574,7 @@
 </div>
 
 <div class="footer">
-  Generated 07 Apr 2026 00:23 UTC &middot;
+  Generated 07 Apr 2026 17:41 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>

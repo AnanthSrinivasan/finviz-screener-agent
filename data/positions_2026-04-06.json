@@ -1,0 +1,26 @@
+{
+  "date": "2026-04-06",
+  "positions": [
+    {
+      "ticker": "FLY",
+      "shares": 200.0,
+      "avg_cost": 34.44,
+      "current_price": 34.85,
+      "market_value": 6970.0,
+      "pnl": 82.0,
+      "pnl_pct": 1.19,
+      "metrics": {
+        "price": 34.85,
+        "atr": 2.96,
+        "atr_pct": 8.49,
+        "pct_from_ma": 47.72,
+        "atr_multiple_ma": 5.62,
+        "dist_from_high": -52.78,
+        "rel_vol": 2.34
+      },
+      "stop_loss_pct": 7.2,
+      "peel_warn_mult": 6.5,
+      "peel_signal_mult": 8.0
+    }
+  ]
+}
