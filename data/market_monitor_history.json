@@ -340,5 +340,27 @@
     "market_state": "RED",
     "state_message": "Bearish \u2014 no new trades",
     "blackout": false
+  },
+  {
+    "date": "2026-04-07",
+    "up_4_today": 92,
+    "down_4_today": 93,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2865,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 0.99,
+    "ratio_5day": 1.87,
+    "ratio_10day": 1.76,
+    "up_25_quarter": 248,
+    "down_25_quarter": 254,
+    "thrust_detected": false,
+    "fg": 22.2,
+    "spy_price": 659.22,
+    "spy_sma200_pct": -0.6,
+    "spy_above_200d": false,
+    "market_state": "RED",
+    "state_message": "Bearish \u2014 no new trades",
+    "blackout": false
   }
 ]
