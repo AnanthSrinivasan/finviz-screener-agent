@@ -2,9 +2,7 @@ name: Finviz Alerts
 
 on:
   schedule:
-    # 22:00 UTC = 23:00 CET — runs just before the daily screener
-    # Weekdays only
-    - cron: '0 22 * * 1-5'
+    - cron: '0 21 * * 1-5'  # 5:00pm ET (EDT/summer)
   workflow_dispatch:
 
 jobs:

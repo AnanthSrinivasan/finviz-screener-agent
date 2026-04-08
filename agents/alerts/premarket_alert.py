@@ -2,7 +2,7 @@
 # ----------------------------
 # Pre-Market Gap-Up Alert (BGU)
 # ----------------------------
-# Runs at 9:00 AM ET (14:00 UTC) Mon-Fri.
+# Runs at 9:00 AM ET (13:00 UTC) Mon-Fri.
 # Scans tickers from the last 5 days of screener CSVs and fires a Slack
 # alert for any that are gapping up 5%+ in pre-market. BGU = Before Gap-Up.
 #

@@ -10,12 +10,12 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 | Agent | File | Schedule | Slack Channel |
 |-------|------|----------|---------------|
-| Daily Screener | `finviz_agent.py` | 21:30 UTC Mon-Fri | `#daily-alerts` |
+| Daily Screener | `finviz_agent.py` | 20:30 UTC Mon-Fri | `#daily-alerts` |
 | Weekly Review | `finviz_weekly_agent.py` | 18:00 UTC Sunday | `#weekly-alerts` |
-| Market Monitor | `market_monitor.py` | 22:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
+| Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
 | Position Monitor | `position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
-| Alerts | `alerts_agent.py` | 22:00 UTC Mon-Fri | `#general-alerts` |
-| Earnings Alert | `earnings_alert.py` | 22:30 UTC Mon-Fri | `#general-alerts` |
+| Alerts | `alerts_agent.py` | 21:00 UTC Mon-Fri | `#general-alerts` |
+| Earnings Alert | `earnings_alert.py` | 21:30 UTC Mon-Fri | `#general-alerts` |
 | Market Pulse | `market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
 | Winners Watchlist | `winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
 | **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` |
@@ -39,7 +39,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Earnings Alert | `earnings-alert.yml` | Cron + workflow_dispatch |
 | Finviz Alerts | `alerts-finviz.yml` | Cron + workflow_dispatch |
 | Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
-| Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET Mon-Fri + workflow_dispatch |
+| Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET (13:00 UTC) Mon-Fri + workflow_dispatch |
 | Test Suite | `test.yml` | On push to main / PRs |
 
 ## Position Monitor — Rules Engine

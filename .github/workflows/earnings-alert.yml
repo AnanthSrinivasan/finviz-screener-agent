@@ -2,7 +2,7 @@ name: Earnings Alert
 
 on:
   schedule:
-    - cron: '30 22 * * 1-5'
+    - cron: '30 21 * * 1-5'  # 5:30pm ET (EDT/summer)
   workflow_dispatch:
 
 jobs:

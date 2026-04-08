@@ -2,7 +2,7 @@ name: Pre-Market Gap-Up Alert
 
 on:
   schedule:
-    - cron: '0 14 * * 1-5'   # 9:00 AM ET (14:00 UTC) Mon-Fri
+    - cron: '0 13 * * 1-5'   # 9:00 AM ET (EDT/summer)
   workflow_dispatch:
 
 jobs:

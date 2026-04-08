@@ -2,9 +2,7 @@ name: Market Monitor
 
 on:
   schedule:
-    # 22:00 UTC = 23:00 CET — runs after daily screener at 21:30 UTC
-    # Weekdays only
-    - cron: '0 22 * * 1-5'
+    - cron: '0 21 * * 1-5'  # 5:00pm ET (EDT/summer)
   workflow_dispatch:
 
 jobs:

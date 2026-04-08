@@ -2,9 +2,9 @@ name: Position Monitor
 
 on:
   schedule:
-    # Every hour during US market hours (14:00–21:00 UTC = 10am–5pm ET)
+    # Every hour during US market hours (13:00–20:00 UTC = 10am–5pm ET)
     - cron: '0 14-21 * * 1-5'
-    # Pre-market (8am ET = 12:00 UTC) and after-hours (6pm ET = 22:00 UTC)
+    # Pre-market (8am ET = 12:00 UTC) and after-hours (6pm ET = 21:00 UTC)
     # Catches entries placed outside regular hours
     - cron: '0 12 * * 1-5'
     - cron: '0 22 * * 1-5'
