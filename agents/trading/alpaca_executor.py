@@ -509,8 +509,19 @@ if __name__ == "__main__":
     total_deployed  = 0.0
     pending_positions = set(open_positions)  # track adds during this run
 
-    # Sort by Quality Score descending
+    # Sort by Quality Score descending, cap at top 10 candidates for Claude evaluation
     sorted_rows = sorted(rows, key=lambda r: r.get("Quality Score", 0), reverse=True)
+    MAX_CANDIDATES = 10
+    slots_needed = MAX_POSITIONS - len(open_positions)
+    # Pre-filter to Q≥60 + Stage 2 before capping, so we cap meaningful candidates only
+    pre_filtered = [
+        r for r in sorted_rows
+        if r.get("Quality Score", 0) >= 60
+        and (r.get("Stage", {}) if isinstance(r.get("Stage"), dict) else {}).get("stage", 0) == 2
+        and (r.get("Ticker", "").strip() not in open_positions)
+    ]
+    log.info("%d candidates after Q≥60 + Stage 2 filter, evaluating top %d", len(pre_filtered), MAX_CANDIDATES)
+    sorted_rows = pre_filtered[:MAX_CANDIDATES]
 
     for row in sorted_rows:
         ticker = (row.get("Ticker") or "").strip()
@@ -526,18 +537,6 @@ if __name__ == "__main__":
             break
 
         qs = row.get("Quality Score", 0)
-
-        # Step 4: Quality gate — must reach "strong conviction" bar
-        if qs < 60:
-            log.info("Skipping %s — Q=%.0f below 60 (min for auto-execution)", ticker, qs)
-            continue
-
-        # Stage 2 gate
-        stage_dict = row.get("Stage", {})
-        stage_num  = stage_dict.get("stage", 0) if isinstance(stage_dict, dict) else 0
-        if stage_num != 2:
-            log.info("Skipping %s — Stage %d, not Stage 2", ticker, stage_num)
-            continue
 
         # Compute allocation
         vcp_dict     = row.get("VCP", {})
@@ -578,12 +577,7 @@ if __name__ == "__main__":
         verdict, reasoning = get_claude_verdict(ticker, row)
 
         if verdict == "SKIP":
-            slack_send(
-                ":yellow_circle: *SKIPPED* " + ticker
-                + " (Q=" + str(int(qs)) + ") — Claude SKIP\n"
-                + "_" + reasoning[:300] + "_"
-            )
-            log.info("Claude SKIP for %s", ticker)
+            log.info("Claude SKIP for %s (Q=%.0f)", ticker, qs)
             continue
 
         # Step 6: Place order
