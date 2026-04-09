@@ -38,6 +38,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
+WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 MAX_POSITIONS     = 5
 
 
@@ -153,6 +154,79 @@ def load_screener_csv(today: str) -> list:
 
 
 # ----------------------------
+# Step 2b: Merge watchlist tickers from daily_quality
+# ----------------------------
+def load_watchlist_tickers() -> set:
+    """Return set of ticker symbols currently on the watchlist."""
+    if not os.path.exists(WATCHLIST_FILE):
+        return set()
+    try:
+        with open(WATCHLIST_FILE) as f:
+            data = json.load(f)
+        return {e["ticker"] for e in data.get("watchlist", []) if e.get("ticker")}
+    except Exception as e:
+        log.warning("Could not load watchlist: %s", e)
+        return set()
+
+
+def load_daily_quality(today: str) -> dict:
+    """Return {ticker: quality_data} from today's daily_quality JSON."""
+    path = os.path.join(DATA_DIR, "daily_quality_" + today + ".json")
+    if not os.path.exists(path):
+        log.warning("daily_quality not found for %s", today)
+        return {}
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        # Keyed by ticker
+        if isinstance(data, dict):
+            return data
+        if isinstance(data, list):
+            return {r["Ticker"]: r for r in data if r.get("Ticker")}
+    except Exception as e:
+        log.warning("Could not load daily_quality: %s", e)
+    return {}
+
+
+def merge_watchlist_rows(screener_rows: list, today: str) -> list:
+    """
+    Add watchlist tickers that appear in daily_quality but not already
+    in the screener rows. This ensures high-Q watchlist names get evaluated.
+    """
+    existing_tickers = {r.get("Ticker", "").strip() for r in screener_rows}
+    watchlist = load_watchlist_tickers()
+    quality = load_daily_quality(today)
+
+    added = 0
+    for ticker in watchlist:
+        if ticker in existing_tickers:
+            continue
+        if ticker not in quality:
+            continue
+        q = quality[ticker]
+        # Build a minimal row compatible with the executor's field expectations
+        row = {
+            "Ticker":        ticker,
+            "Quality Score": float(q.get("Quality Score") or q.get("quality_score") or 0),
+            "ATR%":          float(q.get("ATR%") or q.get("atr_pct") or 0),
+            "EPS Y/Y TTM":   float(q.get("EPS Y/Y TTM") or 0),
+            "Rel Volume":    float(q.get("Rel Volume") or 1),
+            "Appearances":   float(q.get("Appearances") or 1),
+            "Sector":        q.get("Sector") or "",
+            "Screeners":     q.get("Screeners") or "",
+            "Stage":         q.get("Stage") or {},
+            "VCP":           q.get("VCP") or {},
+            "_source":       "watchlist",
+        }
+        screener_rows.append(row)
+        added += 1
+
+    if added:
+        log.info("Merged %d watchlist tickers from daily_quality into candidate pool", added)
+    return screener_rows
+
+
+# ----------------------------
 # Step 3: Alpaca account + positions
 # ----------------------------
 def get_open_positions() -> set:
@@ -184,12 +258,33 @@ def get_account() -> dict:
 
 
 def get_current_price(symbol: str) -> float:
-    """Get latest close price from Alpaca bars."""
+    """Get latest price from Alpaca data API (latest trade, fallback to last bar close)."""
+    headers = {
+        "APCA-API-KEY-ID":     ALPACA_API_KEY,
+        "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY,
+    }
+    # Try latest trade first (works during + after market hours)
     try:
         resp = requests.get(
-            f"{ALPACA_BASE_URL}/stocks/{symbol}/bars",
-            headers=alpaca_headers(),
-            params={"timeframe": "1Day", "limit": 1, "adjustment": "raw"},
+            ALPACA_DATA_URL + "/stocks/" + symbol + "/trades/latest",
+            headers=headers,
+            params={"feed": "iex"},
+            timeout=10,
+        )
+        if resp.ok:
+            trade = resp.json().get("trade", {})
+            price = float(trade.get("p", 0) or 0)
+            if price > 0:
+                return price
+    except Exception as e:
+        log.warning("Alpaca latest trade failed for %s: %s", symbol, e)
+
+    # Fallback: last daily bar close
+    try:
+        resp = requests.get(
+            ALPACA_DATA_URL + "/stocks/" + symbol + "/bars",
+            headers=headers,
+            params={"timeframe": "1Day", "limit": 1, "adjustment": "raw", "feed": "iex"},
             timeout=10,
         )
         if resp.ok:
@@ -197,7 +292,7 @@ def get_current_price(symbol: str) -> float:
             if bars:
                 return float(bars[-1]["c"])
     except Exception as e:
-        log.warning("Alpaca price failed for %s: %s", symbol, e)
+        log.warning("Alpaca bar fallback failed for %s: %s", symbol, e)
 
     return 0.0
 
@@ -369,11 +464,12 @@ if __name__ == "__main__":
 
     log.info("Regime GREEN — SPY %.2f above SMA200 %.2f", spy_price, sma200)
 
-    # Step 2: Load screener CSV
+    # Step 2: Load screener CSV + merge watchlist tickers
     rows = load_screener_csv(today)
     if not rows:
         slack_send(":x: *Alpaca executor* — no screener data for " + today)
         raise SystemExit(1)
+    rows = merge_watchlist_rows(rows, today)
 
     # Step 3: Positions + account
     open_positions = get_open_positions()
