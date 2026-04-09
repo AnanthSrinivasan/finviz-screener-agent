@@ -44,6 +44,14 @@ jobs:
           DATA_DIR: data
         run: python utils/generate_dashboard.py
 
+      - name: Archive old data to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: python archive_data.py
+
       - name: Commit output data
         run: |
           git config user.name "github-actions[bot]"

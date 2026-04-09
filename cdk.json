@@ -1,0 +1,6 @@
+{
+  "app": "python3 infra/app.py",
+  "context": {
+    "@aws-cdk/aws-s3:keepNotificationInImportedBucket": false
+  }
+}
