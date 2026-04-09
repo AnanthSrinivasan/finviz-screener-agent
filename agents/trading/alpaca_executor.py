@@ -326,7 +326,8 @@ def compute_allocation(quality_score: float, vcp_dict: dict, portfolio_equity: f
 # ----------------------------
 # Step 5: Place order
 # ----------------------------
-def place_order(symbol: str, qty: int) -> dict:
+def place_order(symbol: str, qty: int, limit_price: float) -> dict:
+    """Place a GTC limit order at last close price. Fills at open if price is there."""
     try:
         resp = requests.post(
             f"{ALPACA_BASE_URL}/orders",
@@ -335,8 +336,9 @@ def place_order(symbol: str, qty: int) -> dict:
                 "symbol":        symbol,
                 "qty":           str(qty),
                 "side":          "buy",
-                "type":          "market",
-                "time_in_force": "day",
+                "type":          "limit",
+                "limit_price":   str(round(limit_price, 2)),
+                "time_in_force": "gtc",
             },
             timeout=15,
         )
@@ -505,12 +507,12 @@ if __name__ == "__main__":
             )
             continue
 
-        # Step 5: Place order
+        # Step 5: Place GTC limit order at close price
         log.info(
-            "Placing BUY %s: %d shares @ ~$%.2f = $%.0f",
+            "Placing BUY %s: %d shares limit $%.2f = $%.0f (GTC)",
             ticker, shares, price, dollar_actual,
         )
-        order_result = place_order(ticker, shares)
+        order_result = place_order(ticker, shares, price)
         if not order_result:
             continue
 
@@ -536,12 +538,13 @@ if __name__ == "__main__":
 
         # Step 7: Per-trade Slack alert
         slack_send(
-            ":large_green_circle: *BUY PLACED* " + ticker + "\n"
-            "Shares: " + str(shares) + " @ ~$" + str(round(price, 2))
+            ":large_green_circle: *LIMIT ORDER PLACED* " + ticker + " (GTC)\n"
+            "Shares: " + str(shares) + " @ limit $" + str(round(price, 2))
             + " = *$" + str(int(dollar_actual)) + "*\n"
             "Stop: $" + str(stop_price)
             + " (2×ATR = $" + str(round(atr_dollar, 2)) + ")\n"
-            "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok)
+            "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
+            "_Fills at open if price ≤ limit — no chase if gap-up_"
         )
 
     # Step 8: Summary
