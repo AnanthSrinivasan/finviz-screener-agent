@@ -34,8 +34,6 @@ ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
 ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
 ALPACA_DATA_URL   = "https://data.alpaca.markets/v2"
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
@@ -326,73 +324,7 @@ def compute_allocation(quality_score: float, vcp_dict: dict, portfolio_equity: f
 
 
 # ----------------------------
-# Step 5: Claude bull/bear thesis
-# ----------------------------
-def get_claude_verdict(ticker: str, row: dict) -> tuple:
-    """
-    Calls Claude claude-sonnet-4-6 for a bull/bear thesis.
-    Returns (verdict, full_text) where verdict is 'BUY' or 'SKIP'.
-    """
-    if not ANTHROPIC_API_KEY:
-        return "SKIP", "No ANTHROPIC_API_KEY configured"
-
-    stage_dict = row.get("Stage", {})
-    vcp_dict   = row.get("VCP", {})
-    stage_str  = stage_dict.get("badge", str(stage_dict)) if isinstance(stage_dict, dict) else str(stage_dict)
-    vcp_str    = vcp_dict.get("reason", str(vcp_dict))    if isinstance(vcp_dict, dict)  else str(vcp_dict)
-
-    qs       = row.get("Quality Score", 0)
-    eps      = row.get("EPS Y/Y TTM", 0)
-    rvol     = row.get("Rel Volume", 1)
-    atr      = row.get("ATR%", 0)
-    sector   = row.get("Sector", "")
-    screeners = row.get("Screeners", "")
-
-    prompt = (
-        "You are a momentum trader. Argue bull and bear case for " + ticker + ". "
-        "Context: Quality Score " + str(int(qs)) + ", Stage " + stage_str + ", "
-        "VCP " + vcp_str + ", Sector " + sector + ", "
-        "EPS Y/Y " + str(round(eps, 1)) + "%, RVol " + str(round(rvol, 1)) + "x, "
-        "ATR% " + str(round(atr, 1)) + ", Screeners: " + screeners + ".\n"
-        "Rules: Weinstein Stage 2 required, Minervini VCP preferred, regime is GREEN.\n"
-        "End your response with exactly one line: VERDICT: BUY or VERDICT: SKIP"
-    )
-
-    try:
-        resp = requests.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key":         ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type":      "application/json",
-            },
-            json={
-                "model":      "claude-sonnet-4-6",
-                "max_tokens": 300,
-                "messages":   [{"role": "user", "content": prompt}],
-            },
-            timeout=30,
-        )
-        if resp.ok:
-            text  = resp.json()["content"][0]["text"].strip()
-            lines = text.splitlines()
-            last  = lines[-1].strip() if lines else ""
-            if "VERDICT: BUY" in last:
-                return "BUY", text
-            if "VERDICT: SKIP" in last:
-                return "SKIP", text
-            log.warning("Unexpected verdict line for %s: %r — defaulting SKIP", ticker, last)
-            return "SKIP", text
-        else:
-            log.error("Claude API HTTP %s for %s", resp.status_code, ticker)
-    except Exception as e:
-        log.error("Claude verdict failed for %s: %s", ticker, e)
-
-    return "SKIP", "Claude API error"
-
-
-# ----------------------------
-# Step 6: Place order
+# Step 5: Place order
 # ----------------------------
 def place_order(symbol: str, qty: int) -> dict:
     try:
@@ -573,14 +505,7 @@ if __name__ == "__main__":
             )
             continue
 
-        # Step 5: Claude verdict
-        verdict, reasoning = get_claude_verdict(ticker, row)
-
-        if verdict == "SKIP":
-            log.info("Claude SKIP for %s (Q=%.0f)", ticker, qs)
-            continue
-
-        # Step 6: Place order
+        # Step 5: Place order
         log.info(
             "Placing BUY %s: %d shares @ ~$%.2f = $%.0f",
             ticker, shares, price, dollar_actual,
@@ -594,7 +519,7 @@ if __name__ == "__main__":
         buying_power   -= dollar_actual
         pending_positions.add(ticker)
 
-        # Step 7: Stop reference (2×ATR below entry)
+        # Step 6: Stop reference (2×ATR below entry)
         atr_pct    = row.get("ATR%", 0)
         atr_dollar = (atr_pct / 100) * price
         stop_price = round(price - (2 * atr_dollar), 2)
@@ -609,15 +534,14 @@ if __name__ == "__main__":
 
         vcp_ok = vcp_dict.get("vcp_possible", False) if isinstance(vcp_dict, dict) else False
 
-        # Step 8: Per-trade Slack alert
+        # Step 7: Per-trade Slack alert
         slack_send(
             ":large_green_circle: *BUY PLACED* " + ticker + "\n"
             "Shares: " + str(shares) + " @ ~$" + str(round(price, 2))
             + " = *$" + str(int(dollar_actual)) + "*\n"
             "Stop: $" + str(stop_price)
             + " (2×ATR = $" + str(round(atr_dollar, 2)) + ")\n"
-            "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
-            "_" + reasoning[:300] + "_"
+            "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok)
         )
 
     # Step 8: Summary

@@ -18,7 +18,6 @@ jobs:
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
