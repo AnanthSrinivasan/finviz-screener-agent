@@ -2,7 +2,7 @@ name: Pre-Market Gap-Up Alert
 
 on:
   schedule:
-    - cron: '0 13 * * 1-5'   # 9:00 AM ET (EDT/summer)
+    - cron: '0 12 * * 1-5'   # 8:00 AM ET (EDT/summer) — 1hr buffer for Actions queue delays
   workflow_dispatch:
 
 jobs:
