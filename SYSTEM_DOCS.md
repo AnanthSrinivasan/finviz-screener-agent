@@ -573,18 +573,21 @@ Not needed yet. Revisit if automated execution is added.
 **Trigger:** `workflow_run` on Daily Finviz Screener success + manual `workflow_dispatch`
 
 **Flow:**
-1. SPY regime check (Alpaca bars → yfinance fallback) — RED exits immediately
-2. Load today's enriched CSV, parse Stage/VCP dict fields via `ast.literal_eval`
-3. Fetch open positions + account equity from Alpaca
-4. Gate: max 5 concurrent positions
-5. For each Stage 2 + Q≥60 ticker not already held:
+1. SPY regime check (Finviz SMA200 %) — RED exits immediately
+2. Cancel stale GTC buy orders older than 2 days (avoids fills on outdated entries)
+3. Load today's enriched CSV + merge watchlist tickers from `daily_quality_YYYY-MM-DD.json` — ensures high-Q watchlist names get evaluated even if not in today's raw screener
+4. Pre-filter: Q≥60 + Stage 2, cap at top 10 candidates by Q score
+5. Fetch open positions + account equity from Alpaca
+6. Gate: max 5 concurrent positions
+7. For each candidate not already held:
    - Compute allocation by Q score tier (see below)
-   - Fetch intraday price
-   - Call Claude (`claude-sonnet-4-6`) for bull/bear verdict
-   - VERDICT: BUY → place market day order
-   - VERDICT: SKIP → log reason to Slack
-6. Write stop reference to `paper_stops.json` (entry − 2×ATR)
-7. Commit `paper_stops.json` back to repo via git in workflow
+   - Fetch close price via Alpaca data API (`/trades/latest`, feed=iex, fallback to last bar)
+   - Place **GTC limit order at close price** — fills at open if price ≤ limit, no fill on gap-up (intentional, no chasing)
+8. Write stop reference to `paper_stops.json` (entry − 2×ATR)
+9. Commit `paper_stops.json` back to repo via git in workflow
+10. Slack: BUY placements + end-of-run summary only (no SKIP noise)
+
+**No Claude API call** — BUY decision is purely Q+Stage+VCP scoring. Claude removed to eliminate per-ticker API cost.
 
 **Quality Score tiers for sizing:**
 

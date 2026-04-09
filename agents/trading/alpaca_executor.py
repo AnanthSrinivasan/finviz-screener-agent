@@ -351,6 +351,53 @@ def place_order(symbol: str, qty: int, limit_price: float) -> dict:
 
 
 # ----------------------------
+# Step 6: Cancel stale GTC orders
+# ----------------------------
+def cancel_stale_gtc_orders(max_age_days: int = 2):
+    """Cancel open GTC buy orders older than max_age_days to avoid stale fills."""
+    try:
+        resp = requests.get(
+            f"{ALPACA_BASE_URL}/orders",
+            headers=alpaca_headers(),
+            params={"status": "open", "limit": 50, "direction": "desc"},
+            timeout=10,
+        )
+        if not resp.ok:
+            log.warning("Could not fetch open orders: %s", resp.status_code)
+            return
+
+        orders = resp.json()
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=max_age_days)
+        cancelled = []
+
+        for order in orders:
+            if order.get("side") != "buy" or order.get("time_in_force") != "gtc":
+                continue
+            created = order.get("created_at", "")
+            try:
+                created_dt = datetime.datetime.fromisoformat(created.replace("Z", "+00:00"))
+            except Exception:
+                continue
+            if created_dt < cutoff:
+                cancel_resp = requests.delete(
+                    f"{ALPACA_BASE_URL}/orders/" + order["id"],
+                    headers=alpaca_headers(),
+                    timeout=10,
+                )
+                if cancel_resp.ok or cancel_resp.status_code == 204:
+                    cancelled.append(order["symbol"])
+                    log.info("Cancelled stale GTC order: %s (placed %s)", order["symbol"], created[:10])
+                else:
+                    log.warning("Failed to cancel order %s: %s", order["id"], cancel_resp.status_code)
+
+        if cancelled:
+            slack_send(":wastebasket: *Stale GTC orders cancelled:* " + ", ".join(cancelled))
+
+    except Exception as e:
+        log.error("cancel_stale_gtc_orders failed: %s", e)
+
+
+# ----------------------------
 # Step 7: Stop-loss persistence
 # ----------------------------
 def load_stops() -> dict:
@@ -438,6 +485,7 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     # Step 4–7: Evaluate and trade
+    cancel_stale_gtc_orders(max_age_days=2)
     stops           = load_stops()
     orders_placed   = 0
     total_deployed  = 0.0
