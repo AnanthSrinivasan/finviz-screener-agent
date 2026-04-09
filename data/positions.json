@@ -5,7 +5,7 @@
       "shares": 200,
       "entry_price": 34.44,
       "entry_date": "2026-04-06",
-      "stop": 28.93,
+      "stop": 29.51,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 41.33,
@@ -13,8 +13,24 @@
       "target2": 48.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 34.85,
-      "current_gain_pct": 1.19
+      "highest_price_seen": 35.57,
+      "current_gain_pct": 3.28
+    },
+    {
+      "ticker": "AAOI",
+      "shares": 75,
+      "entry_price": 114.35,
+      "entry_date": "2026-04-08",
+      "stop": 91.36,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": false,
+      "target1": 137.22,
+      "target1_hit": false,
+      "target2": 160.09,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 117.67,
+      "current_gain_pct": 2.88
     }
   ],
   "closed_positions": []

@@ -20,6 +20,7 @@ import math
 import os
 import logging
 import datetime
+import re
 import requests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -31,6 +32,7 @@ log = logging.getLogger(__name__)
 ALPACA_API_KEY    = os.environ.get("ALPACA_API_KEY", "")
 ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
 ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
+ALPACA_DATA_URL   = "https://data.alpaca.markets/v2"
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
@@ -63,32 +65,47 @@ def slack_send(text: str):
 # ----------------------------
 def get_spy_regime() -> tuple:
     """
-    Returns (regime, spy_price, sma200).
+    Returns (regime, spy_price, sma200_approx).
     regime is 'GREEN' (SPY > SMA200) or 'RED' (SPY <= SMA200).
-    Uses Alpaca bars. Returns RED on failure.
+    Uses Finviz quote page (same source as market_monitor). Returns RED on failure.
     """
-    # Try Alpaca bars
     try:
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; finviz-screener-agent/1.0)"}
         resp = requests.get(
-            f"{ALPACA_BASE_URL}/stocks/SPY/bars",
-            headers=alpaca_headers(),
-            params={"timeframe": "1Day", "limit": 250, "adjustment": "raw"},
+            "https://finviz.com/quote.ashx",
+            params={"t": "SPY"},
+            headers=headers,
             timeout=15,
         )
-        if resp.ok:
-            bars = resp.json().get("bars", [])
-            if len(bars) >= 200:
-                closes = [b["c"] for b in bars]
-                spy_price = closes[-1]
-                sma200 = sum(closes[-200:]) / 200
-                regime = "GREEN" if spy_price > sma200 else "RED"
-                log.info("SPY (Alpaca): %.2f, SMA200: %.2f, Regime: %s", spy_price, sma200, regime)
-                return regime, spy_price, sma200
-            log.warning("Only %d bars from Alpaca — insufficient for SMA200", len(bars))
+        if not resp.ok:
+            log.warning("Finviz SPY fetch HTTP %s", resp.status_code)
         else:
-            log.warning("Alpaca bars HTTP %s", resp.status_code)
+            # Extract Price and SMA200 from snapshot table
+            price_match = re.search(r'"Price"[^>]*>([0-9,\.]+)<', resp.text)
+            sma200_match = re.search(r'SMA200[^%]*?([-\d\.]+)%', resp.text)
+            if not price_match:
+                # fallback: grab from table cell after "Price" label
+                price_match = re.search(r'>Price<[^>]*>[^<]*<[^>]*>([\d,\.]+)<', resp.text)
+            try:
+                price_m = re.search(r'quote-price_wrapper_price">([\d,\.]+)<', resp.text)
+                spy_price = float(price_m.group(1).replace(',', '')) if price_m else None
+            except Exception:
+                spy_price = None
+            try:
+                sma200_m = re.search(r'SMA200.{0,200}?([-\d\.]+)%', resp.text, re.DOTALL)
+                sma200_pct = float(sma200_m.group(1)) if sma200_m else None
+            except Exception:
+                sma200_pct = None
+
+            if spy_price and sma200_pct is not None:
+                # sma200_pct is % distance from SMA200 (positive = above)
+                sma200_approx = round(spy_price / (1 + sma200_pct / 100), 2)
+                regime = "GREEN" if sma200_pct > 0 else "RED"
+                log.info("SPY (Finviz): %.2f | SMA200%%: %.2f%% | Regime: %s", spy_price, sma200_pct, regime)
+                return regime, spy_price, sma200_approx
+            log.warning("Could not parse SPY price or SMA200 from Finviz")
     except Exception as e:
-        log.error("Alpaca bars failed: %s", e)
+        log.error("Finviz SPY fetch failed: %s", e)
 
     log.error("Could not determine regime — defaulting RED (safe)")
     return "RED", 0.0, 0.0
