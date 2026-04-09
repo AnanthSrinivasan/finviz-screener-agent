@@ -469,6 +469,18 @@ data/
 
 Volume is ~100–200 tickers/day. GitHub Actions reads/writes CSV natively. Reports are static HTML on GitHub Pages. No server, no cost, fully auditable via git history.
 
+**S3 Archival (added 2026-04-09):**
+
+Dated files older than 70 days are automatically archived to `s3://screener-data-repository` (`eu-central-1`) by `archive_data.py`, which runs in `daily-finviz.yml` before the git commit step. Upload → verify (`head_object`) → delete local. State files are never archived.
+
+S3 structure: `YYYY/MM/DD/<filename>`
+
+Files archived: `daily_quality_*`, `finviz_screeners_*` (csv+html), `finviz_chart_grid_*`, `market_monitor_YYYY-MM-DD.json`, `positions_YYYY-MM-DD.json`, `finviz_weekly_*`, `finviz_weekly_persistence_*`
+
+Never archived: `positions.json`, `trading_state.json`, `watchlist.json`, `alerts_state.json`, `market_monitor_history.json`, `paper_stops.json`
+
+Infra managed via CDK (`infra/` directory, `ScreenerInfraStack`, account `090960193599`). IAM user `finviz-screener-bot` scoped to `PutObject/GetObject/ListBucket` only — no delete permission.
+
 **When a database would be needed:**
 - Querying "which tickers appeared 10+ times over 6 months" across weekly CSVs
 - Automated order execution audit trail
@@ -497,6 +509,10 @@ Not needed yet. Revisit if automated execution is added.
 | `ALPACA_API_KEY` | alpaca_executor.py, alpaca_monitor.py |
 | `ALPACA_SECRET_KEY` | alpaca_executor.py, alpaca_monitor.py |
 | `ALPACA_BASE_URL` | alpaca_executor.py, alpaca_monitor.py (`https://paper-api.alpaca.markets/v2`) |
+| `AWS_ACCESS_KEY_ID` | archive_data.py (bot key for `finviz-screener-bot`) |
+| `AWS_SECRET_ACCESS_KEY` | archive_data.py |
+| `AWS_BUCKET_NAME` | archive_data.py (`screener-data-repository`) |
+| `AWS_REGION` | archive_data.py (`eu-central-1`) |
 
 ---
 
@@ -531,9 +547,10 @@ Not needed yet. Revisit if automated execution is added.
 | 8 | Market monitor — daily breadth + state classification | ✅ Built |
 | 9 | Character change deep check (yfinance quarterly earnings) | ✅ Built |
 | 10 | Paper execution layer (Alpaca) — proves logic before real money | 🟡 In Progress |
-| 11 | Intraday execution via Market Pulse (15-min bars, EMA entry timing) | 🔲 Next |
-| 12 | Automated real execution via SnapTrade (flip paper logic to live) | 🔲 After paper validates |
-| 13 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
+| 11 | S3 archival — dated data files offloaded after 70 days (CDK infra, eu-central-1) | ✅ Built |
+| 12 | Intraday execution via Market Pulse (15-min bars, EMA entry timing) | 🔲 Next |
+| 13 | Automated real execution via SnapTrade (flip paper logic to live) | 🔲 After paper validates |
+| 14 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
 
 ---
 
