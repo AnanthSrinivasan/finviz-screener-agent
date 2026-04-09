@@ -3,7 +3,7 @@
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
 **Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)
-**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, Alpaca API, SnapTrade API, Claude API, Slack webhooks. yfinance used only in `finviz_weekly_agent.py` for quarterly EPS/revenue history (character change check).
+**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, Alpaca API, SnapTrade API, Claude API, Slack webhooks, AWS S3 (archival). yfinance used only in `finviz_weekly_agent.py` for quarterly EPS/revenue history (character change check).
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
 ## Architecture — 10 Agents + Test Suite
@@ -25,8 +25,16 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 **Supporting files:**
 - `generate_index.py` — Generates GitHub Pages index
+- `archive_data.py` — Archives dated data files older than 70 days to S3 (`screener-data-repository`, `eu-central-1`). Runs in `daily-finviz.yml` before git commit. Upload → verify (`head_object`) → delete local. Never archives state files.
 - `test_finviz_agent.py` — Unit tests (mocked, no API keys)
 - `test_integration.py` — Integration tests for signal merge pipeline
+- `test_archive.py` — Unit tests for `archive_data.py` (mocked S3, no credentials needed)
+
+**Infra (CDK):**
+- `infra/` — AWS CDK Python stack (`ScreenerInfraStack`) deployed to `eu-central-1`
+- Creates: S3 bucket `screener-data-repository`, IAM user `finviz-screener-bot`, policy scoped to `PutObject/GetObject/ListBucket` only
+- Deploy: `pip install -r infra/requirements.txt && cdk deploy` (requires admin AWS credentials + CDK CLI via `brew install aws-cdk`)
+- Account: `090960193599`
 
 ## Workflows
 
@@ -95,6 +103,10 @@ The position monitor has two layers:
 | `ALPACA_API_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_BASE_URL` | secret | Paper executor, paper monitor (`https://paper-api.alpaca.markets/v2`) |
+| `AWS_ACCESS_KEY_ID` | secret | `archive_data.py` — bot key for `finviz-screener-bot` IAM user |
+| `AWS_SECRET_ACCESS_KEY` | secret | `archive_data.py` |
+| `AWS_BUCKET_NAME` | secret | `archive_data.py` (`screener-data-repository`) |
+| `AWS_REGION` | secret | `archive_data.py` (`eu-central-1`) |
 
 ## Data Files
 
@@ -162,6 +174,6 @@ The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING 
 
 - **Market breadth source:** Up/Down 4% counts come from Alpaca snapshots API (`fetch_breadth_alpaca`). Universe: NYSE+NASDAQ active equities, filtered to price > $3 and dollar vol > $250k OR volume > 100k (Bonde's filter). THRUST=500, DANGER=500 (Bonde "Very High pressure" calibration). A/D totals (`^NYADV ^NYDEC ^NAADV ^NADEC`) were removed — all four symbols are dead on Yahoo Finance as of April 2026. `breadth_source` field in daily JSON shows which source ran (`alpaca_4pct`).
 - **Python version:** 3.11 on GitHub Actions, may be 3.12+ locally. Avoid f-string backslashes inside `{}` expressions (breaks on 3.11).
-- **Testing:** Run `python -m unittest discover -s tests -t .` locally (212 tests, no API keys needed). Also `python -c "import agents.<module>"` to catch runtime errors. SnapTrade/Alpaca integration tests still require `gh workflow run <workflow>` + `gh run watch <id>`.
+- **Testing:** Run `python -m unittest discover -s tests -t .` locally (227 tests, no API keys needed). Also `python -c "import agents.<module>"` to catch runtime errors. SnapTrade/Alpaca integration tests still require `gh workflow run <workflow>` + `gh run watch <id>`.
 - **Finviz scraping:** Rotating user agents, exponential backoff, no proxy. Rate-limit-friendly delays between requests.
 - **Weekly agent:** Uses Claude API with `web_search` tool for catalyst research (~$0.10-0.20/run).
