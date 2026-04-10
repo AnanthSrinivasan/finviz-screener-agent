@@ -25,6 +25,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 **Supporting files:**
 - `generate_index.py` — Generates GitHub Pages index
+- `calibrate_peel.py` — Per-ticker peel threshold calibration. Formula: `(close-SMA50)*close/(SMA50*ATR14)` matching TradingView "ATR% Multiple". Finds historical run peaks (continuous periods above 50MA), computes p75 as signal threshold (floor 10x), p75×0.75 as warn (floor 7.5x). CLI: `--mode positions|watchlist|all`. Runs daily (positions) and weekly (watchlist). Output: `data/peel_calibration.json`.
 - `archive_data.py` — Archives dated data files older than 70 days to S3 (`screener-data-repository`, `eu-central-1`). Runs in `daily-finviz.yml` before git commit. Upload → verify (`head_object`) → delete local. Never archives state files.
 - `test_finviz_agent.py` — Unit tests (mocked, no API keys)
 - `test_integration.py` — Integration tests for signal merge pipeline
@@ -58,7 +59,7 @@ The position monitor has two layers:
 - Hard stop: $-4,500 per position (SLV Feb 2026 rule)
 - ATR exit: ATR multiple from SMA50 <= -1.5
 - Dynamic stop: 5% base + (ATR% × 0.5). Tightens to 3% base in RED/DANGER market state.
-- Peel warn/signal scaled by ATR% tier: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
+- Peel warn/signal: per-ticker calibrated from `data/peel_calibration.json` (p75 as signal, floor 10x; p75×0.75 as warn, floor 7.5x). Falls back to ATR% tier table if ticker not calibrated: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
 - AI commentary via Claude API
 
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**

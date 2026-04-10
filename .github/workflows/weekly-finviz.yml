@@ -44,6 +44,12 @@ jobs:
           DATA_DIR: data
         run: python utils/generate_dashboard.py
 
+      - name: Calibrate peel thresholds (watchlist)
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: python calibrate_peel.py --mode watchlist
+
       - name: Commit weekly report
         run: |
           git config user.name "github-actions[bot]"

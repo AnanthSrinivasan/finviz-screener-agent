@@ -52,6 +52,9 @@ PEEL_THRESHOLDS = {
     "extreme": {"max_atr": 999,  "warn": 8.5, "signal": 10.0},
 }
 
+# Cache for peel_calibration.json — loaded once per process
+_PEEL_CALIBRATION_CACHE: dict | None = None
+
 # --- Dynamic stop loss ---
 STOP_LOSS_BASE_PCT = float(os.environ.get("STOP_LOSS_BASE_PCT", "5.0"))
 STOP_LOSS_ATR_MULT = float(os.environ.get("STOP_LOSS_ATR_MULT", "0.5"))
@@ -121,7 +124,19 @@ def snaptrade_get(path: str, params: dict = None) -> dict | list | None:
 # Helper: Dynamic peel thresholds
 # ----------------------------
 
-def get_peel_thresholds(atr_pct: float) -> tuple:
+def get_peel_thresholds(atr_pct: float, ticker: str = None) -> tuple:
+    global _PEEL_CALIBRATION_CACHE
+    if ticker:
+        if _PEEL_CALIBRATION_CACHE is None:
+            cal_path = os.path.join(DATA_DIR, "peel_calibration.json")
+            try:
+                with open(cal_path) as fh:
+                    _PEEL_CALIBRATION_CACHE = json.load(fh)
+            except (FileNotFoundError, json.JSONDecodeError):
+                _PEEL_CALIBRATION_CACHE = {}
+        entry = _PEEL_CALIBRATION_CACHE.get(ticker, {})
+        if entry.get("calibrated"):
+            return entry["warn"], entry["signal"]
     for tier in PEEL_THRESHOLDS.values():
         if atr_pct <= tier["max_atr"]:
             return tier["warn"], tier["signal"]
@@ -468,7 +483,7 @@ def send_daily_position_summary(positions_with_metrics: list, ai_commentary: str
 
         atr_mult    = m.get("atr_multiple_ma", 0)
         stop_thresh = p.get("stop_loss_pct", 5.0)
-        peel_warn_m, peel_sig_m = get_peel_thresholds(m.get("atr_pct", 0))
+        peel_warn_m, peel_sig_m = get_peel_thresholds(m.get("atr_pct", 0), p.get("ticker"))
 
         # Hard stop check for display
         if pnl <= MAX_POSITION_LOSS:
@@ -1136,7 +1151,7 @@ if __name__ == "__main__":
                 log.warning(f"{ticker}: STOP WARNING — down {pnl_pct:.1f}%")
 
             # ── PEEL ─────────────────────────────────────────────────────
-            peel_warn_mult, peel_signal_mult = get_peel_thresholds(atr_pct)
+            peel_warn_mult, peel_signal_mult = get_peel_thresholds(atr_pct, ticker)
             pos["peel_warn_mult"]   = peel_warn_mult
             pos["peel_signal_mult"] = peel_signal_mult
 

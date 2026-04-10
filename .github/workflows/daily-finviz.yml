@@ -44,6 +44,12 @@ jobs:
           DATA_DIR: data
         run: python utils/generate_dashboard.py
 
+      - name: Calibrate peel thresholds (positions)
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: python calibrate_peel.py --mode positions
+
       - name: Archive old data to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

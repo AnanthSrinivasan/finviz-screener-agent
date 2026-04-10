@@ -521,7 +521,7 @@ Not needed yet. Revisit if automated execution is added.
 | Rule | Value | Enforced in |
 |------|-------|------------|
 | Max single position loss | $4,500 | `finviz_position_monitor.py` |
-| ATR peel level | +scaled by ATR% | Position monitor |
+| ATR peel level | Per-ticker calibrated (p75 of historical run peaks, floor 10x signal / 7.5x warn). Falls back to ATR% tier table if <3 runs. Formula matches TradingView "ATR% Multiple": `(close-SMA50)*close/(SMA50*ATR14)` | `calibrate_peel.py` → `position_monitor.py` |
 | ATR full exit | −1.5× ATR multiple from MA | Position monitor |
 | ATR stop warning | −1.0× ATR multiple from MA | Position monitor |
 | Sector discipline | Core sectors only | Gallery badge + AI brief |
