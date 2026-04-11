@@ -458,95 +458,97 @@ def generate_dashboard(data, base_url):
 <style>
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #0f1117; color: #e2e8f0; min-height: 100vh; }}
-  a {{ color: #7aa2f7; text-decoration: none; }}
+         background: #f8f9fc; color: #111827; min-height: 100vh; }}
+  a {{ color: #2563eb; text-decoration: none; }}
   a:hover {{ text-decoration: underline; }}
 
   /* Header */
   .dash-header {{ display: flex; align-items: center; gap: 16px; padding: 24px 32px 20px;
-                   border-bottom: 1px solid #1e2130; flex-wrap: wrap; }}
-  .dash-header h1 {{ font-size: 1.3rem; font-weight: 700; }}
-  .dash-meta {{ font-size: 0.75rem; color: #64748b; margin-left: auto; }}
+                   border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; background: #fff; }}
+  .dash-header h1 {{ font-size: 1.3rem; font-weight: 700; color: #111827; }}
+  .dash-meta {{ font-size: 0.75rem; color: #9ca3af; margin-left: auto; }}
   .back-link {{ font-size: 0.82rem; }}
 
   /* Top badges row */
-  .top-badges {{ display: flex; gap: 12px; padding: 16px 32px; border-bottom: 1px solid #1e2130; flex-wrap: wrap; align-items: center; }}
+  .top-badges {{ display: flex; gap: 12px; padding: 16px 32px; border-bottom: 1px solid #e5e7eb;
+                  flex-wrap: wrap; align-items: center; background: #fff; }}
   .market-state-pill {{ padding: 6px 16px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;
                          letter-spacing: 0.06em; }}
-  .state-green {{ background: #064e3b; color: #34d399; }}
-  .state-caution {{ background: #713f12; color: #fbbf24; }}
-  .state-danger {{ background: #7f1d1d; color: #f87171; }}
-  .state-red {{ background: #450a0a; color: #ef4444; }}
+  .state-green {{ background: #dcfce7; color: #15803d; }}
+  .state-caution {{ background: #fef9c3; color: #a16207; }}
+  .state-danger {{ background: #fee2e2; color: #b91c1c; }}
+  .state-red {{ background: #fee2e2; color: #dc2626; }}
   .sizing-pill {{ padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }}
-  .sizing-normal {{ background: #1e293b; color: #94a3b8; }}
-  .sizing-aggressive {{ background: #064e3b; color: #34d399; }}
-  .sizing-reduced {{ background: #713f12; color: #fbbf24; }}
-  .sizing-suspended {{ background: #450a0a; color: #ef4444; }}
+  .sizing-normal {{ background: #f1f5f9; color: #64748b; }}
+  .sizing-aggressive {{ background: #dcfce7; color: #15803d; }}
+  .sizing-reduced {{ background: #fef9c3; color: #a16207; }}
+  .sizing-suspended {{ background: #fee2e2; color: #dc2626; }}
 
   /* Sections */
-  .section {{ padding: 24px 32px; }}
-  .section + .section {{ border-top: 1px solid #1e2130; }}
-  .section-title {{ font-size: 0.72rem; font-weight: 600; color: #64748b;
+  .section {{ padding: 24px 32px; background: #fff; }}
+  .section + .section {{ border-top: 1px solid #e5e7eb; }}
+  .section-title {{ font-size: 0.72rem; font-weight: 700; color: #6b7280;
                      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }}
-  .sub-label {{ font-size: 0.68rem; font-weight: 600; color: #64748b;
+  .sub-label {{ font-size: 0.68rem; font-weight: 700; color: #6b7280;
                 text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }}
 
   /* Positions */
   .positions-summary {{ display: flex; gap: 28px; margin-bottom: 16px; flex-wrap: wrap; }}
   .summary-item {{ display: flex; flex-direction: column; gap: 2px; }}
-  .summary-label {{ font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }}
-  .summary-val {{ font-size: 1.2rem; font-weight: 700; }}
+  .summary-label {{ font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }}
+  .summary-val {{ font-size: 1.2rem; font-weight: 700; color: #111827; }}
 
   /* Tables */
   .table-wrap {{ overflow-x: auto; }}
   table {{ width: 100%; border-collapse: collapse; font-size: 0.82rem; }}
-  th {{ text-align: left; padding: 8px 12px; font-size: 0.68rem; color: #64748b;
-       text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #1e2130; font-weight: 600; }}
-  td {{ padding: 10px 12px; border-bottom: 1px solid #141929; }}
+  th {{ text-align: left; padding: 8px 12px; font-size: 0.68rem; color: #6b7280;
+       text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid #e5e7eb; font-weight: 700; }}
+  td {{ padding: 10px 12px; border-bottom: 1px solid #f3f4f6; }}
+  tr:hover td {{ background: #f9fafb; }}
   .ticker-cell {{ white-space: nowrap; }}
-  .ticker {{ font-weight: 700; font-size: 0.88rem; }}
-  .entry-date {{ display: block; font-size: 0.68rem; color: #64748b; }}
-  .thesis-cell {{ font-size: 0.75rem; color: #94a3b8; max-width: 280px; }}
+  .ticker {{ font-weight: 700; font-size: 0.88rem; color: #111827; }}
+  .entry-date {{ display: block; font-size: 0.68rem; color: #9ca3af; }}
+  .thesis-cell {{ font-size: 0.75rem; color: #6b7280; max-width: 280px; }}
   .targets-cell {{ font-size: 0.75rem; white-space: nowrap; }}
   .risk-cell {{ font-size: 0.75rem; }}
 
-  .pos {{ color: #34d399; }}
-  .neg {{ color: #ef4444; }}
-  .flat {{ color: #94a3b8; }}
+  .pos {{ color: #16a34a; font-weight: 600; }}
+  .neg {{ color: #dc2626; font-weight: 600; }}
+  .flat {{ color: #9ca3af; }}
 
-  .target-hit {{ color: #34d399; font-weight: 600; }}
-  .target-pending {{ color: #64748b; }}
-  .be-badge {{ background: #064e3b; color: #34d399; font-size: 0.62rem; padding: 1px 5px;
+  .target-hit {{ color: #16a34a; font-weight: 600; }}
+  .target-pending {{ color: #9ca3af; }}
+  .be-badge {{ background: #dcfce7; color: #15803d; font-size: 0.62rem; padding: 1px 5px;
                border-radius: 3px; font-weight: 600; vertical-align: middle; }}
 
   /* Market grid */
   .market-header {{ display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }}
   .market-state-badge {{ padding: 8px 20px; border-radius: 8px; font-size: 1rem; font-weight: 800;
                           letter-spacing: 0.08em; }}
-  .market-msg {{ font-size: 0.82rem; color: #94a3b8; }}
-  .market-date {{ font-size: 0.72rem; color: #64748b; margin-left: auto; }}
+  .market-msg {{ font-size: 0.82rem; color: #6b7280; }}
+  .market-date {{ font-size: 0.72rem; color: #9ca3af; margin-left: auto; }}
   .market-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }}
-  .market-card {{ background: #141929; border: 1px solid #1e2130; border-radius: 10px; padding: 16px; }}
-  .mc-label {{ font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }}
-  .mc-val {{ font-size: 1.3rem; font-weight: 700; margin-bottom: 2px; }}
-  .mc-sub {{ font-size: 0.72rem; color: #94a3b8; margin-bottom: 8px; }}
+  .market-card {{ background: #f8f9fc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }}
+  .mc-label {{ font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }}
+  .mc-val {{ font-size: 1.3rem; font-weight: 700; color: #111827; margin-bottom: 2px; }}
+  .mc-sub {{ font-size: 0.72rem; color: #6b7280; margin-bottom: 8px; }}
   .hist-row {{ display: flex; gap: 8px; flex-wrap: wrap; }}
   .hist-item {{ display: flex; flex-direction: column; align-items: center; gap: 1px; }}
-  .hist-date {{ font-size: 0.58rem; color: #475569; }}
-  .hist-val {{ font-size: 0.68rem; font-weight: 600; color: #94a3b8; }}
+  .hist-date {{ font-size: 0.58rem; color: #9ca3af; }}
+  .hist-val {{ font-size: 0.68rem; font-weight: 600; color: #6b7280; }}
 
   .badge {{ font-size: 0.62rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; vertical-align: middle; }}
-  .badge-green {{ background: #064e3b; color: #34d399; }}
-  .badge-red {{ background: #450a0a; color: #ef4444; }}
+  .badge-green {{ background: #dcfce7; color: #15803d; }}
+  .badge-red {{ background: #fee2e2; color: #dc2626; }}
 
   /* Watchlist */
   .watchlist-summary {{ display: flex; gap: 16px; margin-bottom: 12px; }}
-  .ws-count {{ font-size: 0.78rem; color: #94a3b8; }}
+  .ws-count {{ font-size: 0.78rem; color: #6b7280; }}
   .ws-badge {{ font-size: 0.68rem; padding: 2px 10px; border-radius: 4px; font-weight: 600; }}
-  .ws-watching {{ background: #1e293b; color: #94a3b8; }}
-  .ws-entered {{ background: #064e3b; color: #34d399; }}
-  .ws-stopped {{ background: #450a0a; color: #ef4444; }}
-  .ws-removed {{ background: #1e1e1e; color: #64748b; }}
+  .ws-watching {{ background: #f1f5f9; color: #64748b; }}
+  .ws-entered {{ background: #dcfce7; color: #15803d; }}
+  .ws-stopped {{ background: #fee2e2; color: #dc2626; }}
+  .ws-removed {{ background: #f3f4f6; color: #9ca3af; }}
 
   /* Alerts */
   .alerts-layout {{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }}
@@ -554,45 +556,45 @@ def generate_dashboard(data, base_url):
   .alerts-col {{ }}
   .alert-timeline {{ display: flex; flex-direction: column; gap: 8px; }}
   .alert-item {{ display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-                  background: #141929; border-radius: 6px; border-left: 3px solid #f59e0b; }}
-  .alert-date {{ font-size: 0.72rem; color: #64748b; white-space: nowrap; }}
-  .alert-label {{ font-size: 0.78rem; font-weight: 600; color: #e2e8f0; }}
+                  background: #fffbeb; border-radius: 6px; border-left: 3px solid #d97706; }}
+  .alert-date {{ font-size: 0.72rem; color: #9ca3af; white-space: nowrap; }}
+  .alert-label {{ font-size: 0.78rem; font-weight: 600; color: #111827; }}
 
   .spark-row {{ display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-bottom: 12px; }}
   .spark-bar {{ width: 18px; border-radius: 2px 2px 0 0; min-height: 4px; }}
 
   .commodities-row {{ display: flex; gap: 16px; }}
   .commodity-card {{ display: flex; align-items: center; gap: 8px; padding: 6px 12px;
-                      background: #141929; border-radius: 6px; }}
-  .comm-label {{ font-size: 0.68rem; color: #64748b; font-weight: 600; }}
-  .comm-val {{ font-size: 0.82rem; font-weight: 700; }}
+                      background: #f8f9fc; border: 1px solid #e5e7eb; border-radius: 6px; }}
+  .comm-label {{ font-size: 0.68rem; color: #9ca3af; font-weight: 600; }}
+  .comm-val {{ font-size: 0.82rem; font-weight: 700; color: #111827; }}
 
   /* Trading State */
   .ts-grid {{ display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }}
   @media (max-width: 640px) {{ .ts-grid {{ grid-template-columns: 1fr 1fr; }} }}
-  .ts-card {{ background: #141929; border: 1px solid #1e2130; border-radius: 10px; padding: 16px;
+  .ts-card {{ background: #f8f9fc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px;
               display: flex; flex-direction: column; gap: 4px; }}
-  .ts-label {{ font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }}
+  .ts-label {{ font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; }}
   .ts-badge {{ font-size: 1.1rem; font-weight: 800; letter-spacing: 0.06em;
                padding: 4px 14px; border-radius: 6px; align-self: flex-start; }}
-  .ts-val {{ font-size: 1.3rem; font-weight: 700; }}
-  .ts-desc {{ font-size: 0.72rem; color: #94a3b8; }}
-  .override-badge {{ background: #713f12; color: #fbbf24; font-size: 0.62rem; padding: 2px 8px;
+  .ts-val {{ font-size: 1.3rem; font-weight: 700; color: #111827; }}
+  .ts-desc {{ font-size: 0.72rem; color: #6b7280; }}
+  .override-badge {{ background: #fef9c3; color: #a16207; font-size: 0.62rem; padding: 2px 8px;
                       border-radius: 4px; font-weight: 600; }}
 
   .streak-row {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }}
   .streak-dots {{ display: flex; gap: 4px; }}
   .streak-dot {{ width: 12px; height: 12px; border-radius: 50%; }}
-  .dot-win {{ background: #34d399; }}
-  .dot-loss {{ background: #ef4444; }}
-  .dot-flat {{ background: #64748b; }}
-  .ts-updated {{ font-size: 0.68rem; color: #475569; margin-left: auto; }}
+  .dot-win {{ background: #16a34a; }}
+  .dot-loss {{ background: #dc2626; }}
+  .dot-flat {{ background: #9ca3af; }}
+  .ts-updated {{ font-size: 0.68rem; color: #9ca3af; margin-left: auto; }}
 
-  .empty-state {{ font-size: 0.82rem; color: #475569; padding: 16px 0; }}
+  .empty-state {{ font-size: 0.82rem; color: #9ca3af; padding: 16px 0; }}
 
   /* Footer */
-  .footer {{ padding: 20px 32px; border-top: 1px solid #1e2130;
-             font-size: 0.72rem; color: #334155; }}
+  .footer {{ padding: 20px 32px; border-top: 1px solid #e5e7eb;
+             font-size: 0.72rem; color: #9ca3af; background: #fff; }}
 </style>
 </head>
 <body>

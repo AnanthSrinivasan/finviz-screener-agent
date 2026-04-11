@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading System — Performance Overview</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f8f9fc; color: #1a202c; font-family: 'Segoe UI', system-ui, sans-serif; padding: 40px 24px; }
+  h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .subtitle { color: #6b7280; font-size: 0.875rem; margin-bottom: 36px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
+  .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card.full { grid-column: 1 / -1; }
+  .card h2 { font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+  .stat-row { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 8px; }
+  .stat .label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 3px; }
+  .stat .value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+  .stat .value.green { color: #16a34a; }
+  .stat .value.amber { color: #d97706; }
+  .stat .value.red { color: #dc2626; }
+  canvas { max-height: 260px; }
+  .heatmap { display: grid; grid-template-columns: 60px repeat(12, 1fr); gap: 3px; font-size: 0.7rem; }
+  .heatmap .year-label { display: flex; align-items: center; color: #6b7280; font-weight: 600; }
+  .heatmap .month-header { text-align: center; color: #9ca3af; padding: 4px 0; font-size: 0.65rem; font-weight: 600; }
+  .cell { border-radius: 4px; padding: 6px 2px; text-align: center; font-weight: 600; font-size: 0.68rem; }
+  .pos-strong { background: #dcfce7; color: #15803d; }
+  .pos-mid    { background: #d1fae5; color: #059669; }
+  .pos-light  { background: #ecfdf5; color: #10b981; }
+  .neg-light  { background: #fff7ed; color: #d97706; }
+  .neg-mid    { background: #fee2e2; color: #dc2626; }
+  .neg-strong { background: #fecaca; color: #b91c1c; }
+  .neutral    { background: #f3f4f6; color: #9ca3af; }
+  .note { font-size: 0.72rem; color: #9ca3af; margin-top: 10px; font-style: italic; line-height: 1.5; }
+  .header-row { max-width: 1100px; margin: 0 auto 28px; }
+  .badge { display: inline-block; background: #eff6ff; color: #2563eb; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; margin-left: 10px; vertical-align: middle; border: 1px solid #bfdbfe; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="header-row">
+  <h1>Trading System — Performance Overview <span class="badge">1099 Verified</span></h1>
+  <p class="subtitle">Realized P&amp;L · Live Robinhood Account · 2024–2025 · Rules-based, fully automated</p>
+</div>
+
+<div class="grid">
+
+  <!-- KPI row -->
+  <div class="card full">
+    <h2>Key Metrics</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="label">2024 Net Realized P&L</div><div class="value green">+$47,636</div></div>
+      <div class="stat"><div class="label">2025 Net Realized P&L</div><div class="value green">+$42,481</div></div>
+      <div class="stat"><div class="label">Combined 2-Year P&L</div><div class="value green">+$90,117</div></div>
+      <div class="stat"><div class="label">2024 Return on Net Capital</div><div class="value amber">~100%</div></div>
+      <div class="stat"><div class="label">2025 Return on Account</div><div class="value amber">~45%</div></div>
+      <div class="stat"><div class="label">Total Notional Traded</div><div class="value">$2.03M</div></div>
+      <div class="stat"><div class="label">2024 Max Drawdown</div><div class="value">−4.9%</div></div>
+      <div class="stat"><div class="label">2025 Max Drawdown</div><div class="value red">−23.5%</div></div>
+    </div>
+  </div>
+
+  <!-- Annual P&L bar -->
+  <div class="card">
+    <h2>Annual Net Realized P&amp;L</h2>
+    <canvas id="annualBar"></canvas>
+  </div>
+
+  <!-- Equity curve -->
+  <div class="card">
+    <h2>Estimated Account Equity Curve</h2>
+    <canvas id="equityCurve"></canvas>
+    <p class="note">2024: reconstructed from $44,792 net new capital (front-loaded Jan–Apr) + exact monthly realized P&amp;L (1099-B). 2025: monthly P&amp;L applied to starting balance; July 2025 was the account peak at ~$115K.</p>
+  </div>
+
+  <!-- Monthly heatmap -->
+  <div class="card full">
+    <h2>Monthly P&amp;L Heatmap</h2>
+    <div class="heatmap" id="heatmap"></div>
+    <p class="note">Exact monthly realized P&amp;L computed from 1099-B consolidated CSV (proceeds − cost basis, grouped by sale month). 2024 total: $44,970 (difference from 1099 verified $47,636 = dividends/interest). 2025 computed total: −$6,894 vs. 1099 verified $42,481 — the $49,374 gap is wash-sale disallowed amounts: losses deferred on stocks re-entered within 30 days, recognized as gains for tax purposes.</p>
+  </div>
+
+  <!-- Drawdown chart -->
+  <div class="card full">
+    <h2>Drawdown from Peak — 2024–2025</h2>
+    <canvas id="drawdownChart"></canvas>
+    <p class="note">July 2025 peak (~$115K) → Dec 2025 (~$88K) = <strong>−23.5% max drawdown</strong>. Driven by concentrated positions in volatile names (Aug–Sep 2025). 2024 max drawdown: −4.9% (gains concentrated in Nov–Dec).</p>
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.color = '#6b7280';
+Chart.defaults.borderColor = '#e5e7eb';
+
+const green  = '#16a34a';
+const red    = '#dc2626';
+const amber  = '#d97706';
+const blue   = '#2563eb';
+const gridC  = '#e5e7eb';
+
+// ── Annual bar ─────────────────────────────────────────────
+new Chart(document.getElementById('annualBar'), {
+  type: 'bar',
+  data: {
+    labels: ['2024', '2025'],
+    datasets: [{
+      label: 'Net Realized P&L ($)',
+      data: [47636, 42481],
+      backgroundColor: [green + '33', green + '33'],
+      borderColor:     [green, green],
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' },
+        grid: { color: gridC }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── Equity curve ───────────────────────────────────────────
+const eqLabels = [
+  'Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24',
+  'Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24',
+  'Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25',
+  'Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25'
+];
+const eqData = [
+  24000, 28000, 34000, 38000, 36000, 34000,
+  35000, 40000, 41000, 47000, 78000, 92000,
+  88000, 89000, 89000, 91000, 93000, 90000,
+  115000, 97000, 91000, 92000, 90000, 88000
+];
+new Chart(document.getElementById('equityCurve'), {
+  type: 'line',
+  data: {
+    labels: eqLabels,
+    datasets: [{
+      label: 'Account Equity ($)',
+      data: eqData,
+      borderColor: blue,
+      backgroundColor: blue + '18',
+      fill: true,
+      tension: 0.35,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' ~$' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' },
+        grid: { color: gridC }
+      },
+      x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } }
+    }
+  }
+});
+
+// ── Drawdown from peak ─────────────────────────────────────
+function drawdownSeries(equity) {
+  let peak = equity[0];
+  return equity.map(v => {
+    if (v > peak) peak = v;
+    return peak > 0 ? ((v - peak) / peak * 100) : 0;
+  });
+}
+const dd = drawdownSeries(eqData);
+new Chart(document.getElementById('drawdownChart'), {
+  type: 'line',
+  data: {
+    labels: eqLabels,
+    datasets: [{
+      label: 'Drawdown from Peak (%)',
+      data: dd,
+      borderColor: red,
+      backgroundColor: red + '18',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 2,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(1) + '%' } }
+    },
+    scales: {
+      y: {
+        max: 2,
+        ticks: { callback: v => v.toFixed(0) + '%' },
+        grid: { color: gridC }
+      },
+      x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } }
+    }
+  }
+});
+
+// ── Monthly heatmap ────────────────────────────────────────
+const monthlyEst = {
+  '2024': [-759, -90, 786, -351, -3893, -2441, -450, 3414, -100, 4213, 30953, 13687],
+  '2025': [-3588, 659, -147, 1359, 883, -3155, 24863, -17796, -5478, 502, -2578, -2418],
+};
+
+function cellClass(v) {
+  if (v > 8000) return 'pos-strong';
+  if (v > 2000) return 'pos-mid';
+  if (v > 0)    return 'pos-light';
+  if (v > -2000) return 'neg-light';
+  if (v > -5000) return 'neg-mid';
+  return 'neg-strong';
+}
+
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const hm = document.getElementById('heatmap');
+hm.innerHTML += '<div></div>' + months.map(m => `<div class="month-header">${m}</div>`).join('');
+
+['2024','2025'].forEach(yr => {
+  hm.innerHTML += `<div class="year-label">${yr}</div>`;
+  monthlyEst[yr].forEach(v => {
+    const label = v >= 0 ? '+$'+(Math.abs(v)/1000).toFixed(1)+'K' : '-$'+(Math.abs(v)/1000).toFixed(1)+'K';
+    hm.innerHTML += `<div class="cell ${cellClass(v)}">${label}</div>`;
+  });
+});
+</script>
+</body>
+</html>

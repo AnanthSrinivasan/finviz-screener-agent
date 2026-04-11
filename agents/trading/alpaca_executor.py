@@ -139,7 +139,7 @@ def load_screener_csv(today: str) -> list:
                     row[col] = {}
 
             # Parse numeric fields
-            for col in ("Quality Score", "ATR%", "EPS Y/Y TTM", "Rel Volume", "Appearances"):
+            for col in ("Quality Score", "ATR%", "SMA50%", "EPS Y/Y TTM", "Rel Volume", "Appearances"):
                 try:
                     row[col] = float(row.get(col, "") or 0)
                 except (ValueError, TypeError):
@@ -526,6 +526,25 @@ if __name__ == "__main__":
         if dollar_alloc <= 0:
             log.info("Skipping %s — no allocation (Q=%.0f)", ticker, qs)
             continue
+
+        # ATR% multiple from MA gate — no new positions when stock is already extended
+        # Multiple = SMA50% / ATR% (same formula as position_monitor)
+        # Rule: skip new entry if multiple > 6 (extended; peel territory, not entry territory)
+        atr_pct_raw  = row.get("ATR%", 0)
+        sma50_pct    = row.get("SMA50%", None)  # None = unknown (watchlist rows from daily_quality)
+        if sma50_pct is not None and atr_pct_raw > 0:
+            atr_multiple_entry = sma50_pct / atr_pct_raw
+            if atr_multiple_entry > 6:
+                msg = (
+                    ":no_entry_sign: *SKIPPED* " + ticker
+                    + " — ATR multiple from MA *" + str(round(atr_multiple_entry, 2))
+                    + "x* > 6.0 (too extended for new entry)"
+                )
+                log.info("Skipping %s — ATR multiple %.2f > 6.0 (extended)", ticker, atr_multiple_entry)
+                slack_send(msg)
+                continue
+        elif sma50_pct is None:
+            log.info("%s — SMA50%% unknown (watchlist row), skipping ATR multiple check", ticker)
 
         # Fetch price
         price = get_current_price(ticker)

@@ -24,8 +24,10 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
 **Supporting files:**
-- `generate_index.py` — Generates GitHub Pages index
-- `calibrate_peel.py` — Per-ticker peel threshold calibration. Formula: `(close-SMA50)*close/(SMA50*ATR14)` matching TradingView "ATR% Multiple". Finds historical run peaks (continuous periods above 50MA), computes p75 as signal threshold (floor 10x), p75×0.75 as warn (floor 7.5x). CLI: `--mode positions|watchlist|all`. Runs daily (positions) and weekly (watchlist). Output: `data/peel_calibration.json`.
+- `utils/generate_index.py` — Generates GitHub Pages index
+- `utils/calibrate_peel.py` — Per-ticker peel threshold calibration. Formula: `(close-SMA50)*close/(SMA50*ATR14)` matching TradingView "ATR% Multiple". Finds historical run peaks (continuous periods above 50MA), computes p75 as signal threshold (floor 10x), p75×0.75 as warn (floor 7.5x). CLI: `--mode positions|watchlist|all`. Runs daily (positions) and weekly (watchlist). Output: `data/peel_calibration.json`.
+- `utils/analyze_mae.py` — MAE/MFE analysis from 1099-B CSV + Alpaca OHLCV. Run ad-hoc: `python utils/analyze_mae.py`. Output: `data/mae_analysis.html` + `data/mae_analysis.json`.
+- `utils/peel_calibration.py` — Research script for run-based peak detection (ad-hoc use).
 - `archive_data.py` — Archives dated data files older than 70 days to S3 (`screener-data-repository`, `eu-central-1`). Runs in `daily-finviz.yml` before git commit. Upload → verify (`head_object`) → delete local. Never archives state files.
 - `test_finviz_agent.py` — Unit tests (mocked, no API keys)
 - `test_integration.py` — Integration tests for signal merge pipeline

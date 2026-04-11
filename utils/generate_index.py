@@ -131,50 +131,51 @@ def generate_index(reports: dict, base_url: str) -> str:
 <style>
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #0f1117; color: #e2e8f0; min-height: 100vh; }}
+         background: #f8f9fc; color: #111827; min-height: 100vh; }}
 
   /* Hero */
-  .hero {{ padding: 48px 32px 40px; border-bottom: 1px solid #1e2130; }}
-  .hero h1 {{ font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }}
-  .hero p {{ color: #64748b; font-size: 0.88rem; margin-bottom: 24px; }}
+  .hero {{ padding: 48px 32px 40px; border-bottom: 1px solid #e5e7eb; background: #fff; }}
+  .hero h1 {{ font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; color: #111827; }}
+  .hero p {{ color: #6b7280; font-size: 0.88rem; margin-bottom: 24px; }}
   .hero-links {{ display: flex; gap: 12px; flex-wrap: wrap; }}
   .hero-btn {{ display: inline-flex; align-items: center; gap: 6px;
                padding: 10px 20px; border-radius: 8px; font-size: 0.88rem;
                font-weight: 600; text-decoration: none; transition: opacity .15s; }}
   .hero-btn:hover {{ opacity: .85; }}
-  .btn-weekly {{ background: #2d3f6e; color: #7aa2f7; }}
-  .btn-daily  {{ background: #0c2240; color: #38bdf8; }}
-  .btn-dash   {{ background: #1a1a2e; color: #a78bfa; }}
+  .btn-weekly {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
+  .btn-daily  {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
+  .btn-dash   {{ background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }}
 
   /* Stats bar */
   .stats {{ display: flex; gap: 32px; padding: 20px 32px;
-            border-bottom: 1px solid #1e2130; flex-wrap: wrap; }}
+            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; background: #fff; }}
   .stat {{ display: flex; flex-direction: column; gap: 2px; }}
-  .stat-val {{ font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }}
-  .stat-label {{ font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }}
+  .stat-val {{ font-size: 1.4rem; font-weight: 700; color: #111827; }}
+  .stat-label {{ font-size: 0.72rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }}
 
   /* Sections */
-  .section {{ padding: 28px 32px; }}
-  .section + .section {{ border-top: 1px solid #1e2130; }}
-  .section h2 {{ font-size: 0.78rem; font-weight: 600; color: #64748b;
+  .section {{ padding: 28px 32px; background: #fff; }}
+  .section + .section {{ border-top: 1px solid #e5e7eb; }}
+  .section h2 {{ font-size: 0.78rem; font-weight: 700; color: #6b7280;
                  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }}
 
   /* Cards */
   .cards {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }}
   .card {{ display: flex; flex-direction: column; gap: 4px; padding: 14px 16px;
-           border-radius: 10px; text-decoration: none; transition: border-color .15s; border: 1px solid #1e2130; }}
-  .card:hover {{ border-color: #4f6ef7; }}
-  .card-weekly {{ background: #141929; }}
-  .card-daily  {{ background: #0d1a24; }}
-  .card-label {{ font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }}
-  .card-weekly .card-label {{ color: #7aa2f7; }}
-  .card-daily  .card-label {{ color: #38bdf8; }}
-  .card-date {{ font-size: 0.88rem; font-weight: 600; color: #e2e8f0; }}
-  .card-ago  {{ font-size: 0.72rem; color: #64748b; }}
+           border-radius: 10px; text-decoration: none; transition: border-color .15s, box-shadow .15s;
+           border: 1px solid #e5e7eb; background: #fff; }}
+  .card:hover {{ border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }}
+  .card-weekly {{ background: #eff6ff; border-color: #dbeafe; }}
+  .card-daily  {{ background: #f0fdf4; border-color: #dcfce7; }}
+  .card-label {{ font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }}
+  .card-weekly .card-label {{ color: #1d4ed8; }}
+  .card-daily  .card-label {{ color: #15803d; }}
+  .card-date {{ font-size: 0.88rem; font-weight: 600; color: #111827; }}
+  .card-ago  {{ font-size: 0.72rem; color: #9ca3af; }}
 
   /* Footer */
-  .footer {{ padding: 20px 32px; border-top: 1px solid #1e2130;
-             font-size: 0.72rem; color: #334155; }}
+  .footer {{ padding: 20px 32px; border-top: 1px solid #e5e7eb;
+             font-size: 0.72rem; color: #9ca3af; background: #fff; }}
 </style>
 </head>
 <body>
@@ -214,7 +215,7 @@ def generate_index(reports: dict, base_url: str) -> str:
 <div class="footer">
   Generated {generated_at} · 
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent" 
-     style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
+     style="color:#9ca3af">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
 
 </body>
