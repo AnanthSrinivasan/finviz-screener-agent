@@ -61,17 +61,19 @@
 
 | State | Condition | Trading Action |
 |-------|-----------|---------------|
-| BLACKOUT | Sep 1–Oct 15, Feb 1–Mar 15 | No new trades (seasonal weakness) |
+| BLACKOUT | Sep 1–Sep 30 | No new trades (September is historically the worst month for equities — confirmed in live data) |
 | DANGER | 500+ stocks down 4%+ in a day | No entries, raise stops immediately |
 | COOLING | Was GREEN, conditions fading | Trim, tighten, no new entries |
-| THRUST | 500+ stocks up 4%+ in a day | Start building watchlist NOW |
+| THRUST | 500+ stocks up 4%+ in a day (Bonde "Very High" buying pressure) | Start building watchlist NOW |
 | GREEN | 5d ratio ≥2.0, F&G ≥35, SPY above 200d MA | Full-size entries |
 | CAUTION | 5d ratio ≥1.5, F&G ≥25, SPY above 200d MA | Half-size, watchlist building |
 | RED | Everything else | No new trades |
 
-- Breadth data sourced from Alpaca snapshots (NYSE + NASDAQ, 500k+ share universe filtered by Bonde's dollar-volume criteria)
+- **Breadth universe:** NYSE + NASDAQ active equities, filtered to price > $3 and dollar volume > $250K or volume > 100K (Pradeep Bonde's institutional dollar-volume filter). THRUST and DANGER thresholds calibrated at 500 stocks — Bonde's "Very High pressure" level.
+- Breadth data sourced from Alpaca snapshots — computed at close, not delayed exchange feeds
 - State changes trigger Slack alerts within minutes of market close
 - **Sizes down automatically in CAUTION; blocks all entries in RED, DANGER, BLACKOUT**
+- *Blackout note: Original model included Feb 1–Mar 15. Live trade data (2024–2025) showed Feb and Mar were profitable in both years — that seasonal window has been removed. September blackout confirmed by Sep 2025 data (−$5,478 realized). October was profitable in both years and is no longer blocked.*
 
 ---
 
