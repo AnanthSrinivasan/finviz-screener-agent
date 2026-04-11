@@ -39,7 +39,7 @@ tr:hover td { background: #f9fafb; }
     <div class="stat"><div class="label">Avg Hold Period</div><div class="value">24.8d</div></div>
     <div class="stat"><div class="label">Win Rate</div><div class="value" style="color:#16a34a">32%</div></div>
   </div>
-  <p class="note">MAE uses daily Low — this is the worst MTM dip you lived through each day (not intraday tick). Captures real psychological pressure, unlike close-to-close P&amp;L.</p>
+  <p class="note"><strong>MAE</strong> = Maximum Adverse Excursion — the worst the position went against you (lowest daily Low vs. entry price) at any point during the hold. A trade can close positive yet dip −10% midway — MAE captures that real pain. <strong>MFE</strong> = Maximum Favorable Excursion — the best point reached during the hold, regardless of where it closed. Win rate of 32% is normal for momentum systems where winners are much larger than losers.</p>
 </div>
 
 <div class="card">
@@ -48,18 +48,25 @@ tr:hover td { background: #f9fafb; }
     <tr><th>MAE Range</th><th>Trades</th><th>Frequency</th></tr>
     <tr><td>0% to −2%</td><td>18</td><td>9%</td></tr><tr><td>−2% to −5%</td><td>54</td><td>26%</td></tr><tr><td>−5% to −10%</td><td>54</td><td>26%</td></tr><tr><td>−10% to −15%</td><td>27</td><td>13%</td></tr><tr><td>−15% to −20%</td><td>16</td><td>8%</td></tr><tr><td>−20% to −30%</td><td>17</td><td>8%</td></tr><tr><td>Beyond −30%</td><td>20</td><td>10%</td></tr>
   </table>
-  <p class="note">Read as: what % of your trades dipped more than X% before closing.</p>
+  <p class="note">
+    <strong>0% to −2% (9%):</strong> Trade barely moved against you — bought the breakout and it ran. Rare.<br>
+    <strong>−2% to −5% (26%):</strong> Small routine pullback. Most common bucket. Normal noise — a stop at −4% would have cut these unnecessarily.<br>
+    <strong>−5% to −10% (26%):</strong> Still normal. Combined with above: <strong>52% of all trades dipped 0–10%</strong> — this is the daily pain you must accept to stay in winners.<br>
+    <strong>−10% to −15% (13%):</strong> Meaningful dip. 1 in 8 trades went this far before resolving. Panic exit here = cutting live trades.<br>
+    <strong>Beyond −30% (10%):</strong> Real losers or multi-month holds that broke down structurally. Stop-loss rules should have fired here.
+  </p>
 </div>
 
 <div class="card">
-  <h2>Key Insight for 2026</h2>
+  <h2>What This Means for 2026</h2>
   <table>
-    <tr><th>Scenario</th><th>Expectation</th></tr>
-    <tr><td>Typical trade dips</td><td style="color:#d97706;font-weight:600">-12.9% before resolving</td></tr>
-    <tr><td>Winners dip before winning</td><td style="color:#d97706;font-weight:600">-9.4% avg MAE on winning trades</td></tr>
-    <tr><td>Winners peak at</td><td style="color:#16a34a;font-weight:600">+8.1% best point</td></tr>
+    <tr><th>Situation</th><th>What history says</th></tr>
+    <tr><td>Your position is down 5–10%</td><td style="color:#d97706;font-weight:600">Normal — happens in 52% of all trades. Stay in.</td></tr>
+    <tr><td>Winners before they won</td><td style="color:#d97706;font-weight:600">Dipped -9.4% on average first. Give it room.</td></tr>
+    <tr><td>Every trade's best moment (MFE)</td><td style="color:#16a34a;font-weight:600">+8.1% avg peak — most trades give you a window to exit in profit.</td></tr>
+    <tr><td>When to actually worry</td><td style="color:#dc2626;font-weight:600">Position down &gt;20% with no recovery — that's outside normal range (only 18% of trades).</td></tr>
   </table>
-  <p class="note">When a current position dips close to -12.9% from your entry — that is normal historical behaviour, not a system failure. Panic exits here would have cost you the average winner.</p>
+  <p class="note">When a current position is down -12.9% from entry — that is normal historical behaviour, not a system failure. The $4,500 hard stop and dynamic ATR stop exist to catch structural breakdowns, not routine 5–10% dips.</p>
 </div>
 
 <div class="card full">

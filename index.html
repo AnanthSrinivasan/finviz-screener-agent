@@ -7,58 +7,61 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+         background: #f8f9fc; color: #111827; min-height: 100vh; }
 
   /* Hero */
-  .hero { padding: 48px 32px 40px; border-bottom: 1px solid #1e2130; }
-  .hero h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
-  .hero p { color: #64748b; font-size: 0.88rem; margin-bottom: 24px; }
+  .hero { padding: 48px 32px 40px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+  .hero h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; color: #111827; }
+  .hero p { color: #6b7280; font-size: 0.88rem; margin-bottom: 24px; }
   .hero-links { display: flex; gap: 12px; flex-wrap: wrap; }
   .hero-btn { display: inline-flex; align-items: center; gap: 6px;
                padding: 10px 20px; border-radius: 8px; font-size: 0.88rem;
                font-weight: 600; text-decoration: none; transition: opacity .15s; }
   .hero-btn:hover { opacity: .85; }
-  .btn-weekly { background: #2d3f6e; color: #7aa2f7; }
-  .btn-daily  { background: #0c2240; color: #38bdf8; }
-  .btn-dash   { background: #1a1a2e; color: #a78bfa; }
+  .btn-weekly { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .btn-daily  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .btn-dash   { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+  .btn-perf   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .btn-mae    { background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }
 
   /* Stats bar */
   .stats { display: flex; gap: 32px; padding: 20px 32px;
-            border-bottom: 1px solid #1e2130; flex-wrap: wrap; }
+            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; background: #fff; }
   .stat { display: flex; flex-direction: column; gap: 2px; }
-  .stat-val { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
-  .stat-label { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .stat-val { font-size: 1.4rem; font-weight: 700; color: #111827; }
+  .stat-label { font-size: 0.72rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }
 
   /* Sections */
-  .section { padding: 28px 32px; }
-  .section + .section { border-top: 1px solid #1e2130; }
-  .section h2 { font-size: 0.78rem; font-weight: 600; color: #64748b;
+  .section { padding: 28px 32px; background: #fff; }
+  .section + .section { border-top: 1px solid #e5e7eb; }
+  .section h2 { font-size: 0.78rem; font-weight: 700; color: #6b7280;
                  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
 
   /* Cards */
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .card { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px;
-           border-radius: 10px; text-decoration: none; transition: border-color .15s; border: 1px solid #1e2130; }
-  .card:hover { border-color: #4f6ef7; }
-  .card-weekly { background: #141929; }
-  .card-daily  { background: #0d1a24; }
-  .card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-  .card-weekly .card-label { color: #7aa2f7; }
-  .card-daily  .card-label { color: #38bdf8; }
-  .card-date { font-size: 0.88rem; font-weight: 600; color: #e2e8f0; }
-  .card-ago  { font-size: 0.72rem; color: #64748b; }
+           border-radius: 10px; text-decoration: none; transition: border-color .15s, box-shadow .15s;
+           border: 1px solid #e5e7eb; background: #fff; }
+  .card:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+  .card-weekly { background: #eff6ff; border-color: #dbeafe; }
+  .card-daily  { background: #f0fdf4; border-color: #dcfce7; }
+  .card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+  .card-weekly .card-label { color: #1d4ed8; }
+  .card-daily  .card-label { color: #15803d; }
+  .card-date { font-size: 0.88rem; font-weight: 600; color: #111827; }
+  .card-ago  { font-size: 0.72rem; color: #9ca3af; }
 
   /* Footer */
-  .footer { padding: 20px 32px; border-top: 1px solid #1e2130;
-             font-size: 0.72rem; color: #334155; }
+  .footer { padding: 20px 32px; border-top: 1px solid #e5e7eb;
+             font-size: 0.72rem; color: #9ca3af; background: #fff; }
 </style>
 </head>
 <body>
 
 <div class="hero">
   <h1>📈 Finviz Screener Agent</h1>
-  <p>Daily momentum screener · Weekly persistence review · Auto-generated 10 Apr 2026 23:03 UTC</p>
-  <div class="hero-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/dashboard.html" class="hero-btn btn-dash">📋 Dashboard</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-03-29.html" class="hero-btn btn-weekly">📊 Latest Weekly Review</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-10.html" class="hero-btn btn-daily">📈 Latest Chart Gallery</a></div>
+  <p>Daily momentum screener · Weekly persistence review · Auto-generated 11 Apr 2026 19:32 UTC</p>
+  <div class="hero-links"><a href="dashboard.html" class="hero-btn btn-dash">Dashboard</a><a href="data/finviz_weekly_2026-03-29.html" class="hero-btn btn-weekly">Latest Weekly Review</a><a href="data/finviz_chart_grid_2026-04-10.html" class="hero-btn btn-daily">Latest Chart Gallery</a><a href="data/performance_charts.html" class="hero-btn btn-perf">Performance Overview</a><a href="data/mae_analysis.html" class="hero-btn btn-mae">MAE / MFE Analysis</a></div>
 </div>
 
 <div class="stats">
@@ -81,81 +84,81 @@
 </div>
 
 <div class='section'><h2>Weekly Reviews</h2><div class='cards'>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-03-29.html" class="card card-weekly">
+        <a href="data/finviz_weekly_2026-03-29.html" class="card card-weekly">
           <div class="card-label">Weekly Review</div>
           <div class="card-date">Sun 29 Mar 2026</div>
-          <div class="card-ago">12d ago</div>
+          <div class="card-ago">13d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-03-22.html" class="card card-weekly">
+        <a href="data/finviz_weekly_2026-03-22.html" class="card card-weekly">
           <div class="card-label">Weekly Review</div>
           <div class="card-date">Sun 22 Mar 2026</div>
-          <div class="card-ago">19d ago</div>
+          <div class="card-ago">20d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-03-21.html" class="card card-weekly">
+        <a href="data/finviz_weekly_2026-03-21.html" class="card card-weekly">
           <div class="card-label">Weekly Review</div>
           <div class="card-date">Sat 21 Mar 2026</div>
-          <div class="card-ago">20d ago</div>
+          <div class="card-ago">21d ago</div>
         </a></div></div>
 
 <div class="section">
   <h2>Daily Chart Galleries</h2>
   <div class="cards">
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-10.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-04-10.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Fri 10 Apr 2026</div>
-          <div class="card-ago">today</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-09.html" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Thu 09 Apr 2026</div>
           <div class="card-ago">yesterday</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-08.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-04-09.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Wed 08 Apr 2026</div>
+          <div class="card-date">Thu 09 Apr 2026</div>
           <div class="card-ago">2d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-06.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-04-08.html" class="card card-daily">
+          <div class="card-label">Chart Gallery</div>
+          <div class="card-date">Wed 08 Apr 2026</div>
+          <div class="card-ago">3d ago</div>
+        </a>
+        <a href="data/finviz_chart_grid_2026-04-06.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Mon 06 Apr 2026</div>
-          <div class="card-ago">4d ago</div>
+          <div class="card-ago">5d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-03.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-04-03.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Fri 03 Apr 2026</div>
-          <div class="card-ago">7d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-04-02.html" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Thu 02 Apr 2026</div>
           <div class="card-ago">8d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-03-31.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-04-02.html" class="card card-daily">
+          <div class="card-label">Chart Gallery</div>
+          <div class="card-date">Thu 02 Apr 2026</div>
+          <div class="card-ago">9d ago</div>
+        </a>
+        <a href="data/finviz_chart_grid_2026-03-31.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Tue 31 Mar 2026</div>
-          <div class="card-ago">10d ago</div>
+          <div class="card-ago">11d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-03-27.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-03-27.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Fri 27 Mar 2026</div>
-          <div class="card-ago">14d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-03-26.html" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Thu 26 Mar 2026</div>
           <div class="card-ago">15d ago</div>
         </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-03-25.html" class="card card-daily">
+        <a href="data/finviz_chart_grid_2026-03-26.html" class="card card-daily">
+          <div class="card-label">Chart Gallery</div>
+          <div class="card-date">Thu 26 Mar 2026</div>
+          <div class="card-ago">16d ago</div>
+        </a>
+        <a href="data/finviz_chart_grid_2026-03-25.html" class="card card-daily">
           <div class="card-label">Chart Gallery</div>
           <div class="card-date">Wed 25 Mar 2026</div>
-          <div class="card-ago">16d ago</div>
+          <div class="card-ago">17d ago</div>
         </a></div>
 </div>
 
 <div class="footer">
-  Generated 10 Apr 2026 23:03 UTC · 
+  Generated 11 Apr 2026 19:32 UTC · 
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent" 
-     style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
+     style="color:#9ca3af">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
 
 </body>
