@@ -554,5 +554,37 @@
       "status": "watching",
       "source": "screener_auto"
     }
+  ],
+  "tickers": [
+    "AEHR",
+    "CAR",
+    "AAOI",
+    "SNDK"
+  ],
+  "auto_promoted": [
+    {
+      "ticker": "AEHR",
+      "added": "2026-04-11",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "CAR",
+      "added": "2026-04-11",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "AAOI",
+      "added": "2026-04-11",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "SNDK",
+      "added": "2026-04-11",
+      "days_seen": 4,
+      "screens": 3
+    }
   ]
 }
