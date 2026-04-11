@@ -37,7 +37,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 POSITIONS_FILE = os.path.join(DATA_DIR, "positions.json")
 WATCHLIST_FILE = os.path.join(DATA_DIR, "watchlist.json")
 CALIBRATION_FILE = os.path.join(DATA_DIR, "peel_calibration.json")
