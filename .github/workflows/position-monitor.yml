@@ -8,8 +8,6 @@ on:
     # Catches entries placed outside regular hours
     - cron: '0 12 * * 1-5'
     - cron: '0 22 * * 1-5'
-    # Weekend reconciliation — catch after-hours/weekend trades
-    - cron: '0 16 * * 0,6'
   workflow_dispatch:
     inputs:
       ticker:

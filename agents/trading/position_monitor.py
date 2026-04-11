@@ -27,8 +27,7 @@ SNAPTRADE_CONSUMER_KEY = os.environ.get("SNAPTRADE_CONSUMER_KEY", "")
 SNAPTRADE_USER_ID      = os.environ.get("SNAPTRADE_USER_ID", "ananth919")
 SNAPTRADE_USER_SECRET  = os.environ.get("SNAPTRADE_USER_SECRET", "")
 SLACK_WEBHOOK_URL      = os.environ.get("SLACK_WEBHOOK_URL", "")
-ANTHROPIC_API_KEY      = os.environ.get("ANTHROPIC_API_KEY", "")
-ANTHROPIC_API_URL      = "https://api.anthropic.com/v1/messages"
+
 FINVIZ_BASE            = "https://finviz.com"
 DATA_DIR               = os.environ.get("DATA_DIR", "data")
 
@@ -319,50 +318,6 @@ def fetch_position_metrics(ticker: str) -> dict:
 # Part 3: AI Commentary
 # ----------------------------
 
-def get_ai_commentary(positions_with_metrics: list) -> str:
-    if not ANTHROPIC_API_KEY or not positions_with_metrics:
-        return ""
-    lines = []
-    for p in positions_with_metrics:
-        m = p.get("metrics", {})
-        lines.append(
-            f"{p['ticker']}: {p['shares']:.0f} shares | avg cost ${p['avg_cost']:.2f} | "
-            f"now ${m.get('price', p['current_price']):.2f} | "
-            f"P&L ${p['pnl']:+.2f} ({p['pnl_pct']:+.1f}%) | "
-            f"ATR mult from MA: {m.get('atr_multiple_ma', 0):.2f} | "
-            f"% from MA: {m.get('pct_from_ma', 0):.2f}% | "
-            f"dist from 52w high: {m.get('dist_from_high', 0):.1f}%"
-        )
-    newline = "\n"
-    prompt = (
-        f"You are a momentum trader reviewing open positions. "
-        f"Exit signal fires at ATR multiple from MA = {ATR_MULTIPLE_EXIT}. "
-        f"Hard stop fires at ${abs(MAX_POSITION_LOSS):,.0f} loss per position.\n\n"
-        f"Current positions:\n{newline.join(lines)}\n\n"
-        "Write 2-3 sentences. For each position: is the setup still valid or has the thesis broken? "
-        "Flag any position approaching or past the exit thresholds. "
-        "Be direct. Use ticker names. No disclaimers. Plain text only."
-    )
-    try:
-        resp = requests.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model":      "claude-sonnet-4-6",
-                "max_tokens": 200,
-                "messages":   [{"role": "user", "content": prompt}],
-            },
-            timeout=20,
-        )
-        if resp.ok:
-            return resp.json()["content"][0]["text"].strip()
-    except Exception as e:
-        log.warning(f"AI commentary failed: {e}")
-    return ""
 
 
 # ----------------------------
@@ -466,7 +421,7 @@ def send_position_alert(position: dict, metrics: dict, alert_type: str):
         log.error(f"Slack alert failed: {e}")
 
 
-def send_daily_position_summary(positions_with_metrics: list, ai_commentary: str):
+def send_daily_position_summary(positions_with_metrics: list):
     if not SLACK_WEBHOOK_URL or not positions_with_metrics:
         return
 
@@ -509,9 +464,6 @@ def send_daily_position_summary(positions_with_metrics: list, ai_commentary: str
     blocks = [
         {"type": "header", "text": {"type": "plain_text", "text": f"📋 Position Monitor — {today}"}},
     ]
-    if ai_commentary:
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":brain: {ai_commentary}"}})
-        blocks.append({"type": "divider"})
     blocks.append({
         "type": "section",
         "text": {
@@ -1167,10 +1119,7 @@ if __name__ == "__main__":
         positions_with_metrics.append(pos)
         time.sleep(1)
 
-    # === EXISTING: AI commentary ===
-    ai_commentary = get_ai_commentary(positions_with_metrics)
-
-    # === NEW: RULES ENGINE — runs after existing checks, before Slack ===
+    # === RULES ENGINE — runs after existing checks, before Slack ===
     os.makedirs(DATA_DIR, exist_ok=True)
 
     # Step 8: Load rules engine state
@@ -1236,7 +1185,7 @@ if __name__ == "__main__":
         send_position_alert(pos, metrics, alert_type)
 
     # === EXISTING: Daily position summary ===
-    send_daily_position_summary(positions_with_metrics, ai_commentary)
+    send_daily_position_summary(positions_with_metrics)
 
     # Step 16: Send rules engine alerts (only if there are actionable alerts)
     if rules_alerts:
