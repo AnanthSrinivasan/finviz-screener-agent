@@ -13,6 +13,7 @@
 #   7. Persist stop-loss reference to data/paper_stops.json
 #   8. Slack summary
 
+import argparse
 import ast
 import csv
 import json
@@ -22,6 +23,7 @@ import logging
 import datetime
 import re
 import requests
+import sys
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -418,16 +420,73 @@ def save_stops(stops: dict):
 
 
 # ----------------------------
+# Cancel orders for a specific ticker
+# ----------------------------
+def cancel_orders_for_ticker(ticker: str) -> int:
+    """Cancel all open orders for a specific ticker. Returns number cancelled."""
+    try:
+        resp = requests.get(
+            f"{ALPACA_BASE_URL}/orders",
+            headers=alpaca_headers(),
+            params={"status": "open", "limit": 50},
+            timeout=10,
+        )
+        if not resp.ok:
+            log.error("Could not fetch open orders: %s", resp.status_code)
+            return 0
+        orders = [o for o in resp.json() if o.get("symbol", "").upper() == ticker.upper()]
+        if not orders:
+            log.info("No open orders found for %s", ticker)
+            slack_send(f":information_source: *Cancel {ticker}* — no open orders found")
+            return 0
+        cancelled = 0
+        for order in orders:
+            del_resp = requests.delete(
+                f"{ALPACA_BASE_URL}/orders/{order['id']}",
+                headers=alpaca_headers(),
+                timeout=10,
+            )
+            if del_resp.ok or del_resp.status_code == 204:
+                log.info("Cancelled order %s: %s %s %s@%s",
+                         order['id'], order['side'], order['qty'],
+                         ticker, order.get('limit_price', 'mkt'))
+                cancelled += 1
+            else:
+                log.warning("Failed to cancel order %s: %s", order['id'], del_resp.status_code)
+        if cancelled:
+            slack_send(f":wastebasket: *Cancelled {cancelled} order(s) for {ticker}* (manual cancel)")
+        return cancelled
+    except Exception as e:
+        log.error("cancel_orders_for_ticker failed: %s", e)
+        return 0
+
+
+# ----------------------------
 # Main
 # ----------------------------
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cancel-ticker", metavar="TICKER",
+                        help="Cancel all open orders for a ticker and exit (e.g. --cancel-ticker MRVL)")
+    args = parser.parse_args()
+
     today = datetime.date.today().strftime("%Y-%m-%d")
-    log.info("=== Alpaca executor starting — %s ===", today)
 
     if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
         log.error("ALPACA_API_KEY or ALPACA_SECRET_KEY not set — aborting.")
         slack_send(":x: *Alpaca executor failed* — missing API credentials")
         raise SystemExit(1)
+
+    # --cancel-ticker mode: cancel orders for a specific ticker and exit
+    cancel_env = os.environ.get("CANCEL_TICKER", "").strip().upper()
+    cancel_ticker = (args.cancel_ticker or cancel_env or "").strip().upper()
+    if cancel_ticker:
+        log.info("=== Cancel mode: %s ===", cancel_ticker)
+        n = cancel_orders_for_ticker(cancel_ticker)
+        log.info("Cancelled %d order(s) for %s", n, cancel_ticker)
+        sys.exit(0)
+
+    log.info("=== Alpaca executor starting — %s ===", today)
 
     # Step 1: Regime check
     regime, spy_price, sma200 = get_spy_regime()

@@ -68,7 +68,19 @@ screener_urls = {
         f"{FINVIZ_BASE}/screener.ashx?v=111"
         f"&f=cap_smallover,ind_stocksonly,sh_avgvol_o1000,ta_perf_1w30o,"
         f"ta_sma20_pa,ta_volatility_wo4&ft=4&o=-marketcap"
-    )
+    ),
+    # Bonde power-move: 9M+ actual volume + 10%+ daily change = institutional conviction move.
+    # Separate from "10% Change" (which uses relative volume). This filters by ABSOLUTE volume —
+    # 9M+ shares is a different signal: institutional size regardless of avg daily volume.
+    # Tickers in both screeners get classified Power Move (highest conviction).
+    # sh_vol_o9000 = today's volume over 9M shares. ta_change_u10 = up 10%+ from prev close.
+    "Power Move": (
+        f"{FINVIZ_BASE}/screener.ashx?v=151"
+        f"&f=ind_stocksonly,sh_price_o5,sh_avgvol_o500,"
+        f"ta_change_u10,sh_vol_o9000"
+        f"&ft=4&o=-volume&"
+        f"c=0,1,2,3,4,5,6,64,67,65,66"
+    ),
 }
 
 def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
@@ -505,6 +517,67 @@ def compute_quality_score(row: pd.Series) -> float:
 
 
 # ----------------------------
+# Part 2e: Sector Rotation
+# ----------------------------
+
+def compute_sector_rotation(df: pd.DataFrame) -> list:
+    """
+    Compute sector rotation summary from today's quality screener data.
+    Returns list of sector dicts sorted by composite score (count × avg_q × stage2 bonus).
+    Call with filter_df (already ATR-filtered) for meaningful results.
+    """
+    if df.empty or 'Sector' not in df.columns:
+        return []
+
+    sectors: dict = {}
+    for _, row in df.iterrows():
+        sector = str(row.get('Sector', '') or '').strip()
+        if not sector or sector in ('nan', '—', ''):
+            continue
+        if sector not in sectors:
+            sectors[sector] = {'count': 0, 'q_sum': 0.0, 'stage2': 0, 'vcp': 0,
+                               'eps_sum': 0.0, 'eps_count': 0}
+        s = sectors[sector]
+        s['count'] += 1
+        s['q_sum'] += float(row.get('Quality Score', 0) or 0)
+
+        stage_data = row.get('Stage', {}) or {}
+        if isinstance(stage_data, dict) and stage_data.get('stage') == 2:
+            s['stage2'] += 1
+
+        vcp_data = row.get('VCP', {}) or {}
+        if isinstance(vcp_data, dict) and vcp_data.get('vcp_possible'):
+            s['vcp'] += 1
+
+        eps = row.get('EPS Y/Y TTM')
+        if pd.notna(eps) and eps is not None:
+            ev = float(eps)
+            if ev != 0:
+                s['eps_sum'] += ev
+                s['eps_count'] += 1
+
+    result = []
+    for sector, s in sectors.items():
+        count    = s['count']
+        avg_q    = s['q_sum'] / count if count else 0.0
+        avg_eps  = s['eps_sum'] / s['eps_count'] if s['eps_count'] else 0.0
+        stage2_r = s['stage2'] / count if count else 0.0
+        # Score: volume of quality setups × avg quality, with Stage 2 ratio as tiebreaker bonus
+        score    = count * avg_q * (1.0 + stage2_r * 0.5)
+        result.append({
+            'sector':  sector,
+            'count':   count,
+            'avg_q':   round(avg_q, 1),
+            'stage2':  s['stage2'],
+            'vcp':     s['vcp'],
+            'avg_eps': round(avg_eps, 1),
+            'score':   round(score, 1),
+        })
+
+    return sorted(result, key=lambda x: x['score'], reverse=True)
+
+
+# ----------------------------
 # Part 3: Chart Gallery
 # ----------------------------
 
@@ -517,6 +590,9 @@ def _classify_ticker(row) -> str:
     dist_high  = float(row.get('Dist From High%', 0) or 0)
     sma20      = float(row.get('SMA20%', 0) or 0)
 
+    # Power Move — 9M+ volume + 5%+ daily change (Bonde method). Time-sensitive signal.
+    if 'Power Move' in screeners:
+        return 'power_move'
     # IPO lifecycle: in IPO screener OR showing IPO washout-recovery pattern
     # (deeply below 52w high but strongly above 20-day MA)
     if 'IPO' in screeners or (dist_high <= -40 and sma20 >= 10):
@@ -555,11 +631,13 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     vcp_data = row.get('VCP', {}) or {}
     vcp_ok   = vcp_data.get('vcp_possible', False) if isinstance(vcp_data, dict) else False
 
-    if stage_num == 2 and vcp_ok: card_border = "#facc15"
-    elif stage_num == 2:          card_border = "#4ade80"
-    elif stage_num == 3:          card_border = "#f87171"
-    elif stage_num == 4:          card_border = "#6b7280"
-    else:                         card_border = "#2d3148"
+    is_power_move = 'Power Move' in screeners
+    if is_power_move:                card_border = "#f97316"
+    elif stage_num == 2 and vcp_ok: card_border = "#facc15"
+    elif stage_num == 2:             card_border = "#4ade80"
+    elif stage_num == 3:             card_border = "#f87171"
+    elif stage_num == 4:             card_border = "#6b7280"
+    else:                            card_border = "#2d3148"
 
     qs_int = int(float(qscore)) if qscore != "—" else 0
     if qs_int >= 60:   qs_color = "#4ade80"
@@ -571,8 +649,9 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
         label = sector + (f" · {industry}" if industry else "")
         sector_html = f'<div class="sector-tag">{label}</div>'
 
-    vcp_badge    = '<span class="tag-vcp">VCP</span>'           if vcp_ok       else ''
-    perfect_badge= '<span class="tag-perf">⚡ aligned</span>'  if stage_perfect else ''
+    vcp_badge       = '<span class="tag-vcp">VCP</span>'             if vcp_ok       else ''
+    perfect_badge   = '<span class="tag-perf">⚡ aligned</span>'    if stage_perfect else ''
+    power_move_badge= '<span class="tag-power-move">⚡ Power Move</span>' if is_power_move else ''
     sector_lead_badge = (
         '<span class="tag-sector-lead">🏆 Lead Sector</span>'
         if top_sectors and sector and sector in top_sectors else ''
@@ -615,7 +694,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     </div>
   </div>
   <div class="stage-row">
-    <span class="stage-badge">{stage_badge}</span>{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}{overhead_badge}
+    <span class="stage-badge">{stage_badge}</span>{power_move_badge}{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}{overhead_badge}
   </div>
   {sector_html}
   {sma_html}
@@ -640,8 +719,9 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     out_html = f"data/finviz_chart_grid_{today}.html"
 
     sections = {
-        'stage2':   {'title': '🟢 Stage 2 Leaders',       'subtitle': 'Weinstein Stage 2 confirmed — wealth-building trades',              'cards': []},
-        'ipo':      {'title': '🚀 IPO Lifecycle',          'subtitle': 'IPO screener — evaluate on lifecycle, not SMA rules',              'cards': []},
+        'power_move': {'title': '🔥 Power Moves',          'subtitle': '9M+ vol + 10%+ daily move — institutional conviction signal (Bonde method) · Same-day only', 'cards': []},
+        'stage2':   {'title': '🟢 Stage 2 Leaders',        'subtitle': 'Weinstein Stage 2 confirmed — wealth-building trades',              'cards': []},
+        'ipo':      {'title': '🚀 IPO Lifecycle',           'subtitle': 'IPO screener — evaluate on lifecycle, not SMA rules',              'cards': []},
         'momentum': {'title': '⚡ Momentum / Catalyst',    'subtitle': 'High relative volume + significant move — 2-4 week plays',        'cards': []},
         'watch':    {'title': '👀 Watch List',             'subtitle': 'Transitional or lower conviction — monitor, do not chase',        'cards': []},
         'excluded': {'title': '🚫 Excluded — check manually', 'subtitle': '10% Change tickers that failed momentum quality gate (below 50d MA, low RVol, far from highs, or Stage 3/4)', 'cards': []},
@@ -685,6 +765,36 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
 </div>"""
 
     total = sum(len(s['cards']) for s in sections.values())
+
+    # Build sector rotation panel
+    sector_data = compute_sector_rotation(filter_df)
+    sector_rotation_html = ""
+    if sector_data:
+        sr_cards = ""
+        for i, s in enumerate(sector_data[:8]):
+            is_lead    = i == 0
+            border     = "#22c55e" if is_lead else "#2d3148"
+            lead_badge = '<span class="sr-lead-badge">Leading</span>' if is_lead else ''
+            s2_html    = f'<span class="sr-stat sr-s2">{s["stage2"]} S2</span>' if s['stage2'] else ''
+            vcp_html   = f'<span class="sr-stat sr-vcp">{s["vcp"]} VCP</span>' if s['vcp'] else ''
+            sr_cards += f"""
+<div class="sr-card" style="border-color:{border}">
+  <div class="sr-sector-name">{s['sector']}{lead_badge}</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">{s['count']} setups</span>
+    <span class="sr-stat sr-q">Q{s['avg_q']:.0f}</span>
+    {s2_html}{vcp_html}
+  </div>
+</div>"""
+        sector_rotation_html = f"""
+<div class="sr-panel">
+  <div class="section-header" style="border-left-color:#38bdf8">
+    <h2>📊 Sector Rotation</h2>
+    <p class="section-sub">Quality setup distribution by sector — leading sector signals rotation opportunity · {today}</p>
+  </div>
+  <div class="sr-grid">{sr_cards}
+  </div>
+</div>"""
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -735,11 +845,28 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-ite
 .meta {{ display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap; }}
 .meta span {{ background: #161b27; padding: 2px 6px; border-radius: 4px; }}
 .screeners {{ margin-top: 5px; font-size: 0.7rem; color: #64748b; line-height: 1.4; }}
+.tag-power-move {{ font-size: 9px; background: #7c2d12; color: #fdba74;
+                   padding: 1px 5px; border-radius: 3px; font-weight: 700;
+                   border: 1px solid #c2410c; }}
+/* Sector rotation panel */
+.sr-panel {{ margin-bottom: 40px; }}
+.sr-grid {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }}
+.sr-card {{ background: #1e2130; border: 1px solid #2d3148; border-radius: 8px;
+            padding: 10px 14px; min-width: 150px; }}
+.sr-sector-name {{ font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }}
+.sr-lead-badge {{ font-size: 9px; background: #166534; color: #86efac;
+                  padding: 1px 5px; border-radius: 3px; font-weight: 700; margin-left: 6px; }}
+.sr-stats-row {{ display: flex; flex-wrap: wrap; gap: 4px; }}
+.sr-stat {{ font-size: 0.7rem; color: #94a3b8; background: #131825; padding: 1px 5px; border-radius: 3px; }}
+.sr-q {{ color: #facc15 !important; }}
+.sr-s2 {{ color: #4ade80 !important; }}
+.sr-vcp {{ color: #fde68a !important; }}
 </style>
 </head>
 <body>
 <div class="page-title">Finviz Chart Gallery</div>
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
+{sector_rotation_html}
 {sections_html}
 </body>
 </html>"""
@@ -861,6 +988,31 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             )
         }
     })
+    # Sector rotation summary
+    sector_data = compute_sector_rotation(filter_df)
+    if sector_data:
+        top3 = sector_data[:3]
+        sector_parts = []
+        for s in top3:
+            badges = []
+            if s['stage2']:  badges.append(f"{s['stage2']} S2")
+            if s['vcp']:     badges.append(f"{s['vcp']} VCP")
+            badge_str = " · " + " · ".join(badges) if badges else ""
+            sector_parts.append(f"*{s['sector']}* ({s['count']}, Q{s['avg_q']:.0f}{badge_str})")
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": ":bar_chart: *Sector rotation:* " + "  ·  ".join(sector_parts)}
+        })
+
+    # Power move tickers
+    power_moves = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
+    if not power_moves.empty:
+        pm_tickers = ", ".join(f"*{t}*" for t in power_moves['Ticker'].tolist())
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f":fire: *Power Moves (9M+ vol, 10%+):* {pm_tickers}"}
+        })
+
     blocks.append({"type": "divider"})
 
     try:

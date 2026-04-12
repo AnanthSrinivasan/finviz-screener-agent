@@ -237,9 +237,8 @@ Calibration runs automatically: positions after daily screener, watchlist after 
 | AI weekly research (Claude + web search) | Live |
 | Per-ticker peel calibration | Live |
 | S3 cold archival | Live |
-| Power-move scan (9M+ vol + 5%+ move, Bonde method) | Planned |
-| Real-money backtesting framework | Planned |
-| Sector rotation layer | Planned |
+| Power-move scan (9M+ vol + 10%+ move, Bonde method) | Live |
+| Sector rotation layer | Live |
 | Interactive web dashboard (client self-config) | Planned |
 | Multi-account support (fund-level) | Planned |
 

@@ -5,6 +5,11 @@ on:
     workflows: ["Daily Finviz Screener"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      cancel_ticker:
+        description: 'Cancel all open orders for this ticker (e.g. MRVL). Leave blank for normal run.'
+        required: false
+        default: ''
 
 jobs:
   execute:
@@ -36,6 +41,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Alpaca executor
+        env:
+          CANCEL_TICKER: ${{ github.event.inputs.cancel_ticker || '' }}
         run: python agents/trading/alpaca_executor.py
 
       - name: Commit paper stops
