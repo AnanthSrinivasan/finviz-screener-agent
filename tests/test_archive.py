@@ -39,7 +39,7 @@ def _make_recent_date(days_ago=1):
 class TestExtractDate(unittest.TestCase):
 
     def setUp(self):
-        import archive_data
+        from utils import archive_data
         self.extract_date = archive_data.extract_date
 
     def test_extract_date_valid(self):
@@ -66,7 +66,7 @@ class TestExtractDate(unittest.TestCase):
 class TestS3KeyFormat(unittest.TestCase):
 
     def setUp(self):
-        import archive_data
+        from utils import archive_data
         self.s3_key = archive_data.s3_key
 
     def test_s3_key_format(self):
@@ -103,7 +103,7 @@ class TestMissingCredentials(unittest.TestCase):
             for key in env_patch:
                 os.environ.pop(key, None)
 
-            import archive_data
+            from utils import archive_data
             with self.assertRaises(SystemExit) as ctx:
                 archive_data.main()
 
@@ -111,7 +111,7 @@ class TestMissingCredentials(unittest.TestCase):
 
     def test_check_credentials_returns_false_when_missing(self):
         """check_credentials() returns False when any required var is absent."""
-        import archive_data
+        from utils import archive_data
         keys_to_remove = [
             "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
             "AWS_BUCKET_NAME", "AWS_REGION",
@@ -125,7 +125,7 @@ class TestMissingCredentials(unittest.TestCase):
 
     def test_check_credentials_returns_true_when_present(self):
         """check_credentials() returns True when all required vars are set."""
-        import archive_data
+        from utils import archive_data
         env_with = {
             "AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
             "AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
@@ -161,7 +161,7 @@ class TestNeverArchiveFilesSkipped(unittest.TestCase):
 
     def test_never_archive_files_skipped(self):
         """Files in NEVER_ARCHIVE are never uploaded to S3."""
-        import archive_data
+        from utils import archive_data
 
         with tempfile.TemporaryDirectory() as tmpdir:
             data_dir = Path(tmpdir) / "data"
@@ -178,7 +178,7 @@ class TestNeverArchiveFilesSkipped(unittest.TestCase):
             mock_s3 = _build_mock_s3()
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         archive_data.main()
 
@@ -191,7 +191,7 @@ class TestRecentFileNotArchived(unittest.TestCase):
 
     def test_recent_file_not_archived(self):
         """A file dated yesterday (< 70 days old) is not uploaded."""
-        import archive_data
+        from utils import archive_data
 
         recent_str = _make_recent_date(1)
         filename = "finviz_screeners_{}.csv".format(recent_str)
@@ -204,7 +204,7 @@ class TestRecentFileNotArchived(unittest.TestCase):
             mock_s3 = _build_mock_s3()
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         archive_data.main()
 
@@ -215,7 +215,7 @@ class TestOldFileArchived(unittest.TestCase):
 
     def test_old_file_archived(self):
         """A file dated 80 days ago is uploaded to S3 and the local copy deleted."""
-        import archive_data
+        from utils import archive_data
 
         old_str = _make_old_date(80)
         filename = "finviz_screeners_{}.csv".format(old_str)
@@ -232,7 +232,7 @@ class TestOldFileArchived(unittest.TestCase):
             mock_s3 = _build_mock_s3()
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         archive_data.main()
 
@@ -250,7 +250,7 @@ class TestUploadFailureNoLocalDelete(unittest.TestCase):
 
     def test_upload_failure_no_local_delete(self):
         """If upload_file raises ClientError the local file is NOT deleted."""
-        import archive_data
+        from utils import archive_data
         from botocore.exceptions import ClientError
 
         old_str = _make_old_date(80)
@@ -267,7 +267,7 @@ class TestUploadFailureNoLocalDelete(unittest.TestCase):
             mock_s3.upload_file.side_effect = ClientError(error_response, "PutObject")
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         # main() exits with code 1 when there are errors
                         with self.assertRaises(SystemExit) as ctx:
@@ -284,7 +284,7 @@ class TestVerifyFailureNoLocalDelete(unittest.TestCase):
 
     def test_verify_failure_no_local_delete(self):
         """If head_object raises ClientError the local file is NOT deleted."""
-        import archive_data
+        from utils import archive_data
         from botocore.exceptions import ClientError
 
         old_str = _make_old_date(80)
@@ -301,7 +301,7 @@ class TestVerifyFailureNoLocalDelete(unittest.TestCase):
             mock_s3.head_object.side_effect = ClientError(error_response, "HeadObject")
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         with self.assertRaises(SystemExit) as ctx:
                             archive_data.main()
@@ -316,7 +316,7 @@ class TestNoDateFileSkipped(unittest.TestCase):
 
     def test_no_date_file_skipped(self):
         """A file whose name contains no YYYY-MM-DD pattern is skipped entirely."""
-        import archive_data
+        from utils import archive_data
 
         with tempfile.TemporaryDirectory() as tmpdir:
             data_dir = Path(tmpdir) / "data"
@@ -327,7 +327,7 @@ class TestNoDateFileSkipped(unittest.TestCase):
             mock_s3 = _build_mock_s3()
 
             with unittest.mock.patch.dict(os.environ, AWS_ENV):
-                with unittest.mock.patch("archive_data.DATA_DIR", data_dir):
+                with unittest.mock.patch("utils.archive_data.DATA_DIR", data_dir):
                     with unittest.mock.patch("boto3.client", return_value=mock_s3):
                         archive_data.main()
 
