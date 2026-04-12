@@ -912,6 +912,29 @@ def run_market_monitor(date: datetime.date | None = None):
     # Always send daily summary
     send_daily_summary(record, last_thrust_date)
 
+    # ── EventBridge: MarketDailySummary ──────────────────────────────────
+    # Fires end-of-day market state to finviz-events bus.
+    # XPublisher currently skips this event (no-op).
+    #
+    # TODO: Future subscribers on MarketDailySummary:
+    #   - SlackPublisher Lambda → replaces direct send_daily_summary() webhook calls
+    #   - DiscordPublisher Lambda → Discord channel
+    #
+    # TODO: PreMarketPulse (morning tweet, 8am ET) should be fired from
+    #   premarket_alert.py instead — it has Alpaca pre-market data and
+    #   runs at the right time. Wire publish_pre_market_pulse() there
+    #   when connecting premarket_alert.py to the bus.
+    try:
+        from agents.publishing.event_publisher import publish_market_daily_summary
+        publish_market_daily_summary(
+            date=record["date"],
+            market_state=record["market_state"],
+            fear_greed=int(today_data.get("fg") or 0),
+            spy_above_200ma=record["spy_above_200d"],
+        )
+    except Exception as e:
+        log.warning(f"MarketDailySummary publish skipped (non-fatal): {e}")
+
     log.info(f"=== Market Monitor complete — {state} ===")
     return record
 

@@ -1,6 +1,6 @@
 # Finviz Screener Agent — System Documentation
 
-**Last updated:** 2026-04-06
+**Last updated:** 2026-04-12
 **Repo:** https://github.com/AnanthSrinivasan/finviz-screener-agent  
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
@@ -387,7 +387,74 @@ Agent 3 reads market state and conditions its recommendations. RED/BLACKOUT → 
 
 ---
 
-### 3.7 Position Monitor — `finviz_position_monitor.py` ✅ UPDATED
+### 3.7 Publishing Layer — EventBridge + X Publisher ✅ NEW (2026-04-12)
+
+**Event bus:** `finviz-events` (AWS EventBridge custom bus, `eu-central-1`, account `090960193599`)  
+**Source:** `finviz.screener`  
+**Publisher module:** `agents/publishing/event_publisher.py` (non-fatal wrapper)  
+**Lambda:** `PublisherStack-XPublisher` — Python 3.11, reads X credentials from SSM at runtime
+
+**Active tweets (2 per trading day):**
+
+| Tweet | Event | Fired by | Time (ET) | Condition |
+|-------|-------|----------|-----------|-----------|
+| SetupOfDay | `ScreenerCompleted` | `finviz_agent.py` | ~4:30pm | Market not RED/BLACKOUT/DANGER |
+| PersistencePick | `PersistencePick` | `finviz_agent.py` | ~4:30pm | `persistence_days >= 3` |
+
+**SetupOfDay tweet template:**
+```
+Setup of the day: $TICKER
+
+Stage 2 confirmed ✓
+VCP pattern ✓          ← only if vcp=True
+Relative volume: Xx ✓
+Quality score: XX/100
+
+Entry: watching $XX.XX
+Thesis breaks below $XX.XX (50MA)
+
+XXX tickers screened today.
+Reply for the full PDF report.
+
+Rules-based. Not advice.
+```
+Finviz daily chart attached as media.
+
+**PersistencePick tweet template:**
+```
+🟢 GREEN | F&G: 58 | SPY above 200MA    ← state line when market_state is set
+
+$TICKER has appeared in the screener
+N days in a row this week.
+
+Not a one-day spike.
+Sustained presence = institutional interest building.
+
+This is the pattern that preceded $FLY and $PL
+before they made their moves.
+
+Watching closely.
+```
+Finviz daily chart attached as media.
+
+**MarketDailySummary event** — fired by `market_monitor.py` at ~5pm ET. XPublisher is a no-op (`return "skipped"`). Wired today so future subscribers (SlackPublisher, DiscordPublisher) can subscribe to the same bus without changing the market monitor.
+
+**SSM credentials** (`/anva-trade/` namespace, SecureString):
+- `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`
+- Lambda reads via `ssm.get_parameters(WithDecryption=True)` — cached per container, never in env vars
+
+**X API tier:** Pay-Per-Use (~$0.035/month for 66 tweets/month). Requires OAuth 1.0a with write permissions.
+
+**Chart source:** `https://finviz.com/chart.ashx?t={ticker}&ty=c&ta=1&p=d` — downloaded by Lambda, uploaded to X Media API (`upload.twitter.com/1.1/media/upload.json`). Chart upload failure is non-fatal.
+
+**TODOs:**
+- Wire `premarket_alert.py` to fire a `PreMarketPulse` event at 8am ET for morning tweet
+- Add `SlackPublisher` Lambda subscribing to `MarketDailySummary` (replace direct webhook calls)
+- OIDC auth migration (`INFRA_AUTH_DESIGN.md` Option 3) for GitHub Actions → no static keys needed
+
+---
+
+### 3.8 Position Monitor — `finviz_position_monitor.py` ✅ UPDATED
 
 **Schedule:** Every 30 min during market hours  
 **Slack:** `#positions` via `SLACK_WEBHOOK_POSITIONS`
@@ -548,9 +615,10 @@ Not needed yet. Revisit if automated execution is added.
 | 9 | Character change deep check (yfinance quarterly earnings) | ✅ Built |
 | 10 | Paper execution layer (Alpaca) — proves logic before real money | 🟡 In Progress |
 | 11 | S3 archival — dated data files offloaded after 70 days (CDK infra, eu-central-1) | ✅ Built |
-| 12 | Intraday execution via Market Pulse (15-min bars, EMA entry timing) | 🔲 Next |
-| 13 | Automated real execution via SnapTrade (flip paper logic to live) | 🔲 After paper validates |
-| 14 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
+| 12 | X/Twitter publishing layer — EventBridge bus + XPublisher Lambda, 2 tweets/day | ✅ Built (2026-04-12) |
+| 13 | Intraday execution via Market Pulse (15-min bars, EMA entry timing) | 🔲 Next |
+| 14 | Automated real execution via SnapTrade (flip paper logic to live) | 🔲 After paper validates |
+| 15 | Multi-month trend analysis (SQLite) | 🔲 Only if needed |
 
 ---
 

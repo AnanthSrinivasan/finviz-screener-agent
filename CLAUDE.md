@@ -3,7 +3,7 @@
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
 **Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)
-**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, Alpaca API, SnapTrade API, Claude API, Slack webhooks, AWS S3 (archival). yfinance used only in `finviz_weekly_agent.py` for quarterly EPS/revenue history (character change check).
+**Stack:** Python 3.11 (GitHub Actions), Finviz scraping, Alpaca API, SnapTrade API, Claude API, Slack webhooks, AWS S3 (archival), AWS EventBridge + Lambda (X/Twitter publishing). yfinance used only in `finviz_weekly_agent.py` for quarterly EPS/revenue history (character change check).
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
 ## Architecture — 10 Agents + Test Suite
@@ -32,10 +32,21 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 - `test_integration.py` — Integration tests for signal merge pipeline
 - `test_archive.py` — Unit tests for `utils/archive_data.py` (mocked S3, no credentials needed)
 
+**Publishing layer (`agents/publishing/`):**
+- `agents/publishing/event_publisher.py` — Non-fatal EventBridge wrapper. Three functions:
+  - `publish_market_daily_summary()` — fired by `market_monitor.py` at 5pm ET. No-op on X today; reserved for future Slack/Discord publisher.
+  - `publish_screener_completed()` — fired by `finviz_agent.py` at 4:30pm ET. Triggers SetupOfDay tweet with Finviz chart.
+  - `publish_persistence_pick()` — fired by `finviz_agent.py` at ~4:30pm ET (only if `persistence_days >= 3`). Triggers PersistencePick tweet with Finviz chart.
+- All publish calls are wrapped in try/except — a failed EventBridge call never blocks the screener.
+
 **Infra (CDK):**
-- `infra/` — AWS CDK Python stack (`ScreenerInfraStack`) deployed to `eu-central-1`
-- Creates: S3 bucket `screener-data-repository`, IAM user `finviz-screener-bot`, policy scoped to `PutObject/GetObject/ListBucket` only
-- Deploy: `pip install -r infra/requirements.txt && cdk deploy` (requires admin AWS credentials + CDK CLI via `brew install aws-cdk`)
+- `infra/` — AWS CDK Python stacks deployed to `eu-central-1`
+- `ScreenerInfraStack` — S3 bucket `screener-data-repository`, IAM user `finviz-screener-bot` (S3 + SSM + EventBridge permissions)
+- `PublisherStack` — EventBridge custom bus `finviz-events`, XPublisher Lambda (`infra/lambdas/x_publisher/x_publisher.py`), 3 EventBridge rules (MarketDailySummary / ScreenerCompleted / PersistencePick)
+- SSM namespace: `/anva-trade/` — stores X API credentials (X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET) as SecureString. Lambda reads at runtime via boto3 `get_parameters(WithDecryption=True)`.
+- Lambda deps pre-installed into asset dir: `pip install -r infra/lambdas/x_publisher/requirements.txt -t infra/lambdas/x_publisher/` (packages gitignored)
+- Deploy: `pip install -r infra/requirements.txt && cdk deploy --all --profile personal-090960193599`
+- Admin AWS profile: `personal-090960193599` (account `090960193599`, IAM user `admin_user`)
 - Account: `090960193599`
 
 ## Workflows
@@ -105,10 +116,19 @@ The position monitor has two layers:
 | `ALPACA_API_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_BASE_URL` | secret | Paper executor, paper monitor (`https://paper-api.alpaca.markets/v2`) |
-| `AWS_ACCESS_KEY_ID` | secret | `archive_data.py` — bot key for `finviz-screener-bot` IAM user |
-| `AWS_SECRET_ACCESS_KEY` | secret | `archive_data.py` |
+| `AWS_ACCESS_KEY_ID` | secret | `archive_data.py` + `event_publisher.py` — bot key for `finviz-screener-bot` IAM user |
+| `AWS_SECRET_ACCESS_KEY` | secret | `archive_data.py` + `event_publisher.py` |
 | `AWS_BUCKET_NAME` | secret | `archive_data.py` (`screener-data-repository`) |
-| `AWS_REGION` | secret | `archive_data.py` (`eu-central-1`) |
+| `AWS_REGION` | secret | `archive_data.py` + `event_publisher.py` (`eu-central-1`) |
+
+**SSM Parameters (stored in AWS, not GitHub secrets — read by XPublisher Lambda at runtime):**
+
+| Parameter | SSM Path | Description |
+|-----------|----------|-------------|
+| X API Key | `/anva-trade/X_API_KEY` | X developer app consumer key |
+| X API Secret | `/anva-trade/X_API_SECRET` | X developer app consumer secret |
+| X Access Token | `/anva-trade/X_ACCESS_TOKEN` | X OAuth 1.0 access token |
+| X Access Secret | `/anva-trade/X_ACCESS_SECRET` | X OAuth 1.0 access token secret |
 
 ## Data Files
 

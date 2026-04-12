@@ -1244,4 +1244,90 @@ if __name__ == "__main__":
     # Step 7: Auto-populate watchlist with top Stage 2 + Q≥60 tickers
     _update_watchlist(filter_df, today)
 
+    # ── EventBridge: ScreenerCompleted + PersistencePick ─────────────────
+    try:
+        from agents.publishing.event_publisher import (
+            publish_screener_completed,
+            publish_persistence_pick,
+        )
+        import glob as _glob
+        import json as _json
+
+        # Load market context — screener doesn't call market_monitor itself
+        _ts = {}
+        if os.path.exists("data/trading_state.json"):
+            with open("data/trading_state.json") as _f:
+                _ts = _json.load(_f)
+        _market_state = _ts.get("market_state", "RED")
+        _fear_greed   = int(_ts.get("fng") or 0)
+
+        base_url = os.environ.get(
+            "PAGES_BASE_URL",
+            "https://ananthsrinivasan.github.io/finviz-screener-agent",
+        )
+
+        if not filter_df.empty:
+            best      = filter_df.iloc[0]
+            ticker    = best["Ticker"]
+            sma50_pct = float(best.get("SMA50%") or 0)
+
+            # Fetch current price for entry/stop — single ticker, non-fatal
+            _price = 0.0
+            try:
+                import yfinance as _yf
+                _price = round(float(_yf.Ticker(ticker).fast_info["last_price"]), 2)
+            except Exception as _pe:
+                log.warning(f"Price fetch for {ticker} failed: {_pe}")
+
+            _stop     = round(_price / (1 + sma50_pct / 100), 2) if _price and sma50_pct else 0.0
+            _vcp_data = best.get("VCP", {}) or {}
+            _vcp_ok   = bool(_vcp_data.get("vcp_possible", False)) if isinstance(_vcp_data, dict) else False
+
+            top_pick = {
+                "ticker":        ticker,
+                "quality_score": int(best.get("Quality Score") or 0),
+                "section":       _classify_ticker(best),
+                "rel_vol":       round(float(best.get("Rel Volume") or 1.0), 1),
+                "vcp":           _vcp_ok,
+                "entry_price":   _price,
+                "stop_price":    _stop,
+            }
+
+            publish_screener_completed(
+                date=today,
+                market_state=_market_state,
+                fear_greed=_fear_greed,
+                top_pick=top_pick,
+                total_tickers=len(summary_df),
+                preview_report_url=f"{base_url}/preview/{today}.html",
+                full_report_url=f"{base_url}/reports/{today}.html",
+            )
+
+            # Persistence pick — most recent weekly persistence CSV
+            _stage_map = {
+                "Uptrend": "stage2", "Distribution": "stage3",
+                "Downtrend": "stage4", "Basing": "stage1",
+            }
+            _csv_files = sorted(_glob.glob("data/finviz_weekly_persistence_*.csv"))
+            if _csv_files:
+                import pandas as _pd
+                _persist_df = _pd.read_csv(_csv_files[-1])
+                _candidates = _persist_df[_persist_df["Days Seen"] >= 3].copy()
+                if not _candidates.empty:
+                    _best_p = _candidates.nlargest(1, "Q Rank").iloc[0]
+                    publish_persistence_pick(
+                        date=today,
+                        ticker=str(_best_p["Ticker"]),
+                        persistence_days=int(_best_p["Days Seen"]),
+                        quality_score=int(_best_p["Q Rank"]),
+                        section=_stage_map.get(str(_best_p.get("Stage", "")), "transitional"),
+                        market_state=_market_state,
+                        fear_greed=_fear_greed,
+                        spy_above_200ma=bool(_ts.get("spy_above_200d", False)),
+                    )
+                else:
+                    log.info("PersistencePick: no ticker with 3+ days this week — skipping")
+    except Exception as e:
+        log.warning(f"Publisher events skipped (non-fatal): {e}")
+
     log.info("=== Done ===")

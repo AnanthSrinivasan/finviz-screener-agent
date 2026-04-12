@@ -4,3 +4,15 @@ __pycache__/
 .pytest_cache/
 *.code-workspace
 .env
+cdk.out/
+infra/cdk.out/
+# Lambda deps — install before cdk deploy: pip install -r infra/lambdas/x_publisher/requirements.txt -t infra/lambdas/x_publisher/
+infra/lambdas/x_publisher/bin/
+infra/lambdas/x_publisher/certifi*/
+infra/lambdas/x_publisher/charset_normalizer*/
+infra/lambdas/x_publisher/idna*/
+infra/lambdas/x_publisher/oauthlib*/
+infra/lambdas/x_publisher/requests*/
+infra/lambdas/x_publisher/urllib3*/
+infra/lambdas/x_publisher/*.so
+infra/lambdas/x_publisher/*.dist-info

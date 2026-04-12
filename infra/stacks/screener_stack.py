@@ -30,7 +30,7 @@ class ScreenerInfraStack(Stack):
             user_name="finviz-screener-bot",
         )
 
-        # IAM Policy scoped to the bucket
+        # IAM Policy scoped to the bucket + SSM params
         bot_policy = iam.Policy(
             self,
             "FinvizScreenerBotPolicy",
@@ -45,7 +45,17 @@ class ScreenerInfraStack(Stack):
                         bucket.bucket_arn,
                         bucket.bucket_arn + "/*",
                     ],
-                )
+                ),
+                iam.PolicyStatement(
+                    actions=[
+                        "ssm:PutParameter",
+                        "ssm:GetParameter",
+                        "ssm:GetParameters",
+                    ],
+                    resources=[
+                        f"arn:aws:ssm:eu-central-1:{self.account}:parameter/anva-trade/*",
+                    ],
+                ),
             ],
         )
 
