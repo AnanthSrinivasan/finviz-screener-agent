@@ -1266,8 +1266,24 @@ if __name__ == "__main__":
             "https://ananthsrinivasan.github.io/finviz-screener-agent",
         )
 
+        # Exclude tickers already in open positions — don't tweet extended holds as fresh setups
+        _open_tickers: set[str] = set()
+        if os.path.exists("data/positions.json"):
+            with open("data/positions.json") as _pf:
+                _pos_data = _json.load(_pf)
+            _open_tickers = {
+                t for t, v in _pos_data.get("positions", {}).items()
+                if v.get("status") == "open"
+            }
+        if _open_tickers:
+            log.info(f"SetupOfDay: excluding {_open_tickers} (already held)")
+
+        _tweet_candidates = filter_df[~filter_df["Ticker"].isin(_open_tickers)]
+        if _tweet_candidates.empty:
+            _tweet_candidates = filter_df  # fallback: if every screener result is held
+
         if not filter_df.empty:
-            best      = filter_df.iloc[0]
+            best      = _tweet_candidates.iloc[0]
             ticker    = best["Ticker"]
             sma50_pct = float(best.get("SMA50%") or 0)
 
