@@ -642,9 +642,21 @@ def generate_dashboard(data, base_url):
   /* Footer */
   .footer {{ padding: 20px 32px; border-top: 1px solid #e5e7eb;
              font-size: 0.72rem; color: #9ca3af; background: #fff; }}
+
+  /* PDF export */
+  .pdf-btn {{ position: fixed; top: 16px; right: 20px; background: #2563eb; color: #fff;
+              border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.78rem;
+              font-weight: 600; cursor: pointer; z-index: 999; box-shadow: 0 2px 6px rgba(0,0,0,.15); }}
+  .pdf-btn:hover {{ background: #1d4ed8; }}
+  @media print {{
+    .pdf-btn {{ display: none; }}
+    .top-badges, .dash-header {{ break-inside: avoid; }}
+    .positions-table tr {{ break-inside: avoid; }}
+  }}
 </style>
 </head>
 <body>
+<button class="pdf-btn" onclick="window.print()">Export PDF</button>
 
 <div class="dash-header">
   <h1>Dashboard</h1>

@@ -804,66 +804,78 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
 <style>
 *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-       background: #0f1117; color: #e2e8f0; padding: 24px; }}
-.page-title {{ font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }}
-.page-sub   {{ color: #64748b; font-size: 0.82rem; margin-bottom: 32px; }}
+        background: #f9fafb; color: #111827; padding: 24px; }}
+.page-title {{ font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; color: #111827; }}
+.page-sub   {{ color: #6b7280; font-size: 0.82rem; margin-bottom: 32px; }}
 .section    {{ margin-bottom: 40px; }}
-.section-header {{ margin-bottom: 14px; border-left: 3px solid #334155; padding-left: 12px; }}
-h2 {{ font-size: 1rem; font-weight: 700; color: #e2e8f0; display:flex; align-items:center; gap:8px; }}
-.section-count {{ background: #1e2130; color: #64748b; font-size: 0.72rem;
+.section-header {{ margin-bottom: 14px; border-left: 3px solid #d1d5db; padding-left: 12px; }}
+h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-items:center; gap:8px; }}
+.section-count {{ background: #f3f4f6; color: #6b7280; font-size: 0.72rem;
                   padding: 1px 7px; border-radius: 10px; font-weight: 500; }}
-.section-sub {{ font-size: 0.75rem; color: #64748b; margin-top: 4px; }}
+.section-sub {{ font-size: 0.75rem; color: #6b7280; margin-top: 4px; }}
 .chart-grid  {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }}
-.chart-item  {{ background: #1e2130; border: 1px solid #2d3148; border-radius: 10px;
-                padding: 12px; transition: border-color .15s; }}
-.chart-item:hover {{ opacity: .92; }}
+.chart-item  {{ background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+                padding: 12px; transition: border-color .15s; box-shadow: 0 1px 3px rgba(0,0,0,.04); }}
+.chart-item:hover {{ border-color: #2563eb; }}
 .chart-header {{ display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 5px; }}
-.ticker-link  {{ font-size: 1rem; font-weight: 700; color: #7aa2f7; text-decoration: none; display: block; }}
-.ticker-link:hover {{ color: #a5b4fc; text-decoration: underline; }}
-.company  {{ font-size: 0.7rem; color: #64748b; display: block; margin-top: 1px; }}
-.badge    {{ background: #2d3f6e; color: #7aa2f7; font-size: 0.7rem; font-weight: 600;
+.ticker-link  {{ font-size: 1rem; font-weight: 700; color: #2563eb; text-decoration: none; display: block; }}
+.ticker-link:hover {{ color: #1d4ed8; text-decoration: underline; }}
+.company  {{ font-size: 0.7rem; color: #6b7280; display: block; margin-top: 1px; }}
+.badge    {{ background: #eff6ff; color: #2563eb; font-size: 0.7rem; font-weight: 600;
              padding: 2px 7px; border-radius: 20px; white-space: nowrap; margin-left: 6px; flex-shrink: 0; }}
 .stage-row {{ display: flex; align-items: center; gap: 4px; margin: 5px 0; flex-wrap: wrap; }}
-.stage-badge {{ font-size: 0.72rem; color: #94a3b8; }}
-.tag-vcp  {{ font-size: 9px; background: #713f12; color: #fde68a;
+.stage-badge {{ font-size: 0.72rem; color: #374151; }}
+.tag-vcp  {{ font-size: 9px; background: #fef3c7; color: #92400e;
              padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
-.tag-perf {{ font-size: 9px; background: #14532d; color: #86efac;
+.tag-perf {{ font-size: 9px; background: #dcfce7; color: #166534;
              padding: 1px 5px; border-radius: 3px; font-weight: 600; }}
-.tag-sector-lead {{ font-size: 9px; background: #312e81; color: #a5b4fc;
+.tag-sector-lead {{ font-size: 9px; background: #ede9fe; color: #5b21b6;
                     padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
-.tag-cc-hint {{ font-size: 9px; background: #451a03; color: #fbbf24;
+.tag-cc-hint {{ font-size: 9px; background: #fef9c3; color: #854d0e;
                 padding: 1px 5px; border-radius: 3px; font-weight: 700; }}
-.tag-overhead {{ font-size: 9px; background: #1c1917; color: #f59e0b;
+.tag-overhead {{ font-size: 9px; background: #fff7ed; color: #c2410c;
                  padding: 1px 5px; border-radius: 3px; font-weight: 700;
-                 border: 1px solid #92400e; }}
-.sector-tag {{ font-size: 0.7rem; color: #38bdf8; background: #0c2240;
+                 border: 1px solid #fdba74; }}
+.sector-tag {{ font-size: 0.7rem; color: #2563eb; background: #eff6ff;
                border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
-.sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #475569; margin-bottom: 6px; flex-wrap: wrap; }}
-.sma-row span {{ background: #131825; padding: 1px 5px; border-radius: 3px; }}
+.sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #6b7280; margin-bottom: 6px; flex-wrap: wrap; }}
+.sma-row span {{ background: #f3f4f6; padding: 1px 5px; border-radius: 3px; }}
 .chart-img {{ width: 100%; border-radius: 6px; display: block; cursor: pointer; transition: opacity .15s; }}
 .chart-img:hover {{ opacity: .85; }}
-.meta {{ display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap; }}
-.meta span {{ background: #161b27; padding: 2px 6px; border-radius: 4px; }}
-.screeners {{ margin-top: 5px; font-size: 0.7rem; color: #64748b; line-height: 1.4; }}
-.tag-power-move {{ font-size: 9px; background: #7c2d12; color: #fdba74;
+.meta {{ display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #6b7280; flex-wrap: wrap; }}
+.meta span {{ background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }}
+.screeners {{ margin-top: 5px; font-size: 0.7rem; color: #9ca3af; line-height: 1.4; }}
+.tag-power-move {{ font-size: 9px; background: #fff1f2; color: #e11d48;
                    padding: 1px 5px; border-radius: 3px; font-weight: 700;
-                   border: 1px solid #c2410c; }}
+                   border: 1px solid #fda4af; }}
 /* Sector rotation panel */
 .sr-panel {{ margin-bottom: 40px; }}
 .sr-grid {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }}
-.sr-card {{ background: #1e2130; border: 1px solid #2d3148; border-radius: 8px;
+.sr-card {{ background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
             padding: 10px 14px; min-width: 150px; }}
-.sr-sector-name {{ font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }}
-.sr-lead-badge {{ font-size: 9px; background: #166534; color: #86efac;
+.sr-sector-name {{ font-size: 0.82rem; font-weight: 700; color: #111827; margin-bottom: 6px; }}
+.sr-lead-badge {{ font-size: 9px; background: #dcfce7; color: #166534;
                   padding: 1px 5px; border-radius: 3px; font-weight: 700; margin-left: 6px; }}
 .sr-stats-row {{ display: flex; flex-wrap: wrap; gap: 4px; }}
-.sr-stat {{ font-size: 0.7rem; color: #94a3b8; background: #131825; padding: 1px 5px; border-radius: 3px; }}
-.sr-q {{ color: #facc15 !important; }}
-.sr-s2 {{ color: #4ade80 !important; }}
-.sr-vcp {{ color: #fde68a !important; }}
+.sr-stat {{ font-size: 0.7rem; color: #6b7280; background: #f3f4f6; padding: 1px 5px; border-radius: 3px; }}
+.sr-q {{ color: #d97706 !important; }}
+.sr-s2 {{ color: #16a34a !important; }}
+.sr-vcp {{ color: #92400e !important; }}
+/* PDF export */
+.pdf-btn {{ position: fixed; top: 16px; right: 20px; background: #2563eb; color: #fff;
+            border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; z-index: 999; box-shadow: 0 2px 6px rgba(0,0,0,.15); }}
+.pdf-btn:hover {{ background: #1d4ed8; }}
+@media print {{
+  .pdf-btn {{ display: none; }}
+  body {{ padding: 0; background: #fff; }}
+  .chart-item {{ break-inside: avoid; }}
+  .sr-card {{ break-inside: avoid; }}
+}}
 </style>
 </head>
 <body>
+<button class="pdf-btn" onclick="window.print()">Export PDF</button>
 <div class="page-title">Finviz Chart Gallery</div>
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
 {sector_rotation_html}
