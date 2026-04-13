@@ -112,14 +112,14 @@ def handle_screener(detail: dict) -> tuple[str | None, str | None]:
     vcp_line = "VCP pattern ✓\n" if p.get("vcp") else ""
 
     text = (
-        f"Setup of the day: ${p['ticker']}\n\n"
+        f"Setup of the Day: ${p['ticker']}\n\n"
         f"Stage 2 confirmed ✓\n"
         f"{vcp_line}"
         f"Relative volume: {p['rel_vol']}x ✓\n"
         f"Quality score: {p['quality_score']}/100\n\n"
-        f"Entry: watching ${p['entry_price']:.2f}\n"
+        f"Entry zone: ${p['entry_price']:.2f}\n"
         f"Thesis breaks below ${p['stop_price']:.2f} (50MA)\n\n"
-        f"{total} tickers screened today.\n"
+        f"{total} tickers in yesterday's screen.\n"
         f"Reply for the full PDF report.\n\n"
         f"Rules-based. Not advice."
     )

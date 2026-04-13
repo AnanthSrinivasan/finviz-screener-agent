@@ -171,45 +171,117 @@ def run_premarket_alert():
 
     if not alerts:
         log.info("No pre-market gap-up alerts today.")
-        return
+    else:
+        # Sort by gap size
+        alerts.sort(key=lambda x: x["pct"], reverse=True)
 
-    # Sort by gap size
-    alerts.sort(key=lambda x: x["pct"], reverse=True)
+    if alerts:
+        today_str  = datetime.date.today().isoformat()
+        thresh_str = str(int(PREMARKET_THRESHOLD))
+        lines = [
+            f":zap: *PRE-MARKET GAP-UP ALERT — {today_str}*",
+            f"_Screener-tracked stocks gapping +{thresh_str}%+ before open_\n",
+        ]
 
-    today_str = datetime.date.today().isoformat()
-    thresh_str = str(int(PREMARKET_THRESHOLD))
-    lines = [
-        f":zap: *PRE-MARKET GAP-UP ALERT — {today_str}*",
-        f"_Screener-tracked stocks gapping +{thresh_str}%+ before open_\n",
-    ]
+        for a in alerts:
+            lines.append(
+                f"*{a['ticker']}* +{a['pct']}% pre-market (est. ${a['price']})\n"
+                f"  Screeners: {a['screens']} | Days on radar: {a['days_seen']}"
+                + (f" | {a['sector']}" if a["sector"] else "")
+                + f"\n  :chart_with_upwards_trend: https://finviz.com/quote.ashx?t={a['ticker']}"
+            )
 
-    for a in alerts:
-        lines.append(
-            f"*{a['ticker']}* +{a['pct']}% pre-market (est. ${a['price']})\n"
-            f"  Screeners: {a['screens']} | Days on radar: {a['days_seen']}"
-            + (f" | {a['sector']}" if a["sector"] else "")
-            + f"\n  :chart_with_upwards_trend: https://finviz.com/quote.ashx?t={a['ticker']}"
-        )
+        lines.append("\n_Act at open — not mid-day chase. Confirm volume at bell._")
 
-    lines.append("\n_Act at open — not mid-day chase. Confirm volume at bell._")
+        payload = {
+            "blocks": [{
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "\n".join(lines)},
+            }]
+        }
 
-    payload = {
-        "blocks": [{
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "\n".join(lines)},
-        }]
-    }
+        if not SLACK_WEBHOOK:
+            log.warning("SLACK_WEBHOOK_URL not set — would have alerted: %s", [a["ticker"] for a in alerts])
+        else:
+            try:
+                resp = requests.post(SLACK_WEBHOOK, json=payload, timeout=10)
+                resp.raise_for_status()
+                log.info("Pre-market alert sent: %s", [a["ticker"] for a in alerts])
+            except Exception as e:
+                log.error("Slack send failed: %s", e)
 
-    if not SLACK_WEBHOOK:
-        log.warning("SLACK_WEBHOOK_URL not set — would have alerted: %s", [a["ticker"] for a in alerts])
-        return
-
+    # ── SetupOfDay tweet via EventBridge ──────────────────────────────────────
+    # Always fires at 9am ET (unless RED/BLACKOUT — already gated at top).
+    # Reads yesterday's screener CSV, picks the top quality ticker.
     try:
-        resp = requests.post(SLACK_WEBHOOK, json=payload, timeout=10)
-        resp.raise_for_status()
-        log.info("Pre-market alert sent: %s", [a["ticker"] for a in alerts])
-    except Exception as e:
-        log.error("Slack send failed: %s", e)
+        import glob as _glob
+        import json as _json
+
+        _csv_files = sorted(_glob.glob(os.path.join(DATA_DIR, "finviz_screeners_*.csv")))
+        if _csv_files:
+            import pandas as _pd
+            _df = _pd.read_csv(_csv_files[-1])
+            # Exclude open positions — don't tweet what's already held
+            _open = load_open_position_tickers()
+            _candidates = _df[~_df["Ticker"].isin(_open)]
+            if _candidates.empty:
+                _candidates = _df  # fallback: every result is held
+            # Exclude tickers flagged out by 10% gate
+            _candidates = _candidates[_candidates.get("_10pct_excluded", False) != True]
+            if not _candidates.empty:
+                _best = _candidates.nlargest(1, "Quality Score").iloc[0]
+                _ticker   = str(_best["Ticker"])
+                _sma50pct = float(_best.get("SMA50%") or 0)
+
+                # Fetch current price from Alpaca (pre-market available at 9am ET)
+                _pct, _price = get_premarket_change(_ticker)
+                if not _price:
+                    # Fall back to previous close from prevDailyBar if latestTrade not available
+                    _price = 0.0
+
+                _stop = round(_price / (1 + _sma50pct / 100), 2) if _price and _sma50pct else 0.0
+                _vcp_raw = _best.get("VCP", {}) or {}
+                _vcp_ok  = bool(_vcp_raw.get("vcp_possible", False)) if isinstance(_vcp_raw, dict) else False
+
+                _top_pick = {
+                    "ticker":        _ticker,
+                    "quality_score": int(_best.get("Quality Score") or 0),
+                    "section":       "stage2",
+                    "rel_vol":       round(float(_best.get("Rel Volume") or 1.0), 1),
+                    "vcp":           _vcp_ok,
+                    "entry_price":   _price,
+                    "stop_price":    _stop,
+                }
+
+                _ts = {}
+                try:
+                    with open(os.path.join(DATA_DIR, "trading_state.json")) as _f:
+                        _ts = _json.load(_f)
+                except Exception:
+                    pass
+                _market_state = _ts.get("market_state", "RED")
+                _fear_greed   = int(_ts.get("fng") or 0)
+
+                base_url = os.environ.get(
+                    "PAGES_BASE_URL",
+                    "https://ananthsrinivasan.github.io/finviz-screener-agent",
+                )
+                _date = os.path.basename(_csv_files[-1]).replace("finviz_screeners_", "").replace(".csv", "")
+
+                from agents.publishing.event_publisher import publish_screener_completed
+                publish_screener_completed(
+                    date=_date,
+                    market_state=_market_state,
+                    fear_greed=_fear_greed,
+                    top_pick=_top_pick,
+                    total_tickers=len(_df),
+                    preview_report_url=f"{base_url}/preview/{_date}.html",
+                    full_report_url=f"{base_url}/reports/{_date}.html",
+                )
+        else:
+            log.info("SetupOfDay: no screener CSV found — skipping tweet")
+    except Exception as _e:
+        log.warning("SetupOfDay EventBridge publish skipped (non-fatal): %s", _e)
 
 
 if __name__ == "__main__":

@@ -1256,12 +1256,9 @@ if __name__ == "__main__":
     # Step 7: Auto-populate watchlist with top Stage 2 + Q≥60 tickers
     _update_watchlist(filter_df, today)
 
-    # ── EventBridge: ScreenerCompleted + PersistencePick ─────────────────
+    # ── EventBridge: PersistencePick (SetupOfDay moved to premarket_alert.py at 9am ET) ──
     try:
-        from agents.publishing.event_publisher import (
-            publish_screener_completed,
-            publish_persistence_pick,
-        )
+        from agents.publishing.event_publisher import publish_persistence_pick
         import glob as _glob
         import json as _json
 
@@ -1273,64 +1270,7 @@ if __name__ == "__main__":
         _market_state = _ts.get("market_state", "RED")
         _fear_greed   = int(_ts.get("fng") or 0)
 
-        base_url = os.environ.get(
-            "PAGES_BASE_URL",
-            "https://ananthsrinivasan.github.io/finviz-screener-agent",
-        )
-
-        # Exclude tickers already in open positions — don't tweet extended holds as fresh setups
-        _open_tickers: set[str] = set()
-        if os.path.exists("data/positions.json"):
-            with open("data/positions.json") as _pf:
-                _pos_data = _json.load(_pf)
-            _open_tickers = {
-                t for t, v in _pos_data.get("positions", {}).items()
-                if v.get("status") == "open"
-            }
-        if _open_tickers:
-            log.info(f"SetupOfDay: excluding {_open_tickers} (already held)")
-
-        _tweet_candidates = filter_df[~filter_df["Ticker"].isin(_open_tickers)]
-        if _tweet_candidates.empty:
-            _tweet_candidates = filter_df  # fallback: if every screener result is held
-
         if not filter_df.empty:
-            best      = _tweet_candidates.iloc[0]
-            ticker    = best["Ticker"]
-            sma50_pct = float(best.get("SMA50%") or 0)
-
-            # Fetch current price for entry/stop — single ticker, non-fatal
-            _price = 0.0
-            try:
-                import yfinance as _yf
-                _price = round(float(_yf.Ticker(ticker).fast_info["last_price"]), 2)
-            except Exception as _pe:
-                log.warning(f"Price fetch for {ticker} failed: {_pe}")
-
-            _stop     = round(_price / (1 + sma50_pct / 100), 2) if _price and sma50_pct else 0.0
-            _vcp_data = best.get("VCP", {}) or {}
-            _vcp_ok   = bool(_vcp_data.get("vcp_possible", False)) if isinstance(_vcp_data, dict) else False
-
-            top_pick = {
-                "ticker":        ticker,
-                "quality_score": int(best.get("Quality Score") or 0),
-                "section":       _classify_ticker(best),
-                "rel_vol":       round(float(best.get("Rel Volume") or 1.0), 1),
-                "vcp":           _vcp_ok,
-                "entry_price":   _price,
-                "stop_price":    _stop,
-            }
-
-            publish_screener_completed(
-                date=today,
-                market_state=_market_state,
-                fear_greed=_fear_greed,
-                top_pick=top_pick,
-                total_tickers=len(summary_df),
-                preview_report_url=f"{base_url}/preview/{today}.html",
-                full_report_url=f"{base_url}/reports/{today}.html",
-            )
-
             # Persistence pick — most recent weekly persistence CSV
             _stage_map = {
                 "Uptrend": "stage2", "Distribution": "stage3",

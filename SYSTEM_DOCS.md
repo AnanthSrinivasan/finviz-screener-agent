@@ -398,22 +398,24 @@ Agent 3 reads market state and conditions its recommendations. RED/BLACKOUT → 
 
 | Tweet | Event | Fired by | Time (ET) | Condition |
 |-------|-------|----------|-----------|-----------|
-| SetupOfDay | `ScreenerCompleted` | `finviz_agent.py` | ~4:30pm | Market not RED/BLACKOUT/DANGER |
+| SetupOfDay | `ScreenerCompleted` | `premarket_alert.py` | 9:00am | Market not RED/BLACKOUT/DANGER |
 | PersistencePick | `PersistencePick` | `finviz_agent.py` | ~4:30pm | `persistence_days >= 3` |
+
+SetupOfDay reads yesterday's screener CSV (top Quality Score ticker, excluding open positions), fires at 9am ET with Alpaca pre-market price as the entry reference.
 
 **SetupOfDay tweet template:**
 ```
-Setup of the day: $TICKER
+Setup of the Day: $TICKER
 
 Stage 2 confirmed ✓
 VCP pattern ✓          ← only if vcp=True
 Relative volume: Xx ✓
 Quality score: XX/100
 
-Entry: watching $XX.XX
+Entry zone: $XX.XX
 Thesis breaks below $XX.XX (50MA)
 
-XXX tickers screened today.
+XXX tickers in yesterday's screen.
 Reply for the full PDF report.
 
 Rules-based. Not advice.
@@ -448,7 +450,6 @@ Finviz daily chart attached as media.
 **Chart source:** `https://finviz.com/chart.ashx?t={ticker}&ty=c&ta=1&p=d` — downloaded by Lambda, uploaded to X Media API (`upload.twitter.com/1.1/media/upload.json`). Chart upload failure is non-fatal.
 
 **TODOs:**
-- Wire `premarket_alert.py` to fire a `PreMarketPulse` event at 8am ET for morning tweet
 - Add `SlackPublisher` Lambda subscribing to `MarketDailySummary` (replace direct webhook calls)
 - OIDC auth migration (`INFRA_AUTH_DESIGN.md` Option 3) for GitHub Actions → no static keys needed
 

@@ -35,7 +35,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 **Publishing layer (`agents/publishing/`):**
 - `agents/publishing/event_publisher.py` — Non-fatal EventBridge wrapper. Three functions:
   - `publish_market_daily_summary()` — fired by `market_monitor.py` at 5pm ET. No-op on X today; reserved for future Slack/Discord publisher.
-  - `publish_screener_completed()` — fired by `finviz_agent.py` at 4:30pm ET. Triggers SetupOfDay tweet with Finviz chart.
+  - `publish_screener_completed()` — fired by `premarket_alert.py` at 9am ET. Triggers SetupOfDay tweet with Finviz chart (reads yesterday's screener CSV, picks top Quality Score ticker).
   - `publish_persistence_pick()` — fired by `finviz_agent.py` at ~4:30pm ET (only if `persistence_days >= 3`). Triggers PersistencePick tweet with Finviz chart.
 - All publish calls are wrapped in try/except — a failed EventBridge call never blocks the screener.
 
