@@ -59,6 +59,9 @@
   .entry-date { display: block; font-size: 0.68rem; color: #9ca3af; }
   .thesis-cell { font-size: 0.75rem; color: #6b7280; max-width: 280px; }
   .targets-cell { font-size: 0.75rem; white-space: nowrap; }
+  .peel-cell { font-size: 0.72rem; color: #6b7280; white-space: nowrap; }
+  .peel-thresholds { color: #9ca3af; }
+  .peel-fallback { font-size: 0.65rem; color: #4b5563; margin-left: 3px; }
   .risk-cell { font-size: 0.75rem; }
 
   .pos { color: #16a34a; font-weight: 600; }
@@ -151,7 +154,7 @@
 <div class="dash-header">
   <h1>Dashboard</h1>
   <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 13 Apr 2026 17:08 UTC</div>
+  <div class="dash-meta">Updated 13 Apr 2026 18:54 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -169,7 +172,7 @@
       </div>
       <div class="summary-item">
         <span class="summary-label">Unrealized P&L</span>
-        <span class="summary-val pos">$3,500.68 (+22.6%)</span>
+        <span class="summary-val pos">$3,316.43 (+21.4%)</span>
       </div>
       <div class="summary-item">
         <span class="summary-label">Positions</span>
@@ -180,7 +183,7 @@
     <table class="positions-table">
       <thead>
         <tr>
-          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th>
+          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th><th>Peel (p90)</th>
         </tr>
       </thead>
       <tbody>
@@ -191,11 +194,12 @@
           </td>
           <td>200</td>
           <td>$34.44</td>
-          <td>$31.22</td>
-          <td class="pos">+9.0%</td>
-          <td class="pos">$619.92</td>
-          <td class="risk-cell neg">-9.3%</td>
+          <td>$31.62</td>
+          <td class="pos">+10.2%</td>
+          <td class="pos">$699.82</td>
+          <td class="risk-cell neg">-8.2%</td>
           <td class="targets-cell"><span class="target-pending">T1 $41</span> <span class="target-pending">T2 $48</span></td>
+          <td class="peel-cell"><span class="peel-thresholds">warn 6.5x · sig 8.0x · p90 — ~</span> <span class="peel-fallback">~</span></td>
         </tr>
         <tr>
           <td class="ticker-cell">
@@ -205,10 +209,11 @@
           <td>75</td>
           <td>$114.35</td>
           <td>$137.48 <span class="be-badge">BE</span></td>
-          <td class="pos">+33.6%</td>
-          <td class="pos">$2,880.76</td>
+          <td class="pos">+30.5%</td>
+          <td class="pos">$2,616.61</td>
           <td class="risk-cell pos">+20.2%</td>
           <td class="targets-cell"><span class="target-hit">T1 $137 hit</span> <span class="target-pending">T2 $160</span></td>
+          <td class="peel-cell"><span class="peel-thresholds">warn 11.8x · sig 15.8x · p90 19.6x</span></td>
         </tr></tbody>
     </table>
     </div>
@@ -889,7 +894,7 @@
 </div>
 
 <div class="footer">
-  Generated 13 Apr 2026 17:08 UTC &middot;
+  Generated 13 Apr 2026 18:54 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
