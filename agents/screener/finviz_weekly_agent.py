@@ -971,11 +971,17 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high · ⚡CC = character change (confirmed) · ⚡W = CC watch · 🔄 = char change (heuristic). "
         "Signal score = base + bonuses. Base score shown in grey."
         "</p>"
-        "<table class='lb-table'><thead><tr>"
-        "<th>#</th><th>Ticker</th><th>Company</th><th>Sector</th>"
-        "<th>Persistence</th><th>Signal</th><th>Base</th>"
-        "<th>Q</th><th>Stage</th>"
-        "<th>ATR%</th><th>EPS%</th><th>Screeners</th><th>Chart</th>"
+        "<table class='lb-table' id='lb-table'><thead><tr>"
+        "<th data-col='0'>#</th>"
+        "<th>Ticker</th><th>Company</th><th>Sector</th>"
+        "<th data-col='4'>Persistence</th>"
+        "<th data-col='5'>Signal</th>"
+        "<th data-col='6'>Base</th>"
+        "<th data-col='7'>Q</th>"
+        "<th>Stage</th>"
+        "<th data-col='9'>ATR%</th>"
+        "<th data-col='10'>EPS%</th>"
+        "<th>Screeners</th><th>Chart</th>"
         "</tr></thead><tbody>" + leaderboard_rows + "</tbody></table>"
     ) if leaderboard_rows else ""
 
@@ -1039,6 +1045,10 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
 .lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
 .lb-table th { text-align: left; padding: 6px 9px; color: #475569; font-weight: 500;
                border-bottom: 1px solid #1e2130; text-transform: uppercase; font-size: 0.64rem; letter-spacing: .05em; }
+.lb-table th[data-col] { cursor: pointer; user-select: none; }
+.lb-table th[data-col]:hover { color: #94a3b8; }
+.lb-table th[data-col].sort-asc::after  { content: ' ▲'; font-size: 0.55rem; }
+.lb-table th[data-col].sort-desc::after { content: ' ▼'; font-size: 0.55rem; }
 .lb-table td { padding: 7px 9px; border-bottom: 1px solid #161b27; vertical-align: middle; }
 .lb-table tr:hover td { background: #181d2b; }
 .lb-table tr.ep-row td { background: #1a1a0e; }
@@ -1095,6 +1105,31 @@ h2    { font-size: .78rem; font-weight: 600; color: #64748b; margin: 28px 0 10px
         + macro_html
         + cc_html
         + leaderboard_html
+        + """<script>
+(function(){
+  var tbl = document.getElementById('lb-table');
+  if (!tbl) return;
+  var asc = {};
+  tbl.querySelectorAll('th[data-col]').forEach(function(th){
+    th.addEventListener('click', function(){
+      var col = parseInt(th.getAttribute('data-col'));
+      var dir = asc[col] = !asc[col];
+      tbl.querySelectorAll('th[data-col]').forEach(function(h){ h.classList.remove('sort-asc','sort-desc'); });
+      th.classList.add(dir ? 'sort-asc' : 'sort-desc');
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort(function(a, b){
+        var av = a.cells[col] ? a.cells[col].textContent.trim() : '';
+        var bv = b.cells[col] ? b.cells[col].textContent.trim() : '';
+        var an = parseFloat(av.split('/')[0].replace(/[^0-9.\-]/g,'')), bn = parseFloat(bv.split('/')[0].replace(/[^0-9.\-]/g,''));
+        if (!isNaN(an) && !isNaN(bn)) return dir ? an - bn : bn - an;
+        return dir ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+      rows.forEach(function(r){ tbody.appendChild(r); });
+    });
+  });
+})();
+</script>"""
         + "</body></html>"
     )
 
