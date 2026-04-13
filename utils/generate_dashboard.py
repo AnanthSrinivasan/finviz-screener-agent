@@ -105,6 +105,7 @@ def load_data(data_dir):
     watchlist = _load_json(os.path.join(data_dir, "watchlist.json"), {"watchlist": []})
     alerts_state = _load_json(os.path.join(data_dir, "alerts_state.json"), {})
     market_history = _load_json(os.path.join(data_dir, "market_monitor_history.json"), [])
+    peel_calib = _load_json(os.path.join(data_dir, "peel_calibration.json"), {})
 
     # Latest market monitor snapshot
     monitor_files = sorted(glob.glob(os.path.join(data_dir, "market_monitor_2*.json")), reverse=True)
@@ -126,12 +127,48 @@ def load_data(data_dir):
         "market_latest": market_latest,
         "market_history": market_history,
         "position_snapshots": position_snapshots,
+        "peel_calib": peel_calib,
     }
 
 
-def _build_positions_html(positions):
+_PEEL_TIER_FALLBACK = [(4, 3.0, 4.0), (7, 5.0, 6.0), (10, 6.5, 8.0), (999, 8.5, 10.0)]
+
+
+def _peel_status(ticker, atr_pct, calib):
+    """Return (mult_str, p90_str, status_label, css_class) from calibration data.
+    atr_pct is the position's stored ATR% (from peel_calibration or fallback).
+    mult is stored in calib as current ATR multiple — we only have static calib data here,
+    so we show the thresholds for context without live mult calculation.
+    """
+    c = calib.get(ticker, {})
+    if c.get("calibrated"):
+        warn  = c.get("warn", 0)
+        sig   = c.get("signal", 0)
+        p90   = c.get("p90", 0)
+        mx    = c.get("max_seen", 0)
+        atr_avg = c.get("atr_pct_avg", atr_pct or 8)
+    else:
+        atr_avg = c.get("atr_pct_avg", atr_pct or 8)
+        for threshold, w, s in _PEEL_TIER_FALLBACK:
+            if atr_avg <= threshold:
+                warn, sig, p90, mx = w, s, 0, 0
+                break
+        else:
+            warn, sig, p90, mx = 8.5, 10.0, 0, 0
+
+    calibrated = c.get("calibrated", False)
+    src = "" if calibrated else " ~"
+    p90_str = f"{p90:.1f}x" if p90 else "—"
+    mx_str  = f"{mx:.1f}x"  if mx  else "—"
+    thresholds = f"warn {warn:.1f}x · sig {sig:.1f}x · p90 {p90_str}{src}"
+    return thresholds, p90_str, mx_str, "calibrated" if calibrated else "fallback"
+
+
+def _build_positions_html(positions, peel_calib=None):
     open_pos = positions.get("open_positions", [])
     closed_pos = positions.get("closed_positions", [])
+    if peel_calib is None:
+        peel_calib = {}
 
     if not open_pos:
         return '<div class="empty-state">No open positions</div>'
@@ -171,10 +208,16 @@ def _build_positions_html(positions):
         if be_stop:
             stop_label += ' <span class="be-badge">BE</span>'
 
+        # Peel thresholds from calibration
+        ticker_name = p.get("ticker", "?")
+        peel_thresholds, p90_str, mx_str, peel_src = _peel_status(ticker_name, None, peel_calib)
+        peel_src_badge = '' if peel_src == 'calibrated' else ' <span class="peel-fallback">~</span>'
+        peel_html = f'<span class="peel-thresholds">{peel_thresholds}</span>{peel_src_badge}'
+
         rows += f"""
         <tr>
           <td class="ticker-cell">
-            <span class="ticker">{p.get("ticker", "?")}</span>
+            <span class="ticker">{ticker_name}</span>
             <span class="entry-date">{_format_date(p.get("entry_date", ""))}</span>
           </td>
           <td>{shares}</td>
@@ -184,6 +227,7 @@ def _build_positions_html(positions):
           <td class="{_pnl_class(pnl)}">{_format_currency(pnl)}</td>
           <td class="risk-cell {_pnl_class(risk_pct)}">{_format_pct(risk_pct)}</td>
           <td class="targets-cell">{target_html}</td>
+          <td class="peel-cell">{peel_html}</td>
         </tr>"""
 
     total_pnl_pct = (total_pnl / total_cost * 100) if total_cost else 0
@@ -209,7 +253,7 @@ def _build_positions_html(positions):
     <table class="positions-table">
       <thead>
         <tr>
-          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th>
+          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th><th>Peel (p90)</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>
@@ -441,7 +485,7 @@ def generate_dashboard(data, base_url):
     market_state = data["market_latest"].get("market_state", "—")
     sizing_mode = data["trading_state"].get("current_sizing_mode", "normal")
 
-    positions_html = _build_positions_html(data["positions"])
+    positions_html = _build_positions_html(data["positions"], data.get("peel_calib", {}))
     market_html = _build_market_html(data["market_latest"], data["market_history"])
     watchlist_html = _build_watchlist_html(data["watchlist"])
     alerts_html = _build_alerts_html(data["alerts_state"])
@@ -510,6 +554,9 @@ def generate_dashboard(data, base_url):
   .entry-date {{ display: block; font-size: 0.68rem; color: #9ca3af; }}
   .thesis-cell {{ font-size: 0.75rem; color: #6b7280; max-width: 280px; }}
   .targets-cell {{ font-size: 0.75rem; white-space: nowrap; }}
+  .peel-cell {{ font-size: 0.72rem; color: #6b7280; white-space: nowrap; }}
+  .peel-thresholds {{ color: #9ca3af; }}
+  .peel-fallback {{ font-size: 0.65rem; color: #4b5563; margin-left: 3px; }}
   .risk-cell {{ font-size: 0.75rem; }}
 
   .pos {{ color: #16a34a; font-weight: 600; }}
