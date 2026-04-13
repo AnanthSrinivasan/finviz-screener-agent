@@ -1001,9 +1001,10 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .bold { font-weight: 700; }
 .dim  { color: #9ca3af; }
 /* PDF export */
-.pdf-btn { position: fixed; top: 16px; right: 20px; background: #2563eb; color: #fff;
-           border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.78rem;
-           font-weight: 600; cursor: pointer; z-index: 999; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.pdf-btn { position: fixed; bottom: 24px; right: 24px; background: #2563eb; color: #fff;
+           border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.1rem;
+           cursor: pointer; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+           display: flex; align-items: center; justify-content: center; }
 .pdf-btn:hover { background: #1d4ed8; }
 /* Focus cards */
 .focus-grid    { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 36px; }
@@ -1106,7 +1107,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         f"<title>Finviz Weekly — {today}</title>"
         f"<style>{css}</style>"
         "</head><body>"
-        "<button class='pdf-btn' onclick='window.print()'>Export PDF</button>"
+        "<button class='pdf-btn' onclick='window.print()' title='Export PDF'>⬇</button>"
         "<h1>Finviz Weekly Review</h1>"
         f"<p class='subtitle'>{week_range} · {len(persistence_df)} tickers scanned · {len(dates_found)} trading days</p>"
         + crypto_html

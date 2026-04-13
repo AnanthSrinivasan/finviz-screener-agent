@@ -862,9 +862,10 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 .sr-s2 {{ color: #16a34a !important; }}
 .sr-vcp {{ color: #92400e !important; }}
 /* PDF export */
-.pdf-btn {{ position: fixed; top: 16px; right: 20px; background: #2563eb; color: #fff;
-            border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.78rem;
-            font-weight: 600; cursor: pointer; z-index: 999; box-shadow: 0 2px 6px rgba(0,0,0,.15); }}
+.pdf-btn {{ position: fixed; bottom: 24px; right: 24px; background: #2563eb; color: #fff;
+            border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.1rem;
+            cursor: pointer; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+            display: flex; align-items: center; justify-content: center; }}
 .pdf-btn:hover {{ background: #1d4ed8; }}
 @media print {{
   .pdf-btn {{ display: none; }}
@@ -875,7 +876,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 </style>
 </head>
 <body>
-<button class="pdf-btn" onclick="window.print()">Export PDF</button>
+<button class="pdf-btn" onclick="window.print()" title="Export PDF">⬇</button>
 <div class="page-title">Finviz Chart Gallery</div>
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
 {sector_rotation_html}
