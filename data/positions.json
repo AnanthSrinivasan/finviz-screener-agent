@@ -14,14 +14,14 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 39.52,
-      "current_gain_pct": 14.75
+      "current_gain_pct": 14.69
     },
     {
       "ticker": "AAOI",
       "shares": 75,
       "entry_price": 114.35,
       "entry_date": "2026-04-08",
-      "stop": 138.14,
+      "stop": 138.69,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": true,
       "target1": 137.22,
@@ -29,15 +29,15 @@
       "target2": 160.09,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 153.49,
-      "current_gain_pct": 34.23
+      "highest_price_seen": 154.1,
+      "current_gain_pct": 34.76
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 226.64,
+      "stop": 227.2,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,8 +45,8 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 246.24,
-      "current_gain_pct": 0.07
+      "highest_price_seen": 246.92,
+      "current_gain_pct": 0.35
     }
   ],
   "closed_positions": []
