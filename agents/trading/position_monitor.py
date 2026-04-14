@@ -13,6 +13,7 @@ import hmac
 import hashlib
 import time
 import uuid
+import base64
 import glob as globmod
 from pathlib import Path
 
@@ -759,6 +760,8 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
             f"consider selling half, move stop to breakeven"
         )
         log.info(f"{ticker}: Target 1 hit at ${target1:.2f}")
+        today_str = datetime.date.today().isoformat()
+        _save_winner_chart(ticker, "T1", today_str)
 
     target2 = position.get("target2", 0)
     if target2 > 0 and current_price >= target2:
@@ -928,6 +931,10 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             positions_data["open_positions"].remove(position)
             positions_data["closed_positions"].append(position)
 
+        # Save chart if this is a winning exit
+        if result_pct > 0:
+            _save_winner_chart(ticker, "exit_win", today)
+
         # Update streak
         if result_pct > 0:
             trading_state["total_wins"] += 1
@@ -1021,6 +1028,42 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
         log.info(f"Rules engine Slack sent ({len(alerts)} alerts)")
     except Exception as e:
         log.error(f"Rules engine Slack failed: {e}")
+
+
+# ----------------------------
+# Winner chart capture
+# ----------------------------
+
+FINVIZ_CHART_URL = "https://finviz.com/chart.ashx?t={ticker}&ty=c&ta=1&p=d"
+CHART_PATTERNS_DIR = os.path.join("data", "chart_patterns", "winners")
+
+
+def _save_winner_chart(ticker: str, label: str, today: str):
+    """
+    Download today's Finviz daily chart for a winning trade and save to
+    data/chart_patterns/winners/{ticker}_{today}_{label}.png
+
+    label: "T1", "T2", "exit_win" etc.
+    Non-fatal — a failed download never blocks the monitor.
+    """
+    try:
+        os.makedirs(CHART_PATTERNS_DIR, exist_ok=True)
+        url = FINVIZ_CHART_URL.format(ticker=ticker)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": "https://finviz.com/",
+        }
+        resp = requests.get(url, headers=headers, timeout=15)
+        if not resp.ok:
+            log.warning("Chart download failed for %s: HTTP %s", ticker, resp.status_code)
+            return
+        filename = f"{ticker}_{today}_{label}.png"
+        path = os.path.join(CHART_PATTERNS_DIR, filename)
+        with open(path, "wb") as f:
+            f.write(resp.content)
+        log.info("Winner chart saved: %s (%d bytes)", path, len(resp.content))
+    except Exception as e:
+        log.warning("Chart capture failed for %s: %s", ticker, e)
 
 
 # ----------------------------
