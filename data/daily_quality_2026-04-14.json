@@ -126,34 +126,34 @@
     "section": "stage2"
   },
   "GEV": {
-    "q_rank": 40,
-    "stage": 0,
-    "stage_label": "Transitional",
+    "q_rank": 110,
+    "stage": 2,
+    "stage_label": "Uptrend",
     "section": "ipo"
   },
   "HUT": {
-    "q_rank": 24,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": 69,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2"
   },
   "INGM": {
-    "q_rank": 24,
-    "stage": 0,
-    "stage_label": "Transitional",
+    "q_rank": 79,
+    "stage": 2,
+    "stage_label": "Uptrend",
     "section": "ipo"
   },
   "JBL": {
-    "q_rank": 32,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": 79,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2"
   },
   "KEYS": {
-    "q_rank": 37,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": 101,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2"
   },
   "LPTH": {
     "q_rank": 70,
@@ -339,10 +339,10 @@
     "section": "stage2"
   },
   "AHCO": {
-    "q_rank": 47,
-    "stage": 2,
-    "stage_label": "Uptrend",
-    "section": "stage2"
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch"
   },
   "ALGM": {
     "q_rank": 86,
@@ -351,10 +351,10 @@
     "section": "stage2"
   },
   "ALHC": {
-    "q_rank": 86,
-    "stage": 2,
-    "stage_label": "Uptrend",
-    "section": "stage2"
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch"
   },
   "ALMU": {
     "q_rank": 10,
@@ -687,10 +687,10 @@
     "section": "power_move"
   },
   "GLNG": {
-    "q_rank": 14,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": 88,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2"
   },
   "GLW": {
     "q_rank": 100,
@@ -705,16 +705,17 @@
     "section": "power_move"
   },
   "HBM": {
-    "q_rank": 14,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": 94,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2"
   },
   "INOD": {
-    "q_rank": 5,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch"
+    "q_rank": -16,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "excluded",
+    "excluded_reason": "below 50d MA (-11.0%), RVol 1.0x < 1.5x, -58% from 52w high, Stage 4 (Downtrend)"
   },
   "INTC": {
     "q_rank": 87,
