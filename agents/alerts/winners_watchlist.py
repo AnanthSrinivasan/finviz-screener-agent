@@ -76,6 +76,8 @@ def main():
             "thesis": f"{r.get('Sector', '')} — {r.get('Industry', '')}",
             "added": today,
             "status": "watching",
+            "priority": "watching",
+            "source": "weekly_auto",
         })
         added_names.append(f"{ticker} (Q{q.get('q_rank', '?')}, {q.get('stage_label', r.get('Stage', '?'))})")
 

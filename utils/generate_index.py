@@ -113,10 +113,12 @@ def generate_index(reports: dict, base_url: str) -> str:
     # Latest links for hero section
     dashboard_url = f"{base_url}/dashboard.html" if base_url else "dashboard.html"
 
-    perf_url = f"{base_url}/data/performance_charts.html" if base_url else "data/performance_charts.html"
-    mae_url  = f"{base_url}/data/mae_analysis.html" if base_url else "data/mae_analysis.html"
+    perf_url      = f"{base_url}/data/performance_charts.html" if base_url else "data/performance_charts.html"
+    mae_url       = f"{base_url}/data/mae_analysis.html" if base_url else "data/mae_analysis.html"
+    watchlist_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
 
     hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
+    hero_links += f'<a href="{watchlist_url}" class="hero-btn btn-watchlist">Watchlist</a>'
     if latest_weekly:
         hero_links += f'<a href="{report_url(latest_weekly)}" class="hero-btn btn-weekly">Latest Weekly Review</a>'
     if latest_gallery:
@@ -151,7 +153,8 @@ def generate_index(reports: dict, base_url: str) -> str:
   .btn-daily  {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
   .btn-dash   {{ background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }}
   .btn-perf   {{ background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }}
-  .btn-mae    {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}
+  .btn-mae       {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}
+  .btn-watchlist {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
 
   /* Stats bar */
   .stats {{ display: flex; gap: 32px; padding: 20px 32px;

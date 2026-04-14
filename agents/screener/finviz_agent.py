@@ -1095,9 +1095,10 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
     - Max 5 new additions per day (top by Q score)
     - Never overwrites an existing entry (watching, entered, or any status)
     - Sets entry_note based on VCP confirmation and Q score tier
-    - Existing entries are left completely untouched
+    - Auto-archives screener_auto entries older than 14 days (manual entries never expire)
     """
     import json
+    from datetime import date, timedelta
     watchlist_path = os.path.join("data", "watchlist.json")
     try:
         with open(watchlist_path) as f:
@@ -1107,7 +1108,21 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         existing = []
         wl_data = {"watchlist": existing}
 
-    existing_tickers = {e["ticker"] for e in existing}
+    # Auto-archive screener_auto entries older than 14 days
+    cutoff = (date.today() - timedelta(days=14)).isoformat()
+    archived_count = 0
+    for entry in existing:
+        if (entry.get("source") == "screener_auto"
+                and entry.get("status") == "watching"
+                and entry.get("added", "9999") < cutoff):
+            entry["status"] = "archived"
+            entry["archive_reason"] = "age_out"
+            entry["archived_date"] = today
+            archived_count += 1
+    if archived_count:
+        log.info("Watchlist: auto-archived %d stale screener_auto entries (>14 days).", archived_count)
+
+    existing_tickers = {e["ticker"] for e in existing if e.get("status") != "archived"}
 
     # Filter: Stage 2 + Q≥60 + not already in watchlist
     candidates = filter_df.copy()
@@ -1162,6 +1177,7 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
             ),
             "added":       today,
             "status":      "watching",
+            "priority":    "watching",
             "source":      "screener_auto",
         }
         existing.append(entry)

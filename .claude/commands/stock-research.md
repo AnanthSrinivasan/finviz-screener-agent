@@ -20,6 +20,29 @@ You are acting as a momentum trader's research analyst. The system context is:
 
 Read `data/trading_state.json` to get current market state and sizing mode. Read `data/positions.json` to check if any of the tickers are already held.
 
+### Step 1.5 — Chart vision (run for each ticker)
+
+Fetch the Finviz daily chart image for each ticker at:
+`https://finviz.com/chart.ashx?t={TICKER}&ty=c&ta=1&p=d`
+
+Read this image with your vision capability and assess the chart against our setup criteria:
+
+**Chart pattern checklist:**
+- [ ] Price above 50 SMA and 200 SMA? (Stage 2 visual confirmation)
+- [ ] 50 SMA trending up? Slope?
+- [ ] Price relationship to 21 EMA and 10 EMA — near a pullback or extended?
+- [ ] VCP visible? (tightening price range, declining volume on base)
+- [ ] Volume pattern on recent up days vs down days — accumulation or distribution?
+- [ ] Distance from 52-week high (rough visual estimate)?
+- [ ] Any obvious risk: gap-fill risk, broken structure, climax run?
+- [ ] Pattern match: which Minervini setup type best fits? (Stage 2 breakout / VCP / EMA pullback / none)
+
+**Setup quality:** Rate as `A` (textbook, enter on next trigger), `B` (developing, needs more work), `C` (not ready/extended/broken).
+
+Add a "Chart: A/B/C — [1-line pattern description]" line to the HTML per-ticker card.
+
+Save winning chart images (A-setups) to `data/chart_patterns/winners/` as `{TICKER}_{today}.png` — this builds our pattern library over time.
+
 ### Step 2 — Research each ticker in parallel
 
 Run 3 searches per ticker simultaneously across all tickers. Research must be **forward-looking**, not just point-in-time.

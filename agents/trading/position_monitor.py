@@ -1024,6 +1024,86 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
 
 
 # ----------------------------
+# Watchlist management
+# ----------------------------
+
+def _handle_watchlist_action(ticker: str, action: str, today: str):
+    """
+    Handle watchlist_action dispatch inputs from GitHub Actions.
+
+    Actions:
+      focus    — promote ticker to focus priority (actionable this week)
+      archive  — manually archive ticker
+      unarchive — restore archived ticker to watching
+    """
+    watchlist_path = os.path.join(DATA_DIR, "watchlist.json")
+    try:
+        with open(watchlist_path) as f:
+            wl_data = json.load(f)
+    except Exception:
+        log.error("Cannot open watchlist.json for action=%s ticker=%s", action, ticker)
+        return
+
+    entries = wl_data.get("watchlist", [])
+    match = next((e for e in entries if e.get("ticker") == ticker), None)
+
+    if action == "focus":
+        if match is None:
+            log.warning("Watchlist: %s not found — adding as focus entry", ticker)
+            entries.append({
+                "ticker": ticker, "entry_note": "Manually promoted to focus",
+                "entry_price": None, "stop": None, "thesis": "",
+                "added": today, "status": "watching", "priority": "focus", "source": "manual",
+            })
+        else:
+            if match.get("status") == "archived":
+                match["status"] = "watching"
+                match.pop("archive_reason", None)
+                match.pop("archived_date", None)
+            match["priority"] = "focus"
+        log.info("Watchlist: %s → FOCUS", ticker)
+        msg = f"📌 *Watchlist — Focus promoted*: {ticker} moved to Focus List"
+
+    elif action == "archive":
+        if match is None:
+            log.warning("Watchlist: %s not found — nothing to archive", ticker)
+            return
+        match["status"] = "archived"
+        match["archive_reason"] = "manual"
+        match["archived_date"] = today
+        match["priority"] = "watching"
+        log.info("Watchlist: %s → ARCHIVED (manual)", ticker)
+        msg = f"🗑️ *Watchlist — Archived*: {ticker} removed from active watchlist"
+
+    elif action == "unarchive":
+        if match is None:
+            log.warning("Watchlist: %s not found", ticker)
+            return
+        match["status"] = "watching"
+        match["priority"] = "watching"
+        match.pop("archive_reason", None)
+        match.pop("archived_date", None)
+        log.info("Watchlist: %s → UNARCHIVED", ticker)
+        msg = f"♻️ *Watchlist — Restored*: {ticker} back to watchlist"
+
+    else:
+        log.error("Unknown watchlist_action: %s (valid: focus|archive|unarchive)", action)
+        return
+
+    wl_data["watchlist"] = entries
+    with open(watchlist_path, "w") as f:
+        json.dump(wl_data, f, indent=2)
+
+    # Send Slack confirmation
+    webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
+    if webhook:
+        try:
+            requests.post(webhook, json={"text": msg}, timeout=10)
+        except Exception as e:
+            log.warning("Slack watchlist action notify failed: %s", e)
+
+
+# ----------------------------
 # Main
 # ----------------------------
 
@@ -1038,6 +1118,15 @@ if __name__ == "__main__":
     wd_price  = os.environ.get("INPUT_PRICE", "").strip()
     wd_side   = os.environ.get("INPUT_SIDE", "").strip().upper()
     has_trade_input = bool(wd_ticker and wd_side)
+
+    # Watchlist management dispatch (separate from trade inputs)
+    wd_wl_action = os.environ.get("INPUT_WATCHLIST_ACTION", "").strip().lower()
+    wd_wl_ticker = os.environ.get("INPUT_WATCHLIST_TICKER", "").strip().upper()
+    if wd_wl_action and wd_wl_ticker:
+        _handle_watchlist_action(wd_wl_ticker, wd_wl_action, today)
+        # watchlist-only dispatch: skip full monitor run
+        if not has_trade_input:
+            exit(0)
 
     if not all([SNAPTRADE_CLIENT_ID, SNAPTRADE_CONSUMER_KEY, SNAPTRADE_USER_SECRET]):
         log.error("SnapTrade credentials missing — check GitHub secrets.")

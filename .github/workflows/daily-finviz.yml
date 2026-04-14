@@ -44,6 +44,12 @@ jobs:
           DATA_DIR: data
         run: python utils/generate_dashboard.py
 
+      - name: Regenerate watchlist page
+        env:
+          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+          DATA_DIR: data
+        run: python utils/generate_watchlist.py
+
       - name: Calibrate peel thresholds (positions)
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
@@ -62,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ index.html dashboard.html
+          git add data/ index.html dashboard.html watchlist.html
           git diff --cached --quiet || git commit -m "chore: finviz data $(date +%Y-%m-%d)"
           git pull --rebase
           git push

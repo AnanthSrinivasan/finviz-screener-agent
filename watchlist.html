@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchlist — 2026-04-14</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f9fafb; color: #111827; min-height: 100vh; }
+
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 14px 28px;
+             background: #fff; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #111827; flex: 1; }
+  .topbar-links { display: flex; gap: 10px; }
+  .topbar-links a { font-size: 0.8rem; color: #2563eb; text-decoration: none; padding: 5px 10px;
+                     border: 1px solid #bfdbfe; border-radius: 6px; background: #eff6ff; }
+  .topbar-links a:hover { background: #dbeafe; }
+
+  .stats { display: flex; gap: 24px; padding: 16px 28px; background: #fff;
+            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val { font-size: 1.3rem; font-weight: 700; color: #111827; }
+  .stat-label { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }
+
+  .section { padding: 24px 28px; background: #fff; margin-top: 12px;
+              border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .section-header h2 { font-size: 0.82rem; font-weight: 700; color: #374151;
+                        text-transform: uppercase; letter-spacing: .07em; }
+  .section-count { font-size: 0.75rem; color: #9ca3af; }
+
+  .csv-btn { margin-left: auto; padding: 6px 14px; font-size: 0.78rem; font-weight: 600;
+              color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0;
+              border-radius: 6px; cursor: pointer; text-decoration: none; }
+  .csv-btn:hover { background: #dcfce7; }
+
+  .watchlist-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .watchlist-table th { text-align: left; padding: 8px 10px; font-size: 0.7rem; font-weight: 700;
+                         text-transform: uppercase; letter-spacing: .05em; color: #6b7280;
+                         border-bottom: 2px solid #e5e7eb; }
+  .watchlist-table td { padding: 9px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  .watchlist-table tr:hover td { background: #f9fafb; }
+
+  .col-ticker  { width: 90px; white-space: nowrap; }
+  .col-note    { width: 200px; color: #374151; }
+  .col-thesis  { color: #6b7280; font-size: 0.77rem; }
+  .col-stop    { width: 60px; text-align: right; color: #dc2626; font-weight: 600; white-space: nowrap; }
+  .col-q       { width: 40px; text-align: right; font-weight: 600; color: #111827; }
+  .col-stage   { width: 80px; color: #6b7280; font-size: 0.75rem; }
+  .col-age     { width: 50px; text-align: right; color: #9ca3af; font-size: 0.75rem; }
+  .col-src     { width: 70px; }
+  .col-chart   { width: 60px; text-align: right; }
+
+  .ticker-link { font-weight: 700; color: #2563eb; text-decoration: none; }
+  .ticker-link:hover { text-decoration: underline; }
+  .chart-link { color: #2563eb; font-size: 0.75rem; text-decoration: none; }
+  .chart-link:hover { text-decoration: underline; }
+
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 4px;
+            font-size: 0.65rem; font-weight: 700; letter-spacing: .04em; }
+  .badge-focus  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .badge-auto   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .badge-manual { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+  .focus-section { background: #fffbeb; border-color: #fde68a; }
+  .focus-section .section-header h2 { color: #92400e; }
+
+  details summary { cursor: pointer; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  .archived-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem;
+                      color: #9ca3af; padding: 5px 10px; border: 1px solid #e5e7eb;
+                      border-radius: 6px; cursor: pointer; }
+  .archived-toggle:hover { background: #f9fafb; }
+  .archived-section { padding: 16px 28px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
+
+  .empty-msg { color: #9ca3af; font-size: 0.82rem; font-style: italic; padding: 12px 0; }
+
+  .footer { padding: 16px 28px; font-size: 0.7rem; color: #9ca3af; border-top: 1px solid #e5e7eb;
+             background: #fff; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📋 Watchlist — 2026-04-14</h1>
+  <div class="topbar-links">
+    <a href="index.html">← Home</a>
+    <a href="dashboard.html">Dashboard</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <span class="stat-val">0</span>
+    <span class="stat-label">Focus (act now)</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val">56</span>
+    <span class="stat-label">Watching</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val">0</span>
+    <span class="stat-label">Archived</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val">2026-04-14</span>
+    <span class="stat-label">Last updated</span>
+  </div>
+</div>
+
+<!-- FOCUS LIST -->
+<div class="section focus-section">
+  <div class="section-header">
+    <h2>📌 Focus List</h2>
+    <span class="section-count">0 tickers — actionable this week</span>
+    <button class="csv-btn" onclick="downloadCSV('tbl-focus', 'focus_list_2026-04-14.csv')">
+      ⬇ Download CSV
+    </button>
+  </div>
+  <p class="empty-msg">No entries.</p>
+</div>
+
+<!-- FULL WATCHLIST -->
+<div class="section">
+  <div class="section-header">
+    <h2>👁 Watching</h2>
+    <span class="section-count">56 tickers — on radar, not yet actionable</span>
+    <button class="csv-btn" onclick="downloadCSV('tbl-watching', 'watchlist_2026-04-14.csv')">
+      ⬇ Download CSV
+    </button>
+    <button class="csv-btn" onclick="downloadAllActive('APH,KLAC,SSRM,CGAU,IVVD,ANET,TSM,INTC,RSI,HBM,COHR,AU,BTSG,GMED,KGC,MU,ERO,AMAT,SN,DAN,C,AEHR,LRCX,ARWR,NBIS,ALHC,CSTM,ADI,CLS,CTRI,CRWV,LITE,MTSI,AA,KEYS,GLW,STX,AAOI,LUNR,DELL,MRVL,GEV,VIK,CIEN,VG,AMD,SQM,UNIT,NVT,VRT,PLAB,CRCL,CORZ,FIGS,SEDG,SNDK', 'all_active_2026-04-14.csv')" style="margin-left:0">
+      ⬇ All active (TradingView)
+    </button>
+  </div>
+  
+    <table id="tbl-watching" class="watchlist-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Setup note</th>
+          <th>Thesis</th>
+          <th>Stop</th>
+          <th>Q</th>
+          <th>Stage</th>
+          <th>Age</th>
+          <th>Source</th>
+          <th>Chart</th>
+        </tr>
+      </thead>
+      <tbody>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=APH" target="_blank" class="ticker-link">APH</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=97 | VCP | ATR 4.2%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">97</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-10">4d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=APH&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=KLAC" target="_blank" class="ticker-link">KLAC</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=88 | VCP | ATR 4.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">88</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-10">4d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=KLAC&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SSRM" target="_blank" class="ticker-link">SSRM</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=86 | VCP | ATR 6.6%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">86</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-10">4d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SSRM&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CGAU" target="_blank" class="ticker-link">CGAU</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=86 | VCP | ATR 5.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">86</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-10">4d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CGAU&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=IVVD" target="_blank" class="ticker-link">IVVD</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Healthcare | Q=85 | ATR 8.5%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">85</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-10">4d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=IVVD&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=ANET" target="_blank" class="ticker-link">ANET</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=100 | VCP | ATR 4.6%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">90</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=ANET&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=TSM" target="_blank" class="ticker-link">TSM</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=99 | VCP | ATR 3.7%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">94</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=TSM&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=INTC" target="_blank" class="ticker-link">INTC</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=97 | ATR 5.2%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">77</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=INTC&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=RSI" target="_blank" class="ticker-link">RSI</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Consumer Cyclical | Q=94 | VCP | ATR 4.1%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=RSI&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=HBM" target="_blank" class="ticker-link">HBM</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=94 | VCP | ATR 5.7%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">89</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=HBM&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=COHR" target="_blank" class="ticker-link">COHR</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=99 | VCP | ATR 7.9%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">87</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=COHR&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AU" target="_blank" class="ticker-link">AU</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=98 | VCP | ATR 5.5%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">98</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AU&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=BTSG" target="_blank" class="ticker-link">BTSG</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Healthcare | Q=94 | VCP | ATR 4.2%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">84</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=BTSG&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=GMED" target="_blank" class="ticker-link">GMED</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Healthcare | Q=94 | VCP | ATR 3.1%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=GMED&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=KGC" target="_blank" class="ticker-link">KGC</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=93 | VCP | ATR 4.9%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">90</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=KGC&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=MU" target="_blank" class="ticker-link">MU</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=92 | ATR 6.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">102</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=MU&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=ERO" target="_blank" class="ticker-link">ERO</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=89 | VCP | ATR 5.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">89</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=ERO&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AMAT" target="_blank" class="ticker-link">AMAT</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=88 | VCP | ATR 4.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">73</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AMAT&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SN" target="_blank" class="ticker-link">SN</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Consumer Cyclical | Q=86 | VCP | ATR 5.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">86</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SN&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=DAN" target="_blank" class="ticker-link">DAN</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Consumer Cyclical | Q=84 | VCP | ATR 3.7%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">14</td>
+      <td class="col-stage">Transitional</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=DAN&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=C" target="_blank" class="ticker-link">C</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Financial | Q=84 | VCP | ATR 3.1%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=C&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AEHR" target="_blank" class="ticker-link">AEHR</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=84 | ATR 8.5%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">74</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AEHR&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=LRCX" target="_blank" class="ticker-link">LRCX</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=83 | ATR 4.9%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">83</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=LRCX&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=ARWR" target="_blank" class="ticker-link">ARWR</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Healthcare | Q=82 | VCP | ATR 4.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">85</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=ARWR&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=NBIS" target="_blank" class="ticker-link">NBIS</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=82 | ATR 6.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">97</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-09">5d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=NBIS&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=ALHC" target="_blank" class="ticker-link">ALHC</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Healthcare | Q=103 | VCP | ATR 4.6%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-08">6d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=ALHC&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CSTM" target="_blank" class="ticker-link">CSTM</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=99 | VCP | ATR 5.5%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">94</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-08">6d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CSTM&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=ADI" target="_blank" class="ticker-link">ADI</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=94 | VCP | ATR 3.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">92</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-08">6d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=ADI&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CLS" target="_blank" class="ticker-link">CLS</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=89 | VCP | ATR 6.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">89</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-08">6d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CLS&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CTRI" target="_blank" class="ticker-link">CTRI</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Utilities | Q=86 | VCP | ATR 4.2%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">84</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-08">6d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CTRI&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" class="ticker-link">CRWV</a>
+      </td>
+      <td class="col-note">None</td>
+      <td class="col-thesis">None</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">15</td>
+      <td class="col-stage">Downtrend</td>
+      <td class="col-age" data-added="2026-04-07">7d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CRWV&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=LITE" target="_blank" class="ticker-link">LITE</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=105 | VCP | ATR 9.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">85</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-06">8d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=LITE&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=MTSI" target="_blank" class="ticker-link">MTSI</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=94 | VCP | ATR 5.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">102</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-06">8d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=MTSI&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AA" target="_blank" class="ticker-link">AA</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=92 | VCP | ATR 5.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-06">8d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AA&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=KEYS" target="_blank" class="ticker-link">KEYS</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=91 | VCP | ATR 4.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">99</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-06">8d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=KEYS&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=GLW" target="_blank" class="ticker-link">GLW</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=92 | ATR 6.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">95</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-03">11d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=GLW&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=STX" target="_blank" class="ticker-link">STX</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=91 | VCP | ATR 6.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">77</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-03">11d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=STX&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AAOI" target="_blank" class="ticker-link">AAOI</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=91 | ATR 12.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">99</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-03">11d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AAOI&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=LUNR" target="_blank" class="ticker-link">LUNR</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Industrials | Q=91 | ATR 10.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-03">11d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=LUNR&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=DELL" target="_blank" class="ticker-link">DELL</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=90 | VCP | ATR 4.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">30</td>
+      <td class="col-stage">Transitional</td>
+      <td class="col-age" data-added="2026-04-03">11d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=DELL&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=MRVL" target="_blank" class="ticker-link">MRVL</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Technology | Q=107 | ATR 5.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">110</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=MRVL&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=GEV" target="_blank" class="ticker-link">GEV</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Industrials | Q=102 | VCP | ATR 4.7%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">110</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=GEV&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=VIK" target="_blank" class="ticker-link">VIK</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Consumer Cyclical | Q=99 | VCP | ATR 4.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">104</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=VIK&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CIEN" target="_blank" class="ticker-link">CIEN</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=95 | VCP | ATR 7.3%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">93</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CIEN&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=VG" target="_blank" class="ticker-link">VG</a>
+      </td>
+      <td class="col-note">Perfect Stage 2 alignment — 21 EMA pullback entry</td>
+      <td class="col-thesis">Energy | Q=94 | ATR 8.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=VG&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AMD" target="_blank" class="ticker-link">AMD</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=106 | VCP | ATR 4.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">98</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AMD&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SQM" target="_blank" class="ticker-link">SQM</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Basic Materials | Q=97 | VCP | ATR 4.5%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">97</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SQM&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=UNIT" target="_blank" class="ticker-link">UNIT</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Real Estate | Q=96 | VCP | ATR 5.4%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=UNIT&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=NVT" target="_blank" class="ticker-link">NVT</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Industrials | Q=95 | VCP | ATR 5.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">98</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=NVT&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=VRT" target="_blank" class="ticker-link">VRT</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Industrials | Q=95 | VCP | ATR 6.0%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">106</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=VRT&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=PLAB" target="_blank" class="ticker-link">PLAB</a>
+      </td>
+      <td class="col-note">breakout, extended from 21 EMA</td>
+      <td class="col-thesis">Photomask leader, semiconductor capex cycle</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">49</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-03-25">20d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=PLAB&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CRCL" target="_blank" class="ticker-link">CRCL</a>
+      </td>
+      <td class="col-note">21 EMA pullback</td>
+      <td class="col-thesis">CLARITY Act April 3, stablecoin infrastructure, IPO lifecycle</td>
+      <td class="col-stop">$100</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CRCL&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CORZ" target="_blank" class="ticker-link">CORZ</a>
+      </td>
+      <td class="col-note">breakout above 18, AI/HPC pivot</td>
+      <td class="col-thesis">CoreWeave merger optionality, AI infrastructure pivot, crypto tailwind</td>
+      <td class="col-stop">$14</td>
+      <td class="col-q">75</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CORZ&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=FIGS" target="_blank" class="ticker-link">FIGS</a>
+      </td>
+      <td class="col-note">Stage 2 confirmed, above 52w high</td>
+      <td class="col-thesis">Character change, 400% EPS beat, healthcare apparel turning profitable</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=FIGS&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SEDG" target="_blank" class="ticker-link">SEDG</a>
+      </td>
+      <td class="col-note">pullback to 40-43 support</td>
+      <td class="col-thesis">Character change, European solar demand, Iran energy crisis</td>
+      <td class="col-stop">$38</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SEDG&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SNDK" target="_blank" class="ticker-link">SNDK</a>
+      </td>
+      <td class="col-note">pullback to 10 EMA</td>
+      <td class="col-thesis">IPO lifecycle, 81% EPS beat, NAND cycle</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">80</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+      </tbody>
+    </table>
+</div>
+
+<!-- ARCHIVED (collapsed) -->
+<div class="archived-section">
+  <details>
+    <summary>
+      <span class="archived-toggle">🗃 Archived (0) — click to expand</span>
+    </summary>
+    <div style="margin-top:16px">
+      <p class="empty-msg">No entries.</p>
+    </div>
+  </details>
+</div>
+
+<div class="footer">
+  Generated 14 Apr 2026 08:33 UTC · Auto-archive: screener_auto entries expire after 14 days ·
+  Promote to Focus via position-monitor workflow_dispatch (watchlist_action=focus)
+</div>
+
+<script>
+function downloadCSV(tableId, filename) {
+  const table = document.getElementById(tableId);
+  if (!table) { alert('No data in this section.'); return; }
+  const rows = table.querySelectorAll('tr');
+  const csv = Array.from(rows).map(row => {
+    const cells = row.querySelectorAll('th, td');
+    return Array.from(cells).map(c => {
+      const text = c.innerText.trim().replace(/,/g, ';').replace(/\n/g, ' ');
+      return text;
+    }).join(',');
+  }).join('\n');
+  _triggerDownload(csv, filename);
+}
+
+function downloadAllActive(tickers, filename) {
+  // TradingView-compatible: one ticker per line
+  const lines = tickers.split(',').filter(t => t.trim()).join('\n');
+  _triggerDownload(lines, filename);
+}
+
+function _triggerDownload(content, filename) {
+  const blob = new Blob([content], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

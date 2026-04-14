@@ -128,9 +128,11 @@ def build_message(triggered: list[tuple[dict, dict, list[str]]],
         price = data["price"]
         stop = item.get("stop")
         thesis = item.get("thesis", "")
+        is_focus = item.get("priority") == "focus"
 
         alert_str = ", ".join(alerts)
-        lines.append(f"🎯 *{ticker}* — ${price:.2f} {alert_str}")
+        focus_tag = " 📌 FOCUS" if is_focus else ""
+        lines.append(f"🎯 *{ticker}*{focus_tag} — ${price:.2f} {alert_str}")
 
         detail_parts = []
         if thesis:
@@ -161,7 +163,10 @@ def send_slack(text: str):
 
 def main():
     watchlist = load_watchlist()
-    active = [w for w in watchlist if w.get("status") == "watching"]
+    # Include focus + watching, exclude archived
+    active = [w for w in watchlist if w.get("status") not in ("archived",)]
+    # Focus tickers first, then regular watching
+    active.sort(key=lambda w: (0 if w.get("priority") == "focus" else 1))
     if not active:
         log.info("Watchlist empty — nothing to do.")
         return

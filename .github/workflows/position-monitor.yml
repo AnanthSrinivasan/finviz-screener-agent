@@ -22,6 +22,12 @@ on:
       side:
         description: 'BUY or SELL'
         required: false
+      watchlist_action:
+        description: 'Watchlist action: focus | archive | unarchive'
+        required: false
+      watchlist_ticker:
+        description: 'Ticker for watchlist action (separate from trade ticker)'
+        required: false
 
 jobs:
   position-monitor:
@@ -58,6 +64,8 @@ jobs:
           INPUT_SHARES: ${{ github.event.inputs.shares }}
           INPUT_PRICE: ${{ github.event.inputs.price }}
           INPUT_SIDE: ${{ github.event.inputs.side }}
+          INPUT_WATCHLIST_ACTION: ${{ github.event.inputs.watchlist_action }}
+          INPUT_WATCHLIST_TICKER: ${{ github.event.inputs.watchlist_ticker }}
         run: python agents/trading/position_monitor.py
 
       - name: Run Alpaca paper monitor
@@ -74,12 +82,19 @@ jobs:
           DATA_DIR: data
         run: python utils/generate_dashboard.py
 
+      - name: Regenerate watchlist page
+        if: success()
+        env:
+          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
+          DATA_DIR: data
+        run: python utils/generate_watchlist.py
+
       - name: Commit state changes
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json dashboard.html || true
+          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json dashboard.html watchlist.html || true
           git diff --cached --quiet || git commit -m "Update positions/trading state [skip ci]"
           git push || true
 
