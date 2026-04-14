@@ -1093,16 +1093,23 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         })
 
     # SNDK-pattern flag — manual research prompt, no auto API call
+    # sndk_candidates is list of (ticker, eps_yy, eps_qq) tuples
     if sndk_candidates:
-        tickers_str = "  ".join(f"`{t}`" for t in sndk_candidates)
-        research_cmd = "  ".join(f"`/stock-research {t}`" for t in sndk_candidates)
+        ticker_parts = []
+        for t, yy, qq in sndk_candidates:
+            distorted = yy < -50 and qq > 0
+            eps_tag = f"TTM {yy:+.0f}% / Q/Q {qq:+.0f}%"
+            flag = " ⚠ distorted" if distorted else ""
+            ticker_parts.append(f"`{t}` ({eps_tag}{flag})")
+        tickers_str  = "  ·  ".join(ticker_parts)
+        research_cmd = "  ".join(f"`/stock-research {t}`" for t, _, _ in sndk_candidates)
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f":microscope: *SNDK pattern detected (4+/6 criteria):* {tickers_str}\n"
-                    f"TTM EPS likely distorted — check technicals, then run: {research_cmd}"
+                    f":microscope: *SNDK pattern (4+/6 criteria):* {tickers_str}\n"
+                    f"Check technicals, then run: {research_cmd}"
                 )
             }
         })
@@ -1319,9 +1326,31 @@ if __name__ == "__main__":
     # ── Proactive research: SNDK-pattern detection ──
     # Only fires when a ticker hits 4+ of 6 specific criteria — these are rare.
     # Max 3 tickers per day (highest signal score only). Not a quality score gate.
+    # Excluded: non-growth sectors (utilities, energy, real estate, basic materials,
+    # consumer defensive) and specific slow-growth industries (construction, oil & gas, mining).
+    _SNDK_EXCLUDED_SECTORS = {
+        'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
+    }
+    _SNDK_EXCLUDED_INDUSTRIES = {
+        'Engineering & Construction', 'Infrastructure Operations',
+        'Oil & Gas E&P', 'Oil & Gas Integrated', 'Oil & Gas Midstream',
+        'Oil & Gas Refining & Marketing', 'Oil & Gas Equipment & Services',
+        'Specialty Chemicals', 'Agricultural Inputs', 'Steel', 'Aluminum',
+        'Copper', 'Gold', 'Silver', 'Coal', 'Lumber & Wood Production',
+        'Farm & Construction Equipment', 'Waste Management',
+    }
     try:
         sndk_scored = []
         for _, row in filter_df.iterrows():
+            sector    = str(row.get('Sector', '') or '').strip()
+            industry  = str(row.get('Industry', '') or '').strip()
+
+            # Skip non-growth sectors/industries — these are slow contracted businesses,
+            # not earnings-driven momentum candidates.
+            if sector in _SNDK_EXCLUDED_SECTORS or industry in _SNDK_EXCLUDED_INDUSTRIES:
+                log.debug(f"SNDK skip {row['Ticker']}: non-growth sector ({sector} / {industry})")
+                continue
+
             screeners_str = str(row.get('Screeners', '') or '')
             eps_yy   = float(row.get('EPS Y/Y TTM', 0) or 0)
             eps_qq   = float(row.get('EPS Q/Q', 0) or 0)
@@ -1342,7 +1371,7 @@ if __name__ == "__main__":
             }
             signal_score = sum(criteria.values())
             if signal_score >= 4:
-                sndk_scored.append((signal_score, row['Ticker']))
+                sndk_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq))
                 log.info(
                     f"SNDK candidate: {row['Ticker']} signal={signal_score}/6 "
                     f"[{', '.join(k for k, v in criteria.items() if v)}] "
@@ -1351,10 +1380,10 @@ if __name__ == "__main__":
 
         # Take top 3 by signal score — these are genuinely rare setups
         sndk_scored.sort(reverse=True)
-        sndk_candidates = [t for _, t in sndk_scored[:3]]
+        sndk_candidates = [(t, yy, qq) for _, t, yy, qq in sndk_scored[:3]]
 
         if sndk_candidates:
-            log.info(f"SNDK candidates flagged for manual research: {sndk_candidates}")
+            log.info(f"SNDK candidates flagged for manual research: {[t for t,_,_ in sndk_candidates]}")
         else:
             log.info("No SNDK-pattern candidates today (need 4/6 criteria).")
     except Exception as e:
