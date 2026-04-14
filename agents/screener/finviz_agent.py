@@ -1228,16 +1228,14 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         log.info("Watchlist: added %s (Q=%.0f%s)", ticker, qs, " VCP" if vcp_ok else "")
 
     # ── Auto-promote watching → focus ──────────────────────────────────────────
-    # Criteria: still in today's screener with Stage 2 perfect + 3+ appearances
-    # + institutional buying. Only promotes screener_auto entries — manual
-    # entries should be promoted intentionally via workflow_dispatch.
+    # Criteria: Stage 2 perfect alignment + Quality Score >= 85.
+    # Max 3 auto-promotions per day (top by Q score) to keep focus list tight.
     promoted = []
+    promote_candidates = []
     screener_tickers = set(filter_df['Ticker'].tolist()) if not filter_df.empty else set()
     for entry in existing:
         if entry.get("priority") != "watching" or entry.get("status") == "archived":
             continue
-        if entry.get("source") == "manual":
-            continue  # manual entries promoted intentionally only
         t = entry.get("ticker", "")
         if t not in screener_tickers:
             continue
@@ -1245,16 +1243,20 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         if rows.empty:
             continue
         row = rows.iloc[0]
-        appearances  = int(row.get('Appearances', 0) or 0)
-        inst_trans   = float(row.get('Inst Trans', 0) or 0)
-        stage_d      = row.get('Stage', {}) or {}
-        stage_num    = stage_d.get('stage', 0) if isinstance(stage_d, dict) else 0
+        qs        = float(row.get('Quality Score', 0) or 0)
+        stage_d   = row.get('Stage', {}) or {}
+        stage_num = stage_d.get('stage', 0) if isinstance(stage_d, dict) else 0
         stage_perfect = stage_d.get('perfect', False) if isinstance(stage_d, dict) else False
-        if appearances >= 3 and stage_num == 2 and stage_perfect and inst_trans >= 3:
-            entry["priority"] = "focus"
-            entry["focus_promoted_date"] = today
-            promoted.append(t)
-            log.info("Watchlist: auto-promoted %s to focus (appearances=%d, inst=%.1f%%)", t, appearances, inst_trans)
+        if stage_num == 2 and stage_perfect and qs >= 85:
+            promote_candidates.append((qs, t, entry))
+
+    # Top 3 by Q score
+    promote_candidates.sort(reverse=True)
+    for qs, t, entry in promote_candidates[:3]:
+        entry["priority"] = "focus"
+        entry["focus_promoted_date"] = today
+        promoted.append(t)
+        log.info("Watchlist: auto-promoted %s to focus (Q=%.0f, Stage 2 perfect)", t, qs)
 
     if promoted:
         log.info("Watchlist: promoted to focus: %s", promoted)
