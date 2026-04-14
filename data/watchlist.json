@@ -80,7 +80,8 @@
       "added": "2026-04-02",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-14"
     },
     {
       "ticker": "GEV",
@@ -179,7 +180,8 @@
       "added": "2026-04-02",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-14"
     },
     {
       "ticker": "GLW",
@@ -256,7 +258,8 @@
       "added": "2026-04-06",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-14"
     },
     {
       "ticker": "AA",
@@ -1056,6 +1059,61 @@
       "entry_price": null,
       "stop": null,
       "thesis": "Industrials | Q=99 | VCP | ATR 5.4%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "TVTX",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=103 | ATR 6.2%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "GFI",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=101 | VCP | ATR 5.1%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "ROLR",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Consumer Cyclical | Q=98 | ATR 12.8%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "IAG",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=97 | VCP | ATR 5.1%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "PAAS",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=97 | VCP | ATR 4.8%",
       "added": "2026-04-14",
       "status": "watching",
       "priority": "watching",
