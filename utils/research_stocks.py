@@ -251,7 +251,17 @@ MARKET_COLORS = {
 }
 
 
-def _ticker_card(ticker: str, parsed: dict, is_held: bool) -> str:
+MARKET_ENTRY_NOTE = {
+    "GREEN":    ("✅ GREEN — Full size entries allowed.", "#f0fdf4", "#16a34a"),
+    "THRUST":   ("✅ THRUST — Full size entries allowed. Act fast.", "#f0fdf4", "#16a34a"),
+    "CAUTION":  ("⚠️ CAUTION — Half size only. Build watchlist.", "#fffbeb", "#d97706"),
+    "COOLING":  ("⚠️ COOLING — Tighten stops, no new entries.", "#fffbeb", "#d97706"),
+    "RED":      ("🚫 RED — Rule 6: No new entries.", "#fef2f2", "#dc2626"),
+    "DANGER":   ("🚫 DANGER — Raise stops immediately. No entries.", "#fef2f2", "#dc2626"),
+    "BLACKOUT": ("🚫 BLACKOUT (Sep) — No new entries.", "#f3f4f6", "#6b7280"),
+}
+
+def _ticker_card(ticker: str, parsed: dict, is_held: bool, market_state: str = "UNKNOWN") -> str:
     conviction = parsed.get("conviction", "SKIP")
     fg, bg = CONVICTION_COLORS.get(conviction, ("#6b7280", "#f3f4f6"))
     sndk_badge = (
@@ -286,14 +296,28 @@ def _ticker_card(ticker: str, parsed: dict, is_held: bool) -> str:
     <table style="width:100%;border-collapse:collapse;">
       {row("Earnings Q/Q", parsed.get("eps",""))}
       {row("Revenue", parsed.get("revenue",""))}
+      {row("Fwd Estimates", parsed.get("forward_estimates",""))}
       {row("Institutional", parsed.get("institutional",""))}
+      {row("IPO Phase", parsed.get("ipo_phase",""))}
+      {row("TAM / S-curve", parsed.get("tam",""))}
       {row("Technical", parsed.get("technical",""))}
-      {row("Catalyst", parsed.get("catalyst",""))}
+      {row("Short / Catalyst", parsed.get("catalyst",""))}
       {row("SNDK Risk", parsed.get("sndk_risk",""))}
       {row("Verdict", parsed.get("verdict",""))}
     </table>
+    {_market_entry_note(market_state)}
   </div>
 </div>"""
+
+
+def _market_entry_note(market_state: str) -> str:
+    note, bg, color = MARKET_ENTRY_NOTE.get(
+        market_state, ("Market state unknown — check trading_state.json.", "#f3f4f6", "#6b7280")
+    )
+    return (
+        f'<div style="background:{bg};border-radius:8px;padding:12px 16px;margin-top:14px;'
+        f'font-size:12px;font-weight:600;color:{color};">{note}</div>'
+    )
 
 
 def generate_html(results: list, market_ctx: dict) -> str:
@@ -327,7 +351,7 @@ def generate_html(results: list, market_ctx: dict) -> str:
         if r.get("error"):
             ticker_cards += f'<div style="background:#fee2e2;border-radius:8px;padding:16px;margin-bottom:16px;color:#dc2626;"><b>${r["ticker"]}</b> — Research failed: {r["error"]}</div>'
         else:
-            ticker_cards += _ticker_card(r["ticker"], r.get("parsed", {}), r["ticker"] in held)
+            ticker_cards += _ticker_card(r["ticker"], r.get("parsed", {}), r["ticker"] in held, market_state)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
