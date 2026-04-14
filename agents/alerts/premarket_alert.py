@@ -18,6 +18,7 @@ import datetime
 import requests
 import pandas as pd
 from glob import glob
+from glob import glob as _glob
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -133,6 +134,188 @@ def load_open_position_tickers() -> set:
 
 
 # ----------------------------
+# Focus list entry scan
+# ----------------------------
+
+def _fetch_daily_bars(ticker: str, limit: int = 60) -> pd.DataFrame:
+    """Fetch daily OHLCV bars from Alpaca. Returns DataFrame with close prices."""
+    if not ALPACA_API_KEY:
+        return pd.DataFrame()
+    try:
+        resp = requests.get(
+            f"{ALPACA_DATA_URL}/v2/stocks/{ticker}/bars",
+            headers={"APCA-API-KEY-ID": ALPACA_API_KEY, "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY},
+            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            timeout=10,
+        )
+        if not resp.ok:
+            return pd.DataFrame()
+        bars = resp.json().get("bars", [])
+        if not bars:
+            return pd.DataFrame()
+        df = pd.DataFrame(bars)
+        df["t"] = pd.to_datetime(df["t"])
+        df = df.sort_values("t").reset_index(drop=True)
+        return df
+    except Exception as e:
+        log.warning("Bars fetch failed for %s: %s", ticker, e)
+        return pd.DataFrame()
+
+
+def _load_conviction(ticker: str) -> tuple:
+    """Return (q_rank, appearances) from latest daily_quality JSON and screener CSV."""
+    q_rank = 0
+    appearances = 0
+    try:
+        quality_files = sorted(_glob(os.path.join(DATA_DIR, "daily_quality_*.json")))
+        if quality_files:
+            with open(quality_files[-1]) as f:
+                q_data = json.load(f)
+            q_rank = q_data.get(ticker, {}).get("q_rank", 0)
+    except Exception:
+        pass
+    try:
+        csv_files = sorted(_glob(os.path.join(DATA_DIR, "finviz_screeners_*.csv")))
+        if csv_files:
+            df = pd.read_csv(csv_files[-1])
+            row = df[df["Ticker"] == ticker]
+            if not row.empty:
+                appearances = int(row.iloc[0].get("Appearances", 1) or 1)
+    except Exception:
+        pass
+    return q_rank, appearances
+
+
+def _sizing_label(q_rank: int, appearances: int) -> str:
+    if q_rank >= 85 or appearances >= 4:
+        return "AGGRESSIVE (8-10%)"
+    elif q_rank >= 70 or appearances >= 2:
+        return "NORMAL (4-6%)"
+    else:
+        return "REDUCED (2-3%)"
+
+
+def scan_focus_list(market_state: str):
+    """
+    Scans the focus list for entry setups at 9am ET:
+    - 21 EMA PB: price within 5% above/below 21 EMA (pullback entry)
+    - 50 SMA PB: price within 5% above 50 SMA
+    - Breakout: price within 2% above 20-day high
+    Fires a Slack alert with setup type, sizing, and entry level.
+    """
+    log.info("=== Focus list entry scan starting ===")
+    watchlist_path = os.path.join(DATA_DIR, "watchlist.json")
+    try:
+        with open(watchlist_path) as f:
+            wl_data = json.load(f)
+        focus_tickers = [
+            e["ticker"] for e in wl_data.get("watchlist", [])
+            if e.get("priority") == "focus" and e.get("status") != "archived"
+        ]
+    except Exception as e:
+        log.warning("Could not load watchlist: %s", e)
+        return
+
+    if not focus_tickers:
+        log.info("Focus list is empty — no scan needed.")
+        return
+
+    open_tickers = load_open_position_tickers()
+    log.info("Scanning %d focus tickers: %s", len(focus_tickers), focus_tickers)
+
+    setups = []
+    for ticker in focus_tickers:
+        if ticker in open_tickers:
+            log.debug("Skipping %s — already in open position", ticker)
+            continue
+
+        bars = _fetch_daily_bars(ticker, limit=60)
+        if bars.empty or len(bars) < 22:
+            log.debug("Not enough bars for %s", ticker)
+            continue
+
+        # Compute 21 EMA and 50 SMA on close prices
+        closes = bars["c"]
+        ema21 = closes.ewm(span=21, adjust=False).mean().iloc[-1]
+        sma50 = closes.rolling(window=min(50, len(closes))).mean().iloc[-1]
+
+        # 20-day high (excluding today's bar — use yesterday's close as reference)
+        high20 = bars["h"].iloc[-21:-1].max() if len(bars) >= 21 else bars["h"].max()
+
+        # Current pre-market price
+        pct_change, price = get_premarket_change(ticker)
+        if not price:
+            price = closes.iloc[-1]  # fall back to last close
+
+        # Detect setup
+        setup_type = None
+        entry_note = ""
+
+        pct_from_ema21 = (price - ema21) / ema21 * 100
+        pct_from_sma50 = (price - sma50) / sma50 * 100
+        pct_from_high20 = (price - high20) / high20 * 100
+
+        if -5 <= pct_from_ema21 <= 5:
+            setup_type = "21 EMA PB"
+            entry_note = f"Price ${price:.2f} near 21 EMA ${ema21:.2f} ({pct_from_ema21:+.1f}%) — classic PB entry"
+        elif 0 <= pct_from_sma50 <= 5:
+            setup_type = "50 SMA PB"
+            entry_note = f"Price ${price:.2f} near 50 SMA ${sma50:.2f} ({pct_from_sma50:+.1f}%) — PB to 50 SMA"
+        elif 0 <= pct_from_high20 <= 2:
+            setup_type = "Breakout"
+            entry_note = f"Price ${price:.2f} within {pct_from_high20:.1f}% of 20d high ${high20:.2f} — watch for breakout volume"
+
+        if not setup_type:
+            log.info("%s: no setup today (EMA21 gap %+.1f%%, SMA50 gap %+.1f%%)", ticker, pct_from_ema21, pct_from_sma50)
+            continue
+
+        q_rank, appearances = _load_conviction(ticker)
+        sizing = _sizing_label(q_rank, appearances)
+        premarket_str = f" (pre-mkt {pct_change:+.1f}%)" if abs(pct_change) >= 1 else ""
+
+        setups.append({
+            "ticker":     ticker,
+            "setup_type": setup_type,
+            "entry_note": entry_note,
+            "sizing":     sizing,
+            "q_rank":     q_rank,
+            "price":      price,
+            "ema21":      round(ema21, 2),
+            "sma50":      round(sma50, 2),
+            "premarket":  premarket_str,
+        })
+        log.info("%s: %s — %s | sizing %s", ticker, setup_type, entry_note, sizing)
+
+    if not setups:
+        log.info("Focus scan: no entry setups today.")
+        return
+
+    today_str = datetime.date.today().isoformat()
+    lines = [f":dart: *FOCUS LIST SETUPS — {today_str}*\n"]
+    for s in setups:
+        setup_emoji = ":arrow_down_small:" if "PB" in s["setup_type"] else ":rocket:"
+        sizing_emoji = ":large_green_circle:" if "AGGRESSIVE" in s["sizing"] else (":large_yellow_circle:" if "NORMAL" in s["sizing"] else ":white_circle:")
+        lines.append(
+            f"{setup_emoji} *{s['ticker']}* — {s['setup_type']}{s['premarket']}\n"
+            f"  {s['entry_note']}\n"
+            f"  {sizing_emoji} Sizing: *{s['sizing']}*  |  Q: {s['q_rank']}\n"
+            f"  :chart_with_upwards_trend: https://finviz.com/quote.ashx?t={s['ticker']}"
+        )
+
+    payload = {"blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(lines)}}]}
+
+    if not SLACK_WEBHOOK:
+        log.warning("SLACK_WEBHOOK_URL not set — focus setups: %s", [s["ticker"] for s in setups])
+        return
+    try:
+        resp = requests.post(SLACK_WEBHOOK, json=payload, timeout=10)
+        resp.raise_for_status()
+        log.info("Focus list alert sent: %s", [s["ticker"] for s in setups])
+    except Exception as e:
+        log.error("Focus list Slack send failed: %s", e)
+
+
+# ----------------------------
 # Main
 # ----------------------------
 def run_premarket_alert():
@@ -209,6 +392,9 @@ def run_premarket_alert():
                 log.info("Pre-market alert sent: %s", [a["ticker"] for a in alerts])
             except Exception as e:
                 log.error("Slack send failed: %s", e)
+
+    # ── Focus list entry scan ──────────────────────────────────────────────────
+    scan_focus_list(market_state)
 
     # ── SetupOfDay tweet via EventBridge ──────────────────────────────────────
     # Always fires at 9am ET (unless RED/BLACKOUT — already gated at top).

@@ -1227,10 +1227,43 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         added.append(ticker)
         log.info("Watchlist: added %s (Q=%.0f%s)", ticker, qs, " VCP" if vcp_ok else "")
 
+    # ── Auto-promote watching → focus ──────────────────────────────────────────
+    # Criteria: still in today's screener with Stage 2 perfect + 3+ appearances
+    # + institutional buying. Only promotes screener_auto entries — manual
+    # entries should be promoted intentionally via workflow_dispatch.
+    promoted = []
+    screener_tickers = set(filter_df['Ticker'].tolist()) if not filter_df.empty else set()
+    for entry in existing:
+        if entry.get("priority") != "watching" or entry.get("status") == "archived":
+            continue
+        if entry.get("source") == "manual":
+            continue  # manual entries promoted intentionally only
+        t = entry.get("ticker", "")
+        if t not in screener_tickers:
+            continue
+        rows = filter_df[filter_df['Ticker'] == t]
+        if rows.empty:
+            continue
+        row = rows.iloc[0]
+        appearances  = int(row.get('Appearances', 0) or 0)
+        inst_trans   = float(row.get('Inst Trans', 0) or 0)
+        stage_d      = row.get('Stage', {}) or {}
+        stage_num    = stage_d.get('stage', 0) if isinstance(stage_d, dict) else 0
+        stage_perfect = stage_d.get('perfect', False) if isinstance(stage_d, dict) else False
+        if appearances >= 3 and stage_num == 2 and stage_perfect and inst_trans >= 3:
+            entry["priority"] = "focus"
+            entry["focus_promoted_date"] = today
+            promoted.append(t)
+            log.info("Watchlist: auto-promoted %s to focus (appearances=%d, inst=%.1f%%)", t, appearances, inst_trans)
+
+    if promoted:
+        log.info("Watchlist: promoted to focus: %s", promoted)
+
     wl_data["watchlist"] = existing
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info("Watchlist updated — added %d ticker(s): %s", len(added), added)
+    return promoted
 
 
 # ----------------------------
@@ -1428,8 +1461,10 @@ if __name__ == "__main__":
     send_slack_notification(summary_df, filter_df, gallery_path, today, ai_summary,
                             sndk_candidates=sndk_candidates if 'sndk_candidates' in dir() else None)
 
-    # Step 7: Auto-populate watchlist with top Stage 2 + Q≥60 tickers
-    _update_watchlist(filter_df, today)
+    # Step 7: Auto-populate watchlist + auto-promote watching → focus
+    promoted_to_focus = _update_watchlist(filter_df, today)
+    if promoted_to_focus:
+        log.info("Auto-promoted to Focus List: %s", promoted_to_focus)
 
     # ── EventBridge: PersistencePick (SetupOfDay moved to premarket_alert.py at 9am ET) ──
     try:
