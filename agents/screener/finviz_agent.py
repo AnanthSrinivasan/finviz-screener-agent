@@ -70,14 +70,12 @@ screener_urls = {
         f"ta_sma20_pa,ta_volatility_wo4&ft=4&o=-marketcap"
     ),
     # Bonde power-move: 9M+ actual volume + 10%+ daily change = institutional conviction move.
-    # Separate from "10% Change" (which uses relative volume). This filters by ABSOLUTE volume —
-    # 9M+ shares is a different signal: institutional size regardless of avg daily volume.
-    # Tickers in both screeners get classified Power Move (highest conviction).
-    # sh_vol_o9000 = today's volume over 9M shares. ta_change_u10 = up 10%+ from prev close.
+    # Finviz sh_vol_o* URL params are silently ignored — volume enforcement is done as a
+    # post-filter in send_slack_notification() after the Volume column is parsed.
     "Power Move": (
         f"{FINVIZ_BASE}/screener.ashx?v=151"
         f"&f=ind_stocksonly,sh_price_o5,sh_avgvol_o500,"
-        f"ta_change_u10,sh_vol_o9000"
+        f"ta_change_u10"
         f"&ft=4&o=-volume&"
         f"c=0,1,2,3,4,5,6,64,67,65,66"
     ),
@@ -991,7 +989,8 @@ Be direct and specific. Use ticker names. Quality Score above 60 = liquid leader
 # ----------------------------
 
 def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
-                             gallery_html: str, today: str, ai_summary: str):
+                             gallery_html: str, today: str, ai_summary: str,
+                             sndk_candidates: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1062,13 +1061,46 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {"type": "mrkdwn", "text": ":bar_chart: *Sector rotation:* " + "  ·  ".join(sector_parts)}
         })
 
-    # Power move tickers
+    # Power move tickers — post-filter to actual 9M+ share volume
+    # (Finviz sh_vol_o* URL param is silently ignored, so we enforce it ourselves)
+    def _parse_vol(raw) -> float:
+        import re as _re
+        if not raw or raw in ('-', ''):
+            return 0.0
+        raw = str(raw).replace(',', '').strip()
+        m = _re.match(r'^([\d.]+)([KMBkmb]?)', raw)
+        if not m:
+            return 0.0
+        val = float(m.group(1))
+        s = m.group(2).upper()
+        if s == 'K': val *= 1_000
+        elif s == 'M': val *= 1_000_000
+        elif s == 'B': val *= 1_000_000_000
+        return val
+
     power_moves = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
+    if not power_moves.empty and 'Volume' in power_moves.columns:
+        power_moves = power_moves[power_moves['Volume'].apply(_parse_vol) >= 9_000_000]
     if not power_moves.empty:
         pm_tickers = ", ".join(f"*{t}*" for t in power_moves['Ticker'].tolist())
         blocks.append({
             "type": "section",
             "text": {"type": "mrkdwn", "text": f":fire: *Power Moves (9M+ vol, 10%+):* {pm_tickers}"}
+        })
+
+    # SNDK-pattern flag — manual research prompt, no auto API call
+    if sndk_candidates:
+        tickers_str = "  ".join(f"`{t}`" for t in sndk_candidates)
+        research_cmd = "  ".join(f"`/stock-research {t}`" for t in sndk_candidates)
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f":microscope: *SNDK pattern detected (4+/6 criteria):* {tickers_str}\n"
+                    f"TTM EPS likely distorted — check technicals, then run: {research_cmd}"
+                )
+            }
         })
 
     blocks.append({"type": "divider"})
@@ -1317,16 +1349,12 @@ if __name__ == "__main__":
         sndk_scored.sort(reverse=True)
         sndk_candidates = [t for _, t in sndk_scored[:3]]
 
-        if sndk_candidates and ANTHROPIC_API_KEY:
-            log.info(f"Running proactive research on {len(sndk_candidates)} SNDK candidates: {sndk_candidates}")
-            from utils.research_stocks import run as research_run
-            research_run(sndk_candidates, post_slack=False)
-        elif sndk_candidates:
-            log.info(f"SNDK candidates found but ANTHROPIC_API_KEY not set: {sndk_candidates}")
+        if sndk_candidates:
+            log.info(f"SNDK candidates flagged for manual research: {sndk_candidates}")
         else:
             log.info("No SNDK-pattern candidates today (need 4/6 criteria).")
     except Exception as e:
-        log.error(f"Proactive research failed (non-fatal): {e}")
+        log.error(f"SNDK detection failed (non-fatal): {e}")
 
     # ── Write daily quality JSON for weekly agent signal merge ──
     import json
@@ -1364,7 +1392,8 @@ if __name__ == "__main__":
     ai_summary = generate_ai_summary(filter_df, today)
 
     # Step 6: Slack
-    send_slack_notification(summary_df, filter_df, gallery_path, today, ai_summary)
+    send_slack_notification(summary_df, filter_df, gallery_path, today, ai_summary,
+                            sndk_candidates=sndk_candidates if 'sndk_candidates' in dir() else None)
 
     # Step 7: Auto-populate watchlist with top Stage 2 + Q≥60 tickers
     _update_watchlist(filter_df, today)
