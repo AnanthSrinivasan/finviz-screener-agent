@@ -108,18 +108,29 @@ Answer ALL sections below. For each, cite actual numbers found in search results
 
 7. SHORT INTEREST + NEXT CATALYST:
    - Short interest as % of float? Trending up (more bearish bets) or down?
+   - Are any credible short sellers (Kerrisdale, Muddy Waters, Hindenburg, etc.) publicly short? What is their thesis?
    - Next earnings date?
-   - Any other near-term catalyst: investor day, product launch, contract announcement, index inclusion?
+   - Any other near-term catalyst: investor day, product launch, contract, index inclusion?
 
-8. SNDK PATTERN CHECK:
+8. BEAR CASE — be explicit, do not skip this:
+   - What is the single biggest risk that could make this investment fail?
+   - Debt load: total debt, interest rate, interest expense as % of revenue. Is it serviceable?
+   - Customer concentration: top 1-3 customers as % of revenue. What happens if one leaves?
+   - Competitive threats: who is building the same thing and could commoditize this?
+   - Insider selling: what did insiders do at the lock-up, at peaks, recently?
+   - What does the bear case say about valuation vs realistic earnings power?
+
+9. SNDK PATTERN CHECK:
    - Is EPS Y/Y TTM distorted (negative or misleading) because of spin-off, IPO, or character change?
    - What does EPS Q/Q show that TTM hides?
    - Would a momentum screener using only TTM EPS undervalue this stock significantly?
 
-9. VERDICT:
-   - IPO phase verdict: is this stock in an actionable phase? Yes / No / Watch
-   - Forward conviction: will the NEXT 2 earnings cycles be BETTER or WORSE than current?
-   - Minervini verdict: HIGH / MODERATE / LOW / SKIP — and why in one specific sentence with numbers.
+10. VERDICT — balanced, not promotional:
+    - Bull case in one sentence with specific numbers.
+    - Bear case in one sentence with specific numbers.
+    - IPO phase: is this stock in an actionable Minervini phase? Yes / No / Watch
+    - Forward conviction on NEXT 2 earnings: BETTER / WORSE / UNCERTAIN — why?
+    - Final rating: HIGH / MODERATE / LOW / SKIP with the ONE deciding factor (positive or negative).
 
 """
 

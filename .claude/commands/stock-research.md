@@ -33,7 +33,8 @@ For each ticker find:
 5. **IPO / spin-off cycle** — When did it IPO? Lock-up expired? How many earnings reported as public company? Phase: Hot IPO / Lock-up / Orphan / Institutional adoption / Mature? **Actionable or not yet?**
 6. **TAM + product cycle** — Market size now and in 3 years. Company's % of TAM. Early S-curve or late? What product cycle is driving this?
 7. **Short interest + next catalyst** — Short % of float, trending. Next earnings date. Any other near-term catalyst?
-8. **SNDK pattern check** — Is TTM EPS distorted? What does Q/Q show that TTM hides?
+8. **BEAR CASE — mandatory, never skip:** Debt load + interest expense as % of revenue. Customer concentration (top 1-3 customers % of revenue). Who is shorting this and what's their thesis (Kerrisdale, Muddy Waters, etc.)? Competitive threats — who builds the same thing? Insider selling at lock-up and since. What kills this thesis?
+9. **SNDK pattern check** — Is TTM EPS distorted? What does Q/Q show that TTM hides?
 
 Search queries per ticker:
 - `"{TICKER} earnings EPS Q/Q analyst estimates forward 2026 2027 revised"`
@@ -71,8 +72,10 @@ Report structure:
 
 ### Step 5 — Output to user
 
+**IMPORTANT — no cheerleading.** Every ticker gets a bull sentence AND a bear sentence. If you can't articulate a credible bear case, you haven't researched enough. Verify IPO dates from actual SEC filings or news, not assumptions. Lock-up expiry dates must be confirmed — they are often accelerated.
+
 Print a concise summary table (markdown) with:
-- Ticker | Score | SNDK Pattern | Verdict | Key reason
+- Ticker | Score | Bull case (1 line) | Bear case (1 line) | Verdict
 
 Then state where the HTML report was saved. Do not repeat all the research detail — the HTML has it. Just the conviction ranking and the one-line "why."
 
