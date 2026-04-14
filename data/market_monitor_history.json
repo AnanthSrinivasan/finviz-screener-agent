@@ -428,5 +428,27 @@
     "market_state": "GREEN",
     "state_message": "Full conditions met",
     "blackout": false
+  },
+  {
+    "date": "2026-04-14",
+    "up_4_today": 301,
+    "down_4_today": 86,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2875,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 3.5,
+    "ratio_5day": 3.05,
+    "ratio_10day": 2.93,
+    "up_25_quarter": 240,
+    "down_25_quarter": 254,
+    "thrust_detected": false,
+    "fg": 47.0,
+    "spy_price": 694.46,
+    "spy_sma200_pct": 4.4,
+    "spy_above_200d": true,
+    "market_state": "GREEN",
+    "state_message": "Full conditions met",
+    "blackout": false
   }
 ]
