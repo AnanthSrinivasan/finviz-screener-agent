@@ -46,7 +46,8 @@ def make_mock_screener_html(tickers: list) -> str:
     return f"<html><body><table>{rows}</table></body></html>"
 
 
-def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0") -> bytes:
+def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0",
+                             eps_qq="30.0", inst_own="45.0", inst_trans="5.0") -> bytes:
     """Build a minimal Finviz quote page snapshot table."""
     html = f"""
     <html><body>
@@ -56,6 +57,8 @@ def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0")
         <tr><td>52W High</td><td>55.00</td><td>Rel Volume</td><td>1.2</td></tr>
         <tr><td>Avg Volume</td><td>500K</td><td>SMA20</td><td>3.5%</td></tr>
         <tr><td>SMA50</td><td>2.1%</td><td>SMA200</td><td>1.0%</td></tr>
+        <tr><td>EPS Q/Q</td><td>{eps_qq}%</td><td>Inst Own</td><td>{inst_own}%</td></tr>
+        <tr><td>Inst Trans</td><td>{inst_trans}%</td><td></td><td></td></tr>
     </table>
     </body></html>"""
     return html.encode()
@@ -158,11 +161,14 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_make_session.return_value = mock_session
 
         result = get_snapshot_metrics("AAPL")
-        atr_pct, eps, sales, dist_high, rel_vol, avg_vol, sma20, sma50, sma200 = result
+        atr_pct, eps, sales, dist_high, rel_vol, avg_vol, sma20, sma50, sma200, eps_qq, inst_own, inst_trans = result
 
         self.assertAlmostEqual(atr_pct, 5.0, places=1)   # 2.50 / 50.00 * 100
         self.assertAlmostEqual(eps, 25.0, places=1)
         self.assertAlmostEqual(sales, 15.0, places=1)
+        self.assertAlmostEqual(eps_qq, 30.0, places=1)
+        self.assertAlmostEqual(inst_own, 45.0, places=1)
+        self.assertAlmostEqual(inst_trans, 5.0, places=1)
 
     @patch("agents.screener.finviz_agent.make_session")
     def test_returns_none_on_missing_table(self, mock_make_session):
@@ -175,7 +181,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_make_session.return_value = mock_session
 
         result = get_snapshot_metrics("FAKE")
-        self.assertEqual(result, (None,) * 9)
+        self.assertEqual(result, (None,) * 12)
 
     @patch("agents.screener.finviz_agent.make_session")
     def test_retries_on_429(self, mock_make_session):
@@ -193,7 +199,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         with patch("agents.screener.finviz_agent.time.sleep"):  # don't actually sleep in tests
             result = get_snapshot_metrics("AAPL", max_retries=2)
 
-        self.assertEqual(result, (None,) * 9)
+        self.assertEqual(result, (None,) * 12)
 
 
 # ----------------------------

@@ -185,7 +185,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             table = soup.find("table", class_="snapshot-table2")
             if not table:
                 log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
-                return None, None, None, None, None, None, None, None, None
+                return None, None, None, None, None, None, None, None, None, None, None, None
 
             data = {}
             for row in table.find_all("tr"):
@@ -201,8 +201,17 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             eps_str = data.get("EPS Y/Y TTM", '0').replace('%', '').strip()
             eps = float(eps_str) if eps_str not in ('-', '') else 0.0
 
+            eps_qq_str = data.get("EPS Q/Q", '0').replace('%', '').strip()
+            eps_qq = float(eps_qq_str) if eps_qq_str not in ('-', '') else 0.0
+
             sales_str = data.get("Sales Y/Y TTM", '0').replace('%', '').strip()
             sales = float(sales_str) if sales_str not in ('-', '') else 0.0
+
+            inst_own_str = data.get("Inst Own", '0').replace('%', '').strip()
+            inst_own = float(inst_own_str) if inst_own_str not in ('-', '') else 0.0
+
+            inst_trans_str = data.get("Inst Trans", '0').replace('%', '').strip()
+            inst_trans = float(inst_trans_str) if inst_trans_str not in ('-', '') else 0.0
 
             import re as _re
             high_52w_raw = data.get("52W High", "0").replace(",", "").strip()
@@ -240,7 +249,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             sma50_pct  = parse_sma_pct("SMA50")
             sma200_pct = parse_sma_pct("SMA200")
 
-            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol, sma20_pct, sma50_pct, sma200_pct
+            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol, sma20_pct, sma50_pct, sma200_pct, eps_qq, inst_own, inst_trans
 
         except requests.HTTPError as e:
             if e.response.status_code == 429:
@@ -254,7 +263,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             log.error(f"{ticker}: unexpected error — {e}")
             break
 
-    return None, None, None, None, None, None, None, None, None
+    return None, None, None, None, None, None, None, None, None, None, None, None
 
 
 def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -> dict:
@@ -473,14 +482,27 @@ def compute_quality_score(row: pd.Series) -> float:
         elif rv >= 1.5: score += 10
         elif rv >= 1.0: score += 5
 
-    eps = row.get('EPS Y/Y TTM')
-    if pd.notna(eps) and eps is not None:
-        ev = float(eps)
+    eps_yy = row.get('EPS Y/Y TTM')
+    eps_qq = row.get('EPS Q/Q')
+    eps_yy_v = float(eps_yy) if pd.notna(eps_yy) and eps_yy is not None else None
+    eps_qq_v = float(eps_qq) if pd.notna(eps_qq) and eps_qq is not None else None
+    # Use the better of annual or quarterly — Q/Q rescues spin-offs/IPOs with distorted TTM
+    eps_best = max(v for v in [eps_yy_v, eps_qq_v] if v is not None) if (eps_yy_v is not None or eps_qq_v is not None) else None
+    if eps_best is not None:
+        ev = eps_best
         if ev >= 200:   score += 20
         elif ev >= 100: score += 16
         elif ev >= 50:  score += 12
         elif ev >= 20:  score += 8
         elif ev >= 0:   score += 4
+
+    # Institutional accumulation signal — Inst Trans > 0 means funds added last quarter
+    inst_trans = row.get('Inst Trans')
+    if pd.notna(inst_trans) and inst_trans is not None:
+        it = float(inst_trans)
+        if it >= 10:    score += 8   # strong institutional buying
+        elif it >= 3:   score += 5   # moderate accumulation
+        elif it >= 0:   score += 2   # mild / stable
 
     appearances = row.get('Appearances', 1)
     if pd.notna(appearances):
@@ -902,16 +924,26 @@ def generate_ai_summary(filter_df: pd.DataFrame, today: str) -> str:
     rows = []
     for _, row in sorted_df.head(20).iterrows():
         atr   = f"{row['ATR%']:.1f}%"          if pd.notna(row.get('ATR%'))          else "n/a"
-        eps   = f"{row['EPS Y/Y TTM']:.1f}%"   if pd.notna(row.get('EPS Y/Y TTM'))   else "n/a"
         sales = f"{row['Sales Y/Y TTM']:.1f}%"  if pd.notna(row.get('Sales Y/Y TTM')) else "n/a"
         qs    = f"{row['Quality Score']:.0f}"   if pd.notna(row.get('Quality Score')) else "n/a"
         dist  = f"{row['Dist From High%']:.0f}%" if pd.notna(row.get('Dist From High%')) else "n/a"
         rvol  = f"{row['Rel Volume']:.1f}x"     if pd.notna(row.get('Rel Volume'))    else "n/a"
+        # Prefer Q/Q EPS when it's the stronger signal (spin-offs / IPOs)
+        eps_yy_v = float(row['EPS Y/Y TTM']) if pd.notna(row.get('EPS Y/Y TTM')) else None
+        eps_qq_v = float(row['EPS Q/Q'])     if pd.notna(row.get('EPS Q/Q'))     else None
+        if eps_qq_v is not None and (eps_yy_v is None or eps_qq_v > eps_yy_v):
+            eps_str = f"{eps_qq_v:.1f}% Q/Q"
+        elif eps_yy_v is not None:
+            eps_str = f"{eps_yy_v:.1f}% TTM"
+        else:
+            eps_str = "n/a"
+        inst_trans_v = float(row['Inst Trans']) if pd.notna(row.get('Inst Trans')) else None
+        inst_str = f" | InstTrans {inst_trans_v:+.1f}%" if inst_trans_v is not None and inst_trans_v != 0 else ""
         rows.append(
             f"{row['Ticker']} ({row.get('Sector','?')} / {row.get('Industry','?')}) "
             f"| Quality {qs} | {row['Appearances']} screens: {row['Screeners']} "
-            f"| ATR {atr} | EPS {eps} | Sales {sales} | MCap {row.get('Market Cap','?')} "
-            f"| RVol {rvol} | From52wHigh {dist}"
+            f"| ATR {atr} | EPS {eps_str} | Sales {sales} | MCap {row.get('Market Cap','?')} "
+            f"| RVol {rvol} | From52wHigh {dist}{inst_str}"
         )
 
     prompt = f"""You are a sharp momentum trader reviewing today's Finviz screener results ({today}).
@@ -968,13 +1000,26 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
     ticker_lines = []
     for _, row in top.iterrows():
         atr    = f"{row['ATR%']:.1f}%"        if pd.notna(row.get('ATR%'))         else "—"
-        eps    = f"{row['EPS Y/Y TTM']:.1f}%"  if pd.notna(row.get('EPS Y/Y TTM'))  else "—"
         qs     = f"{row['Quality Score']:.0f}" if pd.notna(row.get('Quality Score')) else "—"
         mktcap = row.get('Market Cap', '')
         sector = row.get('Sector', '')
         sector_str = f" · _{sector}_" if sector else ""
+
+        # Show EPS Q/Q when it's the meaningful signal (e.g. spin-offs, IPOs with distorted TTM)
+        eps_yy_v = float(row['EPS Y/Y TTM']) if pd.notna(row.get('EPS Y/Y TTM')) else None
+        eps_qq_v = float(row['EPS Q/Q'])     if pd.notna(row.get('EPS Q/Q'))     else None
+        if eps_qq_v is not None and (eps_yy_v is None or eps_qq_v > eps_yy_v):
+            eps = f"{eps_qq_v:.1f}% Q/Q*"   # asterisk = Q/Q override
+        elif eps_yy_v is not None:
+            eps = f"{eps_yy_v:.1f}%"
+        else:
+            eps = "—"
+
+        inst_trans_v = float(row['Inst Trans']) if pd.notna(row.get('Inst Trans')) else None
+        inst_str = f" · Inst {inst_trans_v:+.1f}%" if inst_trans_v is not None and inst_trans_v != 0 else ""
+
         ticker_lines.append(
-            f"*{row['Ticker']}*{sector_str} · Q{qs} · {mktcap} · ATR {atr} · EPS {eps}\n"
+            f"*{row['Ticker']}*{sector_str} · Q{qs} · {mktcap} · ATR {atr} · EPS {eps}{inst_str}\n"
             f" {row['Screeners']}"
         )
 
@@ -1147,15 +1192,18 @@ if __name__ == "__main__":
     # Step 2: Concurrent snapshot metrics
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")
     snapshot_results = fetch_snapshots_concurrent(summary_df['Ticker'].tolist())
-    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[0])
-    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[1])
-    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[2])
-    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[3])
-    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[4])
-    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[5])
-    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[6])
-    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[7])
-    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*9)[8])
+    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[0])
+    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[1])
+    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[2])
+    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[3])
+    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[4])
+    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[5])
+    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[6])
+    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[7])
+    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[8])
+    summary_df['EPS Q/Q']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[9])
+    summary_df['Inst Own']       = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[10])
+    summary_df['Inst Trans']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[11])
 
     # Step 3: Stage, VCP, Quality Score
     log.info("Computing Weinstein Stage analysis...")
