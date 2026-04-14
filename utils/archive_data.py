@@ -28,7 +28,7 @@ NEVER_ARCHIVE = {
     "paper_stops.json",
 }
 
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(os.environ.get("DATA_DIR", str(Path(__file__).parent.parent / "data")))
 ARCHIVE_DAYS = 70
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
 
