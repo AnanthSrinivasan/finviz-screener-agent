@@ -1264,6 +1264,32 @@ if __name__ == "__main__":
     summary_df.to_csv(csv_path, index=False)
     log.info(f"Enriched CSV re-saved: {csv_path}")
 
+    # ── Proactive research: SNDK-pattern tickers our system may underscore ──
+    # Criteria: 3+ days in screener AND (IPO screen OR EPS TTM negative) AND Q Score < 85
+    # These are character changes / spin-offs where Q/Q EPS tells a different story
+    try:
+        sndk_candidates = []
+        for _, row in filter_df.iterrows():
+            screeners_str = str(row.get('Screeners', '') or '')
+            eps_yy = float(row.get('EPS Y/Y TTM', 0) or 0)
+            eps_qq = float(row.get('EPS Q/Q', 0) or 0)
+            qs = float(row.get('Quality Score', 0) or 0)
+            appearances = int(row.get('Appearances', 0) or 0)
+            is_ipo = 'IPO' in screeners_str
+            ttm_distorted = eps_yy < 0 and eps_qq > 50  # Q/Q strong but TTM negative
+            if appearances >= 3 and (is_ipo or ttm_distorted) and qs < 85:
+                sndk_candidates.append(row['Ticker'])
+                log.info(f"SNDK-pattern candidate: {row['Ticker']} (Q={qs:.0f}, IPO={is_ipo}, EPS TTM={eps_yy:.0f}%, Q/Q={eps_qq:.0f}%, {appearances} days)")
+
+        if sndk_candidates and ANTHROPIC_API_KEY:
+            log.info(f"Running proactive research on SNDK candidates: {sndk_candidates}")
+            from utils.research_stocks import run as research_run
+            research_run(sndk_candidates, post_slack=False)
+        elif sndk_candidates:
+            log.info(f"SNDK candidates found but no API key — skipping research: {sndk_candidates}")
+    except Exception as e:
+        log.error(f"Proactive research failed (non-fatal): {e}")
+
     # ── Write daily quality JSON for weekly agent signal merge ──
     import json
     quality_data = {}
