@@ -113,6 +113,7 @@ def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
                     'Industry':   cols[4].text.strip(),
                     'Country':    cols[5].text.strip(),
                     'Market Cap': cols[6].text.strip(),
+                    'Volume':     cols[8].text.strip() if len(cols) > 8 else '',
                 }
         if not new_data:
             break
@@ -154,6 +155,7 @@ def aggregate_and_save(screener_map: dict) -> tuple:
             'Industry':   m.get('Industry', ''),
             'Country':    m.get('Country', ''),
             'Market Cap': m.get('Market Cap', ''),
+            'Volume':     m.get('Volume', ''),
         })
 
     summary_df = pd.DataFrame(data).sort_values(['Appearances', 'Ticker'], ascending=[False, True])
@@ -1080,7 +1082,9 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
 
     power_moves = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
     if not power_moves.empty and 'Volume' in power_moves.columns:
+        before = len(power_moves)
         power_moves = power_moves[power_moves['Volume'].apply(_parse_vol) >= 9_000_000]
+        log.info(f"Power Move post-filter: {before} → {len(power_moves)} tickers after 9M volume gate")
     if not power_moves.empty:
         pm_tickers = ", ".join(f"*{t}*" for t in power_moves['Ticker'].tolist())
         blocks.append({
