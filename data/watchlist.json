@@ -620,6 +620,61 @@
       "status": "watching",
       "source": "screener_auto",
       "priority": "watching"
+    },
+    {
+      "ticker": "BEAM",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=114 | VCP | ATR 5.7%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "LEG",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Consumer Cyclical | Q=100 | VCP | ATR 3.9%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "TAL",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Consumer Defensive | Q=96 | VCP | ATR 3.5%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "IREN",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Financial | Q=95 | ATR 7.8%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "RVMD",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=94 | ATR 4.5%",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
     }
   ],
   "tickers": [
