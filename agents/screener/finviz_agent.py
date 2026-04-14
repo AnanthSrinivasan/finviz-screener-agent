@@ -1264,29 +1264,51 @@ if __name__ == "__main__":
     summary_df.to_csv(csv_path, index=False)
     log.info(f"Enriched CSV re-saved: {csv_path}")
 
-    # ── Proactive research: SNDK-pattern tickers our system may underscore ──
-    # Criteria: 3+ days in screener AND (IPO screen OR EPS TTM negative) AND Q Score < 85
-    # These are character changes / spin-offs where Q/Q EPS tells a different story
+    # ── Proactive research: SNDK-pattern detection ──
+    # Only fires when a ticker hits 4+ of 6 specific criteria — these are rare.
+    # Max 3 tickers per day (highest signal score only). Not a quality score gate.
     try:
-        sndk_candidates = []
+        sndk_scored = []
         for _, row in filter_df.iterrows():
             screeners_str = str(row.get('Screeners', '') or '')
-            eps_yy = float(row.get('EPS Y/Y TTM', 0) or 0)
-            eps_qq = float(row.get('EPS Q/Q', 0) or 0)
-            qs = float(row.get('Quality Score', 0) or 0)
+            eps_yy   = float(row.get('EPS Y/Y TTM', 0) or 0)
+            eps_qq   = float(row.get('EPS Q/Q', 0) or 0)
+            inst_trans = float(row.get('Inst Trans', 0) or 0)
             appearances = int(row.get('Appearances', 0) or 0)
-            is_ipo = 'IPO' in screeners_str
-            ttm_distorted = eps_yy < 0 and eps_qq > 50  # Q/Q strong but TTM negative
-            if appearances >= 3 and (is_ipo or ttm_distorted) and qs < 85:
-                sndk_candidates.append(row['Ticker'])
-                log.info(f"SNDK-pattern candidate: {row['Ticker']} (Q={qs:.0f}, IPO={is_ipo}, EPS TTM={eps_yy:.0f}%, Q/Q={eps_qq:.0f}%, {appearances} days)")
+            stage_data = row.get('Stage', {}) or {}
+            stage_num = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
+            stage_perfect = stage_data.get('perfect', False) if isinstance(stage_data, dict) else False
+
+            # 6 criteria — need 4+ to trigger research
+            criteria = {
+                'persistence':    appearances >= 3,
+                'eps_qq_strong':  eps_qq > 50 or (eps_yy < 0 and eps_qq > 20),  # Q/Q strong, TTM may be distorted
+                'ttm_distorted':  eps_yy < -50 and eps_qq > 0,                   # classic spin-off/IPO EPS blind spot
+                'inst_buying':    inst_trans >= 3,                                # funds actively adding
+                'stage2':         stage_num == 2 and stage_perfect,
+                'ipo_lifecycle':  'IPO' in screeners_str,
+            }
+            signal_score = sum(criteria.values())
+            if signal_score >= 4:
+                sndk_scored.append((signal_score, row['Ticker']))
+                log.info(
+                    f"SNDK candidate: {row['Ticker']} signal={signal_score}/6 "
+                    f"[{', '.join(k for k, v in criteria.items() if v)}] "
+                    f"EPS TTM={eps_yy:.0f}% Q/Q={eps_qq:.0f}% InstTrans={inst_trans:.1f}% {appearances}d"
+                )
+
+        # Take top 3 by signal score — these are genuinely rare setups
+        sndk_scored.sort(reverse=True)
+        sndk_candidates = [t for _, t in sndk_scored[:3]]
 
         if sndk_candidates and ANTHROPIC_API_KEY:
-            log.info(f"Running proactive research on SNDK candidates: {sndk_candidates}")
+            log.info(f"Running proactive research on {len(sndk_candidates)} SNDK candidates: {sndk_candidates}")
             from utils.research_stocks import run as research_run
             research_run(sndk_candidates, post_slack=False)
         elif sndk_candidates:
-            log.info(f"SNDK candidates found but no API key — skipping research: {sndk_candidates}")
+            log.info(f"SNDK candidates found but ANTHROPIC_API_KEY not set: {sndk_candidates}")
+        else:
+            log.info("No SNDK-pattern candidates today (need 4/6 criteria).")
     except Exception as e:
         log.error(f"Proactive research failed (non-fatal): {e}")
 

@@ -22,34 +22,39 @@ Read `data/trading_state.json` to get current market state and sizing mode. Read
 
 ### Step 2 — Research each ticker in parallel
 
-For each ticker in $ARGUMENTS, use WebSearch to find:
+Run 3 searches per ticker simultaneously across all tickers. Research must be **forward-looking**, not just point-in-time.
 
-1. **Earnings** — Most recent quarter EPS (actual vs estimate, % beat/miss). Previous 2 quarters for trend. Q/Q and Y/Y.
-2. **Revenue** — Most recent quarter revenue (actual vs estimate). YoY growth %. Sequential (Q/Q) growth %.
-3. **Institutional** — Are funds buying or selling? Any notable new positions or % increases from major funds?
-4. **Technical** — Current price, 52-week range, relationship to 50MA and 200MA. Stage 2 confirmed?
-5. **Catalyst** — What is driving this stock right now? Earnings beat, contract win, sector tailwind, macro?
-6. **SNDK flag** — Is the TTM EPS likely distorted (recent IPO, spin-off, emerging from losses)? Would our screener miss the Q/Q strength?
+For each ticker find:
 
-Search queries to use per ticker (run all in parallel across tickers):
-- `"{TICKER} earnings EPS Q/Q revenue growth 2026"`
-- `"{TICKER} institutional ownership funds buying 2026"`
-- `"{TICKER} stock price 50MA 200MA technical setup April 2026"`
+1. **Earnings trend (last 4 quarters)** — EPS actual vs estimate each quarter, % beat/miss, trajectory. Is management sandbagging?
+2. **Forward estimates** — Analyst consensus EPS for next 2-4 quarters. Annual FY estimates. Were estimates revised UP or DOWN in last 30-60 days? Management long-term targets?
+3. **Revenue trajectory** — YoY growth rate last 4 quarters. Accelerating or decelerating? Forward revenue estimate next FY?
+4. **Institutional cycle** — Fund count trending up/down? Name specific funds and their moves. Adoption phase or distribution?
+5. **IPO / spin-off cycle** — When did it IPO? Lock-up expired? How many earnings reported as public company? Phase: Hot IPO / Lock-up / Orphan / Institutional adoption / Mature? **Actionable or not yet?**
+6. **TAM + product cycle** — Market size now and in 3 years. Company's % of TAM. Early S-curve or late? What product cycle is driving this?
+7. **Short interest + next catalyst** — Short % of float, trending. Next earnings date. Any other near-term catalyst?
+8. **SNDK pattern check** — Is TTM EPS distorted? What does Q/Q show that TTM hides?
 
-### Step 3 — Score each ticker
+Search queries per ticker:
+- `"{TICKER} earnings EPS Q/Q analyst estimates forward 2026 2027 revised"`
+- `"{TICKER} institutional ownership funds buying IPO cycle 2026"`
+- `"{TICKER} TAM market size short interest next catalyst April 2026"`
 
-Score each ticker on our criteria (1-5 per dimension):
+### Step 3 — Score each ticker (9 dimensions)
 
-| Dimension | 5 | 3 | 1 |
-|-----------|---|---|---|
-| EPS Q/Q | >100% beat | 20-100% beat | Miss or negative |
-| Revenue growth | >50% YoY | 20-50% | <20% |
-| Inst accumulation | Documented buying | Stable | Selling |
-| Stage | 2 perfect | 2 basic | 3/4/unclear |
-| Catalyst strength | Clear, specific | General tailwind | None found |
-| SNDK risk (our system missing it) | High (IPO/spinoff/char change) | Moderate | Low |
+| Dimension | HIGH (3) | MODERATE (2) | LOW (1) |
+|-----------|----------|--------------|---------|
+| EPS beat trend | Accelerating 3+ qtrs | 1-2 qtrs beat | Miss or flat |
+| Estimate revisions | Revised UP >10% | Flat | Revised DOWN |
+| Revenue acceleration | YoY growth accelerating | Stable growth | Decelerating |
+| Inst adoption phase | Phase 3 (adoption) | Phase 4 (mature) | Phase 0-2 (too early) |
+| IPO cycle | Actionable | Watch | Not yet |
+| TAM position | Early S-curve, large TAM | Mid S-curve | Late / small TAM |
+| Short interest | Low + decreasing | Neutral | High or increasing |
+| Stage 2 | Perfect alignment | Basic Stage 2 | Not Stage 2 |
+| SNDK pattern | High distortion (system missing it) | Moderate | Low |
 
-Total: X/30. >20 = high conviction, 15-20 = watchlist, <15 = skip.
+Total: X/27. >20 = HIGH conviction, 14-20 = MODERATE / watchlist, <14 = SKIP.
 
 ### Step 4 — Write HTML report
 

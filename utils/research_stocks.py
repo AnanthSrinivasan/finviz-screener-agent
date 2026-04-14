@@ -65,22 +65,62 @@ def load_market_context() -> dict:
 # Claude API research call (web_search tool)
 # ---------------------------------------------------------------------------
 RESEARCH_PROMPT = """\
-You are a research analyst for a momentum trader who uses Minervini + Weinstein rules.
+You are a senior research analyst for a momentum trader using Minervini + Weinstein rules.
+Research {ticker} for a deep conviction report. Use web search extensively. Be specific and data-driven — no fluff, no disclaimers.
 
-Research {ticker} for a conviction report. Use web search to find current data.
+Market context: {market_state} market, sizing mode {sizing}. {held_note}
 
-Answer these exactly — be specific and data-driven, no fluff:
+Answer ALL sections below. For each, cite actual numbers found in search results.
 
-1. EARNINGS Q/Q: Most recent quarter EPS (actual vs estimate, % beat or miss). Prior 2 quarters for trend. Is EPS accelerating or decelerating?
-2. REVENUE: Most recent quarter revenue (actual vs estimate, YoY % growth, sequential Q/Q % growth). Is revenue accelerating?
-3. INSTITUTIONAL: Are major funds buying or selling? Name specific funds and % change if found. Net institutional trend: accumulating or distributing?
-4. TECHNICAL: Current price, 52-week range (low → high, implied % run). Is stock above 50MA and 200MA? Stage 2 uptrend confirmed?
-5. CATALYST: What specific event is driving this stock right now? Earnings beat, contract, product, macro tailwind, sector rotation?
-6. SNDK RISK: Is this a recent IPO, spin-off, or character change stock where trailing twelve-month EPS is distorted? Would a screener using EPS Y/Y TTM undervalue this stock?
-7. VERDICT: Given Minervini rules — is this a Stage 2 leader worth putting on a watchlist? Rate conviction: HIGH / MODERATE / LOW / SKIP. One sentence why.
+1. EARNINGS TREND (last 4 quarters):
+   - For each of the last 4 quarters: EPS actual vs estimate, % beat/miss, revenue actual vs estimate.
+   - Is EPS accelerating or decelerating quarter over quarter? Give the trajectory in numbers.
+   - Does management consistently sandbag guidance? (i.e., guide low, print high)
 
-Market context: {market_state} market, sizing mode {sizing}.
-{held_note}
+2. FORWARD ESTIMATES (next 2-4 quarters + annual):
+   - What are analyst consensus EPS estimates for the next 2-4 quarters?
+   - Full-year EPS estimate for current FY and next FY?
+   - Has the consensus estimate been revised UP or DOWN in the last 30-60 days? By how much?
+   - What is management's own long-term EPS/revenue target (if provided)?
+
+3. REVENUE TRAJECTORY:
+   - Revenue growth rate last 4 quarters (YoY %). Is growth accelerating or decelerating?
+   - Sequential (Q/Q) revenue growth trend?
+   - Forward revenue estimates for next FY?
+
+4. INSTITUTIONAL CYCLE:
+   - Current institutional ownership %? Fund count — is it increasing or decreasing?
+   - Name 2-3 specific major funds and their recent moves (new position / increased / decreased)?
+   - Is this in institutional adoption phase (funds initiating) or distribution phase (funds exiting)?
+
+5. IPO / SPIN-OFF CYCLE (critical for CRWV, CORZ, LUNR, SNDK-type):
+   - When did the stock IPO or spin off? How many months ago?
+   - Has the lock-up period expired? (typically 90-180 days post-IPO)
+   - How many standalone earnings reports have been filed as a public company?
+   - Phase classification: Hot IPO (0-3mo) / Lock-up pressure (3-6mo) / Orphan (6-18mo) / Institutional adoption (12-36mo) / Mature (36mo+)
+   - Is this stock actionable under Minervini rules yet, or is it still in a pre-actionable phase?
+
+6. TAM + PRODUCT CYCLE (where is this in the S-curve?):
+   - Total addressable market size now and in 3 years?
+   - What % of TAM does this company currently capture?
+   - Is the company riding an early S-curve (fast growth ahead) or late S-curve (growth slowing)?
+   - Key product or technology cycle driving this — is it early innings or mature?
+
+7. SHORT INTEREST + NEXT CATALYST:
+   - Short interest as % of float? Trending up (more bearish bets) or down?
+   - Next earnings date?
+   - Any other near-term catalyst: investor day, product launch, contract announcement, index inclusion?
+
+8. SNDK PATTERN CHECK:
+   - Is EPS Y/Y TTM distorted (negative or misleading) because of spin-off, IPO, or character change?
+   - What does EPS Q/Q show that TTM hides?
+   - Would a momentum screener using only TTM EPS undervalue this stock significantly?
+
+9. VERDICT:
+   - IPO phase verdict: is this stock in an actionable phase? Yes / No / Watch
+   - Forward conviction: will the NEXT 2 earnings cycles be BETTER or WORSE than current?
+   - Minervini verdict: HIGH / MODERATE / LOW / SKIP — and why in one specific sentence with numbers.
+
 """
 
 
