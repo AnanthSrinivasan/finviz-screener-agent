@@ -41,7 +41,7 @@ Read this image with your vision capability and assess the chart against our set
 
 Add a "Chart: A/B/C — [1-line pattern description]" line to the HTML per-ticker card.
 
-Save winning chart images (A-setups) to `data/chart_patterns/winners/` as `{TICKER}_{today}.png` — this builds our pattern library over time.
+Do NOT save chart images during research. The `data/chart_patterns/winners/` folder is only for confirmed trades that hit T1 or exited with a gain — it is written by the position monitor, not by research.
 
 ### Step 2 — Research each ticker in parallel
 

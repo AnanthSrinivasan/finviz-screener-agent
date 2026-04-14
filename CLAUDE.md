@@ -1,5 +1,12 @@
 # Finviz Screener Agent
 
+## MANDATORY — Read before every action
+
+1. Read all memory files in `/Users/sananth/.claude/projects/-Users-sananth-Documents-Mac-Backup-Languages-Python-finviz-screener-agent-new/memory/` before doing anything
+2. Always `git pull --rebase origin main` before `git push` — Actions commits data files back constantly
+3. After any screener/agent logic change: run the relevant GH Actions workflow and verify the logs, not just unit tests
+4. Run `python -m unittest discover -s tests -t .` before every push
+
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
 **Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)

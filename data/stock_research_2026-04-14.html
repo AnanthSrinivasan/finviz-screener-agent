@@ -1,409 +1,376 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stock Research — 2026-04-14</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Research — CTRI — 2026-04-14</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; padding: 24px; }
-  .page-header { margin-bottom: 28px; }
-  .page-header h1 { font-size: 24px; font-weight: 700; color: #111827; }
-  .page-header .meta { font-size: 13px; color: #6b7280; margin-top: 4px; }
-  .market-banner { display: inline-flex; align-items: center; gap: 10px; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; padding: 8px 16px; margin-top: 12px; }
-  .market-banner .dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
-  .market-banner span { font-size: 13px; font-weight: 600; color: #16a34a; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f9fafb; color: #111827; min-height: 100vh; }
 
-  /* Summary table */
-  .summary-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 32px; overflow: hidden; }
-  .summary-card h2 { font-size: 14px; font-weight: 600; color: #374151; padding: 14px 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: .05em; }
-  .summary-table { width: 100%; border-collapse: collapse; }
-  .summary-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; padding: 10px 16px; text-align: left; background: #f9fafb; }
-  .summary-table td { padding: 12px 16px; font-size: 13px; color: #111827; border-top: 1px solid #f3f4f6; }
-  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge-high     { background: #dcfce7; color: #16a34a; }
-  .badge-moderate { background: #fef9c3; color: #d97706; }
-  .badge-low      { background: #f3f4f6; color: #6b7280; }
-  .badge-skip     { background: #fee2e2; color: #dc2626; }
-  .badge-sndk     { background: #fef3c7; color: #92400e; margin-left: 6px; }
-  .badge-ipowatch { background: #ede9fe; color: #6d28d9; margin-left: 6px; }
-  .badge-held     { background: #dbeafe; color: #1e40af; margin-left: 6px; }
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 14px 28px;
+            background: #fff; border-bottom: 1px solid #e5e7eb; }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #111827; flex: 1; }
 
-  /* Ticker cards */
-  .ticker-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 28px; overflow: hidden; }
-  .ticker-header { padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e5e7eb; }
-  .ticker-header.high     { background: #f0fdf4; border-bottom-color: #16a34a; }
-  .ticker-header.moderate { background: #fffbeb; border-bottom-color: #d97706; }
-  .ticker-header.low      { background: #f9fafb; border-bottom-color: #9ca3af; }
-  .ticker-header.skip     { background: #fef2f2; border-bottom-color: #dc2626; }
-  .ticker-name { font-size: 26px; font-weight: 800; }
-  .ticker-name.high     { color: #16a34a; }
-  .ticker-name.moderate { color: #d97706; }
-  .ticker-name.low      { color: #6b7280; }
-  .ticker-name.skip     { color: #dc2626; }
-  .ticker-subtitle { font-size: 12px; color: #6b7280; margin-top: 3px; }
-  .conviction-pill { padding: 6px 18px; border-radius: 24px; font-weight: 700; font-size: 13px; }
-  .conviction-pill.high     { background: #16a34a; color: #fff; }
-  .conviction-pill.moderate { background: #d97706; color: #fff; }
-  .conviction-pill.low      { background: #9ca3af; color: #fff; }
-  .conviction-pill.skip     { background: #dc2626; color: #fff; }
+  .market-banner { padding: 10px 28px; font-size: 0.82rem; font-weight: 700;
+                   background: #f0fdf4; color: #15803d; border-bottom: 2px solid #bbf7d0; }
 
-  .ticker-body { padding: 20px 24px; }
-  .section { margin-bottom: 22px; }
-  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; margin-bottom: 8px; }
-  .section-content { font-size: 13px; color: #374151; line-height: 1.65; }
-  .section-content strong { color: #111827; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 28px; }
 
-  /* Earnings trend table */
-  .eps-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
-  .eps-table th { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #9ca3af; padding: 6px 10px; text-align: center; background: #f9fafb; }
-  .eps-table td { padding: 8px 10px; text-align: center; border-top: 1px solid #f3f4f6; }
-  .eps-table .beat { color: #16a34a; font-weight: 700; }
-  .eps-table .miss { color: #dc2626; font-weight: 700; }
-  .eps-table .forward { color: #2563eb; font-style: italic; }
-  .eps-table .qtr-label { text-align: left; font-weight: 600; color: #374151; }
+  .summary-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+                  padding: 20px; margin-bottom: 24px; }
+  .summary-card h2 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+                     letter-spacing: .06em; color: #6b7280; margin-bottom: 14px; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .summary-table th { text-align: left; padding: 7px 10px; font-size: 0.7rem; font-weight: 700;
+                      text-transform: uppercase; letter-spacing: .04em; color: #9ca3af;
+                      border-bottom: 2px solid #e5e7eb; }
+  .summary-table td { padding: 10px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
 
-  /* TAM bar */
-  .tam-bar { background: #f3f4f6; border-radius: 8px; height: 8px; margin: 6px 0; overflow: hidden; }
-  .tam-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #2563eb, #7c3aed); }
+  .score-badge { display: inline-block; padding: 3px 10px; border-radius: 6px;
+                 font-size: 0.75rem; font-weight: 800; }
+  .score-moderate { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .score-high { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .score-skip { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
-  /* Key metrics row */
-  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .metric-box { background: #f9fafb; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid #e5e7eb; }
-  .metric-val { font-size: 20px; font-weight: 700; color: #111827; }
-  .metric-val.pos { color: #16a34a; }
-  .metric-val.neg { color: #dc2626; }
-  .metric-val.neu { color: #2563eb; }
-  .metric-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #9ca3af; margin-top: 4px; }
+  .verdict-badge { display: inline-block; padding: 3px 10px; border-radius: 6px;
+                   font-size: 0.72rem; font-weight: 700; }
+  .verdict-watchlist { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .verdict-enter { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .verdict-skip { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
-  /* IPO cycle */
-  .ipo-phases { display: flex; gap: 0; margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
-  .ipo-phase { flex: 1; padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 600; }
-  .ipo-phase.inactive { background: #f9fafb; color: #9ca3af; }
-  .ipo-phase.active   { background: #2563eb; color: #fff; }
-  .ipo-phase.past     { background: #dcfce7; color: #16a34a; }
+  .ticker-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+                 padding: 24px; margin-bottom: 20px; }
+  .card-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;
+                 padding-bottom: 16px; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; }
+  .card-ticker { font-size: 1.6rem; font-weight: 800; color: #111827; }
+  .card-name { font-size: 0.82rem; color: #6b7280; margin-top: 3px; }
+  .card-score { margin-left: auto; text-align: right; }
+  .card-score .score-num { font-size: 2rem; font-weight: 800; color: #111827; }
+  .card-score .score-denom { font-size: 1rem; color: #9ca3af; }
 
-  /* Entry box */
-  .entry-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px; margin-top: 16px; }
-  .entry-box h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #1d4ed8; margin-bottom: 8px; }
-  .entry-box p { font-size: 13px; color: #1e40af; line-height: 1.6; }
-  .entry-box .warning { color: #dc2626; font-weight: 600; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
-  /* Divider */
-  .divider { height: 1px; background: #f3f4f6; margin: 16px 0; }
+  .metric-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .metric-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: .05em; color: #9ca3af; margin-bottom: 6px; }
+  .metric-val { font-size: 1.1rem; font-weight: 700; color: #111827; }
+  .metric-sub { font-size: 0.75rem; color: #6b7280; margin-top: 3px; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .neu { color: #d97706; }
 
-  /* Footer */
-  .footer { font-size: 11px; color: #9ca3af; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+  .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: .05em; color: #6b7280; margin-bottom: 10px; margin-top: 18px; }
+
+  .eps-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .eps-table th { padding: 6px 8px; text-align: left; font-size: 0.67rem; font-weight: 700;
+                  text-transform: uppercase; letter-spacing: .04em; color: #9ca3af;
+                  border-bottom: 2px solid #e5e7eb; }
+  .eps-table td { padding: 8px 8px; border-bottom: 1px solid #f3f4f6; }
+
+  .bull-bear { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .bull-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; }
+  .bear-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px; }
+  .bull-bear-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+                     letter-spacing: .05em; margin-bottom: 6px; }
+  .bull-bear-label.bull { color: #15803d; }
+  .bull-bear-label.bear { color: #dc2626; }
+  .bull-bear p { font-size: 0.8rem; color: #374151; line-height: 1.5; }
+
+  .sndk-flag { background: #fefce8; border: 1px solid #fde047; border-radius: 8px;
+               padding: 12px; margin-top: 12px; font-size: 0.78rem; color: #713f12; }
+
+  .chart-flag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+                border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-left: 8px; }
+  .chart-B { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .score-dim { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;
+               padding: 10px; text-align: center; }
+  .score-dim-label { font-size: 0.62rem; color: #9ca3af; text-transform: uppercase;
+                     letter-spacing: .04em; margin-bottom: 4px; }
+  .score-dim-val { font-size: 1rem; font-weight: 800; }
+  .dim-3 { color: #15803d; }
+  .dim-2 { color: #d97706; }
+  .dim-1 { color: #dc2626; }
+
+  .entry-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+               padding: 14px; margin-top: 16px; font-size: 0.82rem; color: #1e40af; }
+  .entry-box strong { display: block; font-size: 0.7rem; text-transform: uppercase;
+                      letter-spacing: .05em; margin-bottom: 4px; color: #2563eb; }
+
+  .footer { padding: 20px 28px; font-size: 0.7rem; color: #9ca3af;
+            border-top: 1px solid #e5e7eb; background: #fff; margin-top: 24px; text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="page-header">
-  <h1>Stock Research Report</h1>
-  <div class="meta">2026-04-14 · Minervini / Weinstein Framework · Forward-looking conviction analysis</div>
-  <div class="market-banner">
-    <div class="dot"></div>
-    <span>Market: GREEN — Full size entries allowed · Last THRUST Apr 8 · 5d ratio 2.87 · SPY above 200MA · F&amp;G 41.1</span>
-  </div>
+<div class="topbar">
+  <h1>Stock Research — 2026-04-14</h1>
 </div>
 
-<!-- Summary Table -->
-<div class="summary-card">
-  <h2>Conviction Summary</h2>
-  <table class="summary-table">
-    <thead>
-      <tr>
-        <th>Ticker</th>
-        <th>Conviction</th>
-        <th>Signal</th>
-        <th>IPO Phase</th>
-        <th>Next Catalyst</th>
-        <th>One-line verdict</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>$LITE</strong></td>
-        <td><span class="badge badge-high">HIGH</span></td>
-        <td>EPS acceleration + NVIDIA deal + orders through 2028</td>
-        <td>Mature (public 2018)</td>
-        <td>Q3 earnings ~May 2026</td>
-        <td>GREEN market, THRUST Apr 8. Entry now at ~$815, stop ~$740. EPS compounding to $30 by 2028.</td>
-      </tr>
-      <tr>
-        <td><strong>$BE</strong></td>
-        <td><span class="badge badge-moderate">MODERATE</span></td>
-        <td>Character change + institutional rotation in</td>
-        <td>Mature (public 2020)</td>
-        <td>Q1 earnings Apr 29</td>
-        <td>$16 → $207 already done. GREEN market = entries allowed but size half — Apr 29 earnings is binary event. Wait for post-print base.</td>
-      </tr>
-      <tr>
-        <td><strong>$CORZ</strong></td>
-        <td><span class="badge badge-low">WATCH H2</span><span class="badge badge-ipowatch">IPO Phase 2</span></td>
-        <td>HPC pivot real, revenue not yet</td>
-        <td>Phase 2 — Orphan</td>
-        <td>HPC revenue Q3 2026</td>
-        <td>$10B contract locked. 85% still mining. Re-evaluate when HPC > 50% revenue.</td>
-      </tr>
-      <tr>
-        <td><strong>$CRWV</strong></td>
-        <td><span class="badge badge-skip">TOO EARLY</span><span class="badge badge-ipowatch">IPO Phase 0</span></td>
-        <td>Revenue 168% YoY, but EPS deeply negative + 1 month old</td>
-        <td>Phase 0 — Hot IPO</td>
-        <td>Lock-up expiry ~Sep 2026</td>
-        <td>$21B Meta deal is real. Come back after lock-up expiry + first standalone earnings.</td>
-      </tr>
-      <tr>
-        <td><strong>$LUNR</strong></td>
-        <td><span class="badge badge-low">SPECULATIVE</span><span class="badge badge-ipowatch">IPO Phase 1</span></td>
-        <td>5x revenue guide, contracted backlog, still losing</td>
-        <td>Phase 1 — Post-lockup</td>
-        <td>Q1 earnings May 19</td>
-        <td>5x revenue guide is extraordinary. Re-evaluate May 19 — need to see it show up.</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="market-banner">
+  Market State: GREEN &nbsp;|&nbsp; 5d ratio: 2.87 &nbsp;|&nbsp; F&amp;G: 41.1 &nbsp;|&nbsp;
+  SPY $686.10 (above 200d $664.76) &nbsp;|&nbsp; Sizing: Normal
 </div>
 
-<!-- ===================== LITE ===================== -->
-<div class="ticker-card">
-  <div class="ticker-header high">
-    <div>
-      <div class="ticker-name high">$LITE — Lumentum Holdings</div>
-      <div class="ticker-subtitle">Technology · Optical Components · AI Infrastructure Picks &amp; Shovels</div>
-      <div style="margin-top:6px;">
-        <span class="badge badge-high">HIGH CONVICTION</span>
-        <span class="badge" style="background:#f0f9ff;color:#0369a1;margin-left:6px;">MATURE — Regular Rules Apply</span>
-      </div>
-    </div>
-    <div class="conviction-pill high">HIGH</div>
+<div class="container">
+
+  <!-- SUMMARY TABLE -->
+  <div class="summary-card">
+    <h2>Conviction Summary</h2>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Score</th>
+          <th>Chart</th>
+          <th>Bull (1 line)</th>
+          <th>Bear (1 line)</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>CTRI</strong></td>
+          <td><span class="score-badge score-moderate">20 / 27</span></td>
+          <td><span class="chart-flag chart-B">B — 50 SMA bounce</span></td>
+          <td style="font-size:0.78rem; color:#374151">$5.9B backlog (+59% YoY), revenue accelerating to 20% growth, Icahn buying $75M — institutional adoption underway</td>
+          <td style="font-size:0.78rem; color:#374151">Stock 45% above analyst consensus target ($23.25 vs $33.74); 3 consecutive EPS misses; JPMorgan Underweight; thin contractor margins</td>
+          <td><span class="verdict-badge verdict-watchlist">WATCHLIST — needs entry trigger</span></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  <div class="ticker-body">
 
-    <!-- Key metrics -->
-    <div class="metrics-row">
-      <div class="metric-box">
-        <div class="metric-val pos">+65%</div>
-        <div class="metric-lbl">Revenue YoY</div>
-      </div>
-      <div class="metric-box">
-        <div class="metric-val pos">+35.7%</div>
-        <div class="metric-lbl">EPS Beat Q2</div>
-      </div>
-      <div class="metric-box">
-        <div class="metric-val neu">$90B</div>
-        <div class="metric-lbl">TAM by 2030</div>
-      </div>
-      <div class="metric-box">
-        <div class="metric-val pos">$30</div>
-        <div class="metric-lbl">Mgmt 2028 EPS</div>
-      </div>
-    </div>
-
-    <!-- Earnings Trend -->
-    <div class="section">
-      <div class="section-title">Earnings Trend (last 4 quarters + 2 forward)</div>
-      <table class="eps-table">
-        <thead>
-          <tr>
-            <th style="text-align:left">Quarter</th>
-            <th>Non-GAAP EPS</th>
-            <th>vs Estimate</th>
-            <th>Beat/Miss</th>
-            <th>Revenue</th>
-            <th>Rev YoY</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="qtr-label">Q4 FY2025 (Sep)</td>
-            <td>$0.51</td><td>$0.38</td><td class="beat">+34%</td><td>$405M</td><td class="beat">+28%</td>
-          </tr>
-          <tr>
-            <td class="qtr-label">Q1 FY2026 (Dec)</td>
-            <td>$1.16</td><td>$0.89</td><td class="beat">+30%</td><td>$544M</td><td class="beat">+52%</td>
-          </tr>
-          <tr>
-            <td class="qtr-label">Q2 FY2026 (Mar) ✓</td>
-            <td><strong>$1.67</strong></td><td>$1.23</td><td class="beat">+35.7%</td><td><strong>$665M</strong></td><td class="beat">+65%</td>
-          </tr>
-          <tr style="background:#f0f9ff">
-            <td class="qtr-label forward">Q3 FY2026 (Jun) — Guide</td>
-            <td class="forward">$2.15–$2.35</td><td class="forward">$1.89</td><td class="forward">+17–24% est</td><td class="forward">$780–$830M</td><td class="forward">+75%</td>
-          </tr>
-          <tr style="background:#f0f9ff">
-            <td class="qtr-label forward">Q4 FY2026 (Sep) — Analyst</td>
-            <td class="forward">~$2.80</td><td class="forward">consensus</td><td class="forward">—</td><td class="forward">~$920M</td><td class="forward">+127%</td>
-          </tr>
-        </tbody>
-      </table>
-      <div style="font-size:11px;color:#9ca3af;margin-top:6px;">⚡ Pattern: EPS accelerating every quarter. Guidance beats consistently. Management sandbagging — they guided $1.40 for Q2, printed $1.67.</div>
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- Forward estimates -->
-    <div class="section">
-      <div class="section-title">Forward EPS Trajectory — The real thesis</div>
-      <div class="section-content">
-        <strong>FY2026 consensus EPS: $7.60</strong> · FY2027: <strong>$14.55–$14.98</strong> · Management 2028 target: <strong>$30+</strong><br><br>
-        29 analysts covering. EPS estimates revised <strong>UP</strong> consistently over last 90 days driven by:
-        <ul style="margin: 8px 0 0 16px; line-height:2">
-          <li>NVIDIA $2B strategic investment + multi-billion procurement commitment (Apr 2026)</li>
-          <li>Orders booked through 2028 — backlog visibility extraordinary for a hardware company</li>
-          <li>CPO (Co-Packaged Optics) ramp from $0 → significant revenue — this is a new product line</li>
-          <li>Analyst consensus: <strong>Strong Buy, median PT $620</strong> (one house says $1,000 path)</li>
-        </ul>
-        <br>At $815, trading at ~107x FY2026 EPS of $7.60 — looks expensive. At FY2027 $14.98 EPS, it's 54x. At the $30 2028 target, it's 27x. <strong>Price is discounting 2028, not 2026.</strong>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- Revenue + TAM -->
-    <div class="section">
-      <div class="section-title">Revenue Trajectory + TAM</div>
-      <div class="section-content">
-        <strong>FY2026 revenue: $2.91B</strong> (consensus) → <strong>FY2027: $4.71B</strong> (+62%)<br>
-        Management targets quarterly run rate of <strong>$2B by 2028</strong> ($8B annualized).<br><br>
-        <strong>TAM:</strong> AI optical interconnect market $18B (2025) → <strong>$90B by 2030</strong>.
-      </div>
-      <div style="margin-top:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:4px;">
-          <span>Current LITE revenue share</span><span>$2.91B / $18B TAM = 16%</span>
+  <!-- CTRI TICKER CARD -->
+  <div class="ticker-card">
+    <div class="card-header">
+      <div>
+        <div class="card-ticker">
+          CTRI
+          <span class="chart-flag chart-B">Chart: B — 50 SMA bounce, Stage 2 continuation</span>
         </div>
-        <div class="tam-bar"><div class="tam-fill" style="width:16%"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin:8px 0 4px;">
-          <span>2028 target revenue share</span><span>$8B / $90B TAM = 9% (bigger pie)</span>
-        </div>
-        <div class="tam-bar"><div class="tam-fill" style="width:9%"></div></div>
-        <div style="font-size:11px;color:#9ca3af;margin-top:6px;">Three simultaneous product cycles: 800G/1.6T pluggables + CPO + OCS. Each is a multi-billion TAM expansion.</div>
+        <div class="card-name">Centuri Holdings, Inc. &nbsp;·&nbsp; NYSE &nbsp;·&nbsp; Utility Infrastructure Services</div>
+        <div class="card-name" style="margin-top:4px">IPO: Apr 18 2024 &nbsp;·&nbsp; Lock-up expired: Oct 15 2024 &nbsp;·&nbsp; 7 quarters as public company</div>
+      </div>
+      <div class="card-score">
+        <span class="score-num">20</span><span class="score-denom">/27</span>
+        <div style="margin-top:4px"><span class="score-badge score-moderate">MODERATE</span></div>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <!-- Key Metrics -->
+    <div class="grid-3">
+      <div class="metric-box">
+        <div class="metric-label">Price (Apr 13)</div>
+        <div class="metric-val">$33.74</div>
+        <div class="metric-sub">SMA50: $30.24 &nbsp;·&nbsp; SMA200: $24.44</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Revenue Q4 YoY</div>
+        <div class="metric-val pos">+20.0%</div>
+        <div class="metric-sub">FY2025: $3.0B record (+13% YoY)</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Backlog</div>
+        <div class="metric-val pos">$5.9B</div>
+        <div class="metric-sub">+59% YoY &nbsp;·&nbsp; 85%+ of 2026 revenue visible</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">2026 Guidance</div>
+        <div class="metric-val">$3.15–3.45B</div>
+        <div class="metric-sub">EBITDA $280–310M &nbsp;·&nbsp; Adj NI $55–75M</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Net Debt / EBITDA</div>
+        <div class="metric-val neu">2.5x</div>
+        <div class="metric-sub">Target 2.0x by end 2026 (was 3.6x end 2024)</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Short Interest</div>
+        <div class="metric-val pos">2.7%</div>
+        <div class="metric-sub">Low &amp; declining from Dec 2025 peak</div>
+      </div>
+    </div>
+
+    <!-- EPS History -->
+    <div class="section-label">EPS — Actual vs Estimate (2025)</div>
+    <table class="eps-table">
+      <thead>
+        <tr><th>Quarter</th><th>Actual EPS</th><th>Estimate</th><th>Result</th><th>Revenue YoY</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Q4 2025</td>
+          <td>$0.17</td>
+          <td>$0.20</td>
+          <td class="neg">MISS –15%</td>
+          <td class="pos">+20.0% ($858.6M)</td>
+        </tr>
+        <tr>
+          <td>Q3 2025</td>
+          <td>$0.06</td>
+          <td>$0.32</td>
+          <td class="neg">MISS –81%</td>
+          <td class="pos">+18.1% ($850M)</td>
+        </tr>
+        <tr>
+          <td>Q2 2025</td>
+          <td>$0.19</td>
+          <td>$0.21</td>
+          <td class="neg">MISS –9.5%</td>
+          <td class="pos">+7.7% ($724.1M)</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="font-size:0.73rem; color:#9ca3af; padding-top:8px">
+            Pattern: Revenue consistently beats, EPS consistently misses — margin execution gap, not a demand problem.
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- Institutional -->
-    <div class="section">
-      <div class="section-title">Institutional Cycle</div>
-      <div class="section-content">
-        <strong>NVIDIA strategic investment</strong> — not just a customer, a capital partner. Changes the risk profile entirely: NVDA has skin in the game.<br><br>
-        29 sell-side analysts. Coverage expanding (not contracting). Inst Trans positive — funds adding, not distributing.<br><br>
-        <strong>Key signal:</strong> When NVIDIA invests $2B and commits to multi-year procurement, every AI fund on the planet is forced to re-underwrite. This is Phase 4 institutional adoption — the re-rating is happening now.
+    <div class="section-label">Institutional Activity</div>
+    <div class="grid-2">
+      <div class="metric-box">
+        <div class="metric-label">Top Holder — Icahn Capital</div>
+        <div class="metric-val pos">16.17%</div>
+        <div class="metric-sub">Added 3.5M shares @ $21.50 in Nov 2025 ($75M). Total: $308M position. Still buying.</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Other Institutions</div>
+        <div class="metric-val pos">Building</div>
+        <div class="metric-sub">Goldman Sachs +164.9% Q1 2026 · Fortress new $8.8M Q3 2025 · Vanguard 7.9%</div>
       </div>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- IPO Cycle -->
-    <div class="section">
-      <div class="section-title">IPO Cycle (N/A — Mature company)</div>
-      <div class="section-content" style="margin-bottom:8px">
-        LITE has been public since 2018. This is <strong>not an IPO play</strong> — it's a mature company undergoing a fundamental business transformation (telecom optical → AI optical). Apply regular Minervini rules.
+    <!-- Analyst Targets -->
+    <div class="section-label">Analyst Targets vs Current Price ($33.74)</div>
+    <div class="grid-2">
+      <div class="metric-box">
+        <div class="metric-label">Bulls</div>
+        <div class="metric-val pos">$37.40</div>
+        <div class="metric-sub">Cantor Fitzgerald (Mar 25): Overweight, raised from $35.25<br>Wells Fargo (Feb): Raised to $34 then cut to $32</div>
       </div>
-      <div class="ipo-phases">
-        <div class="ipo-phase past">Hot IPO</div>
-        <div class="ipo-phase past">Lock-up</div>
-        <div class="ipo-phase past">Orphan</div>
-        <div class="ipo-phase past">Inst. Adoption</div>
-        <div class="ipo-phase active">Mature Leader ✓</div>
+      <div class="metric-box">
+        <div class="metric-label">Bears / Consensus</div>
+        <div class="metric-val neg">$23.25</div>
+        <div class="metric-sub">Consensus target — stock trades 45% ABOVE consensus<br>JPMorgan: Underweight $22 · Weiss: Sell D+</div>
       </div>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- Technical -->
-    <div class="section">
-      <div class="section-title">Technical Setup</div>
-      <div class="section-content">
-        Price ~<strong>$815</strong> (Apr 7 close $815.75). 52-week range: ~$320 → $915.<br>
-        <strong>+109.5% YTD.</strong> All MAs bullish aligned — short-term above long-term. Stage 2 confirmed.<br><br>
-        Support: $748 (recent base), $692 (prior breakout). Resistance: $913, $1,007.<br><br>
-        ATR is elevated (~7-8%) — size accordingly (half position to start). <strong>Not extended yet</strong> — NVIDIA deal catalyst hit Apr 10, stock pulled back with the broader market. Now that market is GREEN post-THRUST (Apr 8), this pullback is the entry.
+    <!-- Chart Assessment -->
+    <div class="section-label">Chart Assessment (Daily — Apr 13)</div>
+    <div class="metric-box">
+      <div style="font-size:0.8rem; color:#374151; line-height:1.8">
+        <strong style="color:#111827">Stage 2:</strong> Price ($33.74) &gt; SMA20 ($30.53) &gt; SMA50 ($30.24) &gt; SMA200 ($24.44). Perfect alignment.<br>
+        <strong style="color:#111827">Pattern:</strong> Strong uptrend Jul–Dec 2025 ($18 to $34), sharp pullback to 50 SMA in Feb–Mar (held cleanly at ~$28), V-recovery to new highs Apr 2026.<br>
+        <strong style="color:#111827">Setup type:</strong> 50 SMA bounce / Stage 2 continuation — Minervini EMA pullback.<br>
+        <strong style="color:#111827">Risk:</strong> V-shaped recovery (not a VCP), at 52-week highs, 11% above 50 SMA — slightly extended for a fresh entry.<br>
+        <strong style="color:#111827">Entry trigger:</strong> Wait for 2–3 day tight flag near $33–34 on declining volume. Breakout above $34.50 on volume confirms.
+      </div>
+      <div style="margin-top:10px">
+        <span class="chart-flag chart-B">Chart: B — Strong trend, clean 50 SMA bounce; V-recovery means not an ideal entry today</span>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <!-- SNDK Flag -->
+    <div class="sndk-flag">
+      <strong>SNDK Pattern Check:</strong> Flagged as <code>ipo_lifecycle + eps_qq_strong + inst_buying</code> — but this is NOT a TTM-distortion case.
+      EPS TTM +432% and Q/Q +174% are both genuine. The system flagged it correctly via IPO lifecycle + institutional signal, not because TTM is masking true earnings.
+    </div>
 
-    <!-- Catalyst timeline -->
-    <div class="section">
-      <div class="section-title">Catalyst Timeline</div>
-      <div class="section-content">
-        <ul style="margin-left:16px;line-height:2.2">
-          <li><strong>Apr 10, 2026:</strong> NVIDIA $2B investment announced. Orders through 2028 confirmed. ✅ (already happened)</li>
-          <li><strong>~May 2026:</strong> Q3 FY2026 earnings — guided $2.15-2.35 non-GAAP EPS. If they sandbag again (+17-24%), print will be $2.50+.</li>
-          <li><strong>~Aug 2026:</strong> Q4 FY2026 earnings — first quarter where $2B quarterly run rate ramp becomes visible.</li>
-          <li><strong>2027:</strong> CPO commercial ramp begins at scale. New product line revenue from near-zero.</li>
-          <li><strong>2028:</strong> Management $30 EPS target — index re-weighting if achieved.</li>
-        </ul>
+    <!-- Catalyst -->
+    <div class="section-label">Next Catalyst</div>
+    <div class="metric-box">
+      <div class="metric-val" style="font-size:0.9rem">Q1 2026 Earnings — expected May/June 2026</div>
+      <div class="metric-sub" style="margin-top:4px">
+        Key watch: margin execution (mgmt guided Q1 2026 to show first YoY improvement) ·
+        YTD 2026 bookings $1.4B with $345M on Apr 10 ·
+        Fleet optimization 100–150 bps margin improvement in-flight ·
+        Leverage target 2.0x on track from 2.5x current
       </div>
     </div>
 
-    <!-- Entry verdict -->
-    <div class="entry-box" style="background:#f0fdf4;border-color:#86efac;">
-      <h4 style="color:#16a34a;">Entry Verdict — Market is GREEN (THRUST Apr 8, 5d ratio 2.87)</h4>
-      <p style="color:#14532d;">
-        <strong>✅ Rule 6 cleared — full size entries allowed.</strong><br><br>
-        <strong>Entry now:</strong> LITE pulled back from ~$915 with the broader market during the tariff scare. That selloff was macro, not fundamental — NVIDIA deal ($2B strategic + procurement) announced Apr 10 is unchanged. This is the entry.<br><br>
-        <strong>Setup:</strong> Buy the current level (~$815) or on any further dip to $748 (prior base support). Initial position half-size given elevated ATR (7-8%). Add second half if it holds $748 and market stays GREEN.<br><br>
-        <strong>Stop:</strong> Dynamic — 5% base + ATR% × 0.5 = ~9% below entry. Hard stop ~$740.<br><br>
-        <strong>Targets:</strong> T1 +20% (~$978) → sell half. T2 +40% (~$1,141) → trail tight. Management's $30 EPS in 2028 at 30x = $900 EPS-based floor, so $1,000+ is not a stretch.<br><br>
-        <strong>Why not a SNDK pattern:</strong> LITE is mature — TTM EPS is not distorted. Our system scores it correctly. The edge here is conviction and sizing, not discovery.
-      </p>
+    <!-- Bull / Bear -->
+    <div class="bull-bear">
+      <div class="bull-box">
+        <div class="bull-bear-label bull">Bull Case</div>
+        <p>$5.9B backlog (+59% YoY) gives 85%+ revenue visibility for 2026. Revenue accelerating: +7.7% to +18.1% to +20% in last 3 quarters. Icahn added $75M at $21.50 — smart money buying hard. Secular tailwind: utility grid modernization + data center build-out is multi-decade. Deleveraging from 3.6x to target 2.0x by end 2026. Short interest 2.7% and declining — no credible bear thesis in the market.</p>
+      </div>
+      <div class="bear-box">
+        <div class="bull-bear-label bear">Bear Case</div>
+        <p>Stock at $33.74 trades 45% ABOVE analyst consensus target of $23.25. Three consecutive EPS misses in 2025 despite revenue beats — management cannot convert growth into earnings. JPMorgan Underweight $22, Weiss Sell. Thin EBITDA margins (8.3%) mean any cost surprise hurts. Customer concentration undisclosed (~78% MSA revenue; top customer likely 10-20%). CEO sold 24% of his stake at $24 in Dec 2025. If momentum fades, reversion toward $23 consensus would be severe.</p>
+      </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="section-label">Score Breakdown (9 Dimensions)</div>
+    <div class="score-grid">
+      <div class="score-dim">
+        <div class="score-dim-label">EPS Beat Trend</div>
+        <div class="score-dim-val dim-1">1/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">3 consecutive misses</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">Estimate Revisions</div>
+        <div class="score-dim-val dim-1">1/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Consensus $23.25 vs $33.74</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">Revenue Accel</div>
+        <div class="score-dim-val dim-3">3/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">+7.7% to +18% to +20%</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">Inst Adoption</div>
+        <div class="score-dim-val dim-3">3/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Icahn, Goldman, Fortress</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">IPO Cycle</div>
+        <div class="score-dim-val dim-3">3/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Lock-up clear, adopting</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">TAM Position</div>
+        <div class="score-dim-val dim-2">2/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Mid S-curve, secular</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">Short Interest</div>
+        <div class="score-dim-val dim-3">3/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">2.7%, declining</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">Stage 2</div>
+        <div class="score-dim-val dim-3">3/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Perfect alignment</div>
+      </div>
+      <div class="score-dim">
+        <div class="score-dim-label">SNDK Pattern</div>
+        <div class="score-dim-val dim-1">1/3</div>
+        <div style="font-size:0.65rem;color:#9ca3af;margin-top:2px">Not distorted — real earnings</div>
+      </div>
+    </div>
+
+    <!-- Entry Verdict -->
+    <div class="entry-box">
+      <strong>Entry Verdict — GREEN Market, Normal Sizing</strong>
+      WATCHLIST — do not chase the bounce. Stock is at 52-week highs after a V-shaped recovery from the 50 SMA. Needs 2–5 days of tight consolidation at $33–34 (narrow range, low volume) before entry. Trigger: high-volume breakout above $34.50. Stop: below $30.24 (50 SMA). T1: $40 (+18%); T2: $48 (+42%). Position size: 3–4% max given 45% premium to analyst consensus — this is a momentum trade, not a value trade.
     </div>
 
   </div>
-</div>
 
-<!-- ===================== IPO CYCLE REFERENCE ===================== -->
-<div class="summary-card" style="margin-bottom:32px;">
-  <h2>IPO Cycle Framework — CRWV, CORZ, LUNR</h2>
-  <div style="padding:20px;font-size:13px;color:#374151;line-height:1.7;">
-    <p style="margin-bottom:16px">These three are in very different phases. The cycle matters more than the story:</p>
-    <div class="ipo-phases" style="margin-bottom:20px">
-      <div class="ipo-phase inactive" style="font-size:9px">0<br>Hot IPO<br>&lt;90d</div>
-      <div class="ipo-phase inactive" style="font-size:9px">1<br>Lock-up<br>90–180d</div>
-      <div class="ipo-phase inactive" style="font-size:9px">2<br>Orphan<br>6–18mo</div>
-      <div class="ipo-phase inactive" style="font-size:9px">3<br>Inst. Adopt<br>12–24mo</div>
-      <div class="ipo-phase inactive" style="font-size:9px">4<br>Index Incl<br>24–36mo</div>
-      <div class="ipo-phase inactive" style="font-size:9px">5<br>Mature<br>36mo+</div>
-    </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <tr style="background:#f9fafb">
-        <th style="padding:10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;">Ticker</th>
-        <th style="padding:10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;">Phase</th>
-        <th style="padding:10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;">Key gating event</th>
-        <th style="padding:10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;">When to re-evaluate</th>
-      </tr>
-      <tr style="border-top:1px solid #f3f4f6">
-        <td style="padding:10px;font-weight:700;color:#dc2626">$CRWV</td>
-        <td style="padding:10px"><span class="badge badge-skip">Phase 0 — Hot IPO</span></td>
-        <td style="padding:10px">Lock-up expires ~Sep 2026. Insiders (NVIDIA, Magnetar) hold large blocks.</td>
-        <td style="padding:10px;color:#2563eb;font-weight:600">Oct 2026 — after lock-up + first standalone earnings</td>
-      </tr>
-      <tr style="border-top:1px solid #f3f4f6">
-        <td style="padding:10px;font-weight:700;color:#d97706">$CORZ</td>
-        <td style="padding:10px"><span class="badge badge-ipowatch">Phase 2 — Orphan</span></td>
-        <td style="padding:10px">HPC revenue must exceed 50% of total. Currently 85% still mining. H2 2026 is the flip point.</td>
-        <td style="padding:10px;color:#2563eb;font-weight:600">Q3 2026 earnings — watch HPC revenue % cross 50%</td>
-      </tr>
-      <tr style="border-top:1px solid #f3f4f6">
-        <td style="padding:10px;font-weight:700;color:#d97706">$LUNR</td>
-        <td style="padding:10px"><span class="badge badge-ipowatch">Phase 1 — Post-lockup</span></td>
-        <td style="padding:10px">5x revenue guide ($210M → $900M+) must materialize in actuals. Contracted backlog gives confidence.</td>
-        <td style="padding:10px;color:#2563eb;font-weight:600">May 19 Q1 earnings — does revenue actually step up?</td>
-      </tr>
-    </table>
-    <p style="margin-top:16px;font-size:12px;color:#6b7280;">
-      <strong>Rule:</strong> IPO stocks become actionable in Phase 3 (institutional adoption) — when 2+ earnings have been reported, lock-up is past, Inst Trans turns consistently positive, and the stock clears its post-IPO base on volume. Buying Phase 0 or 1 is speculation, not momentum trading.
-    </p>
-  </div>
 </div>
 
 <div class="footer">
-  Generated by /stock-research skill · 2026-04-14 · Framework: Minervini Stage Analysis + IPO Cycle + Forward EPS Trajectory<br>
-  Sources: MarketBeat, StockAnalysis, 247WallSt, GuruFocus, TradingKey, FinancialContent, ICO-Optics
+  Generated by /stock-research skill &nbsp;·&nbsp; 2026-04-14 &nbsp;·&nbsp; Market: GREEN
 </div>
 
 </body>
