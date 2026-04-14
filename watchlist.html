@@ -92,11 +92,11 @@
 
 <div class="stats">
   <div class="stat">
-    <span class="stat-val">0</span>
+    <span class="stat-val">5</span>
     <span class="stat-label">Focus (act now)</span>
   </div>
   <div class="stat">
-    <span class="stat-val">56</span>
+    <span class="stat-val">52</span>
     <span class="stat-label">Watching</span>
   </div>
   <div class="stat">
@@ -113,24 +113,113 @@
 <div class="section focus-section">
   <div class="section-header">
     <h2>📌 Focus List</h2>
-    <span class="section-count">0 tickers — actionable this week</span>
+    <span class="section-count">5 tickers — actionable this week</span>
     <button class="csv-btn" onclick="downloadCSV('tbl-focus', 'focus_list_2026-04-14.csv')">
       ⬇ Download CSV
     </button>
   </div>
-  <p class="empty-msg">No entries.</p>
+  
+    <table id="tbl-focus" class="watchlist-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Setup note</th>
+          <th>Thesis</th>
+          <th>Stop</th>
+          <th>Q</th>
+          <th>Stage</th>
+          <th>Age</th>
+          <th>Source</th>
+          <th>Chart</th>
+        </tr>
+      </thead>
+      <tbody>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=BE" target="_blank" class="ticker-link">BE</a>
+      </td>
+      <td class="col-note">entering — Stage 2 breakout setup</td>
+      <td class="col-thesis">Bloom Energy — clean energy, data center power demand</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">—</td>
+      <td class="col-stage"></td>
+      <td class="col-age" data-added="2026-04-14">today</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=BE&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CORZ" target="_blank" class="ticker-link">CORZ</a>
+      </td>
+      <td class="col-note">breakout above 18, AI/HPC pivot</td>
+      <td class="col-thesis">CoreWeave merger optionality, AI infrastructure pivot, crypto tailwind</td>
+      <td class="col-stop">$14</td>
+      <td class="col-q">75</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CORZ&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=SNDK" target="_blank" class="ticker-link">SNDK</a>
+      </td>
+      <td class="col-note">pullback to 10 EMA</td>
+      <td class="col-thesis">IPO lifecycle, 81% EPS beat, NAND cycle</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">80</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-03-24">21d</td>
+      <td class="col-src"><span class="badge badge-manual">manual</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=AMD" target="_blank" class="ticker-link">AMD</a>
+      </td>
+      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
+      <td class="col-thesis">Technology | Q=106 | VCP | ATR 4.8%</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">98</td>
+      <td class="col-stage">Uptrend</td>
+      <td class="col-age" data-added="2026-04-02">12d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=AMD&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="col-ticker">
+        <a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" class="ticker-link">CRWV</a>
+      </td>
+      <td class="col-note">None</td>
+      <td class="col-thesis">None</td>
+      <td class="col-stop">—</td>
+      <td class="col-q">15</td>
+      <td class="col-stage">Downtrend</td>
+      <td class="col-age" data-added="2026-04-07">7d</td>
+      <td class="col-src"><span class="badge badge-auto">auto</span></td>
+      <td class="col-chart">
+        <a href="https://finviz.com/chart.ashx?t=CRWV&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>
+      </tbody>
+    </table>
 </div>
 
 <!-- FULL WATCHLIST -->
 <div class="section">
   <div class="section-header">
     <h2>👁 Watching</h2>
-    <span class="section-count">56 tickers — on radar, not yet actionable</span>
-    <button class="csv-btn" onclick="downloadCSV('tbl-watching', 'watchlist_2026-04-14.csv')">
-      ⬇ Download CSV
-    </button>
-    <button class="csv-btn" onclick="downloadAllActive('APH,KLAC,SSRM,CGAU,IVVD,ANET,TSM,INTC,RSI,HBM,COHR,AU,BTSG,GMED,KGC,MU,ERO,AMAT,SN,DAN,C,AEHR,LRCX,ARWR,NBIS,ALHC,CSTM,ADI,CLS,CTRI,CRWV,LITE,MTSI,AA,KEYS,GLW,STX,AAOI,LUNR,DELL,MRVL,GEV,VIK,CIEN,VG,AMD,SQM,UNIT,NVT,VRT,PLAB,CRCL,CORZ,FIGS,SEDG,SNDK', 'all_active_2026-04-14.csv')" style="margin-left:0">
-      ⬇ All active (TradingView)
+    <span class="section-count">52 tickers — on radar, not yet actionable</span>
+    <button class="csv-btn" onclick="downloadAllActive('BE,CORZ,SNDK,AMD,CRWV,APH,KLAC,SSRM,CGAU,IVVD,ANET,TSM,INTC,RSI,HBM,COHR,AU,BTSG,GMED,KGC,MU,ERO,AMAT,SN,DAN,C,AEHR,LRCX,ARWR,NBIS,ALHC,CSTM,ADI,CLS,CTRI,LITE,MTSI,AA,KEYS,GLW,STX,AAOI,LUNR,DELL,MRVL,GEV,VIK,CIEN,VG,SQM,UNIT,NVT,VRT,PLAB,CRCL,FIGS,SEDG', 'watchlist_2026-04-14.txt')">
+      ⬇ Export all for TradingView
     </button>
   </div>
   
@@ -601,21 +690,6 @@
     </tr>
     <tr>
       <td class="col-ticker">
-        <a href="https://finviz.com/quote.ashx?t=CRWV" target="_blank" class="ticker-link">CRWV</a>
-      </td>
-      <td class="col-note">None</td>
-      <td class="col-thesis">None</td>
-      <td class="col-stop">—</td>
-      <td class="col-q">15</td>
-      <td class="col-stage">Downtrend</td>
-      <td class="col-age" data-added="2026-04-07">7d</td>
-      <td class="col-src"><span class="badge badge-auto">auto</span></td>
-      <td class="col-chart">
-        <a href="https://finviz.com/chart.ashx?t=CRWV&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
-      </td>
-    </tr>
-    <tr>
-      <td class="col-ticker">
         <a href="https://finviz.com/quote.ashx?t=LITE" target="_blank" class="ticker-link">LITE</a>
       </td>
       <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
@@ -826,21 +900,6 @@
     </tr>
     <tr>
       <td class="col-ticker">
-        <a href="https://finviz.com/quote.ashx?t=AMD" target="_blank" class="ticker-link">AMD</a>
-      </td>
-      <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
-      <td class="col-thesis">Technology | Q=106 | VCP | ATR 4.8%</td>
-      <td class="col-stop">—</td>
-      <td class="col-q">98</td>
-      <td class="col-stage">Uptrend</td>
-      <td class="col-age" data-added="2026-04-02">12d</td>
-      <td class="col-src"><span class="badge badge-auto">auto</span></td>
-      <td class="col-chart">
-        <a href="https://finviz.com/chart.ashx?t=AMD&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
-      </td>
-    </tr>
-    <tr>
-      <td class="col-ticker">
         <a href="https://finviz.com/quote.ashx?t=SQM" target="_blank" class="ticker-link">SQM</a>
       </td>
       <td class="col-note">VCP setup — wait for volume contraction then breakout</td>
@@ -931,21 +990,6 @@
     </tr>
     <tr>
       <td class="col-ticker">
-        <a href="https://finviz.com/quote.ashx?t=CORZ" target="_blank" class="ticker-link">CORZ</a>
-      </td>
-      <td class="col-note">breakout above 18, AI/HPC pivot</td>
-      <td class="col-thesis">CoreWeave merger optionality, AI infrastructure pivot, crypto tailwind</td>
-      <td class="col-stop">$14</td>
-      <td class="col-q">75</td>
-      <td class="col-stage">Uptrend</td>
-      <td class="col-age" data-added="2026-03-24">21d</td>
-      <td class="col-src"><span class="badge badge-manual">manual</span></td>
-      <td class="col-chart">
-        <a href="https://finviz.com/chart.ashx?t=CORZ&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
-      </td>
-    </tr>
-    <tr>
-      <td class="col-ticker">
         <a href="https://finviz.com/quote.ashx?t=FIGS" target="_blank" class="ticker-link">FIGS</a>
       </td>
       <td class="col-note">Stage 2 confirmed, above 52w high</td>
@@ -974,21 +1018,6 @@
         <a href="https://finviz.com/chart.ashx?t=SEDG&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
       </td>
     </tr>
-    <tr>
-      <td class="col-ticker">
-        <a href="https://finviz.com/quote.ashx?t=SNDK" target="_blank" class="ticker-link">SNDK</a>
-      </td>
-      <td class="col-note">pullback to 10 EMA</td>
-      <td class="col-thesis">IPO lifecycle, 81% EPS beat, NAND cycle</td>
-      <td class="col-stop">—</td>
-      <td class="col-q">80</td>
-      <td class="col-stage">Uptrend</td>
-      <td class="col-age" data-added="2026-03-24">21d</td>
-      <td class="col-src"><span class="badge badge-manual">manual</span></td>
-      <td class="col-chart">
-        <a href="https://finviz.com/chart.ashx?t=SNDK&ty=c&ta=1&p=d" target="_blank" class="chart-link">chart ↗</a>
-      </td>
-    </tr>
       </tbody>
     </table>
 </div>
@@ -1006,7 +1035,7 @@
 </div>
 
 <div class="footer">
-  Generated 14 Apr 2026 08:33 UTC · Auto-archive: screener_auto entries expire after 14 days ·
+  Generated 14 Apr 2026 08:42 UTC · Auto-archive: screener_auto entries expire after 14 days ·
   Promote to Focus via position-monitor workflow_dispatch (watchlist_action=focus)
 </div>
 

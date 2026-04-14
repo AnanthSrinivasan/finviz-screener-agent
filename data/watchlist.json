@@ -1,13 +1,25 @@
 {
   "watchlist": [
     {
+      "ticker": "BE",
+      "entry_note": "entering \u2014 Stage 2 breakout setup",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Bloom Energy \u2014 clean energy, data center power demand",
+      "added": "2026-04-14",
+      "status": "watching",
+      "priority": "focus",
+      "source": "manual"
+    },
+    {
       "ticker": "CRCL",
       "entry_note": "21 EMA pullback",
       "entry_price": null,
       "stop": 100,
       "thesis": "CLARITY Act April 3, stablecoin infrastructure, IPO lifecycle",
       "added": "2026-03-24",
-      "status": "watching"
+      "status": "watching",
+      "priority": "watching"
     },
     {
       "ticker": "CORZ",
@@ -16,7 +28,8 @@
       "stop": 14,
       "thesis": "CoreWeave merger optionality, AI infrastructure pivot, crypto tailwind",
       "added": "2026-03-24",
-      "status": "watching"
+      "status": "watching",
+      "priority": "focus"
     },
     {
       "ticker": "FIGS",
@@ -25,7 +38,8 @@
       "stop": null,
       "thesis": "Character change, 400% EPS beat, healthcare apparel turning profitable",
       "added": "2026-03-24",
-      "status": "watching"
+      "status": "watching",
+      "priority": "watching"
     },
     {
       "ticker": "SEDG",
@@ -34,7 +48,8 @@
       "stop": 38,
       "thesis": "Character change, European solar demand, Iran energy crisis",
       "added": "2026-03-24",
-      "status": "watching"
+      "status": "watching",
+      "priority": "watching"
     },
     {
       "ticker": "PLAB",
@@ -43,7 +58,8 @@
       "stop": null,
       "thesis": "Photomask leader, semiconductor capex cycle",
       "added": "2026-03-25",
-      "status": "watching"
+      "status": "watching",
+      "priority": "watching"
     },
     {
       "ticker": "SNDK",
@@ -52,7 +68,8 @@
       "stop": null,
       "thesis": "IPO lifecycle, 81% EPS beat, NAND cycle",
       "added": "2026-03-24",
-      "status": "watching"
+      "status": "watching",
+      "priority": "focus"
     },
     {
       "ticker": "MRVL",
@@ -62,7 +79,8 @@
       "thesis": "Technology | Q=107 | ATR 5.3%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "GEV",
@@ -72,7 +90,8 @@
       "thesis": "Industrials | Q=102 | VCP | ATR 4.7%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "VIK",
@@ -82,7 +101,8 @@
       "thesis": "Consumer Cyclical | Q=99 | VCP | ATR 4.4%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CIEN",
@@ -92,7 +112,8 @@
       "thesis": "Technology | Q=95 | VCP | ATR 7.3%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "VG",
@@ -102,7 +123,8 @@
       "thesis": "Energy | Q=94 | ATR 8.4%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AMD",
@@ -112,7 +134,8 @@
       "thesis": "Technology | Q=106 | VCP | ATR 4.8%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "focus"
     },
     {
       "ticker": "SQM",
@@ -122,7 +145,8 @@
       "thesis": "Basic Materials | Q=97 | VCP | ATR 4.5%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "UNIT",
@@ -132,7 +156,8 @@
       "thesis": "Real Estate | Q=96 | VCP | ATR 5.4%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "NVT",
@@ -142,7 +167,8 @@
       "thesis": "Industrials | Q=95 | VCP | ATR 5.0%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "VRT",
@@ -152,7 +178,8 @@
       "thesis": "Industrials | Q=95 | VCP | ATR 6.0%",
       "added": "2026-04-02",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "GLW",
@@ -162,7 +189,8 @@
       "thesis": "Technology | Q=92 | ATR 6.3%",
       "added": "2026-04-03",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "STX",
@@ -172,7 +200,8 @@
       "thesis": "Technology | Q=91 | VCP | ATR 6.8%",
       "added": "2026-04-03",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AAOI",
@@ -182,7 +211,8 @@
       "thesis": "Technology | Q=91 | ATR 12.8%",
       "added": "2026-04-03",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "LUNR",
@@ -192,7 +222,8 @@
       "thesis": "Industrials | Q=91 | ATR 10.0%",
       "added": "2026-04-03",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "DELL",
@@ -202,7 +233,8 @@
       "thesis": "Technology | Q=90 | VCP | ATR 4.8%",
       "added": "2026-04-03",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "LITE",
@@ -212,7 +244,8 @@
       "thesis": "Technology | Q=105 | VCP | ATR 9.4%",
       "added": "2026-04-06",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "MTSI",
@@ -222,7 +255,8 @@
       "thesis": "Technology | Q=94 | VCP | ATR 5.8%",
       "added": "2026-04-06",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AA",
@@ -232,7 +266,8 @@
       "thesis": "Basic Materials | Q=92 | VCP | ATR 5.4%",
       "added": "2026-04-06",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "KEYS",
@@ -242,7 +277,8 @@
       "thesis": "Technology | Q=91 | VCP | ATR 4.3%",
       "added": "2026-04-06",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CRWV",
@@ -252,7 +288,8 @@
       "thesis": null,
       "added": "2026-04-07",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "focus"
     },
     {
       "ticker": "ALHC",
@@ -262,7 +299,8 @@
       "thesis": "Healthcare | Q=103 | VCP | ATR 4.6%",
       "added": "2026-04-08",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CSTM",
@@ -272,7 +310,8 @@
       "thesis": "Basic Materials | Q=99 | VCP | ATR 5.5%",
       "added": "2026-04-08",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "ADI",
@@ -282,7 +321,8 @@
       "thesis": "Technology | Q=94 | VCP | ATR 3.0%",
       "added": "2026-04-08",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CLS",
@@ -292,7 +332,8 @@
       "thesis": "Technology | Q=89 | VCP | ATR 6.3%",
       "added": "2026-04-08",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CTRI",
@@ -302,7 +343,8 @@
       "thesis": "Utilities | Q=86 | VCP | ATR 4.2%",
       "added": "2026-04-08",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "ANET",
@@ -312,7 +354,8 @@
       "thesis": "Technology | Q=100 | VCP | ATR 4.6%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "TSM",
@@ -322,7 +365,8 @@
       "thesis": "Technology | Q=99 | VCP | ATR 3.7%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "INTC",
@@ -332,7 +376,8 @@
       "thesis": "Technology | Q=97 | ATR 5.2%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "RSI",
@@ -342,7 +387,8 @@
       "thesis": "Consumer Cyclical | Q=94 | VCP | ATR 4.1%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "HBM",
@@ -352,7 +398,8 @@
       "thesis": "Basic Materials | Q=94 | VCP | ATR 5.7%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "COHR",
@@ -362,7 +409,8 @@
       "thesis": "Technology | Q=99 | VCP | ATR 7.9%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AU",
@@ -372,7 +420,8 @@
       "thesis": "Basic Materials | Q=98 | VCP | ATR 5.5%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "BTSG",
@@ -382,7 +431,8 @@
       "thesis": "Healthcare | Q=94 | VCP | ATR 4.2%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "GMED",
@@ -392,7 +442,8 @@
       "thesis": "Healthcare | Q=94 | VCP | ATR 3.1%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "KGC",
@@ -402,7 +453,8 @@
       "thesis": "Basic Materials | Q=93 | VCP | ATR 4.9%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "MU",
@@ -412,7 +464,8 @@
       "thesis": "Technology | Q=92 | ATR 6.3%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "ERO",
@@ -422,7 +475,8 @@
       "thesis": "Basic Materials | Q=89 | VCP | ATR 5.3%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AMAT",
@@ -432,7 +486,8 @@
       "thesis": "Technology | Q=88 | VCP | ATR 4.3%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "SN",
@@ -442,7 +497,8 @@
       "thesis": "Consumer Cyclical | Q=86 | VCP | ATR 5.4%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "DAN",
@@ -452,7 +508,8 @@
       "thesis": "Consumer Cyclical | Q=84 | VCP | ATR 3.7%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "C",
@@ -462,7 +519,8 @@
       "thesis": "Financial | Q=84 | VCP | ATR 3.1%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "AEHR",
@@ -472,7 +530,8 @@
       "thesis": "Technology | Q=84 | ATR 8.5%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "LRCX",
@@ -482,7 +541,8 @@
       "thesis": "Technology | Q=83 | ATR 4.9%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "ARWR",
@@ -492,7 +552,8 @@
       "thesis": "Healthcare | Q=82 | VCP | ATR 4.8%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "NBIS",
@@ -502,7 +563,8 @@
       "thesis": "Technology | Q=82 | ATR 6.8%",
       "added": "2026-04-09",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "APH",
@@ -512,7 +574,8 @@
       "thesis": "Technology | Q=97 | VCP | ATR 4.2%",
       "added": "2026-04-10",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "KLAC",
@@ -522,7 +585,8 @@
       "thesis": "Technology | Q=88 | VCP | ATR 4.0%",
       "added": "2026-04-10",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "SSRM",
@@ -532,7 +596,8 @@
       "thesis": "Basic Materials | Q=86 | VCP | ATR 6.6%",
       "added": "2026-04-10",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "CGAU",
@@ -542,7 +607,8 @@
       "thesis": "Basic Materials | Q=86 | VCP | ATR 5.0%",
       "added": "2026-04-10",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     },
     {
       "ticker": "IVVD",
@@ -552,7 +618,8 @@
       "thesis": "Healthcare | Q=85 | ATR 8.5%",
       "added": "2026-04-10",
       "status": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "priority": "watching"
     }
   ],
   "tickers": [

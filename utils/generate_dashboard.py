@@ -487,9 +487,27 @@ def generate_dashboard(data, base_url):
 
     positions_html = _build_positions_html(data["positions"], data.get("peel_calib", {}))
     market_html = _build_market_html(data["market_latest"], data["market_history"])
-    watchlist_html = _build_watchlist_html(data["watchlist"])
     alerts_html = _build_alerts_html(data["alerts_state"])
     trading_html = _build_trading_state_html(data["trading_state"])
+
+    # Watchlist summary counts only — full list lives at watchlist.html
+    wl_items = data["watchlist"].get("watchlist", [])
+    wl_focus   = sum(1 for w in wl_items if w.get("priority") == "focus" and w.get("status") != "archived")
+    wl_watching = sum(1 for w in wl_items if w.get("priority") != "focus" and w.get("status") not in ("archived",))
+    wl_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
+    watchlist_link_html = f"""
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;gap:20px;">
+        <div><span style="font-size:1.4rem;font-weight:700;color:#92400e">{wl_focus}</span><br>
+          <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Focus</span></div>
+        <div><span style="font-size:1.4rem;font-weight:700;color:#111827">{wl_watching}</span><br>
+          <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Watching</span></div>
+      </div>
+      <a href="{wl_url}" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
+         border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
+        Open Watchlist →
+      </a>
+    </div>"""
 
     index_url = f"{base_url}/index.html" if base_url else "index.html"
 
@@ -682,7 +700,7 @@ def generate_dashboard(data, base_url):
 
 <div class="section">
   <div class="section-title">Watchlist</div>
-  {watchlist_html}
+  {watchlist_link_html}
 </div>
 
 <div class="section">

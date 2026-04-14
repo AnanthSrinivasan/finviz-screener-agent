@@ -271,11 +271,8 @@ def generate(watchlist: list[dict], quality: dict) -> str:
   <div class="section-header">
     <h2>👁 Watching</h2>
     <span class="section-count">{n_watching} ticker{"s" if n_watching != 1 else ""} — on radar, not yet actionable</span>
-    <button class="csv-btn" onclick="downloadCSV('tbl-watching', 'watchlist_{today}.csv')">
-      ⬇ Download CSV
-    </button>
-    <button class="csv-btn" onclick="downloadAllActive('{all_tickers_csv}', 'all_active_{today}.csv')" style="margin-left:0">
-      ⬇ All active (TradingView)
+    <button class="csv-btn" onclick="downloadAllActive('{all_tickers_csv}', 'watchlist_{today}.txt')">
+      ⬇ Export all for TradingView
     </button>
   </div>
   {watching_table}
