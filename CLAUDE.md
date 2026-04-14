@@ -168,11 +168,12 @@ data/
 | Trailing stop | At +30% gain, 10% trail from highest price seen |
 | Sizing suspension | 3 consecutive losses → paper trade only |
 
-## Quality Score (0-100)
+## Quality Score (0-100+)
 
 - Market Cap: 0-30 pts
 - Rel Volume: 0-25 pts
-- EPS Y/Y TTM: 0-20 pts
+- EPS: 0-20 pts — uses `max(EPS Y/Y TTM, EPS Q/Q)`. Q/Q rescues spin-offs and IPOs with distorted trailing EPS (e.g. SNDK: -328% TTM vs +618% Q/Q → full 20 pts). Slack shows `EPS Q/Q*` when quarterly overrides annual.
+- Inst Trans: 0-8 pts — institutional transaction change from Finviz. +8 (>10%), +5 (>3%), +2 (≥0%). Flags institutional accumulation. Shows as `Inst +X.X%` in Slack top-10.
 - Multi-screener: 0-15 pts (3+ screens = 15)
 - Stage 2: +25 (+10 perfect alignment), Stage 3: -25, Stage 4: -40
 - VCP: +15
