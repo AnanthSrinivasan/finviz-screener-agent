@@ -4,7 +4,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.39,
-    "updated": "2026-04-14"
+    "updated": "2026-04-15"
   },
   "AAOI": {
     "signal": 15.8,
@@ -14,9 +14,9 @@
     "p90": 19.6,
     "max_seen": 23.7,
     "runs": 8,
-    "atr_pct_avg": 8.62,
+    "atr_pct_avg": 8.63,
     "calibrated": true,
-    "updated": "2026-04-14"
+    "updated": "2026-04-15"
   },
   "CRCL": {
     "calibrated": false,
@@ -33,9 +33,9 @@
     "p90": 49.7,
     "max_seen": 79.8,
     "runs": 6,
-    "atr_pct_avg": 11.63,
+    "atr_pct_avg": 11.62,
     "calibrated": true,
-    "updated": "2026-04-14"
+    "updated": "2026-04-15"
   },
   "FIGS": {
     "signal": 10.0,
@@ -150,7 +150,7 @@
     "runs": 5,
     "atr_pct_avg": 4.52,
     "calibrated": true,
-    "updated": "2026-04-14"
+    "updated": "2026-04-15"
   },
   "SQM": {
     "signal": 10.0,
@@ -662,5 +662,17 @@
     "atr_pct_avg": 9.38,
     "calibrated": true,
     "updated": "2026-04-12"
+  },
+  "PL": {
+    "signal": 13.0,
+    "warn": 9.8,
+    "p50": 7.0,
+    "p75": 13.0,
+    "p90": 15.3,
+    "max_seen": 16.2,
+    "runs": 9,
+    "atr_pct_avg": 6.2,
+    "calibrated": true,
+    "updated": "2026-04-15"
   }
 }
