@@ -197,11 +197,10 @@ def _sizing_label(q_rank: int, appearances: int) -> str:
 
 def scan_focus_list(market_state: str):
     """
-    Scans the focus list for entry setups at 9am ET:
-    - 21 EMA PB: price within 5% above/below 21 EMA (pullback entry)
-    - 50 SMA PB: price within 5% above 50 SMA
-    - Breakout: price within 2% above 20-day high
-    Fires a Slack alert with setup type, sizing, and entry level.
+    Scans the focus list every morning at 9am ET.
+    Always sends a Slack summary of ALL focus tickers with:
+    - Setup type + sizing suggestion if near entry (21 EMA PB / 50 SMA PB / Breakout)
+    - Distance from key levels if not at entry yet
     """
     log.info("=== Focus list entry scan starting ===")
     watchlist_path = os.path.join(DATA_DIR, "watchlist.json")
@@ -223,7 +222,9 @@ def scan_focus_list(market_state: str):
     open_tickers = load_open_position_tickers()
     log.info("Scanning %d focus tickers: %s", len(focus_tickers), focus_tickers)
 
-    setups = []
+    at_setup = []   # ready to enter
+    watching = []   # tracked but not at entry yet
+
     for ticker in focus_tickers:
         if ticker in open_tickers:
             log.debug("Skipping %s — already in open position", ticker)
@@ -234,83 +235,89 @@ def scan_focus_list(market_state: str):
             log.debug("Not enough bars for %s", ticker)
             continue
 
-        # Compute 21 EMA and 50 SMA on close prices
         closes = bars["c"]
         ema21 = closes.ewm(span=21, adjust=False).mean().iloc[-1]
         sma50 = closes.rolling(window=min(50, len(closes))).mean().iloc[-1]
-
-        # 20-day high (excluding today's bar — use yesterday's close as reference)
         high20 = bars["h"].iloc[-21:-1].max() if len(bars) >= 21 else bars["h"].max()
 
-        # Current pre-market price
         pct_change, price = get_premarket_change(ticker)
         if not price:
-            price = closes.iloc[-1]  # fall back to last close
+            price = closes.iloc[-1]
 
-        # Detect setup
-        setup_type = None
-        entry_note = ""
-
-        pct_from_ema21 = (price - ema21) / ema21 * 100
-        pct_from_sma50 = (price - sma50) / sma50 * 100
+        pct_from_ema21  = (price - ema21)  / ema21  * 100
+        pct_from_sma50  = (price - sma50)  / sma50  * 100
         pct_from_high20 = (price - high20) / high20 * 100
-
-        if -5 <= pct_from_ema21 <= 5:
-            setup_type = "21 EMA PB"
-            entry_note = f"Price ${price:.2f} near 21 EMA ${ema21:.2f} ({pct_from_ema21:+.1f}%) — classic PB entry"
-        elif 0 <= pct_from_sma50 <= 5:
-            setup_type = "50 SMA PB"
-            entry_note = f"Price ${price:.2f} near 50 SMA ${sma50:.2f} ({pct_from_sma50:+.1f}%) — PB to 50 SMA"
-        elif 0 <= pct_from_high20 <= 2:
-            setup_type = "Breakout"
-            entry_note = f"Price ${price:.2f} within {pct_from_high20:.1f}% of 20d high ${high20:.2f} — watch for breakout volume"
-
-        if not setup_type:
-            log.info("%s: no setup today (EMA21 gap %+.1f%%, SMA50 gap %+.1f%%)", ticker, pct_from_ema21, pct_from_sma50)
-            continue
+        premarket_str   = f" (pre-mkt {pct_change:+.1f}%)" if abs(pct_change) >= 1 else ""
 
         q_rank, appearances = _load_conviction(ticker)
         sizing = _sizing_label(q_rank, appearances)
-        premarket_str = f" (pre-mkt {pct_change:+.1f}%)" if abs(pct_change) >= 1 else ""
 
-        setups.append({
-            "ticker":     ticker,
-            "setup_type": setup_type,
-            "entry_note": entry_note,
-            "sizing":     sizing,
-            "q_rank":     q_rank,
-            "price":      price,
-            "ema21":      round(ema21, 2),
-            "sma50":      round(sma50, 2),
-            "premarket":  premarket_str,
-        })
-        log.info("%s: %s — %s | sizing %s", ticker, setup_type, entry_note, sizing)
+        setup_type = None
+        if -5 <= pct_from_ema21 <= 5:
+            setup_type = "21 EMA PB"
+            entry_note = f"${price:.2f} near 21 EMA ${ema21:.2f} ({pct_from_ema21:+.1f}%)"
+        elif 0 <= pct_from_sma50 <= 5:
+            setup_type = "50 SMA PB"
+            entry_note = f"${price:.2f} near 50 SMA ${sma50:.2f} ({pct_from_sma50:+.1f}%)"
+        elif 0 <= pct_from_high20 <= 2:
+            setup_type = "Breakout"
+            entry_note = f"${price:.2f} within {pct_from_high20:.1f}% of 20d high ${high20:.2f}"
 
-    if not setups:
-        log.info("Focus scan: no entry setups today.")
+        if setup_type:
+            at_setup.append({
+                "ticker": ticker, "setup_type": setup_type, "entry_note": entry_note,
+                "sizing": sizing, "q_rank": q_rank, "premarket": premarket_str,
+            })
+            log.info("%s: AT SETUP %s — %s | sizing %s", ticker, setup_type, entry_note, sizing)
+        else:
+            watching.append({
+                "ticker": ticker, "price": round(price, 2),
+                "ema21": round(ema21, 2), "sma50": round(sma50, 2),
+                "pct_from_ema21": round(pct_from_ema21, 1),
+                "pct_from_sma50": round(pct_from_sma50, 1),
+                "sizing": sizing, "q_rank": q_rank, "premarket": premarket_str,
+            })
+            log.info("%s: watching — EMA21 %+.1f%%, SMA50 %+.1f%%", ticker, pct_from_ema21, pct_from_sma50)
+
+    if not at_setup and not watching:
+        log.info("Focus scan: no tickers to report.")
         return
 
     today_str = datetime.date.today().isoformat()
-    lines = [f":dart: *FOCUS LIST SETUPS — {today_str}*\n"]
-    for s in setups:
-        setup_emoji = ":arrow_down_small:" if "PB" in s["setup_type"] else ":rocket:"
-        sizing_emoji = ":large_green_circle:" if "AGGRESSIVE" in s["sizing"] else (":large_yellow_circle:" if "NORMAL" in s["sizing"] else ":white_circle:")
-        lines.append(
-            f"{setup_emoji} *{s['ticker']}* — {s['setup_type']}{s['premarket']}\n"
-            f"  {s['entry_note']}\n"
-            f"  {sizing_emoji} Sizing: *{s['sizing']}*  |  Q: {s['q_rank']}\n"
-            f"  :chart_with_upwards_trend: https://finviz.com/quote.ashx?t={s['ticker']}"
-        )
+    lines = [f":dart: *FOCUS LIST — {today_str}* ({market_state})\n"]
+
+    if at_setup:
+        lines.append("*:fire: AT ENTRY:*")
+        for s in at_setup:
+            setup_emoji = ":arrow_down_small:" if "PB" in s["setup_type"] else ":rocket:"
+            sizing_emoji = ":large_green_circle:" if "AGGRESSIVE" in s["sizing"] else (":large_yellow_circle:" if "NORMAL" in s["sizing"] else ":white_circle:")
+            lines.append(
+                f"{setup_emoji} *{s['ticker']}* — {s['setup_type']}{s['premarket']}\n"
+                f"  {s['entry_note']}\n"
+                f"  {sizing_emoji} Size: *{s['sizing']}*  Q:{s['q_rank']}"
+            )
+        lines.append("")
+
+    if watching:
+        lines.append("*:eyes: WATCHING:*")
+        for s in watching:
+            sizing_emoji = ":large_green_circle:" if "AGGRESSIVE" in s["sizing"] else (":large_yellow_circle:" if "NORMAL" in s["sizing"] else ":white_circle:")
+            lines.append(
+                f":white_small_square: *{s['ticker']}* ${s['price']}{s['premarket']}  "
+                f"21EMA {s['pct_from_ema21']:+.1f}% (${s['ema21']})  "
+                f"50SMA {s['pct_from_sma50']:+.1f}% (${s['sma50']})\n"
+                f"  {sizing_emoji} Size when ready: *{s['sizing']}*  Q:{s['q_rank']}"
+            )
 
     payload = {"blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(lines)}}]}
 
     if not SLACK_WEBHOOK:
-        log.warning("SLACK_WEBHOOK_URL not set — focus setups: %s", [s["ticker"] for s in setups])
+        log.warning("SLACK_WEBHOOK_URL not set — focus tickers: %s", focus_tickers)
         return
     try:
         resp = requests.post(SLACK_WEBHOOK, json=payload, timeout=10)
         resp.raise_for_status()
-        log.info("Focus list alert sent: %s", [s["ticker"] for s in setups])
+        log.info("Focus list alert sent: %d at-setup, %d watching", len(at_setup), len(watching))
     except Exception as e:
         log.error("Focus list Slack send failed: %s", e)
 
