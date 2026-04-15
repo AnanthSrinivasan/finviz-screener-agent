@@ -14,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 39.52,
-      "current_gain_pct": 2.53
+      "current_gain_pct": 9.23
     },
     {
       "ticker": "AAOI",
@@ -30,14 +30,14 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 154.1,
-      "current_gain_pct": 21.65
+      "current_gain_pct": 24.66
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 238.18,
+      "stop": 238.9,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,8 +45,8 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 257.12,
-      "current_gain_pct": 3.19
+      "highest_price_seen": 258.12,
+      "current_gain_pct": 4.9
     },
     {
       "ticker": "CORZ",
@@ -62,7 +62,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 19.18,
-      "current_gain_pct": -4.2
+      "current_gain_pct": -1.14
     },
     {
       "ticker": "PL",
@@ -78,7 +78,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 35.02,
-      "current_gain_pct": -4.56
+      "current_gain_pct": -0.72
     }
   ],
   "closed_positions": []
