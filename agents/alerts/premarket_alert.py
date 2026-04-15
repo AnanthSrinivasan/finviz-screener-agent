@@ -142,10 +142,12 @@ def _fetch_daily_bars(ticker: str, limit: int = 60) -> pd.DataFrame:
     if not ALPACA_API_KEY:
         return pd.DataFrame()
     try:
+        import datetime as _dt
+        start = (_dt.date.today() - _dt.timedelta(days=limit * 2)).isoformat()
         resp = requests.get(
             f"{ALPACA_DATA_URL}/v2/stocks/{ticker}/bars",
             headers={"APCA-API-KEY-ID": ALPACA_API_KEY, "APCA-API-SECRET-KEY": ALPACA_SECRET_KEY},
-            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            params={"timeframe": "1Day", "limit": limit, "start": start, "adjustment": "raw"},
             timeout=10,
         )
         if not resp.ok:
