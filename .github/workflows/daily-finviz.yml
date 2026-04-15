@@ -16,6 +16,7 @@ jobs:
       ATR_THRESHOLD: "3.0"
       SNAPSHOT_WORKERS: "6"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      PYTHONPATH: .
 
     steps:
       - name: Check out repository
