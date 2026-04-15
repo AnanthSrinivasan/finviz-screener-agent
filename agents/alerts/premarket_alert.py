@@ -414,6 +414,12 @@ def run_premarket_alert():
                 _candidates = _df  # fallback: every result is held
             # Exclude tickers flagged out by 10% gate
             _candidates = _candidates[_candidates.get("_10pct_excluded", False) != True]
+            # Exclude overextended tickers (ATR multiple from 50MA > 5x = bad entry)
+            if "SMA50%" in _candidates.columns and "ATR%" in _candidates.columns:
+                _atr_mult = _candidates["SMA50%"].astype(float) / _candidates["ATR%"].astype(float).replace(0, float("nan"))
+                _not_extended = _candidates[_atr_mult <= 5.0]
+                if not _not_extended.empty:
+                    _candidates = _not_extended
             if not _candidates.empty:
                 _best = _candidates.nlargest(1, "Quality Score").iloc[0]
                 _ticker   = str(_best["Ticker"])
