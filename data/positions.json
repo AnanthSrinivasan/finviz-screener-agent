@@ -5,7 +5,7 @@
       "shares": 200,
       "entry_price": 34.44,
       "entry_date": "2026-04-06",
-      "stop": 33.1,
+      "stop": 33.62,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 41.33,
@@ -13,8 +13,8 @@
       "target2": 48.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 39.52,
-      "current_gain_pct": 9.23
+      "highest_price_seen": 40.44,
+      "current_gain_pct": 17.42
     },
     {
       "ticker": "AAOI",
@@ -30,14 +30,14 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 154.1,
-      "current_gain_pct": 24.66
+      "current_gain_pct": 30.76
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 238.9,
+      "stop": 253.05,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,8 +45,8 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 258.12,
-      "current_gain_pct": 4.9
+      "highest_price_seen": 273.03,
+      "current_gain_pct": 10.96
     },
     {
       "ticker": "CORZ",
@@ -62,14 +62,14 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 19.18,
-      "current_gain_pct": -1.14
+      "current_gain_pct": -3.01
     },
     {
       "ticker": "PL",
       "shares": 100,
       "entry_price": 34.66,
       "entry_date": "2026-04-15",
-      "stop": 28.56,
+      "stop": 31.89,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 41.59,
@@ -77,8 +77,8 @@
       "target2": 48.52,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 35.02,
-      "current_gain_pct": -0.72
+      "highest_price_seen": 38.59,
+      "current_gain_pct": 11.34
     }
   ],
   "closed_positions": []
