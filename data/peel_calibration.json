@@ -3,8 +3,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 2,
-    "atr_pct_avg": 9.39,
-    "updated": "2026-04-15"
+    "atr_pct_avg": 9.38,
+    "updated": "2026-04-16"
   },
   "AAOI": {
     "signal": 15.8,
@@ -16,7 +16,7 @@
     "runs": 8,
     "atr_pct_avg": 8.63,
     "calibrated": true,
-    "updated": "2026-04-15"
+    "updated": "2026-04-16"
   },
   "CRCL": {
     "calibrated": false,
@@ -33,9 +33,9 @@
     "p90": 49.7,
     "max_seen": 79.8,
     "runs": 6,
-    "atr_pct_avg": 11.62,
+    "atr_pct_avg": 11.61,
     "calibrated": true,
-    "updated": "2026-04-15"
+    "updated": "2026-04-16"
   },
   "FIGS": {
     "signal": 10.0,
@@ -143,14 +143,14 @@
   "AMD": {
     "signal": 10.0,
     "warn": 7.5,
-    "p50": 8.5,
-    "p75": 9.8,
+    "p50": 8.6,
+    "p75": 9.5,
     "p90": 9.9,
     "max_seen": 10.0,
-    "runs": 5,
+    "runs": 6,
     "atr_pct_avg": 4.52,
     "calibrated": true,
-    "updated": "2026-04-15"
+    "updated": "2026-04-16"
   },
   "SQM": {
     "signal": 10.0,
@@ -673,6 +673,6 @@
     "runs": 9,
     "atr_pct_avg": 6.2,
     "calibrated": true,
-    "updated": "2026-04-15"
+    "updated": "2026-04-16"
   }
 }

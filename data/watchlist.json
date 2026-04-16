@@ -192,7 +192,8 @@
       "added": "2026-04-03",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-16"
     },
     {
       "ticker": "STX",
@@ -369,7 +370,8 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-16"
     },
     {
       "ticker": "INTC",
@@ -1173,6 +1175,62 @@
       "stop": null,
       "thesis": "Financial | Q=93 | VCP | ATR 3.3%",
       "added": "2026-04-15",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "CAR",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=109 | ATR 8.5%",
+      "added": "2026-04-16",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-16"
+    },
+    {
+      "ticker": "CMPX",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=103 | VCP | ATR 6.0%",
+      "added": "2026-04-16",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "ALB",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=95 | ATR 4.9%",
+      "added": "2026-04-16",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "VSH",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=95 | ATR 4.3%",
+      "added": "2026-04-16",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "NN",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=94 | ATR 6.7%",
+      "added": "2026-04-16",
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
