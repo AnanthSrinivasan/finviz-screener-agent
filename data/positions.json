@@ -13,15 +13,15 @@
       "target2": 48.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 43.74,
-      "current_gain_pct": 27.0
+      "highest_price_seen": 44.17,
+      "current_gain_pct": 28.25
     },
     {
       "ticker": "AAOI",
       "shares": 75,
       "entry_price": 114.35,
       "entry_date": "2026-04-08",
-      "stop": 138.69,
+      "stop": 141.59,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": true,
       "target1": 137.22,
@@ -29,15 +29,15 @@
       "target2": 160.09,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 154.1,
-      "current_gain_pct": 32.86
+      "highest_price_seen": 157.32,
+      "current_gain_pct": 37.58
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 256.67,
+      "stop": 257.38,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,31 +45,31 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 277.55,
-      "current_gain_pct": 11.19
+      "highest_price_seen": 278.26,
+      "current_gain_pct": 13.09
     },
     {
       "ticker": "CORZ",
       "shares": 300,
       "entry_price": 19.3,
       "entry_date": "2026-04-14",
-      "stop": 16.76,
-      "stop_type": "auto_50ma",
+      "stop": 17.22,
+      "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 23.16,
       "target1_hit": false,
       "target2": 27.02,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 19.19,
-      "current_gain_pct": -0.57
+      "highest_price_seen": 19.44,
+      "current_gain_pct": 0.73
     },
     {
       "ticker": "PL",
       "shares": 100,
       "entry_price": 34.66,
       "entry_date": "2026-04-15",
-      "stop": 32.58,
+      "stop": 33.03,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 41.59,
@@ -77,8 +77,8 @@
       "target2": 48.52,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 39.36,
-      "current_gain_pct": 13.56
+      "highest_price_seen": 39.89,
+      "current_gain_pct": 15.09
     }
   ],
   "closed_positions": []
