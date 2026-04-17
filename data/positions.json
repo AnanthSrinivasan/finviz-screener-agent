@@ -5,7 +5,7 @@
       "shares": 200,
       "entry_price": 34.44,
       "entry_date": "2026-04-06",
-      "stop": 35.29,
+      "stop": 40.84,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": true,
       "target1": 41.33,
@@ -13,8 +13,8 @@
       "target2": 48.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 44.17,
-      "current_gain_pct": 28.25
+      "highest_price_seen": 45.38,
+      "current_gain_pct": 31.77
     },
     {
       "ticker": "AAOI",
@@ -30,14 +30,14 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 157.32,
-      "current_gain_pct": 37.58
+      "current_gain_pct": 37.47
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 257.38,
+      "stop": 258.29,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,15 +45,15 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 278.26,
-      "current_gain_pct": 13.09
+      "highest_price_seen": 278.67,
+      "current_gain_pct": 13.25
     },
     {
       "ticker": "CORZ",
       "shares": 300,
       "entry_price": 19.3,
       "entry_date": "2026-04-14",
-      "stop": 17.22,
+      "stop": 17.73,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 23.16,
@@ -61,8 +61,8 @@
       "target2": 27.02,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 19.44,
-      "current_gain_pct": 0.73
+      "highest_price_seen": 19.87,
+      "current_gain_pct": 2.95
     },
     {
       "ticker": "PL",
@@ -78,7 +78,23 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 39.89,
-      "current_gain_pct": 15.09
+      "current_gain_pct": 12.95
+    },
+    {
+      "ticker": "GLW",
+      "shares": 30,
+      "entry_price": 167.1,
+      "entry_date": "2026-04-17",
+      "stop": 149.36,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": false,
+      "target1": 200.52,
+      "target1_hit": false,
+      "target2": 233.94,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 167.18,
+      "current_gain_pct": 0.05
     }
   ],
   "closed_positions": []
