@@ -4,7 +4,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.37,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18"
   },
   "AAOI": {
     "signal": 15.8,
@@ -16,7 +16,7 @@
     "runs": 8,
     "atr_pct_avg": 8.63,
     "calibrated": true,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18"
   },
   "CRCL": {
     "calibrated": false,
@@ -26,16 +26,18 @@
     "updated": "2026-04-12"
   },
   "CORZ": {
-    "signal": 17.5,
-    "warn": 13.2,
+    "signal": 13.3,
+    "warn": 10.0,
     "p50": 9.4,
-    "p75": 17.5,
-    "p90": 49.7,
-    "max_seen": 79.8,
-    "runs": 6,
-    "atr_pct_avg": 11.61,
+    "p75": 13.3,
+    "p90": 17.1,
+    "max_seen": 19.6,
+    "runs": 4,
+    "atr_pct_avg": 7.5,
     "calibrated": true,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18",
+    "gap_trimmed": true,
+    "bars_start": "2024-01-24"
   },
   "FIGS": {
     "signal": 10.0,
@@ -150,7 +152,7 @@
     "runs": 6,
     "atr_pct_avg": 4.52,
     "calibrated": true,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18"
   },
   "SQM": {
     "signal": 10.0,
@@ -210,7 +212,7 @@
     "runs": 7,
     "atr_pct_avg": 2.53,
     "calibrated": true,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18"
   },
   "STX": {
     "signal": 10.0,
@@ -673,6 +675,6 @@
     "runs": 9,
     "atr_pct_avg": 6.2,
     "calibrated": true,
-    "updated": "2026-04-17"
+    "updated": "2026-04-18"
   }
 }

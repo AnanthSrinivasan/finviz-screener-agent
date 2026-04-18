@@ -210,10 +210,12 @@
       "stop": null,
       "thesis": "Technology | Q=92 | ATR 6.3%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "focus",
-      "focus_promoted_date": "2026-04-16"
+      "focus_promoted_date": "2026-04-16",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-18"
     },
     {
       "ticker": "STX",
@@ -222,9 +224,11 @@
       "stop": null,
       "thesis": "Technology | Q=91 | VCP | ATR 6.8%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-18"
     },
     {
       "ticker": "AAOI",
@@ -233,9 +237,11 @@
       "stop": null,
       "thesis": "Technology | Q=91 | ATR 12.8%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-18"
     },
     {
       "ticker": "LUNR",
@@ -244,9 +250,11 @@
       "stop": null,
       "thesis": "Industrials | Q=91 | ATR 10.0%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-18"
     },
     {
       "ticker": "DELL",
@@ -255,9 +263,11 @@
       "stop": null,
       "thesis": "Technology | Q=90 | VCP | ATR 4.8%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-18"
     },
     {
       "ticker": "LITE",
@@ -1074,8 +1084,9 @@
       "thesis": "Basic Materials | Q=99 | VCP | ATR 4.1%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-18"
     },
     {
       "ticker": "FTAI",
@@ -1107,8 +1118,9 @@
       "thesis": "Basic Materials | Q=101 | VCP | ATR 5.1%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-18"
     },
     {
       "ticker": "ROLR",
@@ -1299,8 +1311,9 @@
       "thesis": "Technology | Q=104 | VCP | ATR 3.6%",
       "added": "2026-04-17",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-18"
     },
     {
       "ticker": "OII",
@@ -1309,6 +1322,61 @@
       "stop": null,
       "thesis": "Energy | Q=104 | VCP | ATR 4.6%",
       "added": "2026-04-17",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "CRML",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=103 | ATR 9.2%",
+      "added": "2026-04-18",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "MRVL",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=102 | ATR 4.4%",
+      "added": "2026-04-18",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "GLW",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=102 | VCP | ATR 5.5%",
+      "added": "2026-04-18",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "SQM",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=101 | VCP | ATR 4.9%",
+      "added": "2026-04-18",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "AVGO",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=98 | VCP | ATR 3.0%",
+      "added": "2026-04-18",
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
