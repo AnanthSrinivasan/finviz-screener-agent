@@ -319,6 +319,19 @@ class TestClassifyTicker(unittest.TestCase):
                         **{"Rel Volume": 5.0, "ATR%": 8.0})
         self.assertEqual(_classify_ticker(row), "ipo")
 
+    def test_power_move_with_9m_volume_classifies_as_power_move(self):
+        """Power Move tag + 9M+ volume → power_move section."""
+        row = _make_row(Screeners="Power Move", Stage={"stage": 2},
+                        Volume="12.5M")
+        self.assertEqual(_classify_ticker(row), "power_move")
+
+    def test_power_move_below_9m_volume_falls_through(self):
+        """Power Move tag with sub-9M volume should NOT appear in power_move section.
+        Falls through to stage2 (default Stage in _make_row)."""
+        row = _make_row(Screeners="Power Move", Stage={"stage": 2},
+                        Volume="850K")
+        self.assertEqual(_classify_ticker(row), "stage2")
+
 
 # ============================================================
 # Part 5: Weekly — Quality Modifier

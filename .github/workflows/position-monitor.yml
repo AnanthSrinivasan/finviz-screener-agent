@@ -79,14 +79,14 @@ jobs:
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
           DATA_DIR: data
-        run: python utils/generate_dashboard.py
+        run: python utils/generators/generate_dashboard.py
 
       - name: Regenerate watchlist page
         if: success()
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
           DATA_DIR: data
-        run: python utils/generate_watchlist.py
+        run: python utils/generators/generate_watchlist.py
 
       - name: Commit state changes
         if: success()

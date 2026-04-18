@@ -122,6 +122,33 @@ def fetch_bars(ticker, api_key, api_secret):
     return bars
 
 
+def trim_bars_after_gap(bars, gap_days=60):
+    """Return only bars after the most recent gap > gap_days.
+
+    Handles tickers that were delisted and re-listed (e.g. post-bankruptcy).
+    When a gap exists, SMA50 built from pre-gap prices contaminates the
+    ATR% Multiple calculation, producing unrealistically high multiples.
+    If no gap found, returns bars unchanged.
+    """
+    from datetime import datetime, timedelta
+
+    if len(bars) < 2:
+        return bars
+
+    gap_threshold = timedelta(days=gap_days)
+    last_gap_idx = None
+
+    for i in range(1, len(bars)):
+        t_prev = datetime.fromisoformat(bars[i - 1]["t"][:10])
+        t_curr = datetime.fromisoformat(bars[i]["t"][:10])
+        if (t_curr - t_prev) > gap_threshold:
+            last_gap_idx = i
+
+    if last_gap_idx is not None:
+        return bars[last_gap_idx:]
+    return bars
+
+
 # ---------------------------------------------------------------------------
 # Indicator computation
 # ---------------------------------------------------------------------------
@@ -274,7 +301,9 @@ def percentile(sorted_vals, pct):
 
 def calibrate_ticker(ticker, api_key, api_secret):
     """Fetch bars, compute multiples, detect runs, return calibration dict."""
-    bars = fetch_bars(ticker, api_key, api_secret)
+    raw_bars = fetch_bars(ticker, api_key, api_secret)
+    bars = trim_bars_after_gap(raw_bars)
+    gap_trimmed = len(bars) < len(raw_bars)
 
     if len(bars) < 64:
         return {
@@ -315,7 +344,7 @@ def calibrate_ticker(ticker, api_key, api_secret):
     signal = max(p75, SIGNAL_FLOOR)
     warn = max(p75 * 0.75, WARN_FLOOR)
 
-    return {
+    result = {
         "signal": round(signal, 1),
         "warn": round(warn, 1),
         "p50": round(p50, 1),
@@ -327,6 +356,10 @@ def calibrate_ticker(ticker, api_key, api_secret):
         "calibrated": True,
         "updated": TODAY,
     }
+    if gap_trimmed:
+        result["gap_trimmed"] = True
+        result["bars_start"] = bars[0]["t"][:10]
+    return result
 
 
 # ---------------------------------------------------------------------------

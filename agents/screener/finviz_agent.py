@@ -1,6 +1,7 @@
 # ----------------------------
 # Imports & Setup
 # ----------------------------
+import re
 import requests
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -603,6 +604,22 @@ def compute_sector_rotation(df: pd.DataFrame) -> list:
 # Part 3: Chart Gallery
 # ----------------------------
 
+def _parse_vol(raw) -> float:
+    """Parse Finviz volume strings like '12.5M', '950K', '1.2B' to float."""
+    if not raw or raw in ('-', ''):
+        return 0.0
+    raw = str(raw).replace(',', '').strip()
+    m = re.match(r'^([\d.]+)([KMBkmb]?)', raw)
+    if not m:
+        return 0.0
+    val = float(m.group(1))
+    s = m.group(2).upper()
+    if s == 'K': val *= 1_000
+    elif s == 'M': val *= 1_000_000
+    elif s == 'B': val *= 1_000_000_000
+    return val
+
+
 def _classify_ticker(row) -> str:
     screeners  = str(row.get('Screeners', '') or '')
     stage_data = row.get('Stage', {}) or {}
@@ -612,8 +629,9 @@ def _classify_ticker(row) -> str:
     dist_high  = float(row.get('Dist From High%', 0) or 0)
     sma20      = float(row.get('SMA20%', 0) or 0)
 
-    # Power Move — 9M+ volume + 5%+ daily change (Bonde method). Time-sensitive signal.
-    if 'Power Move' in screeners:
+    # Power Move — must meet 9M+ actual volume gate (Finviz sh_vol_o* param is unreliable).
+    # Stocks tagged 'Power Move' but below 9M volume fall through to normal classification.
+    if 'Power Move' in screeners and _parse_vol(row.get('Volume', 0)) >= 9_000_000:
         return 'power_move'
     # IPO lifecycle: in IPO screener OR showing IPO washout-recovery pattern
     # (deeply below 52w high but strongly above 20-day MA)
@@ -1065,21 +1083,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
 
     # Power move tickers — post-filter to actual 9M+ share volume
     # (Finviz sh_vol_o* URL param is silently ignored, so we enforce it ourselves)
-    def _parse_vol(raw) -> float:
-        import re as _re
-        if not raw or raw in ('-', ''):
-            return 0.0
-        raw = str(raw).replace(',', '').strip()
-        m = _re.match(r'^([\d.]+)([KMBkmb]?)', raw)
-        if not m:
-            return 0.0
-        val = float(m.group(1))
-        s = m.group(2).upper()
-        if s == 'K': val *= 1_000
-        elif s == 'M': val *= 1_000_000
-        elif s == 'B': val *= 1_000_000_000
-        return val
-
+    # _parse_vol is defined at module level — shared with _classify_ticker
     power_moves = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
     if not power_moves.empty and 'Volume' in power_moves.columns:
         before = len(power_moves)
