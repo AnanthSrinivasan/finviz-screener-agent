@@ -653,7 +653,27 @@ def send_thrust_alert(record: dict):
         log.error("THRUST alert failed: %s", e)
 
 
-def send_state_change_alert(record: dict, prev_state: str | None):
+def _build_cycle_chain(history: list) -> str:
+    """Build a deduplicated state progression string from history.
+    e.g. RED › THRUST › GREEN › *THRUST*  (current state bolded)
+    """
+    # Deduplicate consecutive identical states
+    chain = []
+    for entry in history:
+        s = entry.get("market_state", "")
+        if not s:
+            continue
+        if not chain or chain[-1] != s:
+            chain.append(s)
+    # Keep last 5 distinct states for readability
+    chain = chain[-5:]
+    if not chain:
+        return ""
+    parts = [f"*{s}*" if i == len(chain) - 1 else s for i, s in enumerate(chain)]
+    return "Cycle: " + " › ".join(parts)
+
+
+def send_state_change_alert(record: dict, prev_state: str | None, history: list | None = None):
     """Send state change alert to #market-alerts."""
     if not SLACK_WEBHOOK_ALERTS:
         log.info("SLACK_WEBHOOK_MARKET_ALERTS not set — skipping state change alert.")
@@ -717,11 +737,14 @@ def send_state_change_alert(record: dict, prev_state: str | None):
     dec = record.get("dec_total")
     ad_str = f"{adv:,} / {dec:,}" if adv is not None and dec is not None else "n/a"
 
+    cycle_line = _build_cycle_chain(history) if history else ""
+
     text = (
         f"{emoji} *MARKET MONITOR — STATE CHANGE*\n"
         f"{record['date']}\n\n"
-        f"Previous: {prev_str} → Now: *{state}*\n\n"
-        f"Stocks up 4%+ today: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
+        f"Previous: {prev_str} → Now: *{state}*\n"
+        + (f"{cycle_line}\n" if cycle_line else "")
+        + f"\nStocks up 4%+ today: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
         f"Adv / Dec (all movers): {ad_str}\n"
         f"5-day ratio: {record['ratio_5day']}\n"
         f"10-day ratio: {record['ratio_10day']}\n"
@@ -904,7 +927,7 @@ def run_market_monitor(date: datetime.date | None = None):
         send_thrust_alert(record)
 
     if state_changed:
-        send_state_change_alert(record, prev_state)
+        send_state_change_alert(record, prev_state, history)
         # Send confirmation alert when moving to GREEN from THRUST, CAUTION, or COOLING
         if state == "GREEN" and prev_state in ("THRUST", "CAUTION", "COOLING"):
             send_confirmation_alert(record)
