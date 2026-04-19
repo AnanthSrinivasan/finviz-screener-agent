@@ -632,6 +632,19 @@ def _color(val_str: str) -> str:
     except Exception:
         return ""
 
+
+def _heat(val_str: str) -> str:
+    """Intensity-binned heat-map class for macro cells. Strong >=2%, mild <2%."""
+    try:
+        v = float(val_str.replace("%", "").strip())
+    except Exception:
+        return "heat-zero"
+    if v >= 2:   return "heat-pos-strong"
+    if v > 0:    return "heat-pos"
+    if v == 0:   return "heat-zero"
+    if v > -2:   return "heat-neg"
+    return "heat-neg-strong"
+
 def _arrow(val_str: str) -> str:
     try:
         return "▲" if float(val_str.replace("%", "").strip()) > 0 else "▼"
@@ -799,9 +812,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
     # --- MACRO TABLE ---
     macro_rows = ""
     for symbol, m in macro_data.items():
-        wk_cls = _color(m["perf_week"])
-        mo_cls = _color(m["perf_month"])
-        dy_cls = _color(m["change"])
+        dy_cls = _heat(m["change"])
+        wk_cls = _heat(m["perf_week"])
+        mo_cls = _heat(m["perf_month"])
         wk_arr = _arrow(m["perf_week"])
         mo_arr = _arrow(m["perf_month"])
         macro_rows += (
@@ -809,9 +822,9 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<td class='bold'>{symbol}</td>"
             f"<td class='mname'>{m['name']}</td>"
             f"<td class='mono'>{m['price']}</td>"
-            f"<td class='mono {dy_cls}'>{m['change']}</td>"
-            f"<td class='mono {wk_cls}'>{wk_arr} {m['perf_week']}</td>"
-            f"<td class='mono {mo_cls}'>{mo_arr} {m['perf_month']}</td>"
+            f"<td class='mono heat {dy_cls}'>{m['change']}</td>"
+            f"<td class='mono heat {wk_cls}'>{wk_arr} {m['perf_week']}</td>"
+            f"<td class='mono heat {mo_cls}'>{mo_arr} {m['perf_month']}</td>"
             "</tr>"
         )
 
@@ -971,6 +984,10 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         "⚡ EP = episodic pivot · 🚀 IPO = lifecycle play · x3 = 3+ screeners same day · ↑hi = 52w high · ⚡CC = character change (confirmed) · ⚡W = CC watch · 🔄 = char change (heuristic). "
         "Signal score = base + bonuses. Base score shown in grey."
         "</p>"
+        "<div class='lb-actions'>"
+        "<button type='button' class='lb-dl' onclick='downloadLeaderboard(\"csv\")'>⬇ CSV</button>"
+        "<button type='button' class='lb-dl' onclick='downloadLeaderboard(\"tv\")'>⬇ TradingView list</button>"
+        "</div>"
         "<table class='lb-table' id='lb-table'><thead><tr>"
         "<th data-col='0'>#</th>"
         "<th>Ticker</th><th>Company</th><th>Sector</th>"
@@ -995,6 +1012,11 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
 .subtitle { color: #6b7280; font-size: 0.82rem; margin-bottom: 28px; }
 .lb-note  { font-size: 0.73rem; color: #6b7280; margin-bottom: 10px; line-height: 1.5; }
+.lb-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.lb-dl { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px;
+         padding: 6px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+         font-family: inherit; transition: background .15s; }
+.lb-dl:hover { background: #dbeafe; }
 .pos  { color: #16a34a; }
 .neg  { color: #dc2626; }
 .mono { font-variant-numeric: tabular-nums; }
@@ -1035,6 +1057,13 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .macro-table td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; color: #111827; }
 .macro-table tr:hover td { background: #f9fafb; }
 .mname { color: #6b7280; font-size: 0.75rem; }
+/* Macro heat-map cells */
+.macro-table td.heat { border-radius: 4px; font-weight: 600; }
+.heat-pos-strong { background: #bbf7d0; color: #166534; }
+.heat-pos        { background: #dcfce7; color: #15803d; }
+.heat-zero       { color: #6b7280; }
+.heat-neg        { background: #fee2e2; color: #b91c1c; }
+.heat-neg-strong { background: #fecaca; color: #991b1b; }
 /* Character Change Alerts */
 .cc-grid       { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 12px; margin-bottom: 24px; }
 .cc-card       { background: #ffffff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e7eb; }
@@ -1142,6 +1171,43 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
     });
   });
 })();
+
+function downloadLeaderboard(kind){
+  var tbl = document.getElementById('lb-table');
+  if (!tbl) return;
+  var today = new Date().toISOString().slice(0,10);
+  var rows = Array.from(tbl.querySelectorAll('tbody tr'));
+  var tickers = rows.map(function(r){
+    var c = r.querySelector('td:nth-child(2) a, td:nth-child(2)');
+    return c ? c.textContent.trim() : '';
+  }).filter(Boolean);
+  var blob, filename;
+  if (kind === 'tv') {
+    // TradingView import format: one ticker per line
+    blob = new Blob([tickers.join('\\n')], {type: 'text/plain'});
+    filename = 'tv_recurring_' + today + '.txt';
+  } else {
+    // CSV with core columns
+    var headers = ['Ticker','Company','Sector','Persistence','Signal','Base','Q','Stage','ATR%','EPS%','Screeners'];
+    var csvRows = [headers.join(',')];
+    rows.forEach(function(r){
+      var cells = Array.from(r.querySelectorAll('td'));
+      if (cells.length < 11) return;
+      var vals = [1,2,3,4,5,6,7,8,9,10,11].map(function(i){
+        var t = cells[i-1] ? cells[i-1].textContent.trim().replace(/\\s+/g,' ') : '';
+        return '"' + t.replace(/"/g,'""') + '"';
+      });
+      csvRows.push(vals.join(','));
+    });
+    blob = new Blob([csvRows.join('\\n')], {type: 'text/csv'});
+    filename = 'recurring_names_' + today + '.csv';
+  }
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 100);
+}
 </script>"""
         + "</body></html>"
     )

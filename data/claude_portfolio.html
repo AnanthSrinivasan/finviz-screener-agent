@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Model Portfolio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #f8f9fc; color: #111827; padding: 32px; max-width: 1400px; margin: 0 auto; }
+h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+.subtitle { color: #6b7280; font-size: 0.82rem; margin-bottom: 24px; }
+h2 { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase;
+     letter-spacing: .08em; margin: 28px 0 14px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+              gap: 12px; margin-bottom: 24px; }
+.stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+              padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.stat-label { font-size: 0.68rem; color: #9ca3af; text-transform: uppercase;
+               letter-spacing: .06em; margin-bottom: 6px; }
+.stat-val { font-size: 1.35rem; font-weight: 700; color: #111827; }
+.stat-sub { font-size: 0.73rem; color: #6b7280; margin-top: 4px; }
+.pos-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: #fff;
+              border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+.pos-table th { text-align: left; padding: 10px 12px; color: #6b7280; font-weight: 500;
+                 border-bottom: 1px solid #e5e7eb; text-transform: uppercase;
+                 font-size: 0.66rem; letter-spacing: .05em; background: #f9fafb; }
+.pos-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; }
+.pos-table tr:last-child td { border-bottom: none; }
+.pos-table tr:hover td { background: #f9fafb; }
+.bold { font-weight: 700; }
+.mono { font-variant-numeric: tabular-nums; }
+a { color: #2563eb; text-decoration: none; }
+a:hover { color: #1d4ed8; text-decoration: underline; }
+.heat { border-radius: 4px; font-weight: 600; }
+.heat-pos-strong { background: #bbf7d0; color: #166534; }
+.heat-pos        { background: #dcfce7; color: #15803d; }
+.heat-zero       { color: #6b7280; }
+.heat-neg        { background: #fee2e2; color: #b91c1c; }
+.heat-neg-strong { background: #fecaca; color: #991b1b; }
+.chart-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+               padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+               margin-bottom: 24px; }
+.chart-wrap { position: relative; height: 320px; }
+.empty { color: #6b7280; font-size: 0.88rem; padding: 24px; text-align: center;
+         background: #fff; border: 1px dashed #e5e7eb; border-radius: 10px; }
+.footer { margin-top: 32px; font-size: 0.7rem; color: #9ca3af; }
+</style>
+</head><body>
+
+<h1>🤖 Claude Model Portfolio</h1>
+<p class="subtitle">Alpaca paper account · auto-executed from daily screener · updated 19 Apr 2026 18:03 UTC</p>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">Equity</div>
+    <div class="stat-val">$102,836</div>
+    <div class="stat-sub">Buying power $8,515</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Today P&amp;L</div>
+    <div class="stat-val heat heat-zero" style="display:inline-block;padding:2px 8px;">
+      +$0 (+0.00%)
+    </div>
+    <div class="stat-sub">vs last close $102,836</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Open P&amp;L</div>
+    <div class="stat-val heat heat-pos" style="display:inline-block;padding:2px 8px;">
+      +$8,957 (+4.76%)
+    </div>
+    <div class="stat-sub">on $188,200 cost basis</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Positions</div>
+    <div class="stat-val">5</div>
+    <div class="stat-sub">5 winners · 0 losers</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Cash</div>
+    <div class="stat-val">-$94,321</div>
+    <div class="stat-sub">-91.7% of equity</div>
+  </div>
+</div>
+
+<div class="chart-card">
+  <h2 style="margin-top:0">Equity Curve</h2>
+  <div class="chart-wrap"><canvas id="eqchart"></canvas></div>
+</div>
+
+<h2>Open Positions</h2>
+<table class='pos-table'><thead><tr><th>Ticker</th><th>Qty</th><th>Entry</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=MTSI' target='_blank'>MTSI</a></td><td class='mono'>180</td><td class='mono'>$262.94</td><td class='mono'>$276.97</td><td class='mono'>$49,855</td><td class='mono'>48.5%</td><td class='mono heat heat-pos-strong'>+$2,525</td><td class='mono heat heat-pos-strong'>+5.33%</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=BEAM' target='_blank'>BEAM</a></td><td class='mono'>1580</td><td class='mono'>$30.16</td><td class='mono'>$31.39</td><td class='mono'>$49,596</td><td class='mono'>48.2%</td><td class='mono heat heat-pos'>+$1,943</td><td class='mono heat heat-pos'>+4.08%</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=VRT' target='_blank'>VRT</a></td><td class='mono'>158</td><td class='mono'>$299.93</td><td class='mono'>$307.34</td><td class='mono'>$48,560</td><td class='mono'>47.2%</td><td class='mono heat heat-pos'>+$1,170</td><td class='mono heat heat-pos'>+2.47%</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=VIK' target='_blank'>VIK</a></td><td class='mono'>304</td><td class='mono'>$75.77</td><td class='mono'>$85.80</td><td class='mono'>$26,083</td><td class='mono'>25.4%</td><td class='mono heat heat-pos-strong'>+$3,048</td><td class='mono heat heat-pos-strong'>+13.23%</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=GEV' target='_blank'>GEV</a></td><td class='mono'>23</td><td class='mono'>$991.01</td><td class='mono'>$1002.75</td><td class='mono'>$23,063</td><td class='mono'>22.4%</td><td class='mono heat heat-pos'>+$270</td><td class='mono heat heat-pos'>+1.19%</td></tr></tbody></table>
+
+<div class="footer">Data: Alpaca paper API · updates hourly during US market hours via position-monitor workflow.</div>
+
+<script>
+const points = [{"x": "2026-01-21", "y": 93878.46}, {"x": "2026-01-22", "y": 93878.46}, {"x": "2026-01-23", "y": 93878.46}, {"x": "2026-01-24", "y": 93878.46}, {"x": "2026-01-27", "y": 93878.46}, {"x": "2026-01-28", "y": 93878.46}, {"x": "2026-01-29", "y": 93878.46}, {"x": "2026-01-30", "y": 93878.46}, {"x": "2026-01-31", "y": 93878.46}, {"x": "2026-02-03", "y": 93878.46}, {"x": "2026-02-04", "y": 93878.46}, {"x": "2026-02-05", "y": 93878.46}, {"x": "2026-02-06", "y": 93878.46}, {"x": "2026-02-07", "y": 93878.46}, {"x": "2026-02-10", "y": 93878.46}, {"x": "2026-02-11", "y": 93878.46}, {"x": "2026-02-12", "y": 93878.46}, {"x": "2026-02-13", "y": 93878.46}, {"x": "2026-02-14", "y": 93878.46}, {"x": "2026-02-18", "y": 93878.46}, {"x": "2026-02-19", "y": 93878.46}, {"x": "2026-02-20", "y": 93878.46}, {"x": "2026-02-21", "y": 93878.46}, {"x": "2026-02-24", "y": 93878.46}, {"x": "2026-02-25", "y": 93878.46}, {"x": "2026-02-26", "y": 93878.46}, {"x": "2026-02-27", "y": 93878.46}, {"x": "2026-02-28", "y": 93878.46}, {"x": "2026-03-03", "y": 93878.46}, {"x": "2026-03-04", "y": 93878.46}, {"x": "2026-03-05", "y": 93878.46}, {"x": "2026-03-06", "y": 93878.46}, {"x": "2026-03-07", "y": 93878.46}, {"x": "2026-03-10", "y": 93878.46}, {"x": "2026-03-11", "y": 93878.46}, {"x": "2026-03-12", "y": 93878.46}, {"x": "2026-03-13", "y": 93878.46}, {"x": "2026-03-14", "y": 93878.46}, {"x": "2026-03-17", "y": 93878.46}, {"x": "2026-03-18", "y": 93878.46}, {"x": "2026-03-19", "y": 93878.46}, {"x": "2026-03-20", "y": 93878.46}, {"x": "2026-03-21", "y": 93878.46}, {"x": "2026-03-24", "y": 93878.46}, {"x": "2026-03-25", "y": 93878.46}, {"x": "2026-03-26", "y": 93878.46}, {"x": "2026-03-27", "y": 93878.46}, {"x": "2026-03-28", "y": 93878.46}, {"x": "2026-03-31", "y": 93878.46}, {"x": "2026-04-01", "y": 93878.46}, {"x": "2026-04-02", "y": 93878.46}, {"x": "2026-04-03", "y": 93878.46}, {"x": "2026-04-07", "y": 93878.46}, {"x": "2026-04-08", "y": 93878.46}, {"x": "2026-04-09", "y": 93878.46}, {"x": "2026-04-10", "y": 93878.46}, {"x": "2026-04-11", "y": 93878.46}, {"x": "2026-04-14", "y": 94621.84}, {"x": "2026-04-15", "y": 96797.96}, {"x": "2026-04-16", "y": 96097.13}, {"x": "2026-04-17", "y": 94043.95}, {"x": "2026-04-18", "y": 102835.78}];
+if (points.length > 0) {
+  const ctx = document.getElementById('eqchart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Equity',
+        data: points,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37,99,235,0.08)',
+        fill: true,
+        tension: 0.25,
+        pointRadius: 0,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { type: 'category', grid: { display: false }, ticks: { color: '#6b7280', maxTicksLimit: 8 } },
+        y: { grid: { color: '#f3f4f6' }, ticks: { color: '#6b7280',
+               callback: function(v){ return '$' + v.toLocaleString(); } } }
+      }
+    }
+  });
+}
+</script>
+</body></html>

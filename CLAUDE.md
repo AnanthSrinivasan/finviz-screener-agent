@@ -7,6 +7,19 @@
 3. After any screener/agent logic change: run the relevant GH Actions workflow and verify the logs, not just unit tests
 4. Run `python -m unittest discover -s tests -t .` before every push
 
+## Workflow for every non-trivial task — spec → review → tasks → execute
+
+For any task beyond a one-line fix (logic change, dashboard change, new feature, multi-file edit), follow this loop:
+
+1. **Spec** — write what you understand the user wants: the problem, the concrete change, the files/functions involved, and the tradeoffs. Point to exact `file:line` anchors.
+2. **Review** — surface the spec to the user *before* editing. Call out open questions and decisions the user needs to make (e.g. sizing caps, UI placement). Do not proceed without a yes.
+3. **Tasks** — break the approved spec into a numbered task list. Short. Each task is a single committable change.
+4. **Execute** — work the tasks in order, mark each done, then run tests + workflow verification per rules 3–4 above.
+
+**Skip spec/review only when:** typo fix, doc-only edit, user explicitly says "just do it", or the change is fully contained to one line and has no semantic impact. When in doubt, spec first.
+
+**Why:** prevents wasted work on wrong-shaped solutions and gives the user a decision point before any irreversible change.
+
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
 **Repo:** `AnanthSrinivasan/finviz-screener-agent` (branch: `main`)

@@ -232,4 +232,11 @@ if __name__ == "__main__":
         "Sells placed: " + str(sells_placed)
     )
 
+    # Regenerate Claude model portfolio page (non-fatal).
+    try:
+        from utils.generators.generate_portfolio import main as _gen_portfolio
+        _gen_portfolio()
+    except Exception as e:
+        log.warning("Portfolio page generation failed: %s", e)
+
     log.info("=== Alpaca monitor done — %d sell(s) placed ===", sells_placed)

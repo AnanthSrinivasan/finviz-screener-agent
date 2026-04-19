@@ -116,8 +116,10 @@ def generate_index(reports: dict, base_url: str) -> str:
     perf_url      = f"{base_url}/data/performance_charts.html" if base_url else "data/performance_charts.html"
     mae_url       = f"{base_url}/data/mae_analysis.html" if base_url else "data/mae_analysis.html"
     watchlist_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
+    portfolio_url = f"{base_url}/data/claude_portfolio.html" if base_url else "data/claude_portfolio.html"
 
     hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
+    hero_links += f'<a href="{portfolio_url}" class="hero-btn btn-portfolio">Claude Portfolio</a>'
     hero_links += f'<a href="{watchlist_url}" class="hero-btn btn-watchlist">Watchlist</a>'
     if latest_weekly:
         hero_links += f'<a href="{report_url(latest_weekly)}" class="hero-btn btn-weekly">Latest Weekly Review</a>'
@@ -155,6 +157,7 @@ def generate_index(reports: dict, base_url: str) -> str:
   .btn-perf   {{ background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }}
   .btn-mae       {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}
   .btn-watchlist {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
+  .btn-portfolio {{ background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }}
 
   /* Stats bar */
   .stats {{ display: flex; gap: 32px; padding: 20px 32px;
