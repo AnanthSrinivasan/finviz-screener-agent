@@ -1123,10 +1123,21 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .fng-ctx    { font-size: 0.78rem; color: #374151; line-height: 1.5; }
 .fng-hist   { display: flex; gap: 16px; font-size: 0.71rem; color: #6b7280; flex-wrap: wrap; }
 @media print {
-  .pdf-btn { display: none; }
+  .pdf-btn, .lb-actions { display: none; }
   body { padding: 0; background: #fff; }
   .focus-card, .cc-card { break-inside: avoid; }
   .lb-table tr { break-inside: avoid; }
+  /* Preserve heat-map cell backgrounds in printed PDF */
+  .heat, .heat-pos, .heat-pos-strong, .heat-neg, .heat-neg-strong {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+/* Print-color-adjust also needs to be declared outside @media print
+   so Chrome/Safari respect it on the screen-origin style rules. */
+.heat, .lb-table tr.ep-row td, .lb-table tr.watch-row td {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 """
 
@@ -1178,8 +1189,9 @@ function downloadLeaderboard(kind){
   var today = new Date().toISOString().slice(0,10);
   var rows = Array.from(tbl.querySelectorAll('tbody tr'));
   var tickers = rows.map(function(r){
-    var c = r.querySelector('td:nth-child(2) a, td:nth-child(2)');
-    return c ? c.textContent.trim() : '';
+    // Ticker anchor has class .tlink — take only that, never the badge span
+    var a = r.querySelector('td:nth-child(2) a.tlink');
+    return a ? a.textContent.trim() : '';
   }).filter(Boolean);
   var blob, filename;
   if (kind === 'tv') {
@@ -1193,11 +1205,12 @@ function downloadLeaderboard(kind){
     rows.forEach(function(r){
       var cells = Array.from(r.querySelectorAll('td'));
       if (cells.length < 11) return;
-      var vals = [1,2,3,4,5,6,7,8,9,10,11].map(function(i){
-        var t = cells[i-1] ? cells[i-1].textContent.trim().replace(/\\s+/g,' ') : '';
-        return '"' + t.replace(/"/g,'""') + '"';
-      });
-      csvRows.push(vals.join(','));
+      var tickerA = cells[1].querySelector('a.tlink');
+      var tickerText = tickerA ? tickerA.textContent.trim() : cells[1].textContent.trim();
+      var vals = [tickerText].concat([2,3,4,5,6,7,8,9,10,11].map(function(i){
+        return cells[i] ? cells[i].textContent.trim().replace(/\\s+/g,' ') : '';
+      }));
+      csvRows.push(vals.map(function(v){ return '"' + v.replace(/"/g,'""') + '"'; }).join(','));
     });
     blob = new Blob([csvRows.join('\\n')], {type: 'text/csv'});
     filename = 'recurring_names_' + today + '.csv';

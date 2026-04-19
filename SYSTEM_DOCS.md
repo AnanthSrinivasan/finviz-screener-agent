@@ -270,9 +270,9 @@ Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market moni
 2. Crypto snapshot (BTC, ETH)
 3. Fear & Greed
 4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
-5. Macro snapshot (colour-coded ▲▼)
+5. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%)
 6. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
-7. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges)
+7. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
 
 ---
 
@@ -677,6 +677,18 @@ Not needed yet. Revisit if automated execution is added.
 - Otherwise → hold, log current P&L to Slack with `[PAPER]` context
 
 Updates `paper_stops.json` to remove exited positions.
+
+After the monitor loop finishes, calls `utils/generators/generate_portfolio.py` (non-fatal) to rebuild `data/claude_portfolio.html`.
+
+### 10.5 Claude Model Portfolio — `utils/generators/generate_portfolio.py`
+
+Public dashboard of the Alpaca paper account — regenerated hourly inside `position-monitor.yml` so Pages stays current during market hours.
+
+**Inputs (Alpaca paper):** `/account`, `/positions`, `/account/portfolio/history?period=3M&timeframe=1D`.
+
+**Output:** `data/claude_portfolio.html` (light theme, Chart.js equity curve). Sections: stat cards (equity, today P&L, open P&L, position count, cash), equity curve (3M daily), open-positions heat table (ticker, qty, entry, price, mkt value, allocation %, unrealized $ / %).
+
+Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflow and no new secrets — reuses the Alpaca paper credentials already in `position-monitor.yml`.
 
 ### 10.4 Separation from Real System
 
