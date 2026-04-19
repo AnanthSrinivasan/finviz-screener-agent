@@ -18,7 +18,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Agent | File | Schedule | Slack Channel |
 |-------|------|----------|---------------|
 | Daily Screener | `finviz_agent.py` | 20:30 UTC Mon-Fri | `#daily-alerts` |
-| Weekly Review | `finviz_weekly_agent.py` | 18:00 UTC Sunday | `#weekly-alerts` |
+| Weekly Review | `finviz_weekly_agent.py` | 10:00 UTC Saturday | `#weekly-alerts` |
 | Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
 | Position Monitor | `position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
 | Alerts | `alerts_agent.py` | 21:00 UTC Mon-Fri | `#general-alerts` |

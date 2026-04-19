@@ -35,7 +35,7 @@ flowchart TB
     subgraph GHA["GitHub Actions (scheduler)"]
         direction LR
         W1["daily-finviz.yml<br/><i>Mon-Fri 21:30 UTC</i>"]
-        W2["weekly-finviz.yml<br/><i>Sunday 18:00 UTC</i>"]
+        W2["weekly-finviz.yml<br/><i>Saturday 10:00 UTC</i>"]
         W3["earnings-alert.yml<br/><i>Mon-Fri 22:30 UTC</i>"]
         W4["position-monitor.yml<br/><i>every 30 min</i>"]
         W5["market_monitor.yml<br/><i>Mon-Fri 22:00 UTC</i>"]
@@ -186,7 +186,7 @@ Tickers outside core sectors get `⚠️ Outside Edge` and drop to Watch List.
 
 ### 3.2 Weekly Review Agent — `finviz_weekly_agent.py`
 
-**Schedule:** 18:00 UTC Sunday  
+**Schedule:** 10:00 UTC Saturday  
 **Slack:** `#weekly-alerts` via `SLACK_WEBHOOK_WEEKLY`
 
 **Unified Signal Score:**
