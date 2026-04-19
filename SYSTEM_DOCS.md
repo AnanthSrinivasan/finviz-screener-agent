@@ -270,7 +270,7 @@ Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market moni
 2. Crypto snapshot (BTC, ETH)
 3. Fear & Greed
 4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
-5. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%)
+5. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%; Month cell also shows the prior 30-day return in brackets — e.g. `▲ 7.36% (prev −5.0%)` — computed via a single yfinance batch download using trading-day offsets)
 6. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
 7. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
 
