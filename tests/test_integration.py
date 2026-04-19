@@ -1386,24 +1386,20 @@ class TestBlackoutPeriods(unittest.TestCase):
         self.assertTrue(is_blackout(datetime.date(2026, 9, 15)))
         self.assertTrue(is_blackout(datetime.date(2026, 9, 30)))
 
-    def test_october_before_16_is_blackout(self):
-        self.assertTrue(is_blackout(datetime.date(2026, 10, 1)))
-        self.assertTrue(is_blackout(datetime.date(2026, 10, 15)))
-
-    def test_october_after_15_is_not_blackout(self):
-        self.assertFalse(is_blackout(datetime.date(2026, 10, 16)))
+    def test_october_not_blackout(self):
+        # Oct 1-15 was removed from blackout — only Feb and Sep remain.
+        self.assertFalse(is_blackout(datetime.date(2026, 10, 1)))
+        self.assertFalse(is_blackout(datetime.date(2026, 10, 15)))
         self.assertFalse(is_blackout(datetime.date(2026, 10, 31)))
 
     def test_february_is_blackout(self):
         self.assertTrue(is_blackout(datetime.date(2026, 2, 1)))
         self.assertTrue(is_blackout(datetime.date(2026, 2, 28)))
 
-    def test_march_before_16_is_blackout(self):
-        self.assertTrue(is_blackout(datetime.date(2026, 3, 1)))
-        self.assertTrue(is_blackout(datetime.date(2026, 3, 15)))
-
-    def test_march_after_15_is_not_blackout(self):
-        self.assertFalse(is_blackout(datetime.date(2026, 3, 16)))
+    def test_march_not_blackout(self):
+        # Mar 1-15 was removed from blackout — only Feb and Sep remain.
+        self.assertFalse(is_blackout(datetime.date(2026, 3, 1)))
+        self.assertFalse(is_blackout(datetime.date(2026, 3, 15)))
         self.assertFalse(is_blackout(datetime.date(2026, 3, 31)))
 
     def test_normal_months_not_blackout(self):
@@ -1649,9 +1645,9 @@ class TestBuildDailyRecord(unittest.TestCase):
         metrics = {"ratio_today": 0, "ratio_5day": 0, "ratio_10day": 0,
                    "thrust": False, "spy_above_200d": False}
 
-        # March 10 is blackout
+        # Feb 10 is blackout
         record = build_daily_record(
-            datetime.date(2026, 3, 10), today_data, metrics, "BLACKOUT", "blackout"
+            datetime.date(2026, 2, 10), today_data, metrics, "BLACKOUT", "blackout"
         )
         self.assertTrue(record["blackout"])
 

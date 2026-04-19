@@ -504,20 +504,12 @@ def calculate_metrics(history: list, today_data: dict) -> dict:
 # Market State Classification
 # ----------------------------
 def is_blackout(date: datetime.date) -> bool:
-    """Check if date falls in seasonal no-trade blackout period."""
-    month = date.month
-    day = date.day
-    # Sep 1 — Oct 15
-    if month == 9:
-        return True
-    if month == 10 and day <= 15:
-        return True
-    # Feb 1 — Mar 15
-    if month == 2:
-        return True
-    if month == 3 and day <= 15:
-        return True
-    return False
+    """Check if date falls in seasonal no-trade blackout period.
+
+    Blackout months: February (1–end of month) and September (1–30).
+    Matches CLAUDE.md / SYSTEM_DOCS.
+    """
+    return date.month in (2, 9)
 
 
 def classify_market_state(metrics: dict, fg: float | None,

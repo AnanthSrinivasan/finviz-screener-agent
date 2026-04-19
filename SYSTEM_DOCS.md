@@ -368,7 +368,7 @@ COOLING and CAUTION are intentionally different states — same breadth readings
 
 | State | Condition | Direction | Action |
 |-------|-----------|-----------|--------|
-| BLACKOUT | Sep 1–Oct 15 or Feb 1–Mar 15 | — | No new trades |
+| BLACKOUT | Feb 1–end of Feb · Sep 1–Sep 30 | — | No new trades (seasonally unreliable months) |
 | DANGER | 500+ stocks down 4%+ AND 5d ratio < 0.5 | ↓ hard | Raise stops, no entries |
 | COOLING | prev_state==GREEN AND GREEN conditions no longer met | ↓ fading | Trim, tighten stops, no new entries |
 | THRUST | 500+ stocks up 4%+ (Bonde "Very High" buying pressure) | ↑ signal | Build watchlist NOW |

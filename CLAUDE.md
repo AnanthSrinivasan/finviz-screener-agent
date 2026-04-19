@@ -205,7 +205,7 @@ The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING 
 
 | State | Condition | Priority | Direction | Trading Action |
 |-------|-----------|----------|-----------|---------------|
-| BLACKOUT | Sep 1–Sep 30 | 1 | — | No new trades (Sep confirmed worst month in live data; Feb/Mar removed — was profitable both years) |
+| BLACKOUT | Feb 1–end of Feb · Sep 1–Sep 30 | 1 | — | No new trades in Feb or Sep — both flagged as seasonally unreliable months |
 | DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | ↓ hard | No entries, raise stops immediately |
 | COOLING | prev_state == GREEN AND GREEN conditions no longer met | 3 | ↓ fading | Trim positions, tighten stops, no new entries |
 | THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 4 | ↑ signal | Start building watchlist NOW |
