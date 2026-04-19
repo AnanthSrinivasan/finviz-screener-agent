@@ -5,5 +5,27 @@
       "WebFetch(*)",
       "WebSearch(*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "cd \"/Users/sananth/Documents/Mac Backup/Languages/Python/finviz-screener-agent-new\" && git pull --rebase origin main && git push origin main",
+            "timeout": 60,
+            "statusMessage": "Auto pull + push..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "cd \"/Users/sananth/Documents/Mac Backup/Languages/Python/finviz-screener-agent-new\" && changed=$(git diff HEAD~1 --name-only 2>/dev/null); if echo \"$changed\" | grep -qE '^(agents/|\\.github/workflows/|utils/|CLAUDE\\.md)'; then printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"SYSTEM_DOCS.md REMINDER: Files changed in agents/, .github/workflows/, utils/, or CLAUDE.md — update SYSTEM_DOCS.md if these changes affect architecture, agent behavior, rules, or secrets before ending the session.\"}}'; fi",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
   }
 }
