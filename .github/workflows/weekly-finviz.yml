@@ -2,7 +2,7 @@ name: Weekly Finviz Review
 
 on:
   schedule:
-    - cron: '0 18 * * 0'
+    - cron: '0 10 * * 6'
   workflow_dispatch:
 
 jobs:
