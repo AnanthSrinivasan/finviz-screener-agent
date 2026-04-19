@@ -200,6 +200,37 @@ The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING 
 | CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 6 | ↑ recovering | Half size, build watchlist, get ready |
 | RED | Everything else (SPY below 200d MA or 5d ratio < 1.0) | 7 | ↓ bear | No new trades |
 
+## Trading Philosophy — The Rules Behind the Rules
+
+> "Market is the ultimate master. We are not bigger than the market."
+
+**On psychology:**
+- 10% is trading mechanics. 90% is psychology — discipline, conviction, patience.
+- The system is a signal layer, not a decision maker. It surfaces what the data says. The human decides.
+- No system beats a trader who loses discipline. EC (equity curve) only grows with conviction trades, not over-positioning on weak setups.
+
+**On humility:**
+- Never force a trade. The market will always give another setup.
+- Qullamaggie: $9K → $1M in 3.5 years. Discipline + conviction on fewer, better names. Not chasing everything.
+- When the system says COOLING or CAUTION — respect it. The big losses come from ignoring the signal.
+- Rules encode what we *know*. The gray zones (market stalling, direction unclear) require human judgment. The system flags them; it does not decide them.
+
+**On what the system cannot encode:**
+- V-shaped recovery vs dead-cat bounce — requires price action reading (support/resistance)
+- Market character shifts — requires candlestick context, not just breadth numbers
+- Stall direction — watch whether SPY breaks support or reclaims resistance. The system will show breadth; you read the tape.
+- When in doubt, do nothing. Cash is a position.
+
+**On position sizing:**
+- Conviction must match position size. A half-conviction trade deserves half size or no trade.
+- Averaging down is forbidden (Rule 4). Averaging up on a winner is how size grows.
+- Suspension mode (3 losses) exists for a reason — respect it.
+
+## Roadmap
+
+- **TradingView MCP integration** — Connect Claude to TradingView desktop app via MCP when Mac Mini arrives. Goal: Claude reads charts directly, adds pattern recognition (support/resistance, VCP confirmation) to the signal layer that breadth alone cannot capture.
+- **F&G zone-aware state machine** — Incorporate greed/extreme greed thresholds into COOLING and CAUTION logic (in progress, Apr 2026).
+
 ## Development Notes
 
 - **Market breadth source:** Up/Down 4% counts come from Alpaca snapshots API (`fetch_breadth_alpaca`). Universe: NYSE+NASDAQ active equities, filtered to price > $3 and dollar vol > $250k OR volume > 100k (Bonde's filter). THRUST=500, DANGER=500 (Bonde "Very High pressure" calibration). A/D totals (`^NYADV ^NYDEC ^NAADV ^NADEC`) were removed — all four symbols are dead on Yahoo Finance as of April 2026. `breadth_source` field in daily JSON shows which source ran (`alpaca_4pct`).
