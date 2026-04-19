@@ -619,11 +619,67 @@ def fetch_macro_snapshot() -> dict:
                 "change":     data.get("Change",     "n/a"),
                 "perf_week":  data.get("Perf Week",  "n/a"),
                 "perf_month": data.get("Perf Month", "n/a"),
+                "perf_prev_month": None,  # populated by fetch_macro_prev_month via yfinance
             }
         except Exception as e:
             log.warning(f"Macro fetch failed for {symbol}: {e}")
 
+    # Enrich with prior-30-day return via yfinance so the Month cell can show
+    # current-month perf alongside the prior-month perf in brackets.
+    fetch_macro_prev_month(macro_data)
+
     return macro_data
+
+
+def fetch_macro_prev_month(macro_data: dict) -> None:
+    """
+    For each macro symbol, compute the prior-30-day return (the ~30 days before
+    the current Perf Month window) using yfinance daily closes. Mutates
+    macro_data in place — sets perf_prev_month as a formatted percent string
+    (e.g. "-5.2%") or leaves it None on failure.
+    """
+    if not macro_data:
+        return
+    try:
+        import yfinance as yf
+        import pandas as pd
+    except Exception as e:
+        log.warning("Prev-month enrichment skipped — yfinance/pandas unavailable: %s", e)
+        return
+
+    symbols = list(macro_data.keys())
+    try:
+        # period="4mo" gives enough calendar days on either side of the 30/60d marks.
+        hist = yf.download(symbols, period="4mo", interval="1d",
+                           auto_adjust=True, progress=False, group_by="ticker",
+                           threads=True)
+    except Exception as e:
+        log.warning("Prev-month yfinance batch download failed: %s", e)
+        return
+
+    for symbol in symbols:
+        try:
+            if len(symbols) == 1:
+                closes = hist["Close"] if "Close" in hist else None
+            else:
+                # group_by="ticker" returns multi-level columns keyed by ticker
+                if symbol not in hist.columns.get_level_values(0):
+                    continue
+                closes = hist[symbol]["Close"]
+            if closes is None or closes.empty:
+                continue
+            closes = closes.dropna()
+            # Use trading-day offsets (~21 per month) rather than calendar days
+            if len(closes) < 45:
+                continue
+            close_now  = float(closes.iloc[-21]) if len(closes) > 21 else float(closes.iloc[0])
+            close_prev = float(closes.iloc[-42]) if len(closes) > 42 else float(closes.iloc[0])
+            if close_prev <= 0:
+                continue
+            prev_ret = (close_now / close_prev - 1.0) * 100
+            macro_data[symbol]["perf_prev_month"] = f"{prev_ret:+.1f}%"
+        except Exception as e:
+            log.debug("Prev-month calc failed for %s: %s", symbol, e)
 
 
 def _color(val_str: str) -> str:
@@ -817,6 +873,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
         mo_cls = _heat(m["perf_month"])
         wk_arr = _arrow(m["perf_week"])
         mo_arr = _arrow(m["perf_month"])
+        prev_month = m.get("perf_prev_month")
+        prev_span  = f" <span class='prev-delta'>(prev {prev_month})</span>" if prev_month else ""
         macro_rows += (
             "<tr>"
             f"<td class='bold'>{symbol}</td>"
@@ -824,7 +882,7 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             f"<td class='mono'>{m['price']}</td>"
             f"<td class='mono heat {dy_cls}'>{m['change']}</td>"
             f"<td class='mono heat {wk_cls}'>{wk_arr} {m['perf_week']}</td>"
-            f"<td class='mono heat {mo_cls}'>{mo_arr} {m['perf_month']}</td>"
+            f"<td class='mono heat {mo_cls}'>{mo_arr} {m['perf_month']}{prev_span}</td>"
             "</tr>"
         )
 
@@ -1057,6 +1115,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .macro-table td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; color: #111827; }
 .macro-table tr:hover td { background: #f9fafb; }
 .mname { color: #6b7280; font-size: 0.75rem; }
+.prev-delta { font-size: 0.7rem; color: #6b7280; font-weight: 500; margin-left: 4px; }
 /* Macro heat-map cells */
 .macro-table td.heat { border-radius: 4px; font-weight: 600; }
 .heat-pos-strong { background: #bbf7d0; color: #166534; }
