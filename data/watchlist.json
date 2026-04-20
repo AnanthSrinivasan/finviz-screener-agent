@@ -1345,8 +1345,9 @@
       "thesis": "Technology | Q=102 | ATR 4.4%",
       "added": "2026-04-18",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-20"
     },
     {
       "ticker": "GLW",
@@ -1377,6 +1378,63 @@
       "stop": null,
       "thesis": "Technology | Q=98 | VCP | ATR 3.0%",
       "added": "2026-04-18",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "VRT",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=106 | VCP | ATR 4.3%",
+      "added": "2026-04-20",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-20"
+    },
+    {
+      "ticker": "MXL",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=103 | ATR 5.0%",
+      "added": "2026-04-20",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-20"
+    },
+    {
+      "ticker": "NVT",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=102 | VCP | ATR 3.8%",
+      "added": "2026-04-20",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "FCEL",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=95 | ATR 6.6%",
+      "added": "2026-04-20",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "USAR",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Basic Materials | Q=95 | ATR 7.8%",
+      "added": "2026-04-20",
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
