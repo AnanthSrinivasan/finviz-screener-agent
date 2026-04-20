@@ -650,6 +650,7 @@ Not needed yet. Revisit if automated execution is added.
 6. Gate: max 5 concurrent positions
 7. For each candidate not already held:
    - Compute allocation by Q score tier (see below)
+   - **Extended-entry gate:** if `SMA50% / ATR%` > peel warn, skip. Warn is per-ticker from `peel_calibration.json` when calibrated; else ATR% tier fallback (low ≤4%: 3.0x · mid ≤7%: 5.0x · high ≤10%: 6.5x · extreme: 8.5x). Replaces the older hardcoded 6.0x cap — lets high-vol names (e.g. AAOI calibrated warn 11.8x) enter on their own scale. Skip Slack message shows source (`calibrated` or `tier`).
    - Fetch close price via Alpaca data API (`/trades/latest`, feed=iex, fallback to last bar)
    - Place **GTC limit order at close price** — fills at open if price ≤ limit, no fill on gap-up (intentional, no chasing)
 8. Write stop reference to `paper_stops.json` (entry − 2×ATR)
@@ -699,6 +700,12 @@ Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflo
 | Exit monitoring | `finviz_position_monitor.py` | `alpaca_monitor.py` |
 | Hard stop | $4,500 per position | 2×ATR (tighter, not dollar-based) |
 | Slack channel | `#positions` | `#positions` (prefix `[PAPER]`) |
+
+### 10.6 Pre-Market Focus Scan — `premarket_alert.py`
+
+Runs 9am ET Mon–Fri. For each `priority=focus` watchlist ticker, reports setup readiness and a sizing label driven by conviction score.
+
+**Q-rank fallback:** `_load_conviction()` walks back up to 10 `daily_quality_*.json` files so a focus-list ticker that has temporarily dropped off today's Finviz screener still displays its most recent rank, rendered as `Q:81 (2d)` to flag the staleness. Only `Q:0` when the ticker is absent from the full 10-day window. Sizing (`AGGRESSIVE / NORMAL / REDUCED`) uses the recovered rank.
 
 ---
 

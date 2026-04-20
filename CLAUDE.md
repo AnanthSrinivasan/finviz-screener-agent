@@ -181,6 +181,7 @@ data/
 | Hard position cap | $-4,500 per position (SLV incident Feb 2026) |
 | ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
 | Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme (warn at ~75% of signal) |
+| Entry gate (extended) | `alpaca_executor.py` blocks new entry when ATR multiple > per-ticker `peel_warn` (from `peel_calibration.json`). Falls back to ATR% tier warn when ticker is uncalibrated. Slack notes `calibrated` vs `tier` source. |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
 | ATR incremental trail | From entry onwards: stop = max(stop, price − 2×ATR). Silent. Disabled at +20% (breakeven takes over) |

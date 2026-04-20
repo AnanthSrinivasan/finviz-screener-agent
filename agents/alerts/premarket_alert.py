@@ -164,16 +164,31 @@ def _fetch_daily_bars(ticker: str, limit: int = 60) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+Q_RANK_FALLBACK_DAYS = 10
+
+
 def _load_conviction(ticker: str) -> tuple:
-    """Return (q_rank, appearances) from latest daily_quality JSON and screener CSV."""
+    """
+    Return (q_rank, appearances, staleness_days).
+
+    Walks back up to Q_RANK_FALLBACK_DAYS daily_quality_*.json files so a watchlist
+    ticker that has temporarily dropped out of the Finviz screener still shows its
+    most recent rank. staleness_days = 0 when pulled from today's file; >0 when
+    recovered from an older file; -1 when never seen in the lookback window.
+    """
     q_rank = 0
     appearances = 0
+    staleness_days = -1
     try:
         quality_files = sorted(_glob(os.path.join(DATA_DIR, "daily_quality_*.json")))
-        if quality_files:
-            with open(quality_files[-1]) as f:
+        for idx, path in enumerate(reversed(quality_files[-Q_RANK_FALLBACK_DAYS:])):
+            with open(path) as f:
                 q_data = json.load(f)
-            q_rank = q_data.get(ticker, {}).get("q_rank", 0)
+            entry = q_data.get(ticker)
+            if entry and entry.get("q_rank", 0) > 0:
+                q_rank = entry["q_rank"]
+                staleness_days = idx
+                break
     except Exception:
         pass
     try:
@@ -185,7 +200,16 @@ def _load_conviction(ticker: str) -> tuple:
                 appearances = int(row.iloc[0].get("Appearances", 1) or 1)
     except Exception:
         pass
-    return q_rank, appearances
+    return q_rank, appearances, staleness_days
+
+
+def _q_label(q_rank: int, staleness_days: int) -> str:
+    """Render Q-rank with staleness suffix: 'Q:81', 'Q:81 (2d)', or 'Q:0'."""
+    if q_rank <= 0:
+        return "Q:0"
+    if staleness_days > 0:
+        return f"Q:{q_rank} ({staleness_days}d)"
+    return f"Q:{q_rank}"
 
 
 def _sizing_label(q_rank: int, appearances: int) -> str:
@@ -251,8 +275,9 @@ def scan_focus_list(market_state: str):
         pct_from_high20 = (price - high20) / high20 * 100
         premarket_str   = f" (pre-mkt {pct_change:+.1f}%)" if abs(pct_change) >= 1 else ""
 
-        q_rank, appearances = _load_conviction(ticker)
+        q_rank, appearances, staleness_days = _load_conviction(ticker)
         sizing = _sizing_label(q_rank, appearances)
+        q_label = _q_label(q_rank, staleness_days)
 
         setup_type = None
         if -5 <= pct_from_ema21 <= 5:
@@ -268,7 +293,7 @@ def scan_focus_list(market_state: str):
         if setup_type:
             at_setup.append({
                 "ticker": ticker, "setup_type": setup_type, "entry_note": entry_note,
-                "sizing": sizing, "q_rank": q_rank, "premarket": premarket_str,
+                "sizing": sizing, "q_label": q_label, "premarket": premarket_str,
             })
             log.info("%s: AT SETUP %s — %s | sizing %s", ticker, setup_type, entry_note, sizing)
         else:
@@ -277,7 +302,7 @@ def scan_focus_list(market_state: str):
                 "ema21": round(ema21, 2), "sma50": round(sma50, 2),
                 "pct_from_ema21": round(pct_from_ema21, 1),
                 "pct_from_sma50": round(pct_from_sma50, 1),
-                "sizing": sizing, "q_rank": q_rank, "premarket": premarket_str,
+                "sizing": sizing, "q_label": q_label, "premarket": premarket_str,
             })
             log.info("%s: watching — EMA21 %+.1f%%, SMA50 %+.1f%%", ticker, pct_from_ema21, pct_from_sma50)
 
@@ -296,7 +321,7 @@ def scan_focus_list(market_state: str):
             lines.append(
                 f"{setup_emoji} *{s['ticker']}* — {s['setup_type']}{s['premarket']}\n"
                 f"  {s['entry_note']}\n"
-                f"  {sizing_emoji} Size: *{s['sizing']}*  Q:{s['q_rank']}"
+                f"  {sizing_emoji} Size: *{s['sizing']}*  {s['q_label']}"
             )
         lines.append("")
 
@@ -308,7 +333,7 @@ def scan_focus_list(market_state: str):
                 f":white_small_square: *{s['ticker']}* ${s['price']}{s['premarket']}  "
                 f"21EMA {s['pct_from_ema21']:+.1f}% (${s['ema21']})  "
                 f"50SMA {s['pct_from_sma50']:+.1f}% (${s['sma50']})\n"
-                f"  {sizing_emoji} Size when ready: *{s['sizing']}*  Q:{s['q_rank']}"
+                f"  {sizing_emoji} Size when ready: *{s['sizing']}*  {s['q_label']}"
             )
 
     payload = {"blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(lines)}}]}

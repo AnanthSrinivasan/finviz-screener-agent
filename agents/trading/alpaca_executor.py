@@ -41,6 +41,40 @@ PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 MAX_POSITIONS     = 5
 
+# ATR% tier fallback for peel warn — mirrors PEEL_THRESHOLDS in position_monitor.py.
+# Used only when the ticker is not present (or not calibrated) in peel_calibration.json.
+PEEL_WARN_TIERS = [
+    (4.0,  3.0),   # low
+    (7.0,  5.0),   # mid
+    (10.0, 6.5),   # high
+    (999,  8.5),   # extreme
+]
+
+_PEEL_CALIBRATION_CACHE: dict | None = None
+
+
+def get_entry_peel_warn(atr_pct: float, ticker: str) -> tuple:
+    """
+    Return (warn_multiple, source) for entry gating.
+    source == 'calibrated' when drawn from per-ticker p75×0.75 in
+    data/peel_calibration.json; else 'tier' (ATR% band fallback).
+    """
+    global _PEEL_CALIBRATION_CACHE
+    if _PEEL_CALIBRATION_CACHE is None:
+        cal_path = os.path.join(DATA_DIR, "peel_calibration.json")
+        try:
+            with open(cal_path) as fh:
+                _PEEL_CALIBRATION_CACHE = json.load(fh)
+        except (FileNotFoundError, json.JSONDecodeError):
+            _PEEL_CALIBRATION_CACHE = {}
+    entry = _PEEL_CALIBRATION_CACHE.get(ticker, {})
+    if entry.get("calibrated") and entry.get("warn"):
+        return float(entry["warn"]), "calibrated"
+    for max_atr, warn in PEEL_WARN_TIERS:
+        if atr_pct <= max_atr:
+            return warn, "tier"
+    return 8.5, "tier"
+
 
 def alpaca_headers() -> dict:
     return {
@@ -586,20 +620,24 @@ if __name__ == "__main__":
             log.info("Skipping %s — no allocation (Q=%.0f)", ticker, qs)
             continue
 
-        # ATR% multiple from MA gate — no new positions when stock is already extended
-        # Multiple = SMA50% / ATR% (same formula as position_monitor)
-        # Rule: skip new entry if multiple > 6 (extended; peel territory, not entry territory)
+        # ATR% multiple from MA gate — no new positions when stock is already in peel territory.
+        # Multiple = SMA50% / ATR% (same formula as position_monitor).
+        # Threshold = peel_warn from per-ticker calibration when available, else ATR% tier fallback.
         atr_pct_raw  = row.get("ATR%", 0)
         sma50_pct    = row.get("SMA50%", None)  # None = unknown (watchlist rows from daily_quality)
         if sma50_pct is not None and atr_pct_raw > 0:
             atr_multiple_entry = sma50_pct / atr_pct_raw
-            if atr_multiple_entry > 6:
+            peel_warn, peel_src = get_entry_peel_warn(atr_pct_raw, ticker)
+            if atr_multiple_entry > peel_warn:
                 msg = (
                     ":no_entry_sign: *SKIPPED* " + ticker
-                    + " — ATR multiple from MA *" + str(round(atr_multiple_entry, 2))
-                    + "x* > 6.0 (too extended for new entry)"
+                    + " — ATR multiple *" + str(round(atr_multiple_entry, 2)) + "x*"
+                    + " > peel warn " + str(round(peel_warn, 1)) + "x (" + peel_src + ")"
                 )
-                log.info("Skipping %s — ATR multiple %.2f > 6.0 (extended)", ticker, atr_multiple_entry)
+                log.info(
+                    "Skipping %s — ATR multiple %.2f > peel warn %.2f (%s)",
+                    ticker, atr_multiple_entry, peel_warn, peel_src,
+                )
                 slack_send(msg)
                 continue
         elif sma50_pct is None:
