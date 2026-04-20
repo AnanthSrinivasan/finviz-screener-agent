@@ -560,5 +560,27 @@
     "market_state": "THRUST",
     "state_message": "Breadth thrust \u2014 530 stocks up 4%",
     "blackout": false
+  },
+  {
+    "date": "2026-04-20",
+    "up_4_today": 192,
+    "down_4_today": 78,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2924,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 2.46,
+    "ratio_5day": 3.47,
+    "ratio_10day": 2.86,
+    "up_25_quarter": 246,
+    "down_25_quarter": 171,
+    "thrust_detected": false,
+    "fg": 69.9,
+    "spy_price": 708.72,
+    "spy_sma200_pct": 6.27,
+    "spy_above_200d": true,
+    "market_state": "GREEN",
+    "state_message": "Full conditions met",
+    "blackout": false
   }
 ]
