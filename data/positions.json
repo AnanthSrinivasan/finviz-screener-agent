@@ -22,7 +22,7 @@
       "shares": 75,
       "entry_price": 114.35,
       "entry_date": "2026-04-08",
-      "stop": 147.12,
+      "stop": 155.47,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": true,
       "target1": 137.22,
@@ -30,9 +30,10 @@
       "target2": 160.09,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 163.47,
+      "highest_price_seen": 172.75,
       "current_gain_pct": 31.67,
-      "peak_gain_pct": 42.96
+      "peak_gain_pct": 51.07,
+      "last_fade_alert_gain_pct": 31.67
     },
     {
       "ticker": "AMD",
@@ -47,9 +48,9 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 284.49,
+      "highest_price_seen": 286.17,
       "current_gain_pct": 15.62,
-      "peak_gain_pct": 15.62
+      "peak_gain_pct": 16.3
     },
     {
       "ticker": "CORZ",
@@ -64,9 +65,9 @@
       "target2": 27.02,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 20.77,
+      "highest_price_seen": 21.25,
       "current_gain_pct": 7.62,
-      "peak_gain_pct": 7.62
+      "peak_gain_pct": 10.1
     },
     {
       "ticker": "PL",
@@ -98,9 +99,9 @@
       "target2": 233.94,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 167.18,
+      "highest_price_seen": 170.14,
       "current_gain_pct": -0.99,
-      "peak_gain_pct": 0.05
+      "peak_gain_pct": 1.82
     }
   ],
   "closed_positions": []
