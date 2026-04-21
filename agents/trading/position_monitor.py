@@ -232,6 +232,32 @@ def fetch_sma50_price(ticker: str, fallback_pct: float = 0.90) -> float:
         return 0.0
 
 
+def fetch_alpaca_day_high(ticker: str) -> float:
+    """Today's intraday high via Alpaca snapshot. Returns 0.0 if unavailable.
+    Finviz snapshot has no intraday range, so we use Alpaca for the trailing-stop high."""
+    api_key = os.environ.get("ALPACA_API_KEY", "")
+    api_sec = os.environ.get("ALPACA_SECRET_KEY", "")
+    base    = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
+    if not api_key or not api_sec:
+        return 0.0
+    try:
+        data_host = "https://data.alpaca.markets"
+        resp = requests.get(
+            f"{data_host}/v2/stocks/{ticker}/snapshot",
+            headers={"APCA-API-KEY-ID": api_key, "APCA-API-SECRET-KEY": api_sec},
+            timeout=8,
+        )
+        if not resp.ok:
+            return 0.0
+        snap = resp.json() or {}
+        day_bar = snap.get("dailyBar") or {}
+        high = float(day_bar.get("h") or 0)
+        return high
+    except Exception as e:
+        log.warning(f"{ticker}: Alpaca day_high fetch failed — {e}")
+        return 0.0
+
+
 def fetch_position_metrics(ticker: str) -> dict:
     session = make_session()
     try:
@@ -293,14 +319,10 @@ def fetch_position_metrics(ticker: str) -> dict:
         high_52w       = float(high_52w_match.group(1)) if high_52w_match else 0.0
         dist_from_high = ((price / high_52w) - 1) * 100 if high_52w > 0 else 0
 
-        # Finviz "Range" = today's intraday "low - high", e.g. "149.50 - 173.20"
-        day_high = 0.0
+        # Intraday high via Alpaca snapshot (Finviz snapshot has no intraday range).
+        # Falls back to 0 — caller treats 0 as "use current_price".
+        day_high = fetch_alpaca_day_high(ticker)
         day_low = 0.0
-        range_raw = data.get("Range", "")
-        rng_match = re.match(r"^\s*([\d.]+)\s*-\s*([\d.]+)\s*$", range_raw)
-        if rng_match:
-            day_low = float(rng_match.group(1))
-            day_high = float(rng_match.group(2))
 
         rel_vol = parse_float(data.get("Rel Volume", "1"), 1.0)
 

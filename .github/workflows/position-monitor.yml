@@ -65,6 +65,9 @@ jobs:
           INPUT_SIDE: ${{ github.event.inputs.side }}
           INPUT_WATCHLIST_ACTION: ${{ github.event.inputs.watchlist_action }}
           INPUT_WATCHLIST_TICKER: ${{ github.event.inputs.watchlist_ticker }}
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
         run: python agents/trading/position_monitor.py
 
       - name: Run Alpaca paper monitor
