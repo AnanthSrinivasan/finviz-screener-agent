@@ -276,9 +276,11 @@
       "stop": null,
       "thesis": "Technology | Q=105 | VCP | ATR 9.4%",
       "added": "2026-04-06",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-21"
     },
     {
       "ticker": "MTSI",
@@ -287,10 +289,12 @@
       "stop": null,
       "thesis": "Technology | Q=94 | VCP | ATR 5.8%",
       "added": "2026-04-06",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "focus",
-      "focus_promoted_date": "2026-04-14"
+      "focus_promoted_date": "2026-04-14",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-21"
     },
     {
       "ticker": "AA",
@@ -299,9 +303,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=92 | VCP | ATR 5.4%",
       "added": "2026-04-06",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-21"
     },
     {
       "ticker": "KEYS",
@@ -310,9 +316,11 @@
       "stop": null,
       "thesis": "Technology | Q=91 | VCP | ATR 4.3%",
       "added": "2026-04-06",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-21"
     },
     {
       "ticker": "CRWV",
@@ -1357,8 +1365,9 @@
       "thesis": "Technology | Q=102 | VCP | ATR 5.5%",
       "added": "2026-04-18",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
     },
     {
       "ticker": "SQM",
@@ -1414,8 +1423,9 @@
       "thesis": "Industrials | Q=102 | VCP | ATR 3.8%",
       "added": "2026-04-20",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
     },
     {
       "ticker": "FCEL",
@@ -1435,6 +1445,62 @@
       "stop": null,
       "thesis": "Basic Materials | Q=95 | ATR 7.8%",
       "added": "2026-04-20",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "MTSI",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=104 | VCP | ATR 4.2%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
+    },
+    {
+      "ticker": "LITE",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=101 | VCP | ATR 7.6%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "GFS",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=94 | ATR 4.3%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "CIEN",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=92 | ATR 6.0%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "STX",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
+      "added": "2026-04-21",
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
