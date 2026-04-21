@@ -583,8 +583,8 @@ Not needed yet. Revisit if automated execution is added.
 | `SNAPTRADE_CONSUMER_KEY` | finviz_position_monitor.py |
 | `SNAPTRADE_USER_ID` | finviz_position_monitor.py |
 | `SNAPTRADE_USER_SECRET` | finviz_position_monitor.py |
-| `ALPACA_API_KEY` | alpaca_executor.py, alpaca_monitor.py |
-| `ALPACA_SECRET_KEY` | alpaca_executor.py, alpaca_monitor.py |
+| `ALPACA_API_KEY` | alpaca_executor.py, alpaca_monitor.py, position_monitor.py (intraday day_high via Alpaca snapshot) |
+| `ALPACA_SECRET_KEY` | alpaca_executor.py, alpaca_monitor.py, position_monitor.py |
 | `ALPACA_BASE_URL` | alpaca_executor.py, alpaca_monitor.py (`https://paper-api.alpaca.markets/v2`) |
 | `AWS_ACCESS_KEY_ID` | archive_data.py (bot key for `finviz-screener-bot`) |
 | `AWS_SECRET_ACCESS_KEY` | archive_data.py |
