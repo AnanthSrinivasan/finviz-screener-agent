@@ -142,6 +142,144 @@ def get_ticker_stage(ticker: str) -> int:
 
 
 # ----------------------------
+# Schema migration & rules
+# ----------------------------
+def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
+    """
+    Bring a paper_stops entry up to the full schema.
+    Idempotent — safe to call on already-migrated entries.
+    Fields added (when missing):
+      highest_price_seen, peak_gain_pct, breakeven_activated,
+      target1, target2, target1_hit
+    """
+    ep = entry.get("entry_price", entry_price) or entry_price
+    if ep <= 0:
+        return entry  # can't migrate without entry price
+
+    entry.setdefault("highest_price_seen", round(ep, 2))
+    entry.setdefault("peak_gain_pct", 0.0)
+    entry.setdefault("breakeven_activated", False)
+    entry.setdefault("target1", round(ep * 1.20, 2))
+    entry.setdefault("target2", round(ep * 1.40, 2))
+    entry.setdefault("target1_hit", False)
+    return entry
+
+
+def apply_paper_rules(ticker: str, entry: dict, current_price: float,
+                     day_high: float, atr_pct: float) -> tuple:
+    """
+    Apply trailing stop rules to a paper position. Mirrors apply_minervini_rules
+    but writes to paper_stops dict shape and returns (alerts, modified).
+    Rules: ATR trail (silent) → breakeven at +20% → 10% trail at +30% → fade alert at peak-1×ATR.
+    """
+    alerts = []
+    modified = False
+    entry_price = entry.get("entry_price", 0) or 0
+    if entry_price <= 0 or current_price <= 0:
+        return alerts, modified
+
+    atr_dollar = entry_price * (atr_pct / 100.0) if atr_pct > 0 else 0
+    # Use the higher of current price or today's intraday high
+    high_candidate = max(current_price, day_high or current_price)
+    prev_high = entry.get("highest_price_seen", entry_price)
+    if high_candidate > prev_high:
+        entry["highest_price_seen"] = round(high_candidate, 2)
+        prev_high = entry["highest_price_seen"]
+        modified = True
+
+    gain_pct = (current_price - entry_price) / entry_price * 100
+    peak_gain_pct = (prev_high - entry_price) / entry_price * 100
+    if peak_gain_pct > entry.get("peak_gain_pct", 0.0):
+        entry["peak_gain_pct"] = round(peak_gain_pct, 2)
+        modified = True
+
+    current_stop = float(entry.get("stop_price") or 0)
+
+    # ATR trail (silent, pre-breakeven only)
+    if atr_dollar > 0 and gain_pct > 0 and not entry.get("breakeven_activated"):
+        atr_trail = round(current_price - 2 * atr_dollar, 2)
+        if atr_trail > current_stop:
+            entry["stop_price"] = atr_trail
+            current_stop = atr_trail
+            modified = True
+
+    # Breakeven at +20%
+    if gain_pct >= 20 and not entry.get("breakeven_activated"):
+        be_stop = round(entry_price * 1.005, 2)
+        if be_stop > current_stop:
+            entry["stop_price"] = be_stop
+            current_stop = be_stop
+        entry["breakeven_activated"] = True
+        modified = True
+        alerts.append(
+            ":lock: [PAPER] " + ticker + " +" + str(round(gain_pct, 1))
+            + "% — stop moved to breakeven $" + str(be_stop)
+        )
+
+    # +30% trail from highest (10% from high)
+    if gain_pct >= 30:
+        trail_stop = round(prev_high * 0.90, 2)
+        if trail_stop > current_stop:
+            entry["stop_price"] = trail_stop
+            current_stop = trail_stop
+            modified = True
+            alerts.append(
+                ":chart_with_upwards_trend: [PAPER] " + ticker + " +"
+                + str(round(gain_pct, 1)) + "% — trailing stop raised to $"
+                + str(trail_stop)
+            )
+
+    # Targets
+    t1 = entry.get("target1", 0) or 0
+    if t1 > 0 and current_price >= t1 and not entry.get("target1_hit"):
+        entry["target1_hit"] = True
+        modified = True
+        alerts.append(
+            ":dart: [PAPER] " + ticker + " HIT TARGET 1 $" + str(t1)
+            + " — consider selling half, move stop to breakeven"
+        )
+
+    t2 = entry.get("target2", 0) or 0
+    if t2 > 0 and current_price >= t2:
+        alerts.append(
+            ":dart::dart: [PAPER] " + ticker + " HIT TARGET 2 $" + str(t2)
+            + " — trail remaining position tightly"
+        )
+
+    # 1×ATR fade alert (peak >= +20% AND price dropped 1 ATR below high)
+    peak_gain = entry.get("peak_gain_pct", 0.0)
+    if atr_dollar > 0 and peak_gain >= 20 and current_price < (prev_high - atr_dollar):
+        last_fade = entry.get("last_fade_alert_gain_pct")
+        if last_fade is None or (last_fade - gain_pct) >= 5:
+            given_back = peak_gain - gain_pct
+            alerts.append(
+                ":warning: [PAPER] " + ticker + " fading — peak +"
+                + str(round(peak_gain, 1)) + "%, now +"
+                + str(round(gain_pct, 1)) + "% (gave back "
+                + str(round(given_back, 1)) + "pp)"
+            )
+            entry["last_fade_alert_gain_pct"] = round(gain_pct, 2)
+            modified = True
+    elif "last_fade_alert_gain_pct" in entry:
+        entry.pop("last_fade_alert_gain_pct", None)
+        modified = True
+
+    return alerts, modified
+
+
+def fetch_day_high_atr(ticker: str) -> tuple:
+    """Pull today's (day_high, atr_pct) via position_monitor's Finviz parser.
+    Returns (0.0, 0.0) if unavailable — rules gracefully skip ATR-dependent branches."""
+    try:
+        from agents.trading.position_monitor import fetch_position_metrics
+        m = fetch_position_metrics(ticker) or {}
+        return float(m.get("day_high") or 0.0), float(m.get("atr_pct") or 0.0)
+    except Exception as e:
+        log.warning("day_high/ATR fetch failed for %s: %s", ticker, e)
+        return 0.0, 0.0
+
+
+# ----------------------------
 # Main
 # ----------------------------
 if __name__ == "__main__":
@@ -172,12 +310,25 @@ if __name__ == "__main__":
         pl_dollar   = float(pos.get("unrealized_pl") or 0)
         pl_pct      = float(pos.get("unrealized_plpc") or 0) * 100
 
-        stop_info  = stops.get(ticker, {})
-        stop_price = stop_info.get("stop_price")
+        # Migrate schema for existing entries, seed defaults for new ones
+        stop_info = stops.setdefault(ticker, {"entry_price": entry_price})
+        if not stop_info.get("entry_price"):
+            stop_info["entry_price"] = entry_price
+        stop_info = migrate_stop_entry(ticker, stop_info, entry_price)
 
+        # Apply trailing rules: ATR trail, breakeven, +30% trail, targets, fade
+        day_high, atr_pct = fetch_day_high_atr(ticker)
+        if atr_pct > 0 and "atr_pct" not in stop_info:
+            stop_info["atr_pct"] = atr_pct
+        rule_alerts, _ = apply_paper_rules(ticker, stop_info, current, day_high,
+                                           stop_info.get("atr_pct", atr_pct))
+        for msg in rule_alerts:
+            slack_send(msg)
+
+        stop_price = stop_info.get("stop_price")
         sell_reason = None
 
-        # Check stop loss
+        # Check stop loss (now reflects any trailing raises applied above)
         if stop_price is not None and current > 0 and current <= float(stop_price):
             sell_reason = (
                 "stop hit (price $" + str(round(current, 2))
@@ -201,7 +352,7 @@ if __name__ == "__main__":
                 pl_sign  = "+" if pl_dollar >= 0 else ""
                 pct_sign = "+" if pl_pct    >= 0 else ""
                 slack_send(
-                    ":large_red_circle: *SELL PLACED* " + ticker + "\n"
+                    ":large_red_circle: *[PAPER] SELL PLACED* " + ticker + "\n"
                     "Reason: " + sell_reason + "\n"
                     "Qty: " + qty
                     + " | Entry: $" + str(round(entry_price, 2))
@@ -210,18 +361,29 @@ if __name__ == "__main__":
                     + " (" + pct_sign + str(round(pl_pct, 1)) + "%)"
                 )
         else:
-            # Hold — report current P&L
+            # Hold — report current P&L with T1/T2/peak context
             stop_str = ""
             if stop_price is not None:
-                stop_str = " | Stop: $" + str(round(float(stop_price), 2))
+                be_suffix = " BE" if stop_info.get("breakeven_activated") else ""
+                stop_str = " | Stop: $" + str(round(float(stop_price), 2)) + be_suffix
+            t1_mark = ":white_check_mark:" if stop_info.get("target1_hit") else ":hourglass_flowing_sand:"
+            t2 = stop_info.get("target2", 0) or 0
+            t2_hit = t2 > 0 and current >= t2
+            t2_mark = ":white_check_mark:" if t2_hit else ":hourglass_flowing_sand:"
+            peak = stop_info.get("peak_gain_pct", 0) or 0
+            peak_str = ""
+            if peak > pl_pct + 0.1:
+                peak_str = ", peak +" + str(round(peak, 1)) + "%"
             pl_sign  = "+" if pl_dollar >= 0 else ""
             pct_sign = "+" if pl_pct    >= 0 else ""
             slack_send(
-                ":white_circle: *HOLD* " + ticker
+                ":white_circle: *[PAPER] HOLD* " + ticker
                 + " — $" + str(round(current, 2))
                 + " | P&L: " + pl_sign + str(int(pl_dollar))
-                + " (" + pct_sign + str(round(pl_pct, 1)) + "%)"
+                + " (" + pct_sign + str(round(pl_pct, 1)) + "%" + peak_str + ")"
                 + stop_str
+                + " | T1 " + t1_mark + " $" + str(round(stop_info.get("target1", 0), 2))
+                + " | T2 " + t2_mark + " $" + str(round(t2, 2))
             )
 
     save_stops(stops)

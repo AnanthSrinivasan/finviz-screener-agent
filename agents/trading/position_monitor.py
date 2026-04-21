@@ -293,6 +293,15 @@ def fetch_position_metrics(ticker: str) -> dict:
         high_52w       = float(high_52w_match.group(1)) if high_52w_match else 0.0
         dist_from_high = ((price / high_52w) - 1) * 100 if high_52w > 0 else 0
 
+        # Finviz "Range" = today's intraday "low - high", e.g. "149.50 - 173.20"
+        day_high = 0.0
+        day_low = 0.0
+        range_raw = data.get("Range", "")
+        rng_match = re.match(r"^\s*([\d.]+)\s*-\s*([\d.]+)\s*$", range_raw)
+        if rng_match:
+            day_low = float(rng_match.group(1))
+            day_high = float(rng_match.group(2))
+
         rel_vol = parse_float(data.get("Rel Volume", "1"), 1.0)
 
         result = {
@@ -303,6 +312,8 @@ def fetch_position_metrics(ticker: str) -> dict:
             "atr_multiple_ma":round(atr_multiple_ma, 2),
             "dist_from_high": round(dist_from_high, 2),
             "rel_vol":        round(rel_vol, 2),
+            "day_high":       day_high,
+            "day_low":        day_low,
         }
         log.info(
             f"{ticker} metrics: price={price} ATR%={atr_pct:.2f}% "
@@ -667,34 +678,41 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
     return alerts
 
 
-def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0) -> tuple:
+def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0,
+                          day_high: float | None = None) -> tuple:
     """
     Apply Minervini rules to a single position.
     Returns (alerts_list, position_was_modified).
 
-    Rules applied:
-      1. Stop loss check (positions.json stop)
-      5. Gain protection:
-         - ATR trailing: price - 2×ATR from entry onwards (incremental, silent)
-         - Breakeven stop at +20%
-         - Trailing stop at +30% (10% from high)
-         - Gain fading warning
-      Targets: alert on target1/target2 hits
+    `day_high` (when provided) is used to capture intraday peaks that the
+    hourly snap price misses. Trailing stops and peak_gain_pct use
+    max(current_price, day_high, prior highest_price_seen).
     """
     alerts = []
     modified = False
     ticker = position["ticker"]
     entry = position["entry_price"]
 
-    # Update tracking fields
+    # Use intraday high if caller supplied one (fixes stale highest_price_seen)
+    high_candidate = current_price
+    if day_high is not None and day_high > high_candidate:
+        high_candidate = day_high
+
     prev_high = position.get("highest_price_seen", entry)
-    if current_price > prev_high:
-        position["highest_price_seen"] = round(current_price, 2)
+    if high_candidate > prev_high:
+        position["highest_price_seen"] = round(high_candidate, 2)
         modified = True
 
     gain_pct = (current_price - entry) / entry * 100
     if round(gain_pct, 2) != position.get("current_gain_pct", 0):
         position["current_gain_pct"] = round(gain_pct, 2)
+        modified = True
+
+    # peak_gain_pct — tracks the best gain ever seen (intraday-aware)
+    high_gain_pct = (position["highest_price_seen"] - entry) / entry * 100
+    prev_peak = position.get("peak_gain_pct", 0.0)
+    if high_gain_pct > prev_peak:
+        position["peak_gain_pct"] = round(high_gain_pct, 2)
         modified = True
 
     # Rule 1 — Stop loss check (positions.json stop, tighter than ATR may be)
@@ -744,11 +762,36 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
             )
             log.info(f"{ticker}: Trailing stop raised to ${trail_stop:.2f}")
 
-    # Gain fading warning
-    if position.get("breakeven_stop_activated", False) and gain_pct < 5:
-        alerts.append(
-            f"\u26a0\ufe0f {ticker} gain fading \u2014 was +20%+, now +{gain_pct:.1f}% \u2014 watch closely"
+    # Gain fading warning — fires when peak ≥ +20% AND price has dropped 1×ATR
+    # below the highest_price_seen. Alert (not exit); the stop is the exit.
+    # Dedup: suppress re-alert unless current_gain has fallen another 5pp since last alert.
+    peak_gain = position.get("peak_gain_pct", gain_pct)
+    high = position.get("highest_price_seen", entry)
+    fade_trigger_price = high - atr if atr > 0 else None
+    in_fade_zone = (
+        peak_gain >= 20
+        and fade_trigger_price is not None
+        and current_price < fade_trigger_price
+    )
+    if in_fade_zone:
+        last_alert_gain = position.get("last_fade_alert_gain_pct")
+        should_fire = (
+            last_alert_gain is None
+            or (last_alert_gain - gain_pct) >= 5
         )
+        if should_fire:
+            given_back = peak_gain - gain_pct
+            alerts.append(
+                f"\u26a0\ufe0f {ticker} fading \u2014 peak +{peak_gain:.1f}%, "
+                f"now +{gain_pct:.1f}% (gave back {given_back:.1f}pp, "
+                f"price ${current_price:.2f} < high ${high:.2f} \u2212 1\u00d7ATR ${atr:.2f})"
+            )
+            position["last_fade_alert_gain_pct"] = round(gain_pct, 2)
+            modified = True
+    elif "last_fade_alert_gain_pct" in position:
+        # Recovered (or out of zone) — clear dedup so next fade fires cleanly
+        position.pop("last_fade_alert_gain_pct", None)
+        modified = True
 
     # Target alerts
     target1 = position.get("target1", 0)
@@ -994,12 +1037,37 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
         snap = next((p for p in positions_with_metrics if p["ticker"] == ticker), None)
         cur_price = snap["metrics"].get("price", snap["current_price"]) if snap and snap.get("metrics") else rp.get("highest_price_seen", rp["entry_price"])
         gain = (cur_price - rp["entry_price"]) / rp["entry_price"] * 100
+        peak = rp.get("peak_gain_pct", gain)
         stop = rp.get("stop", 0)
         t1 = rp.get("target1", 0)
+        t2 = rp.get("target2", 0)
+        t1_mark = "\u2705" if rp.get("target1_hit") else "\u23f3"
+        t2_mark = "\u2705" if (t2 > 0 and cur_price >= t2) else "\u23f3"
+        be_suffix = " BE" if rp.get("breakeven_stop_activated") else ""
+        peak_str = f", peak +{peak:.1f}%" if peak > gain + 0.1 else ""
         pos_lines.append(
             f"{ticker}  {rp['shares']} @ ${rp['entry_price']:.2f} \u2192 ${cur_price:.2f} "
-            f"({gain:+.1f}%) | Stop ${stop:.2f} | Target ${t1:.2f}"
+            f"({gain:+.1f}%{peak_str}) | Stop ${stop:.2f}{be_suffix} | "
+            f"T1 {t1_mark} ${t1:.2f} | T2 {t2_mark} ${t2:.2f}"
         )
+
+    # Daily reminder for positions in T1→T2 holding zone
+    for rp in positions_data["open_positions"]:
+        ticker = rp["ticker"]
+        if not rp.get("target1_hit"):
+            continue
+        t2 = rp.get("target2", 0)
+        snap = next((p for p in positions_with_metrics if p["ticker"] == ticker), None)
+        cur_price = snap["metrics"].get("price", snap["current_price"]) if snap and snap.get("metrics") else rp.get("highest_price_seen", rp["entry_price"])
+        if t2 > 0 and cur_price >= t2:
+            continue  # T2 already hit → different zone
+        gain = (cur_price - rp["entry_price"]) / rp["entry_price"] * 100
+        reminder = (
+            f"\U0001f3af {ticker} T1 locked at +20% \u2014 watching T2 ${t2:.2f} "
+            f"(now +{gain:.1f}%)"
+        )
+        if reminder not in alerts:
+            alerts.append(reminder)
 
     sizing = trading_state["current_sizing_mode"].upper()
     wins = trading_state["consecutive_wins"]
@@ -1276,8 +1344,12 @@ if __name__ == "__main__":
             log.warning(f"{ticker}: no SnapTrade data — using last known price ${cur_price:.2f}")
 
         if cur_price > 0:
-            atr = snap.get("metrics", {}).get("atr", 0.0) if snap else 0.0
-            pos_alerts, modified = apply_minervini_rules(rpos, cur_price, atr=atr)
+            metrics = snap.get("metrics", {}) if snap else {}
+            atr = metrics.get("atr", 0.0)
+            day_high = metrics.get("day_high") or None
+            pos_alerts, modified = apply_minervini_rules(
+                rpos, cur_price, atr=atr, day_high=day_high
+            )
             rules_alerts.extend(pos_alerts)
             if modified:
                 rules_state_modified = True

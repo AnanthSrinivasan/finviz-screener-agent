@@ -532,7 +532,7 @@ data/
   market_monitor_history.json              # rolling 30-day history (weekly agent reads this)
   positions_YYYY-MM-DD.json                # real Robinhood position snapshots (via SnapTrade)
   watchlist.json                           # market pulse watchlist — manual entries + auto-populated by screener
-  paper_stops.json                         # paper trade stops {ticker: {stop_price, entry_price, atr_pct, entry_date}}
+  paper_stops.json                         # paper state {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit}}
 ```
 
 Volume is ~100–200 tickers/day. GitHub Actions reads/writes CSV natively. Reports are static HTML on GitHub Pages. No server, no cost, fully auditable via git history.
@@ -682,11 +682,19 @@ Not needed yet. Revisit if automated execution is added.
 **Trigger:** Runs as a step inside `position-monitor.yml` (after SnapTrade monitor)
 
 **For each open Alpaca paper position:**
-- Stop hit (`current_price ≤ stop_price`) → market sell
-- Stage 3 or 4 in latest screener CSV → market sell
-- Otherwise → hold, log current P&L to Slack with `[PAPER]` context
+1. Migrate `paper_stops.json` entry to full schema (`highest_price_seen`, `peak_gain_pct`, `breakeven_activated`, `target1` = entry × 1.20, `target2` = entry × 1.40, `target1_hit`). Idempotent — runs on every invocation, no-ops for already-migrated entries.
+2. Fetch today's intraday high (Finviz "Range") and ATR% via `fetch_position_metrics`.
+3. Apply trailing rules (`apply_paper_rules`):
+   - ATR trail (silent): `stop_price = max(stop, price − 2×ATR)` while profitable and pre-breakeven
+   - Breakeven at +20% gain: stop → `entry × 1.005`, `breakeven_activated=True`, disables ATR trail
+   - +30% trail: `stop = highest_price_seen × 0.90` (10% from intraday high)
+   - Target 1 alert at +20%, Target 2 alert at +40% (one-shot via `target1_hit` flag)
+   - 1×ATR fade alert: fires when `peak_gain_pct ≥ 20% AND current_price < highest_price_seen − 1×ATR`. Every-run with 5pp dedup
+4. After rules: stop hit (`current_price ≤ stop_price`) → market sell
+5. Stage 3 or 4 in latest screener CSV → market sell
+6. Otherwise → hold, log P&L to Slack with `[PAPER]` context, showing stop, peak gain, T1/T2 status
 
-Updates `paper_stops.json` to remove exited positions.
+Updates `paper_stops.json` with trailing stop raises, flags, and removes exited positions.
 
 After the monitor loop finishes, calls `utils/generators/generate_portfolio.py` (non-fatal) to rebuild `data/claude_portfolio.html`.
 

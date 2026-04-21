@@ -120,12 +120,70 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         self.assertTrue(modified)
         self.assertFalse(any("ATR trail" in a for a in alerts))
 
-    def test_gain_fading_warning(self):
+    def test_fade_fires_when_price_drops_one_atr_below_high(self):
+        # Peak was +25% (high=125), now price=122 (dropped 3 from high) with ATR=2 → fires
         pos = self._pos(entry_price=100.0, stop=100.5,
                         target1=200.0, target2=300.0,
+                        highest_price_seen=125.0,
+                        peak_gain_pct=25.0,
                         breakeven_stop_activated=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=102.0, atr=2.0)
-        self.assertTrue(any("gain fading" in a for a in alerts))
+        alerts, _ = pm.apply_minervini_rules(pos, current_price=122.0, atr=2.0)
+        self.assertTrue(any("fading" in a for a in alerts))
+
+    def test_fade_does_not_fire_within_one_atr_of_high(self):
+        # Peak +25% (high=125), price=124 is only 1 below high, within 1×ATR — no fade
+        pos = self._pos(entry_price=100.0, stop=100.5,
+                        target1=200.0, target2=300.0,
+                        highest_price_seen=125.0,
+                        peak_gain_pct=25.0,
+                        breakeven_stop_activated=True)
+        alerts, _ = pm.apply_minervini_rules(pos, current_price=124.0, atr=2.0)
+        self.assertFalse(any("fading" in a for a in alerts))
+
+    def test_fade_requires_peak_above_20_pct(self):
+        # Peak only +15% → below threshold → no fade even if price dropped 2×ATR
+        pos = self._pos(entry_price=100.0, stop=95.0,
+                        target1=200.0, target2=300.0,
+                        highest_price_seen=115.0,
+                        peak_gain_pct=15.0)
+        alerts, _ = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
+        self.assertFalse(any("fading" in a for a in alerts))
+
+    def test_fade_dedups_until_another_5pp_drop(self):
+        # First call fires, second within 5pp of first should NOT re-fire
+        pos = self._pos(entry_price=100.0, stop=100.5,
+                        target1=200.0, target2=300.0,
+                        highest_price_seen=150.0,
+                        peak_gain_pct=50.0,
+                        breakeven_stop_activated=True)
+        alerts1, _ = pm.apply_minervini_rules(pos, current_price=140.0, atr=2.0)
+        self.assertTrue(any("fading" in a for a in alerts1))
+
+        # Next tick: gain at 138/100 = +38% (2pp lower) — within 5pp dedup
+        alerts2, _ = pm.apply_minervini_rules(pos, current_price=138.0, atr=2.0)
+        self.assertFalse(any("fading" in a for a in alerts2))
+
+        # Drop another 5pp → fires again
+        alerts3, _ = pm.apply_minervini_rules(pos, current_price=132.0, atr=2.0)
+        self.assertTrue(any("fading" in a for a in alerts3))
+
+    def test_day_high_captures_intraday_peak(self):
+        # current_price=150 but day_high=173 → highest_price_seen uses 173
+        pos = self._pos(entry_price=100.0, highest_price_seen=100.0)
+        pm.apply_minervini_rules(pos, current_price=150.0, atr=5.0, day_high=173.0)
+        self.assertEqual(pos["highest_price_seen"], 173.0)
+        self.assertAlmostEqual(pos["peak_gain_pct"], 73.0, places=1)
+
+    def test_day_high_ignored_when_below_prior_high(self):
+        pos = self._pos(entry_price=100.0, highest_price_seen=180.0)
+        pm.apply_minervini_rules(pos, current_price=150.0, atr=5.0, day_high=160.0)
+        self.assertEqual(pos["highest_price_seen"], 180.0)
+
+    def test_peak_gain_pct_never_decreases(self):
+        pos = self._pos(entry_price=100.0, highest_price_seen=150.0, peak_gain_pct=50.0)
+        # Price drops — peak_gain_pct must stay at 50
+        pm.apply_minervini_rules(pos, current_price=120.0, atr=2.0)
+        self.assertEqual(pos["peak_gain_pct"], 50.0)
 
     def test_target1_alert_fires_once(self):
         pos = self._pos(entry_price=100.0, target1=120.0, target2=140.0, stop=95.0)

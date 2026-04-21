@@ -97,10 +97,11 @@ The position monitor has two layers:
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
 - Rule 1: Stop loss check (positions.json stop price)
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
-- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at +20%; trailing stop at +30% (10% trail)
+- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at +20%; trailing stop at +30% (10% trail from `highest_price_seen`, intraday-aware)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
-- Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight
-- Gain fading warning: was +20%+, now <+5%
+- Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight. T1/T2 status (✅/⏳) shown in every daily summary; daily reminder while T1 locked and T2 pending
+- Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
+- `highest_price_seen` and `peak_gain_pct` use Finviz intraday "Range" high (fixes missed-intraday-peak bug where hourly snap missed spikes between ticks)
 
 **Sizing modes** (in `trading_state.json`):
 - `suspended` — 3+ consecutive losses → paper trade only
@@ -157,7 +158,7 @@ data/
   positions.json                          # Rules engine state (open/closed positions, stops, targets)
   trading_state.json                      # Win/loss streaks, sizing mode, recent trades
   watchlist.json                          # Market pulse watchlist (auto-populated by screener + manual entries)
-  paper_stops.json                        # Paper trade stop-loss references {ticker: {stop_price, entry_price, atr_pct, entry_date}}
+  paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit}}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
   market_monitor_history.json             # Rolling 30-day breadth history
   market_monitor_YYYY-MM-DD.json          # Daily market breadth snapshot
