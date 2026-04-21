@@ -14,7 +14,8 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 45.38,
-      "current_gain_pct": 27.09
+      "current_gain_pct": 22.21,
+      "peak_gain_pct": 31.77
     },
     {
       "ticker": "AAOI",
@@ -30,14 +31,15 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 163.47,
-      "current_gain_pct": 36.2
+      "current_gain_pct": 31.67,
+      "peak_gain_pct": 42.96
     },
     {
       "ticker": "AMD",
       "shares": 25,
       "entry_price": 246.06,
       "entry_date": "2026-04-13",
-      "stop": 262.73,
+      "stop": 263.25,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 295.27,
@@ -45,15 +47,16 @@
       "target2": 344.48,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 283.83,
-      "current_gain_pct": 15.35
+      "highest_price_seen": 284.49,
+      "current_gain_pct": 15.62,
+      "peak_gain_pct": 15.62
     },
     {
       "ticker": "CORZ",
       "shares": 300,
       "entry_price": 19.3,
       "entry_date": "2026-04-14",
-      "stop": 18.47,
+      "stop": 18.61,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 23.16,
@@ -61,8 +64,9 @@
       "target2": 27.02,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 20.59,
-      "current_gain_pct": 6.68
+      "highest_price_seen": 20.77,
+      "current_gain_pct": 7.62,
+      "peak_gain_pct": 7.62
     },
     {
       "ticker": "PL",
@@ -78,7 +82,8 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 39.89,
-      "current_gain_pct": 10.53
+      "current_gain_pct": 9.72,
+      "peak_gain_pct": 15.09
     },
     {
       "ticker": "GLW",
@@ -94,7 +99,8 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 167.18,
-      "current_gain_pct": -0.26
+      "current_gain_pct": -0.99,
+      "peak_gain_pct": 0.05
     }
   ],
   "closed_positions": []
