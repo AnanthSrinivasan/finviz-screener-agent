@@ -1469,8 +1469,9 @@
       "thesis": "Technology | Q=101 | VCP | ATR 7.6%",
       "added": "2026-04-21",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
     },
     {
       "ticker": "GFS",
@@ -1491,8 +1492,9 @@
       "thesis": "Technology | Q=92 | ATR 6.0%",
       "added": "2026-04-21",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
     },
     {
       "ticker": "STX",
@@ -1500,6 +1502,62 @@
       "entry_price": null,
       "stop": null,
       "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "KEYS",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=101 | VCP | ATR 3.1%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-21"
+    },
+    {
+      "ticker": "PBI",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=99 | ATR 3.1%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "RCUS",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=98 | VCP | ATR 5.8%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "VICR",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=97 | ATR 6.9%",
+      "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "FIVE",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Consumer Cyclical | Q=95 | VCP | ATR 4.1%",
       "added": "2026-04-21",
       "status": "watching",
       "priority": "watching",
