@@ -600,6 +600,16 @@ def compute_sector_rotation(df: pd.DataFrame) -> list:
     return sorted(result, key=lambda x: x['score'], reverse=True)
 
 
+def compute_rotating_in(sector_data: list, count_floor: int = 10, top_n: int = 3) -> list:
+    """
+    Return up to top_n sectors ranked by avg_q (desc), gated by count >= count_floor.
+    Surfaces high-quality emerging clusters that the volume-weighted score hides.
+    Input is the list returned by compute_sector_rotation.
+    """
+    eligible = [s for s in sector_data if s['count'] >= count_floor]
+    return sorted(eligible, key=lambda x: x['avg_q'], reverse=True)[:top_n]
+
+
 # ----------------------------
 # Part 3: Chart Gallery
 # ----------------------------
@@ -642,6 +652,21 @@ def _classify_ticker(row) -> str:
     if rel_vol >= 2.0 and atr_pct >= 4.0:
         return 'momentum'
     return 'watch'
+
+
+def _sector_slug(sector: str) -> str:
+    """Stable lowercase slug for HTML data attributes. Empty/unknown sector -> ''."""
+    s = (sector or "").strip().lower()
+    if not s or s in ("nan", "—"):
+        return ""
+    out = []
+    for ch in s:
+        if ch.isalnum():
+            out.append(ch)
+        else:
+            if out and out[-1] != "-":
+                out.append("-")
+    return "".join(out).strip("-")
 
 
 def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
@@ -688,6 +713,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     if sector:
         label = sector + (f" · {industry}" if industry else "")
         sector_html = f'<div class="sector-tag">{label}</div>'
+    sector_attr = _sector_slug(sector)
 
     vcp_badge       = '<span class="tag-vcp">VCP</span>'             if vcp_ok       else ''
     perfect_badge   = '<span class="tag-perf">⚡ aligned</span>'    if stage_perfect else ''
@@ -722,7 +748,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     )
 
     return f"""
-<div class="chart-item" style="border-color:{card_border}">
+<div class="chart-item" data-sector="{sector_attr}" style="border-color:{card_border}">
   <div class="chart-header">
     <div>
       <a href="{finviz_url}" target="_blank" class="ticker-link">{t}</a>
@@ -817,8 +843,9 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
             lead_badge = '<span class="sr-lead-badge">Leading</span>' if is_lead else ''
             s2_html    = f'<span class="sr-stat sr-s2">{s["stage2"]} S2</span>' if s['stage2'] else ''
             vcp_html   = f'<span class="sr-stat sr-vcp">{s["vcp"]} VCP</span>' if s['vcp'] else ''
+            slug       = _sector_slug(s['sector'])
             sr_cards += f"""
-<div class="sr-card" style="border-color:{border}">
+<div class="sr-card" data-sector="{slug}" style="border-color:{border}">
   <div class="sr-sector-name">{s['sector']}{lead_badge}</div>
   <div class="sr-stats-row">
     <span class="sr-stat">{s['count']} setups</span>
@@ -826,14 +853,35 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     {s2_html}{vcp_html}
   </div>
 </div>"""
+
+        rotating_in = compute_rotating_in(sector_data, count_floor=10, top_n=3)
+        rotating_html = ""
+        if rotating_in:
+            ri_cards = ""
+            for s in rotating_in:
+                slug = _sector_slug(s['sector'])
+                ri_cards += f"""
+<div class="sr-card sr-card-quality" data-sector="{slug}">
+  <div class="sr-sector-name">{s['sector']}</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat sr-q">Q{s['avg_q']:.0f} avg</span>
+    <span class="sr-stat">{s['count']} setups</span>
+  </div>
+</div>"""
+            rotating_html = f"""
+<div class="sr-subheading">Rotating In — high-quality clusters (avg Q, ≥10 setups)</div>
+<div class="sr-grid">{ri_cards}
+</div>"""
+
         sector_rotation_html = f"""
 <div class="sr-panel">
   <div class="section-header" style="border-left-color:#38bdf8">
     <h2>📊 Sector Rotation</h2>
-    <p class="section-sub">Quality setup distribution by sector — leading sector signals rotation opportunity · {today}</p>
+    <p class="section-sub">Volume × quality — leading sector signals crowded trend. Click any sector to filter charts below · {today}</p>
   </div>
   <div class="sr-grid">{sr_cards}
-  </div>
+  </div>{rotating_html}
+  <button class="sr-clear" id="sr-clear-btn" style="display:none" onclick="clearSectorFilter()">Show all sectors</button>
 </div>"""
 
     html = f"""<!DOCTYPE html>
@@ -901,6 +949,17 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 .sr-q {{ color: #d97706 !important; }}
 .sr-s2 {{ color: #16a34a !important; }}
 .sr-vcp {{ color: #92400e !important; }}
+.sr-subheading {{ font-size: 0.72rem; font-weight: 600; color: #6b7280;
+                  margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }}
+.sr-card-quality {{ border: 1px dashed #a78bfa; background: #faf5ff; }}
+.sr-card {{ cursor: pointer; transition: opacity .15s, border-color .15s, box-shadow .15s; }}
+.sr-card:hover {{ border-color: #2563eb; }}
+.sr-card.active {{ border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.25); }}
+.sr-card.dimmed {{ opacity: 0.45; }}
+.sr-clear {{ margin-top: 12px; background: #2563eb; color: #fff; border: none;
+             border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }}
+.sr-clear:hover {{ background: #1d4ed8; }}
+.chart-item.hidden, .section.hidden {{ display: none !important; }}
 /* PDF export */
 .pdf-btn {{ position: fixed; bottom: 24px; right: 24px; background: #2563eb; color: #fff;
             border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.1rem;
@@ -921,6 +980,42 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
 {sector_rotation_html}
 {sections_html}
+<script>
+(function() {{
+  var activeSector = null;
+  var srCards = document.querySelectorAll('.sr-card[data-sector]');
+  var chartCards = document.querySelectorAll('.chart-item[data-sector]');
+  var sections = document.querySelectorAll('.section');
+  var clearBtn = document.getElementById('sr-clear-btn');
+
+  function applyFilter(sector) {{
+    activeSector = sector;
+    chartCards.forEach(function(c) {{
+      var match = !sector || c.getAttribute('data-sector') === sector;
+      c.classList.toggle('hidden', !match);
+    }});
+    sections.forEach(function(sec) {{
+      var visible = sec.querySelectorAll('.chart-item:not(.hidden)').length;
+      sec.classList.toggle('hidden', visible === 0);
+    }});
+    srCards.forEach(function(card) {{
+      var slug = card.getAttribute('data-sector');
+      card.classList.toggle('active', !!sector && slug === sector);
+      card.classList.toggle('dimmed', !!sector && slug !== sector);
+    }});
+    if (clearBtn) clearBtn.style.display = sector ? 'inline-block' : 'none';
+  }}
+
+  srCards.forEach(function(card) {{
+    card.addEventListener('click', function() {{
+      var slug = card.getAttribute('data-sector');
+      applyFilter(activeSector === slug ? null : slug);
+    }});
+  }});
+
+  window.clearSectorFilter = function() {{ applyFilter(null); }};
+}})();
+</script>
 </body>
 </html>"""
 

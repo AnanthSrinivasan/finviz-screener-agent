@@ -164,7 +164,7 @@ data/
   daily_quality_YYYY-MM-DD.json           # Q-rank, stage, section per ticker
   finviz_screeners_YYYY-MM-DD.csv         # Enriched daily screener data
   finviz_screeners_YYYY-MM-DD.html        # HTML table
-  finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery
+  finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery (sector rotation panel + click-to-filter)
   finviz_weekly_YYYY-MM-DD.html           # Weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # Weekly signal scores
   positions_YYYY-MM-DD.json               # Position snapshots

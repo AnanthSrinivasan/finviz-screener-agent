@@ -523,7 +523,7 @@ $4,500 hard stop rule: no single position loses more than this. Period.
 data/
   finviz_screeners_YYYY-MM-DD.csv          # enriched daily (ATR%, Quality Score, Stage, VCP)
   finviz_screeners_YYYY-MM-DD.html         # plain HTML table
-  finviz_chart_grid_YYYY-MM-DD.html        # chart gallery
+  finviz_chart_grid_YYYY-MM-DD.html        # chart gallery (sector rotation + Rotating In + click-filter)
   daily_quality_YYYY-MM-DD.json            # Q-rank, stage, section — feeds weekly signal merge
   finviz_weekly_YYYY-MM-DD.html            # weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # weekly signal scores (incl. quality mod, CHAR flag)
@@ -536,6 +536,15 @@ data/
 ```
 
 Volume is ~100–200 tickers/day. GitHub Actions reads/writes CSV natively. Reports are static HTML on GitHub Pages. No server, no cost, fully auditable via git history.
+
+### Chart gallery sector rotation panel
+
+Top of `finviz_chart_grid_YYYY-MM-DD.html`:
+
+- **Volume × Quality** (8 cards) — ranked by `count × avg_q × (1 + stage2_ratio × 0.5)` (`compute_sector_rotation`). Rank 1 gets the "Leading" badge — this is the crowded trend.
+- **Rotating In** (up to 3 cards) — ranked by `avg_q` descending, floor `count ≥ 10` (`compute_rotating_in`). Surfaces high-quality emerging clusters the volume-weighted view hides (e.g. Basic Materials Q90 with 17 tickers ranks above Technology Q67 with 78 here).
+
+Each sector card is click-filterable: clicking hides all chart cards from other sectors in the same page (vanilla JS, in-place toggle via `data-sector` slugs). Click again or use the "Show all sectors" button to clear. Empty category sections (Power Move / Stage 2 / etc.) auto-hide when the filter leaves them empty.
 
 **S3 Archival (added 2026-04-09):**
 
