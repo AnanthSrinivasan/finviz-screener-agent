@@ -12,9 +12,9 @@
       "target1_hit": true,
       "target2": 48.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
+      "status": "stop_hit",
       "highest_price_seen": 45.56,
-      "current_gain_pct": 21.31,
+      "current_gain_pct": 17.83,
       "peak_gain_pct": 32.29,
       "last_fade_alert_gain_pct": 21.31
     },
@@ -32,33 +32,16 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 25.58,
+      "current_gain_pct": 25.77,
       "peak_gain_pct": 51.07,
       "last_fade_alert_gain_pct": 25.58
-    },
-    {
-      "ticker": "AMD",
-      "shares": 25,
-      "entry_price": 246.06,
-      "entry_date": "2026-04-13",
-      "stop": 272.97,
-      "stop_type": "atr_trail",
-      "breakeven_stop_activated": false,
-      "target1": 295.27,
-      "target1_hit": false,
-      "target2": 344.48,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 296.48,
-      "current_gain_pct": 19.63,
-      "peak_gain_pct": 20.49
     },
     {
       "ticker": "CORZ",
       "shares": 300,
       "entry_price": 19.3,
       "entry_date": "2026-04-14",
-      "stop": 19.24,
+      "stop": 19.29,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 23.16,
@@ -66,9 +49,9 @@
       "target2": 27.02,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 21.49,
-      "current_gain_pct": 10.67,
-      "peak_gain_pct": 11.35
+      "highest_price_seen": 21.61,
+      "current_gain_pct": 11.04,
+      "peak_gain_pct": 11.97
     },
     {
       "ticker": "PL",
@@ -84,7 +67,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 41.7,
-      "current_gain_pct": 12.95,
+      "current_gain_pct": 11.43,
       "peak_gain_pct": 20.31
     },
     {
@@ -92,7 +75,7 @@
       "shares": 30,
       "entry_price": 167.1,
       "entry_date": "2026-04-17",
-      "stop": 149.36,
+      "stop": 149.78,
       "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 200.52,
@@ -101,9 +84,30 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 172.84,
-      "current_gain_pct": -0.57,
+      "current_gain_pct": 0.17,
       "peak_gain_pct": 3.44
     }
   ],
-  "closed_positions": []
+  "closed_positions": [
+    {
+      "ticker": "AMD",
+      "shares": 25,
+      "entry_price": 246.06,
+      "entry_date": "2026-04-13",
+      "stop": 272.97,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": false,
+      "target1": 295.27,
+      "target1_hit": false,
+      "target2": 344.48,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 296.48,
+      "current_gain_pct": 19.63,
+      "peak_gain_pct": 20.49,
+      "close_date": "2026-04-22",
+      "close_price": 296.48,
+      "result_pct": 20.49
+    }
+  ]
 }
