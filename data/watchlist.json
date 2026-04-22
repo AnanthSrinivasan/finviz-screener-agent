@@ -329,9 +329,11 @@
       "stop": null,
       "thesis": null,
       "added": "2026-04-07",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "focus"
+      "priority": "focus",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-22"
     },
     {
       "ticker": "ALHC",
@@ -1504,8 +1506,9 @@
       "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
       "added": "2026-04-21",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-22"
     },
     {
       "ticker": "KEYS",
@@ -1559,6 +1562,63 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=95 | VCP | ATR 4.1%",
       "added": "2026-04-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "XNDU",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=107 | ATR 14.2%",
+      "added": "2026-04-22",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-22"
+    },
+    {
+      "ticker": "NVTS",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=100 | ATR 7.0%",
+      "added": "2026-04-22",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-22"
+    },
+    {
+      "ticker": "ASML",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=97 | VCP | ATR 4.1%",
+      "added": "2026-04-22",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "DELL",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=97 | VCP | ATR 4.2%",
+      "added": "2026-04-22",
+      "status": "watching",
+      "priority": "watching",
+      "source": "screener_auto"
+    },
+    {
+      "ticker": "AAOI",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=91 | VCP | ATR 10.1%",
+      "added": "2026-04-22",
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
