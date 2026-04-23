@@ -229,11 +229,12 @@
       "stop": null,
       "thesis": "Technology | Q=91 | ATR 12.8%",
       "added": "2026-04-03",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
       "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-18"
+      "archive_reason": null,
+      "archived_date": "2026-04-18",
+      "reactivated_date": "2026-04-23"
     },
     {
       "ticker": "LUNR",
@@ -534,7 +535,8 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "SN",
@@ -589,7 +591,8 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "ARWR",
@@ -731,8 +734,9 @@
       "thesis": "Technology | Q=91 | VCP | ATR 3.8%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "SYRE",
@@ -1302,8 +1306,9 @@
       "thesis": "Energy | Q=104 | VCP | ATR 4.6%",
       "added": "2026-04-17",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "CRML",
@@ -1415,6 +1420,62 @@
       "status": "watching",
       "priority": "watching",
       "source": "screener_auto"
+    },
+    {
+      "ticker": "TXN",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=105 | ATR 3.2%",
+      "added": "2026-04-23",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
+    },
+    {
+      "ticker": "LASR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-23",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "LIF",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-23",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "NATL",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-23",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "VELO",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-23",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
     }
   ],
   "tickers": [

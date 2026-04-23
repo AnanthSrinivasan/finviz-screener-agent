@@ -1,0 +1,197 @@
+{
+  "date": "2026-04-23",
+  "candidates": [
+    {
+      "ticker": "CORZ",
+      "signal_score": 5,
+      "eps_yy_ttm": 128.35,
+      "eps_qq": 167.94,
+      "inst_trans": 16.38,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "AAOI",
+      "signal_score": 4,
+      "eps_yy_ttm": 84.71,
+      "eps_qq": 98.89,
+      "inst_trans": 4.1,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "AUPH",
+      "signal_score": 4,
+      "eps_yy_ttm": 5205.15,
+      "eps_qq": 15628.87,
+      "inst_trans": 5.67,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "BTSG",
+      "signal_score": 4,
+      "eps_yy_ttm": 893.58,
+      "eps_qq": 369.91,
+      "inst_trans": 1.48,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "GEV",
+      "signal_score": 4,
+      "eps_yy_ttm": 220.77,
+      "eps_qq": 1816.17,
+      "inst_trans": -0.89,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "GSAT",
+      "signal_score": 4,
+      "eps_yy_ttm": 74.09,
+      "eps_qq": 73.2,
+      "inst_trans": 3.23,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "LASR",
+      "signal_score": 4,
+      "eps_yy_ttm": 62.85,
+      "eps_qq": 81.25,
+      "inst_trans": 6.03,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "LIF",
+      "signal_score": 4,
+      "eps_yy_ttm": 2484.37,
+      "eps_qq": 1376.49,
+      "inst_trans": 86.96,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "NATL",
+      "signal_score": 4,
+      "eps_yy_ttm": 110.11,
+      "eps_qq": 131.55,
+      "inst_trans": 0.4,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "SN",
+      "signal_score": 4,
+      "eps_yy_ttm": 58.67,
+      "eps_qq": 97.43,
+      "inst_trans": 0.38,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "VELO",
+      "signal_score": 4,
+      "eps_yy_ttm": 95.72,
+      "eps_qq": 91.94,
+      "inst_trans": -1.62,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "VIK",
+      "signal_score": 4,
+      "eps_yy_ttm": 697.07,
+      "eps_qq": 179.27,
+      "inst_trans": 1.19,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    }
+  ]
+}
