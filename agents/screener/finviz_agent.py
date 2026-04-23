@@ -1105,7 +1105,8 @@ Be direct and specific. Use ticker names. Quality Score above 60 = liquid leader
 
 def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              gallery_html: str, today: str, ai_summary: str,
-                             sndk_candidates: list | None = None):
+                             hidden_growth_candidates: list | None = None,
+                             ready_to_enter: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1148,6 +1149,26 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
     if ai_summary:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":brain: *Today's take:*\n{ai_summary}"}})
         blocks.append({"type": "divider"})
+
+    # Ready to Enter — top of message, most actionable signal.
+    # ready_to_enter is a list of dicts: {ticker, q, vcp, dist, atr, rvol}
+    if ready_to_enter:
+        lines = []
+        for r in ready_to_enter[:5]:
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · VCP {r['vcp']:.0f}% · "
+                f"{r['dist']:+.0f}% · ATR {r['atr']:.1f}% · RVol {r['rvol']:.1f}x"
+                f" · `/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":dart: *Ready to Enter* (Stage 2 + VCP tight pullback):\n" + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
     blocks.append({
         "type": "section",
         "text": {
@@ -1191,23 +1212,23 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {"type": "mrkdwn", "text": f":fire: *Power Moves (9M+ vol, 10%+):* {pm_tickers}"}
         })
 
-    # SNDK-pattern flag — manual research prompt, no auto API call
-    # sndk_candidates is list of (ticker, eps_yy, eps_qq) tuples
-    if sndk_candidates:
+    # Hidden Growth flag — manual research prompt, no auto API call
+    # hidden_growth_candidates is list of (ticker, eps_yy, eps_qq) tuples
+    if hidden_growth_candidates:
         ticker_parts = []
-        for t, yy, qq in sndk_candidates:
+        for t, yy, qq in hidden_growth_candidates:
             distorted = yy < -50 and qq > 0
             eps_tag = f"TTM {yy:+.0f}% / Q/Q {qq:+.0f}%"
             flag = " ⚠ distorted" if distorted else ""
             ticker_parts.append(f"`{t}` ({eps_tag}{flag})")
         tickers_str  = "  ·  ".join(ticker_parts)
-        research_cmd = "  ".join(f"`/stock-research {t}`" for t, _, _ in sndk_candidates)
+        research_cmd = "  ".join(f"`/stock-research {t}`" for t, _, _ in hidden_growth_candidates)
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f":microscope: *SNDK pattern (4+/6 criteria):* {tickers_str}\n"
+                    f":microscope: *Hidden Growth (4+/6 criteria):* {tickers_str}\n"
                     f"Check technicals, then run: {research_cmd}"
                 )
             }
@@ -1227,17 +1248,120 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
 # Part 7: Watchlist Auto-Population
 # ----------------------------
 
+# ── Hidden Growth detection (pure scoring, unit-tested) ───────────────────────
+
+_HIDDEN_GROWTH_EXCLUDED_SECTORS = {
+    'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
+}
+_HIDDEN_GROWTH_EXCLUDED_INDUSTRIES = {
+    'Engineering & Construction', 'Infrastructure Operations',
+    'Oil & Gas E&P', 'Oil & Gas Integrated', 'Oil & Gas Midstream',
+    'Oil & Gas Refining & Marketing', 'Oil & Gas Equipment & Services',
+    'Specialty Chemicals', 'Agricultural Inputs', 'Steel', 'Aluminum',
+    'Copper', 'Gold', 'Silver', 'Coal', 'Lumber & Wood Production',
+    'Farm & Construction Equipment', 'Waste Management',
+}
+
+
+def _score_hidden_growth(row) -> dict:
+    """
+    Pure 6-criteria Hidden Growth scorer. Need 4+ to flag for research.
+
+    Criteria reward accumulating evidence — persistence, strong EPS (either TTM
+    or Q/Q), institutional buying, Stage 2 perfect alignment, IPO lifecycle.
+    Distorted TTM is NOT penalized or rewarded on its own; IPO cases are
+    handled via the eps_qq_strong clause (eps_yy<0 and eps_qq>20) and the
+    ipo_lifecycle flag.
+    """
+    eps_yy      = float(row.get('EPS Y/Y TTM', 0) or 0)
+    eps_qq      = float(row.get('EPS Q/Q', 0) or 0)
+    inst_trans  = float(row.get('Inst Trans', 0) or 0)
+    appearances = int(row.get('Appearances', 0) or 0)
+    screeners   = str(row.get('Screeners', '') or '')
+    stage_d     = row.get('Stage', {}) or {}
+    stage_num     = stage_d.get('stage', 0) if isinstance(stage_d, dict) else 0
+    stage_perfect = stage_d.get('perfect', False) if isinstance(stage_d, dict) else False
+
+    return {
+        'persistence':    appearances >= 3,
+        'eps_yy_strong':  eps_yy > 50,
+        'eps_qq_strong':  eps_qq > 50 or (eps_yy < 0 and eps_qq > 20),
+        'inst_buying':    inst_trans >= 3,
+        'stage2_perfect': stage_num == 2 and stage_perfect,
+        'ipo_lifecycle':  'IPO' in screeners,
+    }
+
+
+# ── Watchlist lifecycle helpers (pure, unit-tested) ───────────────────────────
+
+def _load_open_positions() -> set:
+    """Return set of tickers with status=='open' in data/positions.json."""
+    import json
+    try:
+        with open(os.path.join("data", "positions.json")) as f:
+            data = json.load(f)
+        return {
+            p["ticker"] for p in data.get("open_positions", [])
+            if p.get("status") == "open" and p.get("ticker")
+        }
+    except Exception:
+        return set()
+
+
+def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
+    """
+    Pure predicate for the 'entry-ready' tier (and the Ready-to-Enter Slack block).
+
+    All must hold: Stage 2 perfect · VCP conf ≥70 · Q ≥80 ·
+    pullback -1% to -10% from 52w high · ATR ≤7% · RVol ≤1.2 ·
+    not already an open position.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    if not (stage_d.get("stage") == 2 and stage_d.get("perfect", False)):
+        return False
+
+    vcp_d = row.get("VCP") or {}
+    if not isinstance(vcp_d, dict) or float(vcp_d.get("confidence", 0) or 0) < 70:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 80:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist > -1.0 or dist < -10.0:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) > 7.0:
+        return False
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) > 1.2:
+        return False
+
+    return True
+
+
 def _update_watchlist(filter_df: pd.DataFrame, today: str):
     """
-    Promotes top Stage 2 + Q≥60 tickers from today's screener into
-    data/watchlist.json (status=watching).
+    Maintain data/watchlist.json: add new Stage 2 + Q≥60 tickers, age-out stale
+    watching entries, reactivate previously-aged-out tickers that re-qualify,
+    promote watching→focus (top 5 by Q) and focus→entry-ready (all that meet
+    Ready-to-Enter criteria).
 
-    Rules:
-    - Only Stage 2 tickers with Quality Score ≥ 60
-    - Max 5 new additions per day (top by Q score)
-    - Never overwrites an existing entry (watching, entered, or any status)
-    - Sets entry_note based on VCP confirmation and Q score tier
-    - Auto-archives screener_auto entries older than 14 days (manual entries never expire)
+    Invariant: one row per ticker. No duplicates created by this function.
+
+    Returns: (promoted_to_focus, promoted_to_entry_ready) — both lists of tickers.
     """
     import json
     from datetime import date, timedelta
@@ -1250,44 +1374,38 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         existing = []
         wl_data = {"watchlist": existing}
 
-    # Auto-archive screener_auto entries older than 14 days
+    # ── 3b: age-out only priority=watching screener_auto entries (>14 days). ──
+    # Focus and entry-ready are never auto-archived — they earned their place.
     cutoff = (date.today() - timedelta(days=14)).isoformat()
     archived_count = 0
     for entry in existing:
         if (entry.get("source") == "screener_auto"
                 and entry.get("status") == "watching"
+                and entry.get("priority") == "watching"
                 and entry.get("added", "9999") < cutoff):
             entry["status"] = "archived"
             entry["archive_reason"] = "age_out"
             entry["archived_date"] = today
             archived_count += 1
     if archived_count:
-        log.info("Watchlist: auto-archived %d stale screener_auto entries (>14 days).", archived_count)
+        log.info("Watchlist: auto-archived %d stale watching entries (>14 days).", archived_count)
 
-    existing_tickers = {e["ticker"] for e in existing if e.get("status") != "archived"}
-
-    # Filter: Stage 2 + Q≥60 + not already in watchlist
-    candidates = filter_df.copy()
-    if 'Quality Score' in candidates.columns:
+    # Filter today's candidates: Stage 2 + Q≥60
+    candidates = filter_df.copy() if not filter_df.empty else pd.DataFrame()
+    if not candidates.empty and 'Quality Score' in candidates.columns:
         candidates = candidates[candidates['Quality Score'] >= 60]
+    if not candidates.empty and 'Stage' in candidates.columns:
+        stage2_mask = candidates['Stage'].apply(
+            lambda s: s.get('stage', 0) == 2 if isinstance(s, dict) else False
+        )
+        candidates = candidates[stage2_mask]
+    if not candidates.empty:
+        candidates = candidates.sort_values('Quality Score', ascending=False).head(5)
 
-    if candidates.empty:
-        log.info("Watchlist: no new Stage 2 + Q>=60 tickers to add today.")
-        return
-
-    stage2_mask = candidates['Stage'].apply(
-        lambda s: s.get('stage', 0) == 2 if isinstance(s, dict) else False
-    ) if 'Stage' in candidates.columns else pd.Series([False] * len(candidates))
-    candidates = candidates[stage2_mask]
-
-    candidates = candidates[~candidates['Ticker'].isin(existing_tickers)]
-    candidates = candidates.sort_values('Quality Score', ascending=False).head(5)
-
-    if candidates.empty:
-        log.info("Watchlist: no new Stage 2 + Q≥60 tickers to add today.")
-        return
-
-    added = []
+    # ── 3a: for each candidate, either add fresh or reactivate existing row ──
+    by_ticker = {e["ticker"]: e for e in existing if e.get("ticker")}
+    added: list[str] = []
+    reactivated: list[str] = []
     for _, row in candidates.iterrows():
         ticker  = row['Ticker']
         qs      = float(row.get('Quality Score', 0) or 0)
@@ -1296,8 +1414,21 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         sector  = row.get('Sector', '')
         stage_d = row.get('Stage', {})
         perfect = stage_d.get('perfect', False) if isinstance(stage_d, dict) else False
+        vcp_ok  = isinstance(vcp, dict) and vcp.get('vcp_possible', False)
 
-        vcp_ok = isinstance(vcp, dict) and vcp.get('vcp_possible', False)
+        existing_entry = by_ticker.get(ticker)
+        if existing_entry is not None:
+            # Reactivate aged-out screener_auto entries; leave everything else untouched.
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"
+                    and existing_entry.get("source") == "screener_auto"):
+                existing_entry["status"] = "watching"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(ticker)
+                log.info("Watchlist: reactivated %s (previously aged out)", ticker)
+            # else: already tracked (watching/focus/entry-ready or manually archived) — no-op
+            continue
 
         if vcp_ok:
             entry_note = "VCP setup — wait for volume contraction then breakout"
@@ -1323,13 +1454,12 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
             "source":      "screener_auto",
         }
         existing.append(entry)
+        by_ticker[ticker] = entry
         added.append(ticker)
         log.info("Watchlist: added %s (Q=%.0f%s)", ticker, qs, " VCP" if vcp_ok else "")
 
-    # ── Auto-promote watching → focus ──────────────────────────────────────────
-    # Criteria: Stage 2 perfect alignment + Quality Score >= 85.
-    # Max 3 auto-promotions per day (top by Q score) to keep focus list tight.
-    promoted = []
+    # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
+    promoted_to_focus: list[str] = []
     promote_candidates = []
     screener_tickers = set(filter_df['Ticker'].tolist()) if not filter_df.empty else set()
     for entry in existing:
@@ -1349,22 +1479,41 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         if stage_num == 2 and stage_perfect and qs >= 85:
             promote_candidates.append((qs, t, entry))
 
-    # Top 3 by Q score
-    promote_candidates.sort(reverse=True)
-    for qs, t, entry in promote_candidates[:3]:
+    promote_candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)  # sort by (qs, ticker) — no dict compare
+    for qs, t, entry in promote_candidates[:5]:
         entry["priority"] = "focus"
         entry["focus_promoted_date"] = today
-        promoted.append(t)
+        promoted_to_focus.append(t)
         log.info("Watchlist: auto-promoted %s to focus (Q=%.0f, Stage 2 perfect)", t, qs)
 
-    if promoted:
-        log.info("Watchlist: promoted to focus: %s", promoted)
+    # ── 3e: auto-promote focus → entry-ready (Ready-to-Enter criteria, no cap). ──
+    # Narrow criteria self-limit. Excludes open positions so we don't re-flag held names.
+    open_positions = _load_open_positions()
+    promoted_to_entry_ready: list[str] = []
+    for entry in existing:
+        if entry.get("priority") != "focus" or entry.get("status") == "archived":
+            continue
+        t = entry.get("ticker", "")
+        if t not in screener_tickers:
+            continue
+        rows = filter_df[filter_df['Ticker'] == t]
+        if rows.empty:
+            continue
+        row = rows.iloc[0]
+        if _is_ready_to_enter(row, open_positions):
+            entry["priority"] = "entry-ready"
+            entry["entry_ready_date"] = today
+            promoted_to_entry_ready.append(t)
+            log.info("Watchlist: auto-promoted %s to entry-ready (Ready-to-Enter criteria met)", t)
 
     wl_data["watchlist"] = existing
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
-    log.info("Watchlist updated — added %d ticker(s): %s", len(added), added)
-    return promoted
+    log.info(
+        "Watchlist updated — added %d, reactivated %d, focus-promoted %d, entry-ready %d",
+        len(added), len(reactivated), len(promoted_to_focus), len(promoted_to_entry_ready),
+    )
+    return promoted_to_focus, promoted_to_entry_ready
 
 
 # ----------------------------
@@ -1457,71 +1606,48 @@ if __name__ == "__main__":
     summary_df.to_csv(csv_path, index=False)
     log.info(f"Enriched CSV re-saved: {csv_path}")
 
-    # ── Proactive research: SNDK-pattern detection ──
-    # Only fires when a ticker hits 4+ of 6 specific criteria — these are rare.
-    # Max 3 tickers per day (highest signal score only). Not a quality score gate.
-    # Excluded: non-growth sectors (utilities, energy, real estate, basic materials,
-    # consumer defensive) and specific slow-growth industries (construction, oil & gas, mining).
-    _SNDK_EXCLUDED_SECTORS = {
-        'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
-    }
-    _SNDK_EXCLUDED_INDUSTRIES = {
-        'Engineering & Construction', 'Infrastructure Operations',
-        'Oil & Gas E&P', 'Oil & Gas Integrated', 'Oil & Gas Midstream',
-        'Oil & Gas Refining & Marketing', 'Oil & Gas Equipment & Services',
-        'Specialty Chemicals', 'Agricultural Inputs', 'Steel', 'Aluminum',
-        'Copper', 'Gold', 'Silver', 'Coal', 'Lumber & Wood Production',
-        'Farm & Construction Equipment', 'Waste Management',
-    }
+    # ── Proactive research: Hidden Growth detection ──
+    # Catches stocks with accumulating evidence (persistence + strong EPS +
+    # institutional buying + Stage 2), whether or not TTM is distorted. TTM
+    # distortion is NOT a required criterion — it's captured implicitly via
+    # the eps_qq_strong clause for IPOs/spin-offs.
+    # Scans summary_df (pre-10%-gate) so deep-base breakouts like NVTS don't
+    # get filtered out before scoring.
     try:
-        sndk_scored = []
-        for _, row in filter_df.iterrows():
-            sector    = str(row.get('Sector', '') or '').strip()
-            industry  = str(row.get('Industry', '') or '').strip()
-
-            # Skip non-growth sectors/industries — these are slow contracted businesses,
-            # not earnings-driven momentum candidates.
-            if sector in _SNDK_EXCLUDED_SECTORS or industry in _SNDK_EXCLUDED_INDUSTRIES:
-                log.debug(f"SNDK skip {row['Ticker']}: non-growth sector ({sector} / {industry})")
+        hg_scored = []
+        for _, row in summary_df.iterrows():
+            sector   = str(row.get('Sector', '') or '').strip()
+            industry = str(row.get('Industry', '') or '').strip()
+            if sector in _HIDDEN_GROWTH_EXCLUDED_SECTORS or industry in _HIDDEN_GROWTH_EXCLUDED_INDUSTRIES:
                 continue
 
-            screeners_str = str(row.get('Screeners', '') or '')
-            eps_yy   = float(row.get('EPS Y/Y TTM', 0) or 0)
-            eps_qq   = float(row.get('EPS Q/Q', 0) or 0)
-            inst_trans = float(row.get('Inst Trans', 0) or 0)
-            appearances = int(row.get('Appearances', 0) or 0)
-            stage_data = row.get('Stage', {}) or {}
-            stage_num = stage_data.get('stage', 0) if isinstance(stage_data, dict) else 0
-            stage_perfect = stage_data.get('perfect', False) if isinstance(stage_data, dict) else False
-
-            # 6 criteria — need 4+ to trigger research
-            criteria = {
-                'persistence':    appearances >= 3,
-                'eps_qq_strong':  eps_qq > 50 or (eps_yy < 0 and eps_qq > 20),  # Q/Q strong, TTM may be distorted
-                'ttm_distorted':  eps_yy < -50 and eps_qq > 0,                   # classic spin-off/IPO EPS blind spot
-                'inst_buying':    inst_trans >= 3,                                # funds actively adding
-                'stage2':         stage_num == 2 and stage_perfect,
-                'ipo_lifecycle':  'IPO' in screeners_str,
-            }
+            criteria = _score_hidden_growth(row)
             signal_score = sum(criteria.values())
             if signal_score >= 4:
-                sndk_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq))
+                eps_yy = float(row.get('EPS Y/Y TTM', 0) or 0)
+                eps_qq = float(row.get('EPS Q/Q', 0) or 0)
+                inst_trans = float(row.get('Inst Trans', 0) or 0)
+                appearances = int(row.get('Appearances', 0) or 0)
+                hg_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq))
                 log.info(
-                    f"SNDK candidate: {row['Ticker']} signal={signal_score}/6 "
+                    f"Hidden Growth candidate: {row['Ticker']} signal={signal_score}/6 "
                     f"[{', '.join(k for k, v in criteria.items() if v)}] "
                     f"EPS TTM={eps_yy:.0f}% Q/Q={eps_qq:.0f}% InstTrans={inst_trans:.1f}% {appearances}d"
                 )
 
-        # Take top 3 by signal score — these are genuinely rare setups
-        sndk_scored.sort(reverse=True)
-        sndk_candidates = [(t, yy, qq) for _, t, yy, qq in sndk_scored[:3]]
+        hg_scored.sort(key=lambda x: (x[0], x[1]), reverse=True)  # tie-break on ticker, no dict cmp
+        hidden_growth_candidates = [(t, yy, qq) for _, t, yy, qq in hg_scored[:3]]
 
-        if sndk_candidates:
-            log.info(f"SNDK candidates flagged for manual research: {[t for t,_,_ in sndk_candidates]}")
+        if hidden_growth_candidates:
+            log.info(
+                "Hidden Growth candidates flagged for manual research: %s",
+                [t for t, _, _ in hidden_growth_candidates],
+            )
         else:
-            log.info("No SNDK-pattern candidates today (need 4/6 criteria).")
+            log.info("No Hidden Growth candidates today (need 4/6 criteria).")
     except Exception as e:
-        log.error(f"SNDK detection failed (non-fatal): {e}")
+        log.error(f"Hidden Growth detection failed (non-fatal): {e}")
+        hidden_growth_candidates = []
 
     # ── Write daily quality JSON for weekly agent signal merge ──
     import json
@@ -1558,14 +1684,39 @@ if __name__ == "__main__":
     # Step 5: AI summary
     ai_summary = generate_ai_summary(filter_df, today)
 
-    # Step 6: Slack
-    send_slack_notification(summary_df, filter_df, gallery_path, today, ai_summary,
-                            sndk_candidates=sndk_candidates if 'sndk_candidates' in dir() else None)
+    # Step 6a: Build Ready-to-Enter list (Stage 2 + VCP≥70 + Q≥80 + pullback + tight ATR + dry RVol,
+    #          excludes open positions). Top 5 by Quality Score.
+    open_positions_tickers = _load_open_positions()
+    ready_to_enter: list[dict] = []
+    if not filter_df.empty:
+        for _, row in filter_df.iterrows():
+            if _is_ready_to_enter(row, open_positions_tickers):
+                ready_to_enter.append({
+                    "ticker": row["Ticker"],
+                    "q": float(row.get("Quality Score", 0) or 0),
+                    "vcp": float((row.get("VCP") or {}).get("confidence", 0) or 0),
+                    "dist": float(row.get("Dist From High%", 0) or 0),
+                    "atr": float(row.get("ATR%", 0) or 0),
+                    "rvol": float(row.get("Rel Volume", 0) or 0),
+                })
+        ready_to_enter.sort(key=lambda r: r["q"], reverse=True)
+        ready_to_enter = ready_to_enter[:5]
+    if ready_to_enter:
+        log.info("Ready-to-Enter: %s", [r["ticker"] for r in ready_to_enter])
 
-    # Step 7: Auto-populate watchlist + auto-promote watching → focus
-    promoted_to_focus = _update_watchlist(filter_df, today)
+    # Step 6b: Slack
+    send_slack_notification(
+        summary_df, filter_df, gallery_path, today, ai_summary,
+        hidden_growth_candidates=hidden_growth_candidates if 'hidden_growth_candidates' in dir() else None,
+        ready_to_enter=ready_to_enter,
+    )
+
+    # Step 7: Auto-populate watchlist + auto-promote watching→focus→entry-ready
+    promoted_to_focus, promoted_to_entry_ready = _update_watchlist(filter_df, today)
     if promoted_to_focus:
         log.info("Auto-promoted to Focus List: %s", promoted_to_focus)
+    if promoted_to_entry_ready:
+        log.info("Auto-promoted to Entry-Ready: %s", promoted_to_entry_ready)
 
     # ── EventBridge: PersistencePick (SetupOfDay moved to premarket_alert.py at 9am ET) ──
     try:

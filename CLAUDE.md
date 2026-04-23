@@ -48,6 +48,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 - `utils/calibrate_peel.py` — Per-ticker peel threshold calibration. Formula: `(close-SMA50)*close/(SMA50*ATR14)` matching TradingView "ATR% Multiple". Finds historical run peaks (continuous periods above 50MA), computes p75 as signal threshold (floor 10x), p75×0.75 as warn (floor 7.5x). CLI: `--mode positions|watchlist|all`. Runs daily (positions) and weekly (watchlist). Output: `data/peel_calibration.json`.
 - `utils/analyze_mae.py` — MAE/MFE analysis from 1099-B CSV + Alpaca OHLCV. Run ad-hoc: `python utils/analyze_mae.py`. Output: `data/mae_analysis.html` + `data/mae_analysis.json`.
 - `utils/archive_data.py` — Archives dated data files older than 70 days to S3 (`screener-data-repository`, `eu-central-1`). Runs in `daily-finviz.yml` before git commit. Upload → verify (`head_object`) → delete local. Never archives state files.
+- `utils/dedupe_watchlist.py` — One-time migration. Deduplicates `data/watchlist.json` by keeping highest-priority row per ticker (entry-ready > focus > watching > archived), merging earliest `added`/`focus_promoted_date`. Run once after code fix; runtime lifecycle prevents future dupes. `python utils/dedupe_watchlist.py` (dry-run) · `--apply` to write.
 - `test_finviz_agent.py` — Unit tests (mocked, no API keys)
 - `test_integration.py` — Integration tests for signal merge pipeline
 - `test_archive.py` — Unit tests for `utils/archive_data.py` (mocked S3, no credentials needed)
@@ -200,6 +201,26 @@ data/
 - Stage 2: +25 (+10 perfect alignment), Stage 3: -25, Stage 4: -40
 - VCP: +15
 - Distance from high: 0-10 pts
+
+## Daily Screener Signals (Slack blocks)
+
+Two actionable callouts in the daily Slack message, ordered by urgency:
+
+**🎯 Ready to Enter** — top-of-message, top 5 by Quality Score. All must pass:
+Stage 2 perfect · VCP conf ≥70 · Q ≥80 · dist from 52w high -1% to -10% ·
+ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions. Each line shows
+metrics + `/stock-research <ticker>`. Also drives the `focus → entry-ready`
+watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate).
+
+**🔬 Hidden Growth (4+/6 criteria)** — research prompt, top 3 by signal score.
+Scans `summary_df` (pre-10%-gate) so deep-base breakouts aren't filtered out.
+Criteria: persistence (3+ screens), EPS Y/Y TTM >50, EPS Q/Q >50 (or Q/Q>20 when TTM<0),
+Inst Trans ≥3, Stage 2 perfect, IPO-lifecycle tag. Excludes slow-growth sectors
+(utilities, energy, real estate, basic materials, consumer defensive) and
+commodity/construction industries. **Distorted TTM is NOT a criterion** — clean
+TTM earns a point via `eps_yy_strong`; spin-off/IPO distortion is captured
+implicitly via the `eps_qq_strong` clause. Previous "SNDK pattern" name was
+misleading and the `ttm_distorted` criterion wrongly penalized clean growers.
 
 ## Market State Classification
 

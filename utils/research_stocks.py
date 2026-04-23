@@ -10,10 +10,10 @@ Usage:
     python utils/research_stocks.py --slack LITE CRWV   # also post to Slack
 
 Proactive trigger (from daily screener):
-    Called automatically by finviz_agent.py when a ticker qualifies:
-      - 3+ consecutive days in screener
-      - IPO screener or EPS TTM < 0 with Q/Q likely distorted
-      - Quality Score < 85
+    Called automatically by finviz_agent.py when a ticker qualifies as
+    Hidden Growth (4+/6 criteria) — see finviz_agent._score_hidden_growth.
+    Criteria: persistence (3+ days), strong TTM EPS, strong Q/Q EPS,
+    institutional buying, Stage 2 perfect, IPO lifecycle.
 """
 
 import argparse
@@ -93,7 +93,7 @@ Answer ALL sections below. For each, cite actual numbers found in search results
    - Name 2-3 specific major funds and their recent moves (new position / increased / decreased)?
    - Is this in institutional adoption phase (funds initiating) or distribution phase (funds exiting)?
 
-5. IPO / SPIN-OFF CYCLE (critical for CRWV, CORZ, LUNR, SNDK-type):
+5. IPO / SPIN-OFF CYCLE (critical for CRWV, CORZ, LUNR, SNDK-type — Hidden Growth names):
    - When did the stock IPO or spin off? How many months ago?
    - Has the lock-up period expired? (typically 90-180 days post-IPO)
    - How many standalone earnings reports have been filed as a public company?
@@ -120,7 +120,7 @@ Answer ALL sections below. For each, cite actual numbers found in search results
    - Insider selling: what did insiders do at the lock-up, at peaks, recently?
    - What does the bear case say about valuation vs realistic earnings power?
 
-9. SNDK PATTERN CHECK:
+9. HIDDEN GROWTH / TTM DISTORTION CHECK:
    - Is EPS Y/Y TTM distorted (negative or misleading) because of spin-off, IPO, or character change?
    - What does EPS Q/Q show that TTM hides?
    - Would a momentum screener using only TTM EPS undervalue this stock significantly?
@@ -277,7 +277,7 @@ def _ticker_card(ticker: str, parsed: dict, is_held: bool, market_state: str = "
     fg, bg = CONVICTION_COLORS.get(conviction, ("#6b7280", "#f3f4f6"))
     sndk_badge = (
         '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:12px;'
-        'font-size:11px;font-weight:600;margin-left:8px;">⚡ SNDK PATTERN</span>'
+        'font-size:11px;font-weight:600;margin-left:8px;">⚡ HIDDEN GROWTH</span>'
         if parsed.get("is_sndk") else ""
     )
     held_badge = (
@@ -313,7 +313,7 @@ def _ticker_card(ticker: str, parsed: dict, is_held: bool, market_state: str = "
       {row("TAM / S-curve", parsed.get("tam",""))}
       {row("Technical", parsed.get("technical",""))}
       {row("Short / Catalyst", parsed.get("catalyst",""))}
-      {row("SNDK Risk", parsed.get("sndk_risk",""))}
+      {row("Hidden Growth", parsed.get("sndk_risk",""))}
       {row("Verdict", parsed.get("verdict",""))}
     </table>
     {_market_entry_note(market_state)}
@@ -390,7 +390,7 @@ def generate_html(results: list, market_ctx: dict) -> str:
 <table class="summary">
   <thead>
     <tr>
-      <th>Ticker</th><th>Conviction</th><th>SNDK Pattern</th><th>Key Reason</th>
+      <th>Ticker</th><th>Conviction</th><th>Hidden Growth</th><th>Key Reason</th>
     </tr>
   </thead>
   <tbody>
@@ -420,7 +420,7 @@ def send_slack_summary(results: list, market_ctx: dict, html_path: str):
         parsed = r.get("parsed", {})
         conv   = parsed.get("conviction", "SKIP")
         emoji  = {"HIGH": "🟢", "MODERATE": "🟡", "LOW": "⚪", "SKIP": "🔴"}.get(conv, "⚪")
-        sndk   = " ⚡SNDK" if parsed.get("is_sndk") else ""
+        sndk   = " ⚡HG" if parsed.get("is_sndk") else ""
         verdict_short = parsed.get("verdict", "")[:100]
         lines.append(f"{emoji} *${r['ticker']}* {conv}{sndk} — {verdict_short}")
 

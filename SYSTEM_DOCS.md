@@ -638,13 +638,23 @@ Not needed yet. Revisit if automated execution is added.
 
 **North star:** Paper P&L validates → same code flips to real SnapTrade execution → manual `workflow_dispatch` BUY becomes an override, not the primary entry.
 
-### 10.1 Watchlist Auto-Population
+### 10.1 Watchlist Auto-Population & Lifecycle
 
-`finviz_agent.py` now runs a Step 7 at the end of each daily screener run:
-- Takes Stage 2 + Q≥60 tickers from the filtered results
-- Adds up to 5 new entries to `data/watchlist.json` (status=`watching`, source=`screener_auto`)
-- Never overwrites existing entries (manual or previously auto-added)
-- Sets `entry_note` based on VCP confirmation and perfect alignment
+`finviz_agent.py` runs a Step 7 at the end of each daily screener run. Enforces an invariant: **one row per ticker** (no duplicates, ever — see `utils/dedupe_watchlist.py` for the one-time migration that cleaned up historical dupes).
+
+**Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
+- Brand-new ticker → add as `status=watching`, `priority=watching`, `source=screener_auto`
+- Existing `watching`/`focus`/`entry-ready` row → no-op (already tracked)
+- Existing `archived` row where `archive_reason=age_out` + `source=screener_auto` → **reactivate** back to `watching` (sets `reactivated_date`, clears `archive_reason`). Manually archived / stopped-out rows are never reactivated.
+- `entry_note` set based on VCP confirmation and perfect alignment
+
+**Age-out pass:** screener_auto entries older than 14 days are archived — but **only when `priority=watching`**. `focus` and `entry-ready` entries are never auto-archived (they earned their place).
+
+**Promotion pass — `watching → focus` (top 5 by Q):** ticker must be in today's screener, Stage 2 perfect, Q≥85. Cap raised from 3 to 5 to reduce displacement (MU-on-Apr-15 bug).
+
+**Promotion pass — `focus → entry-ready` (no cap, narrow criteria self-limit):** mirrors the Ready-to-Enter Slack block — Stage 2 perfect + VCP ≥70 + Q ≥80 + pullback -1% to -10% + ATR ≤7% + RVol ≤1.2 + not in open positions. Sets `entry_ready_date`.
+
+Priority lifecycle: `watching → focus → entry-ready` (and optionally `archived` from any, but only `watching` ages out automatically).
 
 ### 10.2 Paper Executor — `alpaca_executor.py`
 
