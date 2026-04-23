@@ -160,6 +160,7 @@ data/
   trading_state.json                      # Win/loss streaks, sizing mode, recent trades
   watchlist.json                          # Market pulse watchlist (auto-populated by screener + manual entries)
   paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit}}
+  hidden_growth.json                      # Today's Hidden Growth candidates (overwritten daily) — {date, candidates: [{ticker, signal_score, criteria, eps_yy_ttm, eps_qq, inst_trans, appearances}]}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
   market_monitor_history.json             # Rolling 30-day breadth history
   market_monitor_YYYY-MM-DD.json          # Daily market breadth snapshot
@@ -212,15 +213,24 @@ ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions. Each line s
 metrics + `/stock-research <ticker>`. Also drives the `focus → entry-ready`
 watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate).
 
-**🔬 Hidden Growth (4+/6 criteria)** — research prompt, top 3 by signal score.
-Scans `summary_df` (pre-10%-gate) so deep-base breakouts aren't filtered out.
-Criteria: persistence (3+ screens), EPS Y/Y TTM >50, EPS Q/Q >50 (or Q/Q>20 when TTM<0),
-Inst Trans ≥3, Stage 2 perfect, IPO-lifecycle tag. Excludes slow-growth sectors
-(utilities, energy, real estate, basic materials, consumer defensive) and
-commodity/construction industries. **Distorted TTM is NOT a criterion** — clean
-TTM earns a point via `eps_yy_strong`; spin-off/IPO distortion is captured
-implicitly via the `eps_qq_strong` clause. Previous "SNDK pattern" name was
-misleading and the `ttm_distorted` criterion wrongly penalized clean growers.
+**🔬 Hidden Growth (4+/6 criteria)** — research prompt, **no cap** (score is the
+filter; count signals regime health). Scans `summary_df` (pre-10%-gate) so
+deep-base breakouts aren't filtered out. Criteria: persistence (3+ screens),
+EPS Y/Y TTM >50, EPS Q/Q >50 (or Q/Q>20 when TTM<0), Inst Trans ≥3, Stage 2
+perfect, IPO-lifecycle tag. Excludes slow-growth sectors (utilities, energy,
+real estate, basic materials, consumer defensive) and commodity/construction
+industries. **Distorted TTM is NOT a criterion** — clean TTM earns a point
+via `eps_yy_strong`; spin-off/IPO distortion is captured implicitly via the
+`eps_qq_strong` clause.
+
+**Hidden Growth vs watchlist tiers — two independent axes.** Hidden Growth is a
+fundamental/accumulation flag (EPS + institutional + IPO lifecycle); tiers
+(`watching`/`focus`/`entry-ready`) are technical setup readiness. They overlap
+freely. A ticker can be Hidden Growth at any tier, or Hidden Growth but not in
+the watchlist yet (like NVTS-Apr16 which was 10%-excluded). Hidden Growth
+hits auto-enter the watchlist at `priority=watching` with `source=hidden_growth_auto`
+(parallel funnel to the technical `screener_auto` path); if already present,
+no-op (reactivates if aged-out). Daily snapshot written to `data/hidden_growth.json`.
 
 ## Market State Classification
 

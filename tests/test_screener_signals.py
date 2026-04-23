@@ -162,6 +162,36 @@ class TestReadyToEnterSlackBlock(unittest.TestCase):
 
     @patch("agents.screener.finviz_agent.requests.post")
     @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
+    def test_hidden_growth_uncapped_shows_all_tickers(self, mock_post):
+        """Hidden Growth block must render all candidates (no top-3 cap).
+        Uses 12 candidates — ticker list shows all, research_cmd caps at 10."""
+        mock_post.return_value.ok = True
+        big_list = [(f"T{i:02d}", 100.0, 200.0) for i in range(12)]
+        send_slack_notification(
+            summary_df=pd.DataFrame([{"Ticker": "T00"}]),
+            filter_df=pd.DataFrame([{"Ticker": "T00", "Quality Score": 90,
+                                     "Market Cap": "1B", "ATR%": 5, "Screeners": "Growth",
+                                     "EPS Y/Y TTM": 100, "EPS Q/Q": 200, "Inst Trans": 0, "Sector": "Tech"}]),
+            gallery_html="/tmp/g.html",
+            today="2026-04-23",
+            ai_summary="",
+            hidden_growth_candidates=big_list,
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        joined = "\n".join(
+            b.get("text", {}).get("text", "") for b in payload["blocks"]
+            if b.get("type") == "section"
+        )
+        # All 12 tickers appear
+        for i in range(12):
+            self.assertIn(f"T{i:02d}", joined)
+        # Count is shown
+        self.assertIn("12 names", joined)
+        # Research commands capped at 10 — "+2 more" note
+        self.assertIn("+2 more", joined)
+
+    @patch("agents.screener.finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
     def test_hidden_growth_label_used(self, mock_post):
         mock_post.return_value.ok = True
         send_slack_notification(

@@ -256,6 +256,57 @@ class TestUpdateWatchlist(unittest.TestCase):
         e = self._read_watchlist()[0]
         self.assertEqual(e["priority"], "focus", "still focus, not promoted to entry-ready")
 
+    # Hidden Growth entry path (parallel to technical add)
+
+    def test_hidden_growth_auto_add_new_ticker(self):
+        """Hidden Growth hit not yet in watchlist → added at priority=watching,
+        source=hidden_growth_auto, with research note."""
+        self._write_watchlist([])
+        _update_watchlist(_df([]), "2026-04-23", hidden_growth_tickers=["NVTS"])
+        result = self._read_watchlist()
+        self.assertEqual(len(result), 1)
+        e = result[0]
+        self.assertEqual(e["ticker"], "NVTS")
+        self.assertEqual(e["priority"], "watching")
+        self.assertEqual(e["source"], "hidden_growth_auto")
+        self.assertIn("Hidden Growth", e["entry_note"])
+
+    def test_hidden_growth_no_duplicate_when_already_watching(self):
+        """Hidden Growth hit already in watchlist as watching → no-op, no duplicate."""
+        self._write_watchlist([
+            {
+                "ticker": "NVTS", "status": "watching", "priority": "watching",
+                "added": "2026-04-16", "source": "screener_auto",
+            }
+        ])
+        _update_watchlist(_df([]), "2026-04-23", hidden_growth_tickers=["NVTS"])
+        result = self._read_watchlist()
+        self.assertEqual(len(result), 1)
+        # Source preserved from original — not overwritten
+        self.assertEqual(result[0]["source"], "screener_auto")
+
+    def test_hidden_growth_reactivates_archived(self):
+        """Hidden Growth hit in archived state (age_out) → reactivated."""
+        self._write_watchlist([
+            {
+                "ticker": "NVTS", "status": "archived", "priority": "watching",
+                "added": "2026-03-01", "source": "screener_auto",
+                "archive_reason": "age_out",
+            }
+        ])
+        _update_watchlist(_df([]), "2026-04-23", hidden_growth_tickers=["NVTS"])
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "watching")
+        self.assertEqual(e["reactivated_date"], "2026-04-23")
+
+    def test_hidden_growth_handles_empty_list(self):
+        """Missing / empty hidden_growth_tickers should not blow up."""
+        self._write_watchlist([])
+        _update_watchlist(_df([]), "2026-04-23")
+        _update_watchlist(_df([]), "2026-04-23", hidden_growth_tickers=None)
+        _update_watchlist(_df([]), "2026-04-23", hidden_growth_tickers=[])
+        # Just asserting no exception raised
+
     def test_full_mu_scenario_watching_to_entry_ready(self):
         """Regression test: MU sat at priority=watching while hitting criteria.
         With the fix, single run should promote watching → focus → entry-ready."""

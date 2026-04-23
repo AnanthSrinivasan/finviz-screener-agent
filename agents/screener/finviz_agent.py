@@ -1212,8 +1212,10 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {"type": "mrkdwn", "text": f":fire: *Power Moves (9M+ vol, 10%+):* {pm_tickers}"}
         })
 
-    # Hidden Growth flag — manual research prompt, no auto API call
-    # hidden_growth_candidates is list of (ticker, eps_yy, eps_qq) tuples
+    # Hidden Growth — research prompts. No cap: 4+/6 score is the quality filter,
+    # count also signals regime health. Large lists are capped in the research_cmd
+    # line (Slack block size) but every ticker appears in the ticker_parts line.
+    # hidden_growth_candidates is list of (ticker, eps_yy, eps_qq) tuples.
     if hidden_growth_candidates:
         ticker_parts = []
         for t, yy, qq in hidden_growth_candidates:
@@ -1221,15 +1223,18 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             eps_tag = f"TTM {yy:+.0f}% / Q/Q {qq:+.0f}%"
             flag = " ⚠ distorted" if distorted else ""
             ticker_parts.append(f"`{t}` ({eps_tag}{flag})")
-        tickers_str  = "  ·  ".join(ticker_parts)
-        research_cmd = "  ".join(f"`/stock-research {t}`" for t, _, _ in hidden_growth_candidates)
+        tickers_str = "  ·  ".join(ticker_parts)
+        # Cap research-command list at 10 to keep Slack block size reasonable.
+        research_tickers = [t for t, _, _ in hidden_growth_candidates][:10]
+        research_cmd = "  ".join(f"`/stock-research {t}`" for t in research_tickers)
+        more_note = f" (+{len(hidden_growth_candidates) - 10} more)" if len(hidden_growth_candidates) > 10 else ""
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f":microscope: *Hidden Growth (4+/6 criteria):* {tickers_str}\n"
-                    f"Check technicals, then run: {research_cmd}"
+                    f":microscope: *Hidden Growth ({len(hidden_growth_candidates)} names, 4+/6 criteria):* {tickers_str}\n"
+                    f"Research first 10{more_note}: {research_cmd}"
                 )
             }
         })
@@ -1352,16 +1357,22 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     return True
 
 
-def _update_watchlist(filter_df: pd.DataFrame, today: str):
+def _update_watchlist(
+    filter_df: pd.DataFrame,
+    today: str,
+    hidden_growth_tickers: list | None = None,
+):
     """
-    Maintain data/watchlist.json: add new Stage 2 + Q≥60 tickers, age-out stale
-    watching entries, reactivate previously-aged-out tickers that re-qualify,
-    promote watching→focus (top 5 by Q) and focus→entry-ready (all that meet
-    Ready-to-Enter criteria).
+    Maintain data/watchlist.json. Two entry paths:
+      1. Technical — Stage 2 + Q≥60 tickers from filter_df (source=screener_auto)
+      2. Fundamental — Hidden Growth 4+/6 hits (source=hidden_growth_auto)
+    Both land at priority=watching. Then age-out stale watching entries,
+    reactivate previously-aged-out tickers that re-qualify, promote
+    watching→focus (top 5 by Q) and focus→entry-ready (Ready-to-Enter criteria).
 
     Invariant: one row per ticker. No duplicates created by this function.
 
-    Returns: (promoted_to_focus, promoted_to_entry_ready) — both lists of tickers.
+    Returns: (promoted_to_focus, promoted_to_entry_ready).
     """
     import json
     from datetime import date, timedelta
@@ -1458,6 +1469,39 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
         added.append(ticker)
         log.info("Watchlist: added %s (Q=%.0f%s)", ticker, qs, " VCP" if vcp_ok else "")
 
+    # ── Hidden Growth entry path: fundamental accumulation (parallel to technical add). ──
+    # Ticker enters at priority=watching with source=hidden_growth_auto. Doesn't gate
+    # on Stage 2 + Q≥60 (NVTS-Apr16 was 10%-excluded but qualified as Hidden Growth).
+    hg_added: list[str] = []
+    for hg_ticker in (hidden_growth_tickers or []):
+        if hg_ticker in by_ticker:
+            # Existing entry — reactivate if aged out, otherwise no-op
+            existing_entry = by_ticker[hg_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(hg_ticker)
+                log.info("Watchlist: reactivated %s via Hidden Growth (previously aged out)", hg_ticker)
+            continue
+        # Look up metadata from summary_df candidates if available, else minimal entry
+        hg_entry = {
+            "ticker":      hg_ticker,
+            "entry_note":  "Hidden Growth 4+/6 — research prompt",
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      "Hidden Growth fundamental accumulation",
+            "added":       today,
+            "status":      "watching",
+            "priority":    "watching",
+            "source":      "hidden_growth_auto",
+        }
+        existing.append(hg_entry)
+        by_ticker[hg_ticker] = hg_entry
+        hg_added.append(hg_ticker)
+        log.info("Watchlist: added %s via Hidden Growth (source=hidden_growth_auto)", hg_ticker)
+
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
     promote_candidates = []
@@ -1510,8 +1554,10 @@ def _update_watchlist(filter_df: pd.DataFrame, today: str):
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d, reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(reactivated), len(promoted_to_focus), len(promoted_to_entry_ready),
+        "Watchlist updated — added %d (tech) + %d (hidden growth), reactivated %d, "
+        "focus-promoted %d, entry-ready %d",
+        len(added), len(hg_added), len(reactivated),
+        len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return promoted_to_focus, promoted_to_entry_ready
 
@@ -1608,11 +1654,12 @@ if __name__ == "__main__":
 
     # ── Proactive research: Hidden Growth detection ──
     # Catches stocks with accumulating evidence (persistence + strong EPS +
-    # institutional buying + Stage 2), whether or not TTM is distorted. TTM
-    # distortion is NOT a required criterion — it's captured implicitly via
-    # the eps_qq_strong clause for IPOs/spin-offs.
-    # Scans summary_df (pre-10%-gate) so deep-base breakouts like NVTS don't
-    # get filtered out before scoring.
+    # institutional buying + Stage 2), whether or not TTM is distorted.
+    # Scans summary_df (pre-10%-gate) so deep-base breakouts like NVTS-Apr16
+    # don't get filtered out. The 4+/6 score IS the quality filter — no cap.
+    # Count is also a regime signal ("many fish = healthy market").
+    hidden_growth_candidates: list = []
+    hidden_growth_full: list = []  # full records for JSON snapshot
     try:
         hg_scored = []
         for _, row in summary_df.iterrows():
@@ -1628,26 +1675,42 @@ if __name__ == "__main__":
                 eps_qq = float(row.get('EPS Q/Q', 0) or 0)
                 inst_trans = float(row.get('Inst Trans', 0) or 0)
                 appearances = int(row.get('Appearances', 0) or 0)
-                hg_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq))
+                hg_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq, inst_trans, appearances, criteria))
                 log.info(
                     f"Hidden Growth candidate: {row['Ticker']} signal={signal_score}/6 "
                     f"[{', '.join(k for k, v in criteria.items() if v)}] "
                     f"EPS TTM={eps_yy:.0f}% Q/Q={eps_qq:.0f}% InstTrans={inst_trans:.1f}% {appearances}d"
                 )
 
-        hg_scored.sort(key=lambda x: (x[0], x[1]), reverse=True)  # tie-break on ticker, no dict cmp
-        hidden_growth_candidates = [(t, yy, qq) for _, t, yy, qq in hg_scored[:3]]
+        # Sort by (score desc, ticker asc). No cap — score is the filter.
+        hg_scored.sort(key=lambda x: (-x[0], x[1]))
+
+        hidden_growth_candidates = [(t, yy, qq) for _, t, yy, qq, _it, _ap, _c in hg_scored]
+        hidden_growth_full = [
+            {
+                "ticker": t, "signal_score": s,
+                "eps_yy_ttm": yy, "eps_qq": qq, "inst_trans": it, "appearances": ap,
+                "criteria": {k: bool(v) for k, v in c.items()},
+            }
+            for s, t, yy, qq, it, ap, c in hg_scored
+        ]
+
+        # Persist today's snapshot (daily, overwritten — pair with archival later if needed)
+        hg_path = os.path.join("data", "hidden_growth.json")
+        with open(hg_path, "w") as f:
+            import json as _json
+            _json.dump({"date": today, "candidates": hidden_growth_full}, f, indent=2)
+        log.info("Hidden Growth snapshot written: %s (%d candidates)", hg_path, len(hidden_growth_full))
 
         if hidden_growth_candidates:
             log.info(
-                "Hidden Growth candidates flagged for manual research: %s",
+                "Hidden Growth candidates: %s",
                 [t for t, _, _ in hidden_growth_candidates],
             )
         else:
             log.info("No Hidden Growth candidates today (need 4/6 criteria).")
     except Exception as e:
         log.error(f"Hidden Growth detection failed (non-fatal): {e}")
-        hidden_growth_candidates = []
 
     # ── Write daily quality JSON for weekly agent signal merge ──
     import json
@@ -1712,7 +1775,10 @@ if __name__ == "__main__":
     )
 
     # Step 7: Auto-populate watchlist + auto-promote watching→focus→entry-ready
-    promoted_to_focus, promoted_to_entry_ready = _update_watchlist(filter_df, today)
+    hg_tickers_today = [t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() else [])]
+    promoted_to_focus, promoted_to_entry_ready = _update_watchlist(
+        filter_df, today, hidden_growth_tickers=hg_tickers_today,
+    )
     if promoted_to_focus:
         log.info("Auto-promoted to Focus List: %s", promoted_to_focus)
     if promoted_to_entry_ready:

@@ -642,6 +642,11 @@ Not needed yet. Revisit if automated execution is added.
 
 `finviz_agent.py` runs a Step 7 at the end of each daily screener run. Enforces an invariant: **one row per ticker** (no duplicates, ever — see `utils/dedupe_watchlist.py` for the one-time migration that cleaned up historical dupes).
 
+**Two entry paths — technical and fundamental:**
+
+*Technical path* (`source=screener_auto`): add Stage 2 + Q≥60, top 5 by Q.
+*Fundamental path* (`source=hidden_growth_auto`): any Hidden Growth 4+/6 hit that isn't already in the watchlist enters at `priority=watching` with entry note `"Hidden Growth 4+/6 — research prompt"`. No Stage 2 or Q-score gate (so NVTS-Apr16-type deep-base names aren't locked out). From here, the same focus/entry-ready promotion logic applies — Hidden Growth gets you *onto* the radar; climbing tiers still requires technical setup maturation.
+
 **Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
 - Brand-new ticker → add as `status=watching`, `priority=watching`, `source=screener_auto`
 - Existing `watching`/`focus`/`entry-ready` row → no-op (already tracked)
