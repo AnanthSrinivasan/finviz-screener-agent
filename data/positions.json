@@ -14,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 45.56,
-      "current_gain_pct": 10.54,
+      "current_gain_pct": 11.9,
       "peak_gain_pct": 32.29,
       "last_fade_alert_gain_pct": 9.81
     },
@@ -32,7 +32,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 19.35,
+      "current_gain_pct": 20.45,
       "peak_gain_pct": 51.07,
       "last_fade_alert_gain_pct": 19.35
     },
@@ -50,7 +50,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 21.72,
-      "current_gain_pct": 7.05,
+      "current_gain_pct": 7.82,
       "peak_gain_pct": 12.54
     },
     {
@@ -67,8 +67,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 41.7,
-      "current_gain_pct": 11.08,
-      "peak_gain_pct": 20.31
+      "current_gain_pct": 10.47,
+      "peak_gain_pct": 20.31,
+      "last_fade_alert_gain_pct": 10.47
     },
     {
       "ticker": "GLW",
@@ -86,6 +87,23 @@
       "highest_price_seen": 172.84,
       "current_gain_pct": 1.44,
       "peak_gain_pct": 3.44
+    },
+    {
+      "ticker": "MU",
+      "shares": 5,
+      "entry_price": 483.78,
+      "entry_date": "2026-04-23",
+      "stop": 413.07,
+      "stop_type": "auto_50ma",
+      "breakeven_stop_activated": false,
+      "target1": 580.54,
+      "target1_hit": false,
+      "target2": 677.29,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 493.43,
+      "current_gain_pct": -0.43,
+      "peak_gain_pct": 1.99
     }
   ],
   "closed_positions": [
