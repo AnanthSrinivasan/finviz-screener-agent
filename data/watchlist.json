@@ -69,7 +69,8 @@
       "thesis": "IPO lifecycle, 81% EPS beat, NAND cycle",
       "added": "2026-03-24",
       "status": "watching",
-      "priority": "focus"
+      "priority": "entry-ready",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "MRVL",
@@ -103,9 +104,10 @@
       "thesis": "Consumer Cyclical | Q=109 | ATR 4.3%",
       "added": "2026-04-02",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-17"
+      "focus_promoted_date": "2026-04-17",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "CIEN",
@@ -151,9 +153,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=101 | VCP | ATR 4.9%",
       "added": "2026-04-02",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "UNIT",
@@ -200,9 +204,10 @@
       "thesis": "Technology | Q=102 | VCP | ATR 5.5%",
       "added": "2026-04-03",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-16"
+      "focus_promoted_date": "2026-04-16",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "STX",
@@ -211,9 +216,11 @@
       "stop": null,
       "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "AAOI",
@@ -248,11 +255,13 @@
       "stop": null,
       "thesis": "Technology | Q=90 | VCP | ATR 4.8%",
       "added": "2026-04-03",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-18"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-18",
+      "reactivated_date": "2026-04-23",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "LITE",
@@ -274,9 +283,10 @@
       "thesis": "Technology | Q=104 | VCP | ATR 4.2%",
       "added": "2026-04-06",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-14"
+      "focus_promoted_date": "2026-04-14",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "AA",
@@ -321,9 +331,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=103 | VCP | ATR 4.6%",
       "added": "2026-04-08",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "CSTM",
@@ -332,9 +344,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=99 | VCP | ATR 5.5%",
       "added": "2026-04-08",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "ADI",
@@ -343,9 +357,11 @@
       "stop": null,
       "thesis": "Technology | Q=94 | VCP | ATR 3.0%",
       "added": "2026-04-08",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "CLS",
@@ -354,9 +370,11 @@
       "stop": null,
       "thesis": "Technology | Q=89 | VCP | ATR 6.3%",
       "added": "2026-04-08",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "CTRI",
@@ -365,9 +383,11 @@
       "stop": null,
       "thesis": "Utilities | Q=86 | VCP | ATR 4.2%",
       "added": "2026-04-08",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-23"
     },
     {
       "ticker": "ANET",
@@ -490,7 +510,9 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "ERO",
@@ -753,8 +775,9 @@
       "thesis": "Technology | Q=89 | VCP | ATR 4.8%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "AUPH",
@@ -764,8 +787,10 @@
       "thesis": "Healthcare | Q=89 | VCP | ATR 3.4%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "entry-ready",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "SPIR",
@@ -940,8 +965,9 @@
       "thesis": "Technology | Q=81 | ATR 6.1%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "RNG",
