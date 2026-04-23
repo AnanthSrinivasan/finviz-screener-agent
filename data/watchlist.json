@@ -231,10 +231,11 @@
       "added": "2026-04-03",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
+      "priority": "focus",
       "archive_reason": null,
-      "archived_date": "2026-04-18",
-      "reactivated_date": "2026-04-23"
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-23",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "LUNR",
@@ -399,7 +400,9 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "TSM",
@@ -603,7 +606,9 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-23"
     },
     {
       "ticker": "NBIS",
@@ -1058,8 +1063,9 @@
       "thesis": "Technology | Q=77 | ATR 6.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "AEM",
@@ -1352,8 +1358,9 @@
       "thesis": "Industrials | Q=95 | ATR 6.6%",
       "added": "2026-04-20",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-23"
     },
     {
       "ticker": "USAR",
