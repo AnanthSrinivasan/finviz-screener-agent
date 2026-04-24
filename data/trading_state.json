@@ -1,17 +1,33 @@
 {
-  "consecutive_wins": 1,
+  "consecutive_wins": 3,
   "consecutive_losses": 0,
-  "total_wins": 1,
+  "total_wins": 3,
   "total_losses": 0,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-04-22",
+  "last_updated": "2026-04-24",
   "recent_trades": [
     {
       "ticker": "AMD",
       "result": "win",
       "result_pct": 20.49,
       "date": "2026-04-22",
+      "side": "SELL",
+      "source": "auto_detected"
+    },
+    {
+      "ticker": "FLY",
+      "result": "win",
+      "result_pct": 32.29,
+      "date": "2026-04-24",
+      "side": "SELL",
+      "source": "auto_detected"
+    },
+    {
+      "ticker": "PL",
+      "result": "win",
+      "result_pct": 20.31,
+      "date": "2026-04-24",
       "side": "SELL",
       "source": "auto_detected"
     }

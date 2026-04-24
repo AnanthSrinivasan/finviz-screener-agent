@@ -1,24 +1,6 @@
 {
   "open_positions": [
     {
-      "ticker": "FLY",
-      "shares": 200,
-      "entry_price": 34.44,
-      "entry_date": "2026-04-06",
-      "stop": 40.84,
-      "stop_type": "atr_trail",
-      "breakeven_stop_activated": true,
-      "target1": 41.33,
-      "target1_hit": true,
-      "target2": 48.22,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "stop_hit",
-      "highest_price_seen": 45.56,
-      "current_gain_pct": 3.77,
-      "peak_gain_pct": 32.29,
-      "last_fade_alert_gain_pct": 4.36
-    },
-    {
       "ticker": "AAOI",
       "shares": 75,
       "entry_price": 114.35,
@@ -32,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 42.72,
+      "current_gain_pct": 41.82,
       "peak_gain_pct": 51.07
     },
     {
@@ -49,26 +31,8 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 21.72,
-      "current_gain_pct": 9.43,
+      "current_gain_pct": 8.19,
       "peak_gain_pct": 12.54
-    },
-    {
-      "ticker": "PL",
-      "shares": 100,
-      "entry_price": 34.66,
-      "entry_date": "2026-04-15",
-      "stop": 33.03,
-      "stop_type": "atr_trail",
-      "breakeven_stop_activated": false,
-      "target1": 41.59,
-      "target1_hit": false,
-      "target2": 48.52,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 41.7,
-      "current_gain_pct": 3.4,
-      "peak_gain_pct": 20.31,
-      "last_fade_alert_gain_pct": 2.8
     },
     {
       "ticker": "GLW",
@@ -84,7 +48,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 178.99,
-      "current_gain_pct": 5.95,
+      "current_gain_pct": 5.26,
       "peak_gain_pct": 7.12
     },
     {
@@ -101,7 +65,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 506.66,
-      "current_gain_pct": 2.65,
+      "current_gain_pct": 2.67,
       "peak_gain_pct": 4.73
     },
     {
@@ -118,7 +82,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 165.66,
-      "current_gain_pct": -6.71,
+      "current_gain_pct": -9.45,
       "peak_gain_pct": 1.94
     },
     {
@@ -135,7 +99,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 17.43,
-      "current_gain_pct": -1.28,
+      "current_gain_pct": 0.92,
       "peak_gain_pct": 6.54
     }
   ],
@@ -159,6 +123,48 @@
       "close_date": "2026-04-22",
       "close_price": 296.48,
       "result_pct": 20.49
+    },
+    {
+      "ticker": "FLY",
+      "shares": 200,
+      "entry_price": 34.44,
+      "entry_date": "2026-04-06",
+      "stop": 40.84,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": true,
+      "target1": 41.33,
+      "target1_hit": true,
+      "target2": 48.22,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 45.56,
+      "current_gain_pct": 3.77,
+      "peak_gain_pct": 32.29,
+      "last_fade_alert_gain_pct": 4.36,
+      "close_date": "2026-04-24",
+      "close_price": 45.56,
+      "result_pct": 32.29
+    },
+    {
+      "ticker": "PL",
+      "shares": 100,
+      "entry_price": 34.66,
+      "entry_date": "2026-04-15",
+      "stop": 33.03,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": false,
+      "target1": 41.59,
+      "target1_hit": false,
+      "target2": 48.52,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 41.7,
+      "current_gain_pct": 3.4,
+      "peak_gain_pct": 20.31,
+      "last_fade_alert_gain_pct": 2.8,
+      "close_date": "2026-04-24",
+      "close_price": 41.7,
+      "result_pct": 20.31
     }
   ]
 }
