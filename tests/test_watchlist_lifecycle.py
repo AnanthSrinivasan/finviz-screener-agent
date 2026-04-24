@@ -245,18 +245,89 @@ class TestUpdateWatchlist(unittest.TestCase):
                 "added": "2026-04-09", "source": "screener_auto",
             }
         ])
-        # Mock positions.json with MU open
+        # Mock positions.json with MU held (status=active)
         with open("data/positions.json", "w") as f:
             json.dump(
-                {"open_positions": [{"ticker": "MU", "status": "open"}], "closed_positions": []},
+                {"open_positions": [{"ticker": "MU", "status": "active"}], "closed_positions": []},
                 f,
             )
         _, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
         self.assertEqual(promoted_er, [])
+        # Held-position auto-archive trumps the focus priority
         e = self._read_watchlist()[0]
-        self.assertEqual(e["priority"], "focus", "still focus, not promoted to entry-ready")
+        self.assertEqual(e["status"], "archived")
+        self.assertEqual(e["archive_reason"], "entered_position")
 
     # Hidden Growth entry path (parallel to technical add)
+
+    # Held-position auto-archive (real + paper)
+
+    def test_auto_archive_when_ticker_becomes_active_position(self):
+        """Watchlist entry for a ticker now in open_positions with status=active
+        should be auto-archived with reason=entered_position."""
+        self._write_watchlist([
+            {"ticker": "CORZ", "status": "watching", "priority": "focus",
+             "added": "2026-03-24", "source": "screener_auto"}
+        ])
+        with open("data/positions.json", "w") as f:
+            json.dump(
+                {"open_positions": [{"ticker": "CORZ", "status": "active"}],
+                 "closed_positions": []},
+                f,
+            )
+        _update_watchlist(_df([]), "2026-04-24")
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "archived")
+        self.assertEqual(e["archive_reason"], "entered_position")
+        self.assertEqual(e["archived_date"], "2026-04-24")
+
+    def test_stop_hit_status_does_NOT_trigger_archive(self):
+        """Tickers with status=stop_hit are effectively closed — should not
+        suppress re-entry signals, so must NOT trigger held-archive.
+        Uses a recent `added` date to avoid age-out firing independently."""
+        today = date.today().isoformat()
+        self._write_watchlist([
+            {"ticker": "AAOI", "status": "watching", "priority": "watching",
+             "added": today, "source": "screener_auto"}
+        ])
+        with open("data/positions.json", "w") as f:
+            json.dump(
+                {"open_positions": [{"ticker": "AAOI", "status": "stop_hit"}],
+                 "closed_positions": []},
+                f,
+            )
+        _update_watchlist(_df([]), "2026-04-24")
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "watching", "stop_hit should not archive")
+
+    def test_paper_held_also_triggers_archive(self):
+        """Paper-held tickers (present in paper_stops.json) should also auto-archive."""
+        self._write_watchlist([
+            {"ticker": "MTSI", "status": "watching", "priority": "entry-ready",
+             "added": "2026-04-06", "source": "screener_auto"}
+        ])
+        with open("data/paper_stops.json", "w") as f:
+            json.dump({"MTSI": {"entry_price": 280.0, "stop_price": 265.0}}, f)
+        _update_watchlist(_df([]), "2026-04-24")
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "archived")
+        self.assertEqual(e["archive_reason"], "entered_position")
+
+    def test_entry_ready_promotion_blocked_when_held(self):
+        """Even if a ticker is on the watchlist and meets entry-ready criteria,
+        being actively held blocks promotion (via _is_ready_to_enter's open_pos check)."""
+        self._write_watchlist([
+            {"ticker": "MU", "status": "watching", "priority": "watching",
+             "added": "2026-04-09", "source": "screener_auto"}
+        ])
+        with open("data/positions.json", "w") as f:
+            json.dump({"open_positions": [{"ticker": "MU", "status": "active"}],
+                       "closed_positions": []}, f)
+        _, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-24")
+        # Ticker got archived (held) before promotion could occur
+        self.assertEqual(promoted_er, [])
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "archived")
 
     def test_hidden_growth_auto_add_new_ticker(self):
         """Hidden Growth hit not yet in watchlist → added at priority=watching,

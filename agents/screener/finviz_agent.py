@@ -1300,17 +1300,29 @@ def _score_hidden_growth(row) -> dict:
 # ── Watchlist lifecycle helpers (pure, unit-tested) ───────────────────────────
 
 def _load_open_positions() -> set:
-    """Return set of tickers with status=='open' in data/positions.json."""
+    """Return set of tickers currently held — real (positions.json) + paper (paper_stops.json).
+
+    Real positions: entries in `open_positions` with `status == "active"`. Other statuses
+    (e.g. `stop_hit`) are effectively closed and should not suppress re-entry signals.
+    Paper positions: any ticker present in `paper_stops.json` (autonomous paper executor).
+    """
     import json
+    held: set = set()
     try:
         with open(os.path.join("data", "positions.json")) as f:
             data = json.load(f)
-        return {
+        held.update(
             p["ticker"] for p in data.get("open_positions", [])
-            if p.get("status") == "open" and p.get("ticker")
-        }
+            if p.get("status") == "active" and p.get("ticker")
+        )
     except Exception:
-        return set()
+        pass
+    try:
+        with open(os.path.join("data", "paper_stops.json")) as f:
+            held.update(json.load(f).keys())
+    except Exception:
+        pass
+    return held
 
 
 def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
@@ -1384,6 +1396,21 @@ def _update_watchlist(
     except Exception:
         existing = []
         wl_data = {"watchlist": existing}
+
+    # ── Auto-archive entries for tickers that are now open positions. ──
+    # Once held, a ticker shouldn't appear in actionable tiers; the position
+    # monitor owns the lifecycle from here. Applies to all priorities.
+    held_tickers = _load_open_positions()
+    held_archived = 0
+    for entry in existing:
+        if (entry.get("ticker") in held_tickers
+                and entry.get("status") != "archived"):
+            entry["status"] = "archived"
+            entry["archive_reason"] = "entered_position"
+            entry["archived_date"] = today
+            held_archived += 1
+    if held_archived:
+        log.info("Watchlist: auto-archived %d entries now held as positions.", held_archived)
 
     # ── 3b: age-out only priority=watching screener_auto entries (>14 days). ──
     # Focus and entry-ready are never auto-archived — they earned their place.
