@@ -39,7 +39,9 @@
       "thesis": "Character change, 400% EPS beat, healthcare apparel turning profitable",
       "added": "2026-03-24",
       "status": "watching",
-      "priority": "watching"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-24",
+      "entry_ready_date": "2026-04-24"
     },
     {
       "ticker": "SEDG",
@@ -216,11 +218,13 @@
       "stop": null,
       "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
       "added": "2026-04-03",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-24",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "AAOI",
@@ -423,9 +427,11 @@
       "stop": null,
       "thesis": "Technology | Q=97 | ATR 5.2%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "RSI",
@@ -434,9 +440,11 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=94 | VCP | ATR 4.1%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "HBM",
@@ -445,9 +453,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=94 | VCP | ATR 5.7%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "COHR",
@@ -468,9 +478,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=98 | VCP | ATR 5.5%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "BTSG",
@@ -481,7 +493,10 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-04-24"
     },
     {
       "ticker": "GMED",
@@ -490,9 +505,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=94 | VCP | ATR 3.1%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "KGC",
@@ -501,9 +518,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=93 | VCP | ATR 4.9%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "MU",
@@ -525,9 +544,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=89 | VCP | ATR 5.3%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "AMAT",
@@ -550,7 +571,11 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-04-24",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "DAN",
@@ -559,9 +584,11 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=84 | VCP | ATR 3.7%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "C",
@@ -570,9 +597,11 @@
       "stop": null,
       "thesis": "Financial | Q=84 | VCP | ATR 3.1%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "AEHR",
@@ -581,9 +610,11 @@
       "stop": null,
       "thesis": "Technology | Q=84 | ATR 8.5%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "LRCX",
@@ -617,9 +648,11 @@
       "stop": null,
       "thesis": "Technology | Q=82 | ATR 6.8%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "APH",
@@ -641,7 +674,8 @@
       "added": "2026-04-10",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "SSRM",
@@ -663,7 +697,8 @@
       "added": "2026-04-10",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "IVVD",
