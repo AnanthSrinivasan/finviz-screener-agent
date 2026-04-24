@@ -8,8 +8,9 @@
       "thesis": "Bloom Energy \u2014 clean energy, data center power demand",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
-      "source": "manual"
+      "priority": "entry-ready",
+      "source": "manual",
+      "entry_ready_date": "2026-04-24"
     },
     {
       "ticker": "CRCL",
@@ -40,10 +41,12 @@
       "stop": null,
       "thesis": "Character change, 400% EPS beat, healthcare apparel turning profitable",
       "added": "2026-03-24",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "focus_promoted_date": "2026-04-24",
-      "entry_ready_date": "2026-04-24"
+      "entry_ready_date": "2026-04-24",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "SEDG",
@@ -83,10 +86,12 @@
       "stop": null,
       "thesis": "Technology | Q=102 | ATR 4.4%",
       "added": "2026-04-02",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-14"
+      "focus_promoted_date": "2026-04-14",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "GEV",
@@ -95,10 +100,12 @@
       "stop": null,
       "thesis": "Industrials | Q=110 | VCP | ATR 3.6%",
       "added": "2026-04-02",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-17"
+      "focus_promoted_date": "2026-04-17",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "VIK",
@@ -107,11 +114,13 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=109 | ATR 4.3%",
       "added": "2026-04-02",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-04-17",
-      "entry_ready_date": "2026-04-23"
+      "entry_ready_date": "2026-04-23",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "CIEN",
@@ -195,10 +204,12 @@
       "stop": null,
       "thesis": "Industrials | Q=106 | VCP | ATR 4.3%",
       "added": "2026-04-02",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-14"
+      "focus_promoted_date": "2026-04-14",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "GLW",
@@ -223,12 +234,13 @@
       "thesis": "Technology | Q=92 | VCP | ATR 5.1%",
       "added": "2026-04-03",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-04-23",
       "reactivated_date": "2026-04-24",
-      "focus_promoted_date": "2026-04-24"
+      "focus_promoted_date": "2026-04-24",
+      "entry_ready_date": "2026-04-24"
     },
     {
       "ticker": "AAOI",
@@ -292,11 +304,13 @@
       "stop": null,
       "thesis": "Technology | Q=104 | VCP | ATR 4.2%",
       "added": "2026-04-06",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-04-14",
-      "entry_ready_date": "2026-04-23"
+      "entry_ready_date": "2026-04-23",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-24"
     },
     {
       "ticker": "AA",
@@ -393,11 +407,13 @@
       "stop": null,
       "thesis": "Utilities | Q=86 | VCP | ATR 4.2%",
       "added": "2026-04-08",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-24",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "ANET",
@@ -431,11 +447,13 @@
       "stop": null,
       "thesis": "Technology | Q=97 | ATR 5.2%",
       "added": "2026-04-09",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-24"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-04-24",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "RSI",
@@ -1274,8 +1292,9 @@
       "thesis": "Financial | Q=93 | VCP | ATR 3.3%",
       "added": "2026-04-15",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "CAR",
@@ -1376,8 +1395,9 @@
       "thesis": "Technology | Q=98 | VCP | ATR 3.0%",
       "added": "2026-04-18",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-24"
     },
     {
       "ticker": "MXL",
@@ -1524,6 +1544,40 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "INDV",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-24",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "FLG",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-04-24",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-04-24"
+    },
+    {
+      "ticker": "SYNA",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-04-24",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
     }
   ],
   "tickers": [

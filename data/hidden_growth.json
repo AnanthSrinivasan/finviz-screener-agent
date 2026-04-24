@@ -2,6 +2,22 @@
   "date": "2026-04-24",
   "candidates": [
     {
+      "ticker": "AAOI",
+      "signal_score": 5,
+      "eps_yy_ttm": 84.71,
+      "eps_qq": 98.89,
+      "inst_trans": 4.1,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "CORZ",
       "signal_score": 5,
       "eps_yy_ttm": 128.35,
@@ -18,17 +34,17 @@
       }
     },
     {
-      "ticker": "AAOI",
+      "ticker": "AMD",
       "signal_score": 4,
-      "eps_yy_ttm": 84.71,
-      "eps_qq": 98.89,
-      "inst_trans": 4.1,
-      "appearances": 1,
+      "eps_yy_ttm": 163.27,
+      "eps_qq": 210.61,
+      "inst_trans": 2.75,
+      "appearances": 3,
       "criteria": {
-        "persistence": false,
+        "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -39,7 +55,7 @@
       "eps_yy_ttm": 5205.15,
       "eps_qq": 15628.87,
       "inst_trans": 5.67,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -71,7 +87,7 @@
       "eps_yy_ttm": 395.14,
       "eps_qq": 1816.17,
       "inst_trans": -0.89,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -98,12 +114,28 @@
       }
     },
     {
+      "ticker": "INDV",
+      "signal_score": 4,
+      "eps_yy_ttm": 751.75,
+      "eps_qq": 410.0,
+      "inst_trans": 4.6,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "LASR",
       "signal_score": 4,
       "eps_yy_ttm": 62.85,
       "eps_qq": 81.25,
       "inst_trans": 6.03,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -162,19 +194,19 @@
       }
     },
     {
-      "ticker": "VELO",
+      "ticker": "SNDK",
       "signal_score": 4,
-      "eps_yy_ttm": 95.72,
-      "eps_qq": 91.94,
-      "inst_trans": -1.62,
+      "eps_yy_ttm": -327.99,
+      "eps_qq": 617.71,
+      "inst_trans": -9.11,
       "appearances": 3,
       "criteria": {
         "persistence": true,
-        "eps_yy_strong": true,
+        "eps_yy_strong": false,
         "eps_qq_strong": true,
         "inst_buying": false,
         "stage2_perfect": true,
-        "ipo_lifecycle": false
+        "ipo_lifecycle": true
       }
     },
     {
