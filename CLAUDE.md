@@ -232,6 +232,12 @@ industries. **Distorted TTM is NOT a criterion** — clean TTM earns a point
 via `eps_yy_strong`; spin-off/IPO distortion is captured implicitly via the
 `eps_qq_strong` clause.
 
+**🚀 Fresh Breakout** — top 5 by Quality Score. Catches ANET-Apr8 / ARWR-today class (breakout-from-base with volume expansion; complementary to Ready-to-Enter which is pullback-based). Criteria: Stage 2 (not requiring perfect) · SMA20% > 0 · SMA50% in (0, 25%] · SMA200% > 0 · RVol ≥1.2 · ATR% ≤8% · Q ≥70 · dist from 52w high 0% to -12% · peel-warn safe (SMA50%/ATR% ≤ per-ticker calibrated) · not held. Auto-adds to watchlist with `source=breakout_auto` (third entry path alongside technical + Hidden Growth).
+
+**⭐ Textbook VCP marker** — overlay badge, not a separate list. Promotes VCP confidence ≥85 · appearances ≥3 · ATR% ≤5 · Stage 2 perfect · dist -3% to -8% · Q ≥80 setups with a ⭐ badge on Slack Top Picks / Ready-to-Enter lines and watchlist.html ticker cells. Flag written to `daily_quality.json` as `textbook_vcp: true/false`.
+
+**💎 Power Play / High Tight Flag** — rare Minervini/O'Neil monster pattern. Criteria: Perf Month ≥50% OR Perf Quarter ≥100% (rocket) · ATR% ≤5 (tight flag) · RVol <1.0 (volume drying) · Stage 2 · peel-warn safe. Uses new Finviz snapshot fields `Perf Month` / `Perf Quarter` — `get_snapshot_metrics` now returns 14-tuple instead of 12.
+
 **Hidden Growth vs watchlist tiers — two independent axes.** Hidden Growth is a
 fundamental/accumulation flag (EPS + institutional + IPO lifecycle); tiers
 (`watching`/`focus`/`entry-ready`) are technical setup readiness. They overlap
