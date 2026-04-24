@@ -186,7 +186,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             table = soup.find("table", class_="snapshot-table2")
             if not table:
                 log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
-                return None, None, None, None, None, None, None, None, None, None, None, None
+                return None, None, None, None, None, None, None, None, None, None, None, None, None, None
 
             data = {}
             for row in table.find_all("tr"):
@@ -250,7 +250,15 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             sma50_pct  = parse_sma_pct("SMA50")
             sma200_pct = parse_sma_pct("SMA200")
 
-            return atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol, sma20_pct, sma50_pct, sma200_pct, eps_qq, inst_own, inst_trans
+            # Perf Month (~1M) and Perf Quarter (~3M) — for Power Play / High Tight Flag.
+            perf_month_str   = data.get("Perf Month", "0").replace("%", "").strip()
+            perf_month   = float(perf_month_str) if perf_month_str not in ("-", "") else 0.0
+            perf_quarter_str = data.get("Perf Quarter", "0").replace("%", "").strip()
+            perf_quarter = float(perf_quarter_str) if perf_quarter_str not in ("-", "") else 0.0
+
+            return (atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol,
+                    sma20_pct, sma50_pct, sma200_pct, eps_qq, inst_own, inst_trans,
+                    perf_month, perf_quarter)
 
         except requests.HTTPError as e:
             if e.response.status_code == 429:
@@ -264,7 +272,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             log.error(f"{ticker}: unexpected error — {e}")
             break
 
-    return None, None, None, None, None, None, None, None, None, None, None, None
+    return None, None, None, None, None, None, None, None, None, None, None, None, None, None
 
 
 def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -> dict:
@@ -1106,7 +1114,9 @@ Be direct and specific. Use ticker names. Quality Score above 60 = liquid leader
 def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              gallery_html: str, today: str, ai_summary: str,
                              hidden_growth_candidates: list | None = None,
-                             ready_to_enter: list | None = None):
+                             ready_to_enter: list | None = None,
+                             fresh_breakouts: list | None = None,
+                             power_plays: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1133,8 +1143,11 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         inst_trans_v = float(row['Inst Trans']) if pd.notna(row.get('Inst Trans')) else None
         inst_str = f" · Inst {inst_trans_v:+.1f}%" if inst_trans_v is not None and inst_trans_v != 0 else ""
 
+        # ⭐ Textbook VCP overlay — strictest pullback-setup gate (applies on top of tier)
+        textbook_badge = " :star:" if _is_textbook_vcp(row) else ""
+
         ticker_lines.append(
-            f"*{row['Ticker']}*{sector_str} · Q{qs} · {mktcap} · ATR {atr} · EPS {eps}{inst_str}\n"
+            f"*{row['Ticker']}*{textbook_badge}{sector_str} · Q{qs} · {mktcap} · ATR {atr} · EPS {eps}{inst_str}\n"
             f" {row['Screeners']}"
         )
 
@@ -1155,8 +1168,9 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
     if ready_to_enter:
         lines = []
         for r in ready_to_enter[:5]:
+            tb = " :star:" if r.get("textbook") else ""
             lines.append(
-                f"`{r['ticker']}` Q{r['q']:.0f} · VCP {r['vcp']:.0f}% · "
+                f"`{r['ticker']}`{tb} Q{r['q']:.0f} · VCP {r['vcp']:.0f}% · "
                 f"{r['dist']:+.0f}% · ATR {r['atr']:.1f}% · RVol {r['rvol']:.1f}x"
                 f" · `/stock-research {r['ticker']}`"
             )
@@ -1165,6 +1179,46 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": ":dart: *Ready to Enter* (Stage 2 + VCP tight pullback):\n" + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # Fresh Breakout — breakout-from-base (complement to pullback setup).
+    # fresh_breakouts is list of dicts: {ticker, q, sma20, sma50, rvol, atr, dist}
+    if fresh_breakouts:
+        lines = []
+        for r in fresh_breakouts[:5]:
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · SMA20 +{r['sma20']:.1f}% · "
+                f"SMA50 +{r['sma50']:.1f}% · RVol {r['rvol']:.1f}x · ATR {r['atr']:.1f}% · "
+                f"{r['dist']:+.0f}% · `/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":rocket: *Fresh Breakout* (base breakout on volume expansion):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # Power Play / High Tight Flag — rare but monster (Minervini/O'Neil).
+    # power_plays is list of dicts: {ticker, perf_m, perf_q, atr, rvol}
+    if power_plays:
+        lines = []
+        for r in power_plays[:5]:
+            lines.append(
+                f"`{r['ticker']}` Perf 1M +{r['perf_m']:.0f}% / 3M +{r['perf_q']:.0f}% · "
+                f"ATR {r['atr']:.1f}% (tight) · RVol {r['rvol']:.1f}x (drying) · "
+                f"`/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":gem: *Power Play / High Tight Flag* "
+                        "(big runup + tight flag + dry volume):\n" + "\n".join(lines),
             }
         })
         blocks.append({"type": "divider"})
@@ -1297,6 +1351,37 @@ def _score_hidden_growth(row) -> dict:
     }
 
 
+# ── Peel-warn helper (mirrors position_monitor.get_peel_thresholds) ───────────
+
+_PEEL_CAL_CACHE = None
+_PEEL_TIER_WARN = (
+    (4.0, 3.0),   # low ATR — warn at 3.0x
+    (7.0, 5.0),   # mid
+    (10.0, 6.5),  # high
+    (999.0, 8.5), # extreme
+)
+
+
+def _peel_warn_for(ticker: str, atr_pct: float) -> float:
+    """Return peel-warn threshold for a ticker. Uses per-ticker calibration
+    from data/peel_calibration.json when available, else ATR% tier fallback."""
+    import json
+    global _PEEL_CAL_CACHE
+    if _PEEL_CAL_CACHE is None:
+        try:
+            with open(os.path.join("data", "peel_calibration.json")) as f:
+                _PEEL_CAL_CACHE = json.load(f)
+        except Exception:
+            _PEEL_CAL_CACHE = {}
+    entry = _PEEL_CAL_CACHE.get(ticker, {}) if isinstance(_PEEL_CAL_CACHE, dict) else {}
+    if entry.get("calibrated"):
+        return float(entry["warn"])
+    for max_atr, warn in _PEEL_TIER_WARN:
+        if atr_pct <= max_atr:
+            return warn
+    return 7.0
+
+
 # ── Watchlist lifecycle helpers (pure, unit-tested) ───────────────────────────
 
 def _load_open_positions() -> set:
@@ -1369,16 +1454,172 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     return True
 
 
+def _is_fresh_breakout(row, open_positions_tickers: set) -> bool:
+    """
+    Pure predicate for the '🚀 Fresh Breakout' signal class — complement to
+    Ready-to-Enter (pullback). Catches stocks breaking out of bases on volume
+    expansion, before extension. ANET-Apr8 / ARWR-today type setups.
+
+    All must hold: Stage 2 (not necessarily perfect) · rising MA stack (SMA20
+    > 0, SMA50 in (0, 25], SMA200 > 0) · RVol ≥1.2 · ATR% ≤8 · Q ≥70 ·
+    dist from 52w high 0% to -12% · not extended (SMA50%/ATR% ≤ peel_warn) ·
+    not held.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    sma20 = row.get("SMA20%")
+    if sma20 is None or pd.isna(sma20) or float(sma20) <= 0:
+        return False
+
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50):
+        return False
+    sma50 = float(sma50)
+    if sma50 <= 0 or sma50 > 25:
+        return False
+
+    sma200 = row.get("SMA200%")
+    if sma200 is None or pd.isna(sma200) or float(sma200) <= 0:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 8:
+        return False
+    atr = float(atr)
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) < 1.2:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 70:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist > 0 or dist < -12.0:
+        return False
+
+    # Peel-warn extension gate (reuses paper executor's logic)
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
+def _is_power_play(row, open_positions_tickers: set) -> bool:
+    """
+    Pure predicate for the 💎 Power Play / High Tight Flag signal (Minervini/O'Neil).
+
+    Rare but monster gainers — stock already proved institutional demand (big runup),
+    now consolidating tight before second leg. All must hold:
+      - Perf Month ≥ 50% OR Perf Quarter ≥ 100% (the rocket)
+      - ATR% ≤ 5% (currently tight = flag phase)
+      - RVol < 1.0 (volume drying up in the flag)
+      - Stage 2 (above all MAs)
+      - Not extended (peel-warn)
+      - Not held
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers:
+        return False
+
+    perf_m = row.get("Perf Month")
+    perf_q = row.get("Perf Quarter")
+    perf_m = float(perf_m) if perf_m is not None and not pd.isna(perf_m) else 0.0
+    perf_q = float(perf_q) if perf_q is not None and not pd.isna(perf_q) else 0.0
+    if not (perf_m >= 50 or perf_q >= 100):
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 5:
+        return False
+    atr = float(atr)
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) >= 1.0:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50):
+        return False
+    sma50 = float(sma50)
+    if sma50 <= 0:
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
+def _is_textbook_vcp(row) -> bool:
+    """
+    Pure predicate for the ⭐ Textbook VCP overlay marker. Stricter bar than
+    the normal VCP detection — identifies the cleanest Minervini-style
+    pullback setups where everything lines up.
+
+    All must hold: VCP conf ≥85 · Appearances ≥3 · ATR% ≤5 · Stage 2 perfect ·
+    dist from high -3% to -8% · Q ≥80.
+    """
+    vcp = row.get("VCP") or {}
+    if not isinstance(vcp, dict) or float(vcp.get("confidence", 0) or 0) < 85:
+        return False
+
+    appearances = row.get("Appearances")
+    if appearances is None or pd.isna(appearances) or int(appearances) < 3:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) > 5:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    if not (stage_d.get("stage") == 2 and stage_d.get("perfect", False)):
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist > -3.0 or dist < -8.0:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 80:
+        return False
+
+    return True
+
+
 def _update_watchlist(
     filter_df: pd.DataFrame,
     today: str,
     hidden_growth_tickers: list | None = None,
+    breakout_tickers: list | None = None,
 ):
     """
-    Maintain data/watchlist.json. Two entry paths:
-      1. Technical — Stage 2 + Q≥60 tickers from filter_df (source=screener_auto)
+    Maintain data/watchlist.json. Three entry paths (parallel, one row per ticker):
+      1. Technical pullback — Stage 2 + Q≥60 tickers (source=screener_auto)
       2. Fundamental — Hidden Growth 4+/6 hits (source=hidden_growth_auto)
-    Both land at priority=watching. Then age-out stale watching entries,
+      3. Breakout — Fresh Breakout hits (source=breakout_auto)
+    All land at priority=watching. Then age-out stale watching entries,
     reactivate previously-aged-out tickers that re-qualify, promote
     watching→focus (top 5 by Q) and focus→entry-ready (Ready-to-Enter criteria).
 
@@ -1529,6 +1770,37 @@ def _update_watchlist(
         hg_added.append(hg_ticker)
         log.info("Watchlist: added %s via Hidden Growth (source=hidden_growth_auto)", hg_ticker)
 
+    # ── Fresh Breakout entry path: breakout-from-base (parallel to technical/HG adds). ──
+    # Ticker enters at priority=watching with source=breakout_auto. Catches stocks
+    # breaking out that the technical VCP-pullback path misses (ANET-Apr8 / ARWR-type).
+    br_added: list[str] = []
+    for br_ticker in (breakout_tickers or []):
+        if br_ticker in by_ticker:
+            existing_entry = by_ticker[br_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(br_ticker)
+                log.info("Watchlist: reactivated %s via Fresh Breakout (previously aged out)", br_ticker)
+            continue
+        br_entry = {
+            "ticker":      br_ticker,
+            "entry_note":  "Fresh Breakout — breakout from base, watch follow-through",
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      "Breakout from base on volume expansion",
+            "added":       today,
+            "status":      "watching",
+            "priority":    "watching",
+            "source":      "breakout_auto",
+        }
+        existing.append(br_entry)
+        by_ticker[br_ticker] = br_entry
+        br_added.append(br_ticker)
+        log.info("Watchlist: added %s via Fresh Breakout (source=breakout_auto)", br_ticker)
+
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
     promote_candidates = []
@@ -1581,9 +1853,9 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth), reactivated %d, "
-        "focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(reactivated),
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout), "
+        "reactivated %d, focus-promoted %d, entry-ready %d",
+        len(added), len(hg_added), len(br_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return promoted_to_focus, promoted_to_entry_ready
@@ -1607,18 +1879,20 @@ if __name__ == "__main__":
     # Step 2: Concurrent snapshot metrics
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")
     snapshot_results = fetch_snapshots_concurrent(summary_df['Ticker'].tolist())
-    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[0])
-    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[1])
-    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[2])
-    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[3])
-    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[4])
-    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[5])
-    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[6])
-    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[7])
-    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[8])
-    summary_df['EPS Q/Q']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[9])
-    summary_df['Inst Own']       = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[10])
-    summary_df['Inst Trans']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*12)[11])
+    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[0])
+    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[1])
+    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[2])
+    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[3])
+    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[4])
+    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[5])
+    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[6])
+    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[7])
+    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[8])
+    summary_df['EPS Q/Q']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[9])
+    summary_df['Inst Own']       = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[10])
+    summary_df['Inst Trans']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[11])
+    summary_df['Perf Month']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[12])
+    summary_df['Perf Quarter']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[13])
 
     # Step 3: Stage, VCP, Quality Score
     log.info("Computing Weinstein Stage analysis...")
@@ -1754,6 +2028,7 @@ if __name__ == "__main__":
             "stage": stage_num,
             "stage_label": stage_labels.get(stage_num, "Transitional"),
             "section": section,
+            "textbook_vcp": bool(_is_textbook_vcp(row)),
         }
         if is_excluded:
             entry["excluded_reason"] = row.get('_10pct_exclude_reasons', '')
@@ -1778,6 +2053,8 @@ if __name__ == "__main__":
     #          excludes open positions). Top 5 by Quality Score.
     open_positions_tickers = _load_open_positions()
     ready_to_enter: list[dict] = []
+    fresh_breakouts: list[dict] = []
+    power_plays: list[dict] = []
     if not filter_df.empty:
         for _, row in filter_df.iterrows():
             if _is_ready_to_enter(row, open_positions_tickers):
@@ -1788,23 +2065,56 @@ if __name__ == "__main__":
                     "dist": float(row.get("Dist From High%", 0) or 0),
                     "atr": float(row.get("ATR%", 0) or 0),
                     "rvol": float(row.get("Rel Volume", 0) or 0),
+                    "textbook": _is_textbook_vcp(row),
+                })
+            if _is_fresh_breakout(row, open_positions_tickers):
+                fresh_breakouts.append({
+                    "ticker": row["Ticker"],
+                    "q": float(row.get("Quality Score", 0) or 0),
+                    "sma20": float(row.get("SMA20%", 0) or 0),
+                    "sma50": float(row.get("SMA50%", 0) or 0),
+                    "rvol": float(row.get("Rel Volume", 0) or 0),
+                    "atr": float(row.get("ATR%", 0) or 0),
+                    "dist": float(row.get("Dist From High%", 0) or 0),
+                })
+            if _is_power_play(row, open_positions_tickers):
+                power_plays.append({
+                    "ticker": row["Ticker"],
+                    "perf_m": float(row.get("Perf Month", 0) or 0),
+                    "perf_q": float(row.get("Perf Quarter", 0) or 0),
+                    "atr": float(row.get("ATR%", 0) or 0),
+                    "rvol": float(row.get("Rel Volume", 0) or 0),
                 })
         ready_to_enter.sort(key=lambda r: r["q"], reverse=True)
         ready_to_enter = ready_to_enter[:5]
+        fresh_breakouts.sort(key=lambda r: r["q"], reverse=True)
+        fresh_breakouts = fresh_breakouts[:5]
+        # Power Play: sort by strongest runup first (perf_q then perf_m).
+        power_plays.sort(key=lambda r: (r["perf_q"], r["perf_m"]), reverse=True)
+        power_plays = power_plays[:5]
     if ready_to_enter:
         log.info("Ready-to-Enter: %s", [r["ticker"] for r in ready_to_enter])
+    if fresh_breakouts:
+        log.info("Fresh Breakout: %s", [r["ticker"] for r in fresh_breakouts])
+    if power_plays:
+        log.info("Power Play: %s", [r["ticker"] for r in power_plays])
 
     # Step 6b: Slack
     send_slack_notification(
         summary_df, filter_df, gallery_path, today, ai_summary,
         hidden_growth_candidates=hidden_growth_candidates if 'hidden_growth_candidates' in dir() else None,
         ready_to_enter=ready_to_enter,
+        fresh_breakouts=fresh_breakouts,
+        power_plays=power_plays,
     )
 
     # Step 7: Auto-populate watchlist + auto-promote watching→focus→entry-ready
     hg_tickers_today = [t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() else [])]
+    br_tickers_today = [r["ticker"] for r in fresh_breakouts]
     promoted_to_focus, promoted_to_entry_ready = _update_watchlist(
-        filter_df, today, hidden_growth_tickers=hg_tickers_today,
+        filter_df, today,
+        hidden_growth_tickers=hg_tickers_today,
+        breakout_tickers=br_tickers_today,
     )
     if promoted_to_focus:
         log.info("Auto-promoted to Focus List: %s", promoted_to_focus)

@@ -83,9 +83,10 @@ def _row(entry: dict, quality: dict, include_priority_badge: bool = False) -> st
     priority = entry.get("priority", "watching")
     age      = _days_on_list(added)
 
-    q        = quality.get(ticker, {})
-    q_rank   = q.get("q_rank", "")
-    stage    = q.get("stage_label", "")
+    q         = quality.get(ticker, {})
+    q_rank    = q.get("q_rank", "")
+    stage     = q.get("stage_label", "")
+    textbook  = q.get("textbook_vcp", False)
 
     chart_url = FINVIZ_CHART.format(ticker=ticker)
     quote_url = FINVIZ_QUOTE.format(ticker=ticker)
@@ -97,11 +98,12 @@ def _row(entry: dict, quality: dict, include_priority_badge: bool = False) -> st
         else '<span class="badge badge-manual">manual</span>'
     )
     focus_badge = '<span class="badge badge-focus">FOCUS</span> ' if (priority == "focus" and include_priority_badge) else ""
+    textbook_badge = '<span class="badge badge-textbook" title="Textbook VCP — all criteria aligned">⭐</span> ' if textbook else ""
 
     return f"""
     <tr>
       <td class="col-ticker">
-        {focus_badge}<a href="{quote_url}" target="_blank" class="ticker-link">{ticker}</a>
+        {focus_badge}{textbook_badge}<a href="{quote_url}" target="_blank" class="ticker-link">{ticker}</a>
       </td>
       <td class="col-note">{note}</td>
       <td class="col-thesis">{thesis}</td>
@@ -320,6 +322,7 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   .badge-watch  {{ background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }}
   .badge-auto   {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
   .badge-manual {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
+  .badge-textbook {{ background: #fef3c7; color: #a16207; border: 1px solid #fde68a; }}
 
   .entry-ready-section {{ background: #f0fdf4; border-color: #bbf7d0; }}
   .entry-ready-section .section-header h2 {{ color: #166534; }}
