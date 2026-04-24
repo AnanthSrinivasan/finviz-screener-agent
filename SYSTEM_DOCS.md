@@ -653,6 +653,8 @@ Not needed yet. Revisit if automated execution is added.
 - Existing `archived` row where `archive_reason=age_out` + `source=screener_auto` → **reactivate** back to `watching` (sets `reactivated_date`, clears `archive_reason`). Manually archived / stopped-out rows are never reactivated.
 - `entry_note` set based on VCP confirmation and perfect alignment
 
+**Held-position auto-archive pass (runs first):** any watchlist entry whose ticker is currently held is archived with `archive_reason=entered_position`. "Held" = `open_positions[].status == "active"` in `positions.json` (real account) OR any key in `paper_stops.json` (paper account). Prevents held positions from appearing in actionable tiers (Ready-to-Enter, Focus). `stop_hit` status is NOT treated as held — those are effectively closed and should allow re-entry signals.
+
 **Age-out pass:** screener_auto entries older than 14 days are archived — but **only when `priority=watching`**. `focus` and `entry-ready` entries are never auto-archived (they earned their place).
 
 **Promotion pass — `watching → focus` (top 5 by Q):** ticker must be in today's screener, Stage 2 perfect, Q≥85. Cap raised from 3 to 5 to reduce displacement (MU-on-Apr-15 bug).
