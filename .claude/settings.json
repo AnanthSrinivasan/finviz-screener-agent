@@ -2,6 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(python3:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(sleep:*)",
+      "Bash(until *; do sleep *; done*)",
       "WebFetch(*)",
       "WebSearch(*)"
     ]

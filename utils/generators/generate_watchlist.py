@@ -2,9 +2,11 @@
 """
 Watchlist page generator.
 
-Reads data/watchlist.json and writes watchlist.html with:
-  - Focus List (priority=focus, status=watching/focus) — actionable this week
-  - Full Watchlist (status=watching, priority=watching)
+Reads data/watchlist.json and data/hidden_growth.json and writes watchlist.html with:
+  - Entry-Ready (priority=entry-ready) — pullback-to-support setups, act now
+  - Focus List (priority=focus) — actionable this week
+  - Full Watchlist (status=watching, priority=watching) — on radar
+  - Hidden Growth Today (from hidden_growth.json) — research prompts, overlaps with tiers
   - Archived (collapsed)
   - CSV download button for TradingView import
 """
@@ -34,6 +36,27 @@ def load_latest_quality() -> dict:
         return {}
     with open(files[-1]) as f:
         return json.load(f)
+
+
+def load_hidden_growth() -> dict:
+    """Load today's Hidden Growth snapshot. Returns {date, candidates}, or empty."""
+    path = os.path.join(DATA_DIR, "hidden_growth.json")
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"date": "", "candidates": []}
+
+
+# Human-readable labels for each Hidden Growth criterion key
+_HG_CRITERIA_LABELS = {
+    "persistence":    "3+d",
+    "eps_yy_strong":  "TTM+",
+    "eps_qq_strong":  "Q/Q+",
+    "inst_buying":    "Inst+",
+    "stage2_perfect": "S2",
+    "ipo_lifecycle":  "IPO",
+}
 
 
 def _days_on_list(added: str) -> str:
@@ -93,6 +116,76 @@ def _row(entry: dict, quality: dict, include_priority_badge: bool = False) -> st
     </tr>"""
 
 
+def _hg_row(candidate: dict, watchlist_tier_by_ticker: dict[str, str]) -> str:
+    ticker   = candidate.get("ticker", "")
+    score    = candidate.get("signal_score", 0)
+    criteria = candidate.get("criteria", {}) or {}
+    eps_yy   = candidate.get("eps_yy_ttm", 0) or 0
+    eps_qq   = candidate.get("eps_qq", 0) or 0
+    inst     = candidate.get("inst_trans", 0) or 0
+    appear   = candidate.get("appearances", 0) or 0
+
+    tier = watchlist_tier_by_ticker.get(ticker)
+    tier_badge = ""
+    if tier == "entry-ready":
+        tier_badge = '<span class="badge badge-er">ENTRY-READY</span> '
+    elif tier == "focus":
+        tier_badge = '<span class="badge badge-focus">FOCUS</span> '
+    elif tier == "watching":
+        tier_badge = '<span class="badge badge-watch">WATCH</span> '
+    # else: not in watchlist yet (research-only HG hit)
+
+    distorted = eps_yy < -50 and eps_qq > 0
+    eps_tag = f"TTM {eps_yy:+.0f}% / Q/Q {eps_qq:+.0f}%" + (" ⚠" if distorted else "")
+
+    # Criteria checklist badges — lit when True
+    crit_pills = ""
+    for key, label in _HG_CRITERIA_LABELS.items():
+        lit = bool(criteria.get(key))
+        cls = "hg-pill hg-pill-on" if lit else "hg-pill"
+        crit_pills += f'<span class="{cls}">{label}</span>'
+
+    chart_url = FINVIZ_CHART.format(ticker=ticker)
+    quote_url = FINVIZ_QUOTE.format(ticker=ticker)
+
+    return f"""
+    <tr>
+      <td class="col-ticker">
+        {tier_badge}<a href="{quote_url}" target="_blank" class="ticker-link">{ticker}</a>
+      </td>
+      <td class="col-hg-score"><strong>{score}/6</strong></td>
+      <td class="col-hg-crit">{crit_pills}</td>
+      <td class="col-hg-eps">{eps_tag}</td>
+      <td class="col-hg-inst">{inst:+.1f}%</td>
+      <td class="col-hg-appear">{appear}d</td>
+      <td class="col-chart">
+        <a href="{chart_url}" target="_blank" class="chart-link">chart ↗</a>
+      </td>
+    </tr>"""
+
+
+def _hg_table(candidates: list[dict], watchlist_tier_by_ticker: dict[str, str]) -> str:
+    if not candidates:
+        return '<p class="empty-msg">No Hidden Growth candidates today.</p>'
+    rows = "".join(_hg_row(c, watchlist_tier_by_ticker) for c in candidates)
+    return f"""
+    <table id="tbl-hidden-growth" class="watchlist-table">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Score</th>
+          <th>Criteria</th>
+          <th>EPS</th>
+          <th>Inst Trans</th>
+          <th>Screens</th>
+          <th>Chart</th>
+        </tr>
+      </thead>
+      <tbody>{rows}
+      </tbody>
+    </table>"""
+
+
 def _table(entries: list[dict], quality: dict, table_id: str, include_priority_badge: bool = False) -> str:
     if not entries:
         return '<p class="empty-msg">No entries.</p>'
@@ -117,31 +210,49 @@ def _table(entries: list[dict], quality: dict, table_id: str, include_priority_b
     </table>"""
 
 
-def generate(watchlist: list[dict], quality: dict) -> str:
+def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = None) -> str:
     today       = datetime.date.today().isoformat()
     generated   = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
     index_url   = f"{GITHUB_PAGES_BASE}/index.html" if GITHUB_PAGES_BASE else "index.html"
     dash_url    = f"{GITHUB_PAGES_BASE}/dashboard.html" if GITHUB_PAGES_BASE else "dashboard.html"
 
-    focus_list  = [e for e in watchlist if e.get("priority") == "focus"   and e.get("status") != "archived"]
-    watching    = [e for e in watchlist if e.get("priority") != "focus"    and e.get("status") not in ("archived",)]
+    # Split watchlist into 4 tiers — entry-ready and focus are actionable, watching is radar.
+    entry_ready = [e for e in watchlist if e.get("priority") == "entry-ready" and e.get("status") != "archived"]
+    focus_list  = [e for e in watchlist if e.get("priority") == "focus"        and e.get("status") != "archived"]
+    watching    = [e for e in watchlist if e.get("priority") not in ("focus", "entry-ready")
+                                          and e.get("status") != "archived"]
     archived    = [e for e in watchlist if e.get("status") == "archived"]
 
-    # Sort: watching by added desc (newest first)
+    entry_ready.sort(key=lambda e: e.get("entry_ready_date", e.get("added", "")), reverse=True)
+    focus_list.sort(key=lambda e: e.get("focus_promoted_date", e.get("added", "")), reverse=True)
     watching.sort(key=lambda e: e.get("added", ""), reverse=True)
     archived.sort(key=lambda e: e.get("archived_date", e.get("added", "")), reverse=True)
 
-    focus_table   = _table(focus_list, quality, "tbl-focus",   include_priority_badge=False)
-    watching_table = _table(watching,  quality, "tbl-watching", include_priority_badge=False)
-    archived_table = _table(archived,  quality, "tbl-archived", include_priority_badge=False)
+    entry_ready_table = _table(entry_ready, quality, "tbl-entry-ready", include_priority_badge=False)
+    focus_table       = _table(focus_list,  quality, "tbl-focus",       include_priority_badge=False)
+    watching_table    = _table(watching,    quality, "tbl-watching",    include_priority_badge=False)
+    archived_table    = _table(archived,    quality, "tbl-archived",    include_priority_badge=False)
 
-    # All active tickers for CSV (focus first, then watching)
-    active_all = focus_list + watching
+    # Hidden Growth section — reads today's snapshot, annotates with tier if ticker is on watchlist
+    hg = hidden_growth or {"date": "", "candidates": []}
+    hg_candidates = hg.get("candidates", []) or []
+    tier_by_ticker: dict[str, str] = {}
+    for e in watchlist:
+        if e.get("status") == "archived":
+            continue
+        tier_by_ticker[e.get("ticker", "")] = e.get("priority", "watching")
+    hg_table = _hg_table(hg_candidates, tier_by_ticker)
+    hg_date  = hg.get("date") or today
+
+    # All active tickers for CSV (entry-ready first, then focus, then watching)
+    active_all = entry_ready + focus_list + watching
     all_tickers_csv = ",".join(e.get("ticker", "") for e in active_all)
 
-    n_focus    = len(focus_list)
-    n_watching = len(watching)
-    n_archived = len(archived)
+    n_entry_ready = len(entry_ready)
+    n_focus       = len(focus_list)
+    n_watching    = len(watching)
+    n_archived    = len(archived)
+    n_hg          = len(hg_candidates)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -205,11 +316,29 @@ def generate(watchlist: list[dict], quality: dict) -> str:
   .badge {{ display: inline-block; padding: 1px 6px; border-radius: 4px;
             font-size: 0.65rem; font-weight: 700; letter-spacing: .04em; }}
   .badge-focus  {{ background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }}
+  .badge-er     {{ background: #dcfce7; color: #166534; border: 1px solid #86efac; }}
+  .badge-watch  {{ background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }}
   .badge-auto   {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
   .badge-manual {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
 
+  .entry-ready-section {{ background: #f0fdf4; border-color: #bbf7d0; }}
+  .entry-ready-section .section-header h2 {{ color: #166534; }}
   .focus-section {{ background: #fffbeb; border-color: #fde68a; }}
   .focus-section .section-header h2 {{ color: #92400e; }}
+  .hg-section {{ background: #faf5ff; border-color: #e9d5ff; }}
+  .hg-section .section-header h2 {{ color: #6b21a8; }}
+
+  /* Hidden Growth criteria pills */
+  .hg-pill {{ display: inline-block; padding: 1px 5px; margin-right: 3px;
+              font-size: 0.6rem; font-weight: 600; border-radius: 3px;
+              background: #f3f4f6; color: #d1d5db; border: 1px solid #e5e7eb; }}
+  .hg-pill-on {{ background: #ede9fe; color: #6b21a8; border-color: #c4b5fd; }}
+
+  .col-hg-score  {{ width: 45px; text-align: center; color: #6b21a8; }}
+  .col-hg-crit   {{ width: 260px; }}
+  .col-hg-eps    {{ width: 210px; color: #374151; font-size: 0.75rem; white-space: nowrap; }}
+  .col-hg-inst   {{ width: 70px; text-align: right; color: #374151; font-size: 0.78rem; }}
+  .col-hg-appear {{ width: 55px; text-align: right; color: #9ca3af; font-size: 0.75rem; }}
 
   details summary {{ cursor: pointer; list-style: none; }}
   details summary::-webkit-details-marker {{ display: none; }}
@@ -237,12 +366,20 @@ def generate(watchlist: list[dict], quality: dict) -> str:
 
 <div class="stats">
   <div class="stat">
+    <span class="stat-val">{n_entry_ready}</span>
+    <span class="stat-label">Entry-Ready</span>
+  </div>
+  <div class="stat">
     <span class="stat-val">{n_focus}</span>
     <span class="stat-label">Focus (act now)</span>
   </div>
   <div class="stat">
     <span class="stat-val">{n_watching}</span>
     <span class="stat-label">Watching</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val">{n_hg}</span>
+    <span class="stat-label">Hidden Growth</span>
   </div>
   <div class="stat">
     <span class="stat-val">{n_archived}</span>
@@ -252,6 +389,18 @@ def generate(watchlist: list[dict], quality: dict) -> str:
     <span class="stat-val">{today}</span>
     <span class="stat-label">Last updated</span>
   </div>
+</div>
+
+<!-- ENTRY-READY -->
+<div class="section entry-ready-section">
+  <div class="section-header">
+    <h2>🎯 Ready to Enter</h2>
+    <span class="section-count">{n_entry_ready} ticker{"s" if n_entry_ready != 1 else ""} — Stage 2 + VCP tight pullback, act now</span>
+    <button class="csv-btn" onclick="downloadCSV('tbl-entry-ready', 'entry_ready_{today}.csv')">
+      ⬇ Download CSV
+    </button>
+  </div>
+  {entry_ready_table}
 </div>
 
 <!-- FOCUS LIST -->
@@ -264,6 +413,15 @@ def generate(watchlist: list[dict], quality: dict) -> str:
     </button>
   </div>
   {focus_table}
+</div>
+
+<!-- HIDDEN GROWTH TODAY -->
+<div class="section hg-section">
+  <div class="section-header">
+    <h2>🔬 Hidden Growth — {hg_date}</h2>
+    <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} (4+/6 criteria) — fundamental accumulation, overlaps with any tier</span>
+  </div>
+  {hg_table}
 </div>
 
 <!-- FULL WATCHLIST -->
@@ -332,12 +490,16 @@ function _triggerDownload(content, filename) {{
 
 def main():
     log.info("=== Watchlist generator starting ===")
-    watchlist = load_watchlist()
-    quality   = load_latest_quality()
-    html      = generate(watchlist, quality)
+    watchlist     = load_watchlist()
+    quality       = load_latest_quality()
+    hidden_growth = load_hidden_growth()
+    html          = generate(watchlist, quality, hidden_growth)
     with open(OUTPUT_PATH, "w") as f:
         f.write(html)
-    log.info("watchlist.html written → %s (%d entries)", OUTPUT_PATH, len(watchlist))
+    log.info(
+        "watchlist.html written → %s (%d watchlist entries, %d hidden growth)",
+        OUTPUT_PATH, len(watchlist), len(hidden_growth.get("candidates", []) or []),
+    )
 
 
 if __name__ == "__main__":
