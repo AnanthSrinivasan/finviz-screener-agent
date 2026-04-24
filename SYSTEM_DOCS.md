@@ -661,6 +661,18 @@ Not needed yet. Revisit if automated execution is added.
 
 Priority lifecycle: `watching → focus → entry-ready` (and optionally `archived` from any, but only `watching` ages out automatically).
 
+**Dashboard page — `utils/generators/generate_watchlist.py` → `watchlist.html`**
+
+Regenerated in `daily-finviz.yml` after the watchlist mutation. Reads `data/watchlist.json` AND `data/hidden_growth.json`. Renders 5 sections top-to-bottom:
+
+1. **🎯 Ready to Enter** (green) — `priority=entry-ready`, sorted by `entry_ready_date`
+2. **📌 Focus List** (amber) — `priority=focus`, sorted by `focus_promoted_date`
+3. **🔬 Hidden Growth Today** (purple) — today's 4+/6 candidates from `hidden_growth.json`. Each row shows: score (`5/6`), lit/unlit criteria pills (`persistence`, `TTM+`, `Q/Q+`, `Inst+`, `S2`, `IPO`), EPS TTM/Q/Q with ⚠ distortion flag, Inst Trans, appearances. When the ticker is also on the watchlist, a tier badge (`ENTRY-READY` / `FOCUS` / `WATCH`) overlays the ticker cell — makes the two-axis overlap visible (e.g. a ticker that is both `entry-ready` AND Hidden Growth = highest conviction).
+4. **👁 Watching** — everything else, sorted by `added` desc
+5. **🗃 Archived** (collapsed by default)
+
+Stat strip at top shows counts for each tier including Hidden Growth. CSV export available for Ready-to-Enter, Focus, and full active watchlist (for TradingView import).
+
 ### 10.2 Paper Executor — `alpaca_executor.py`
 
 **Trigger:** `workflow_run` on Daily Finviz Screener success + manual `workflow_dispatch`
