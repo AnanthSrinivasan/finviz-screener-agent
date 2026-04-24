@@ -475,9 +475,21 @@ $4,500 hard stop rule: no single position loses more than this. Period.
 3. 🔴 Stop loss — `pnl% ≤ −dynamic_stop%`
 4. 🟡 ATR warning — `atr_multiple_ma ≤ −1.0`
 5. 🟡 Stop warning — approaching dynamic stop
-6. 🟢 Peel signal — extended above MA (scales with ATR%)
-7. 🔵 Peel warning — approaching peel level
-8. ⚪ Healthy — no action
+6. ⚠️ MA trail exit signal — consecutive daily closes below regime EMA (see below)
+7. 🟢 Peel signal — extended above MA (scales with ATR%)
+8. 🔵 Peel warning — approaching peel level
+9. ⚪ Healthy — no action
+
+**Regime-adaptive MA trail rule** (runs only on post-close run, 22:00 UTC): For each open (`status=active`) position, fetches last 30 daily bars from Alpaca and checks for consecutive closes below a regime-adaptive EMA:
+
+| Market state | MA | Consecutive closes needed | Rationale |
+|---|---|---|---|
+| GREEN, THRUST | 21 EMA | 2 | Qullamaggie trail — give room in strong regime, normal pullbacks to 8/21 EMA expected |
+| CAUTION | 21 EMA | 1 | Tighter trigger in mixed regime |
+| COOLING | 8 EMA | 1 | Fastest exit as tape fades |
+| RED, DANGER, BLACKOUT | *skipped* | — | Existing ATR-based stops are tighter anyway |
+
+Non-exit: fires a Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on the position entry to dedup, and human decides whether to close/trim. EMA computed client-side (simple iterative formula, tested against pandas `ewm(span=N, adjust=False)`). Rule implemented as `check_ma_trail_violation(ticker, market_state)` in `position_monitor.py` — pure function, unit-tested in `tests/test_ma_trail.py`.
 
 ---
 

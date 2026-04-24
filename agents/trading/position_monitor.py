@@ -258,6 +258,91 @@ def fetch_alpaca_day_high(ticker: str) -> float:
         return 0.0
 
 
+def fetch_alpaca_daily_bars(ticker: str, limit: int = 30) -> list:
+    """Return last N completed daily bars from Alpaca as list of dicts with 'c' (close).
+
+    Empty list on failure / missing credentials / unknown ticker. Runs against the
+    market-data host (not the paper-trading host) — same auth credentials.
+    """
+    api_key = os.environ.get("ALPACA_API_KEY", "")
+    api_sec = os.environ.get("ALPACA_SECRET_KEY", "")
+    if not api_key or not api_sec:
+        return []
+    try:
+        resp = requests.get(
+            f"https://data.alpaca.markets/v2/stocks/{ticker}/bars",
+            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            headers={"APCA-API-KEY-ID": api_key, "APCA-API-SECRET-KEY": api_sec},
+            timeout=8,
+        )
+        if not resp.ok:
+            log.warning(f"{ticker}: Alpaca bars HTTP {resp.status_code}")
+            return []
+        return resp.json().get("bars", []) or []
+    except Exception as e:
+        log.warning(f"{ticker}: Alpaca bars fetch failed — {e}")
+        return []
+
+
+# Regime → (moving-average span, consecutive closes needed for violation).
+# None = rule inactive for that regime (existing ATR-based stops are tighter in RED/DANGER).
+_MA_TRAIL_REGIME: dict[str, tuple[int, int] | None] = {
+    "THRUST":   (21, 2),   # Big regime — give room
+    "GREEN":    (21, 2),
+    "CAUTION":  (21, 1),   # Mixed regime — tighter trigger
+    "COOLING":  (8, 1),    # Fading regime — very tight
+    "RED":      None,      # ATR stops own it
+    "DANGER":   None,
+    "BLACKOUT": None,
+}
+
+
+def _ema(values: list, span: int) -> list:
+    """Simple EMA implementation (no pandas dependency). Returns list aligned to input."""
+    if not values:
+        return []
+    alpha = 2 / (span + 1)
+    out = [float(values[0])]
+    for v in values[1:]:
+        out.append(alpha * float(v) + (1 - alpha) * out[-1])
+    return out
+
+
+def check_ma_trail_violation(ticker: str, market_state: str) -> dict | None:
+    """
+    Regime-adaptive moving-average trail. Runs on last completed daily bars.
+
+    Returns {'ma_type': '21EMA'|'8EMA', 'consecutive': N, 'last_close': X,
+             'last_ema': Y} on violation, else None. Returns None if regime
+             disables the rule or data is unavailable.
+    """
+    cfg = _MA_TRAIL_REGIME.get(market_state)
+    if cfg is None:
+        return None
+    span, consecutive_needed = cfg
+
+    bars = fetch_alpaca_daily_bars(ticker, limit=max(30, span * 2))
+    if len(bars) < span + consecutive_needed:
+        return None
+
+    closes = [float(b["c"]) for b in bars if b.get("c") is not None]
+    if len(closes) < span + consecutive_needed:
+        return None
+
+    ema_series = _ema(closes, span)
+    last_closes = closes[-consecutive_needed:]
+    last_emas   = ema_series[-consecutive_needed:]
+
+    if all(c < e for c, e in zip(last_closes, last_emas)):
+        return {
+            "ma_type": f"{span}EMA",
+            "consecutive": consecutive_needed,
+            "last_close": round(last_closes[-1], 2),
+            "last_ema": round(last_emas[-1], 2),
+        }
+    return None
+
+
 def fetch_position_metrics(ticker: str) -> dict:
     session = make_session()
     try:
@@ -1375,6 +1460,44 @@ if __name__ == "__main__":
             rules_alerts.extend(pos_alerts)
             if modified:
                 rules_state_modified = True
+
+    # Step 12b: MA-trail regime rule (post-close only, once per day).
+    # Checks last completed daily bars for consecutive closes below regime-adaptive
+    # EMA (21 for GREEN/THRUST/CAUTION, 8 for COOLING). Skipped in RED/DANGER/BLACKOUT —
+    # existing tight ATR stops are tighter there anyway.
+    import datetime as _dt
+    is_post_close = _dt.datetime.utcnow().hour >= 22
+    if is_post_close:
+        today_iso = _dt.date.today().isoformat()
+        for rpos in positions_data["open_positions"]:
+            if rpos.get("status") != "active":
+                continue
+            if rpos.get("ma_trail_alerted_date") == today_iso:
+                continue  # dedup — already alerted today
+            violation = check_ma_trail_violation(rpos["ticker"], market_state)
+            if not violation:
+                continue
+            rules_alerts.append(
+                f"⚠️ *{rpos['ticker']} — MA Trail Exit Signal* "
+                f"(regime: {market_state})\n"
+                f"Rule: {violation['consecutive']} consecutive close"
+                f"{'s' if violation['consecutive'] > 1 else ''} below {violation['ma_type']}.\n"
+                f"Last close ${violation['last_close']:.2f} < {violation['ma_type']} ${violation['last_ema']:.2f}. "
+                f"Consider trimming or closing — human decides."
+            )
+            rpos["ma_trail_alerted_date"] = today_iso
+            rpos["ma_trail_last"] = {
+                "ma_type": violation["ma_type"],
+                "close": violation["last_close"],
+                "ema": violation["last_ema"],
+                "date": today_iso,
+            }
+            rules_state_modified = True
+            log.info(
+                f"{rpos['ticker']}: MA trail violation — {violation['consecutive']} "
+                f"close{'s' if violation['consecutive'] > 1 else ''} below {violation['ma_type']} "
+                f"(close ${violation['last_close']:.2f} < EMA ${violation['last_ema']:.2f})"
+            )
 
     # Step 13: Check progressive sizing state
     sizing_alerts = update_sizing_mode(trading_state, market_state)

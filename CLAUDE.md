@@ -95,6 +95,15 @@ The position monitor has two layers:
 - Peel warn/signal: per-ticker calibrated from `data/peel_calibration.json` (p75 as signal, floor 10x; p75×0.75 as warn, floor 7.5x). Falls back to ATR% tier table if ticker not calibrated: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
 - AI commentary via Claude API
 
+**Layer 1b — Regime-adaptive MA trail (runs post-close only, 22:00 UTC):**
+- Fetches last 30 daily bars from Alpaca per held position
+- Checks for N consecutive daily closes below regime-adaptive EMA:
+  - GREEN / THRUST → 2 closes below **21 EMA** (Qullamaggie trail, give room)
+  - CAUTION → 1 close below 21 EMA (tighter trigger)
+  - COOLING → 1 close below **8 EMA** (fastest exit)
+  - RED / DANGER / BLACKOUT → skipped (existing ATR stops tighter)
+- Non-exit: fires Slack alert only, human decides. Dedup via `ma_trail_alerted_date` on position entry
+
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
 - Rule 1: Stop loss check (positions.json stop price)
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
