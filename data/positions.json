@@ -104,6 +104,23 @@
       "highest_price_seen": 493.43,
       "current_gain_pct": -0.43,
       "peak_gain_pct": 1.99
+    },
+    {
+      "ticker": "NBIS",
+      "shares": 30,
+      "entry_price": 162.51,
+      "entry_date": "2026-04-24",
+      "stop": 116.08,
+      "stop_type": "auto_50ma",
+      "breakeven_stop_activated": false,
+      "target1": 195.01,
+      "target1_hit": false,
+      "target2": 227.51,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 165.66,
+      "current_gain_pct": -3.34,
+      "peak_gain_pct": 1.94
     }
   ],
   "closed_positions": [
