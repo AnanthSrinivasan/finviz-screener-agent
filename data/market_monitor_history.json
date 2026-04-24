@@ -1,26 +1,5 @@
 [
   {
-    "date": "2026-03-23",
-    "up_4_today": 20,
-    "down_4_today": 20,
-    "ratio_today": 1.0,
-    "ratio_5day": 1.0,
-    "ratio_10day": 1.0,
-    "up_25_quarter": 20,
-    "down_25_quarter": 20,
-    "above_40ma_count": 20,
-    "total_universe": 20,
-    "t2108_equiv": 100.0,
-    "thrust_detected": false,
-    "fg": 16.1,
-    "spy_price": 655.38,
-    "spy_sma200_pct": -0.8,
-    "spy_above_200d": false,
-    "market_state": "RED",
-    "state_message": "No new trades",
-    "blackout": false
-  },
-  {
     "date": "2026-03-24",
     "up_4_today": 20,
     "down_4_today": 20,
@@ -647,6 +626,28 @@
     "spy_above_200d": true,
     "market_state": "COOLING",
     "state_message": "Market cooling from GREEN \u2014 trim and tighten",
+    "blackout": false
+  },
+  {
+    "date": "2026-04-24",
+    "up_4_today": 216,
+    "down_4_today": 129,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2866,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 1.67,
+    "ratio_5day": 0.87,
+    "ratio_10day": 1.81,
+    "up_25_quarter": 246,
+    "down_25_quarter": 198,
+    "thrust_detected": false,
+    "fg": 66.0,
+    "spy_price": 713.94,
+    "spy_sma200_pct": 6.77,
+    "spy_above_200d": true,
+    "market_state": "RED",
+    "state_message": "Bearish \u2014 no new trades",
     "blackout": false
   }
 ]
