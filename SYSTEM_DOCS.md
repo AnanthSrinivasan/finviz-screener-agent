@@ -659,6 +659,14 @@ Not needed yet. Revisit if automated execution is added.
 *Technical path* (`source=screener_auto`): add Stage 2 + Q≥60, top 5 by Q.
 *Fundamental path* (`source=hidden_growth_auto`): any Hidden Growth 4+/6 hit that isn't already in the watchlist enters at `priority=watching` with entry note `"Hidden Growth 4+/6 — research prompt"`. No Stage 2 or Q-score gate (so NVTS-Apr16-type deep-base names aren't locked out). From here, the same focus/entry-ready promotion logic applies — Hidden Growth gets you *onto* the radar; climbing tiers still requires technical setup maturation.
 
+*Breakout path* (`source=breakout_auto`): any Fresh Breakout hit from today (see signal section below) not already on the list enters at `priority=watching` with entry note `"Fresh Breakout — breakout from base, watch follow-through"`. Closes the ANET-Apr8 gap where the pullback-based path misses breakout-from-base setups.
+
+**New snapshot signals surfaced alongside Ready-to-Enter** (all use Finviz snapshot only, no Alpaca):
+
+- **🚀 Fresh Breakout** (`_is_fresh_breakout`): Stage 2 · SMA20>0 · SMA50 in (0,25] · SMA200>0 · RVol≥1.2 · ATR%≤8 · Q≥70 · dist 0 to -12% · peel-warn safe (reuses `data/peel_calibration.json`). Top 5 by Q in dedicated Slack block.
+- **⭐ Textbook VCP marker** (`_is_textbook_vcp`): overlay badge — VCP conf≥85 · appearances≥3 · ATR%≤5 · Stage 2 perfect · dist -3 to -8% · Q≥80. Renders as :star: next to ticker in Slack Top Picks + Ready-to-Enter. Flag written to `daily_quality.json` as `textbook_vcp: true/false` so watchlist.html can render ⭐ badge without re-computing.
+- **💎 Power Play / High Tight Flag** (`_is_power_play`): Perf Month≥50% OR Perf Quarter≥100% · ATR%≤5 (tight flag) · RVol<1.0 (dry) · Stage 2 · peel-warn safe. Requires new Finviz columns `Perf Month` + `Perf Quarter` — `get_snapshot_metrics` extended from 12-tuple to 14-tuple.
+
 **Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
 - Brand-new ticker → add as `status=watching`, `priority=watching`, `source=screener_auto`
 - Existing `watching`/`focus`/`entry-ready` row → no-op (already tracked)
