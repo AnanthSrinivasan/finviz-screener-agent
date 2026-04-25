@@ -79,5 +79,83 @@ class PrevMonthTests(unittest.TestCase):
         self.assertIsNone(md["SPY"].get("perf_prev_month"))
 
 
+class EmergingCandidatesTests(unittest.TestCase):
+    """select_emerging_candidates surfaces names setting up to break out next
+    week — Stage 2 + Q≥70 + a fresh catalyst, NOT in current Top 5 or held."""
+
+    def _df(self, rows):
+        return pd.DataFrame(rows).sort_values("Signal Score", ascending=False)
+
+    def _row(self, ticker="X", signal=55, q=80, stage="Stage 2 perfect",
+             ep=False, ipo=False, multi=False, high=False, cc_watch=False,
+             watch=False, days=1):
+        return {
+            "Ticker": ticker, "Company": ticker + " Inc", "Sector": "Tech",
+            "Industry": "Software", "Market Cap": "1B", "Days Seen": days,
+            "Total Days": 5, "Dates": "2026-04-25",
+            "Max ATR%": 4.0, "Max EPS%": 50.0, "Max Appearances": 2,
+            "Screeners Hit": "screen-a", "Base Score": 50.0,
+            "Signal Score": signal, "Q Rank": q, "Stage": stage,
+            "Quality Mod": 0, "Watch": watch,
+            "EP": ep, "IPO": ipo, "MULTI": multi, "HIGH": high, "CHAR": False,
+            "CC_DEEP": False, "CC_WATCH": cc_watch,
+        }
+
+    def test_excludes_top5(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([
+            self._row(ticker="A", signal=99, ep=True),
+            self._row(ticker="B", signal=90, ep=True),
+            self._row(ticker="C", signal=85, ep=True),
+            self._row(ticker="D", signal=80, ep=True),
+            self._row(ticker="E", signal=75, ep=True),
+            self._row(ticker="F", signal=60, ep=True),
+        ])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("A", out["Ticker"].tolist())
+        self.assertIn("F", out["Ticker"].tolist())
+
+    def test_requires_stage_2(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="X1", signal=50, ep=True, stage="Stage 1")])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("X1", out["Ticker"].tolist())
+
+    def test_requires_q_rank_70(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="X1", signal=50, ep=True, q=65)])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("X1", out["Ticker"].tolist())
+
+    def test_requires_catalyst(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="X1", signal=50)])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("X1", out["Ticker"].tolist())
+
+    def test_excludes_held_positions(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="HELD",  signal=60, ep=True),
+                         self._row(ticker="FRESH", signal=55, ep=True)])
+        out = select_emerging_candidates(df, excluded_tickers={"HELD"})
+        self.assertNotIn("HELD", out["Ticker"].tolist())
+        self.assertIn("FRESH", out["Ticker"].tolist())
+
+    def test_cc_watch_outranks_ep_at_same_q(self):
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="EP_ONLY",       signal=55, ep=True,       q=80),
+                         self._row(ticker="CC_WATCH_ONLY", signal=50, cc_watch=True, q=80)])
+        out = select_emerging_candidates(df)
+        tickers = out["Ticker"].tolist()
+        self.assertIn("EP_ONLY", tickers)
+        self.assertIn("CC_WATCH_ONLY", tickers)
+        self.assertLess(tickers.index("CC_WATCH_ONLY"), tickers.index("EP_ONLY"))
+
+
 if __name__ == "__main__":
     unittest.main()

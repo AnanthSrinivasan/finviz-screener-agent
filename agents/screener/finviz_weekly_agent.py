@@ -570,6 +570,71 @@ def select_leaderboard(persistence_df: pd.DataFrame) -> pd.DataFrame:
     return persistence_df[persistence_df["Signal Score"] >= threshold].head(30)
 
 
+def select_emerging_candidates(persistence_df: pd.DataFrame, top_n: int = 5,
+                               excluded_tickers: set | None = None) -> pd.DataFrame:
+    """Names that are *setting up* to become next week's Top 5 — not yet on the
+    leaderboard but carrying the characteristics of past winners.
+
+    Filter (predicate, not score-based):
+      - NOT in current Top 5 (already broken out)
+      - Stage 2 (technical foundation)
+      - Q Rank ≥ 70 (passes quality gate)
+      - Watch=False (not in watchlist tag)
+      - At least one *catalyst* signal: EP, IPO, MULTI, CC_WATCH, or HIGH
+
+    Then rank by an emergence score that rewards setup readiness over history:
+      - Q Rank weight (heaviest)        : Q rank
+      - CC_WATCH bonus                  : +20 (early character change)
+      - EP / IPO bonus                  : +15
+      - HIGH (52w high proximity) bonus : +10
+      - MULTI screeners bonus           : +8
+      - Days seen (lower is fresher)    : -3 per extra day above 1
+
+    The point is: surface names with strong quality + a fresh catalyst, before
+    persistence builds them into Top 5.
+    """
+    if persistence_df.empty:
+        return persistence_df
+
+    actionable = persistence_df[~persistence_df.get("Watch", False)].copy()
+    top5_tickers = set(actionable.head(5)["Ticker"].tolist()) if not actionable.empty else set()
+    excluded = set(excluded_tickers or set()) | top5_tickers
+
+    def _is_stage2(stage_label):
+        if not isinstance(stage_label, str):
+            return False
+        s = stage_label.lower()
+        return "stage 2" in s or "stage2" in s or s.startswith("2")
+
+    def _has_catalyst(row):
+        return bool(row.get("EP") or row.get("IPO") or row.get("MULTI")
+                    or row.get("CC_WATCH") or row.get("HIGH"))
+
+    candidates = actionable[
+        (~actionable["Ticker"].isin(excluded))
+        & (actionable["Q Rank"].fillna(0) >= 70)
+        & actionable["Stage"].apply(_is_stage2)
+        & actionable.apply(_has_catalyst, axis=1)
+    ].copy()
+
+    if candidates.empty:
+        return candidates
+
+    def _emergence_score(row):
+        s = float(row.get("Q Rank") or 0)
+        if row.get("CC_WATCH"):    s += 20
+        if row.get("EP"):          s += 15
+        if row.get("IPO"):         s += 15
+        if row.get("HIGH"):        s += 10
+        if row.get("MULTI"):       s += 8
+        days = int(row.get("Days Seen") or 1)
+        s -= max(0, days - 1) * 3
+        return round(s, 1)
+
+    candidates["Emergence Score"] = candidates.apply(_emergence_score, axis=1)
+    return candidates.sort_values("Emergence Score", ascending=False).head(top_n)
+
+
 def _build_badges(row) -> str:
     """Build badge HTML explaining why a ticker ranks where it does."""
     badges = ""
@@ -865,6 +930,58 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             "</div>"
         )
 
+    # --- NEXT ON RADAR: emerging candidates not yet in Top 5 (and not held) ---
+    held_tickers = set()
+    try:
+        positions_path = os.path.join(DATA_DIR, "positions.json")
+        if os.path.exists(positions_path):
+            with open(positions_path) as f:
+                pdata = json.load(f)
+            held_tickers = {p.get("ticker") for p in pdata.get("open_positions", []) if p.get("ticker")}
+    except Exception as e:
+        log.warning(f"Could not load held positions for emerging filter: {e}")
+    emerging_df    = select_emerging_candidates(persistence_df, top_n=5, excluded_tickers=held_tickers)
+    emerging_cards = ""
+    for i, (_, row) in enumerate(emerging_df.iterrows()):
+        days       = int(row.get("Days Seen") or 0)
+        total      = int(row.get("Total Days") or 0)
+        atr        = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
+        eps        = f"{row['Max EPS%']:.1f}%" if pd.notna(row.get("Max EPS%")) else "—"
+        q_rank     = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
+        stage      = row.get("Stage", "—")
+        em_score   = row.get("Emergence Score", 0)
+        badges     = _build_badges(row)
+        chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
+        fv_url     = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
+        emerging_cards += (
+            "<div class='focus-card emerging-card'>"
+            f"<div class='focus-rank' style='color:#06b6d4'>#{i+1}</div>"
+            "<div class='focus-header'>"
+            f"<a href='{fv_url}' target='_blank' class='focus-ticker'>{row['Ticker']}</a>"
+            f"<span class='focus-sector'>{row['Sector']}</span>"
+            "</div>"
+            f"<div class='focus-company'>{row['Company']}</div>"
+            f"<div class='focus-badges'>{badges}</div>"
+            f"<div class='focus-persist'>{days}/{total} days · setup score {em_score:.0f}</div>"
+            f"<div class='focus-quality'>{q_rank} · {stage}</div>"
+            f"<div class='focus-meta'>ATR {atr} · EPS {eps}</div>"
+            f"<div class='focus-screeners'>{row['Screeners Hit']}</div>"
+            f"<a href='{chart_url}' target='_blank'>"
+            f"<img src='{chart_url}' class='focus-chart' alt='{row['Ticker']}'>"
+            "</a>"
+            "</div>"
+        )
+    emerging_html = ""
+    if emerging_cards:
+        emerging_html = (
+            "<h2>🔭 Next on the Radar <span class='h2-sub'>"
+            "— setting up, not yet broken out</span></h2>"
+            "<p class='section-note'>Stage 2 + Q≥70 with a fresh catalyst (EP / IPO / "
+            "CC Watch / 52w-high proximity / multi-screen). Predictive setup, not "
+            "post-action coincident.</p>"
+            "<div class='focus-grid'>" + emerging_cards + "</div>"
+        )
+
     # --- MACRO TABLE ---
     macro_rows = ""
     for symbol, m in macro_data.items():
@@ -1089,6 +1206,9 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 /* Focus cards */
 .focus-grid    { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin-bottom: 36px; }
 .focus-card    { background: #ffffff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.emerging-card { border-left: 3px solid #06b6d4; }
+.h2-sub        { color: #6b7280; font-weight: 400; font-size: 0.7em; }
+.section-note  { color: #6b7280; font-size: 13px; margin: -8px 0 12px 0; font-style: italic; }
 .focus-rank    { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 6px; color: #111827; }
 .focus-header  { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; flex-wrap: wrap; }
 .focus-ticker  { font-size: 1.1rem; font-weight: 700; color: #2563eb; text-decoration: none; }
@@ -1211,10 +1331,11 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         f"<p class='subtitle'>{week_range} · {len(persistence_df)} tickers scanned · {len(dates_found)} trading days</p>"
         + crypto_html
         + fng_html
-        + ai_html
-        + "<h2>Top 5 This Week</h2>"
-        + "<div class='focus-grid'>" + focus_cards + "</div>"
         + macro_html
+        + ai_html
+        + "<h2>Top 5 This Week <span class='h2-sub'>— already broken out</span></h2>"
+        + "<div class='focus-grid'>" + focus_cards + "</div>"
+        + emerging_html
         + cc_html
         + leaderboard_html
         + """<script>

@@ -266,13 +266,14 @@ Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market moni
 - **Market state conditioning:** RED/BLACKOUT → "names to watch" only, no actionable entries. CAUTION → half size. GREEN/THRUST → full size with price levels.
 
 **Report structure:**
-1. Top 5 this week (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. ⚡CC/🔄 CHAR)
-2. Crypto snapshot (BTC, ETH)
-3. Fear & Greed
+1. Crypto snapshot (BTC, ETH)
+2. Fear & Greed
+3. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%; Month cell also shows the prior 30-day return in brackets) — *moved up from #5 so environment reads first*
 4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
-5. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%; Month cell also shows the prior 30-day return in brackets — e.g. `▲ 7.36% (prev −5.0%)` — computed via a single yfinance batch download using trading-day offsets)
-6. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
-7. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
+5. **Top 5 this week** (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. ⚡CC/🔄 CHAR) — labeled "already broken out" to emphasize this is coincident, not predictive
+6. **🔭 Next on the Radar** (emerging candidates — `select_emerging_candidates`): Stage 2 + Q≥70 + at least one fresh-catalyst signal (EP / IPO / MULTI / CC_WATCH / 52w-HIGH proximity), excluding current Top 5 AND currently held positions (loaded from `positions.json`). Ranked by an emergence score: Q rank base + 20 (CC_WATCH) + 15 (EP/IPO) + 10 (HIGH) + 8 (MULTI) − 3·(Days Seen − 1). Predictive setup, not coincident.
+7. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
+8. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
 
 ---
 
