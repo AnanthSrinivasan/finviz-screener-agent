@@ -208,20 +208,40 @@ def fetch_recent_sell_fills(account_ids: list, days: int = 14) -> dict:
     start_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
     fills: dict = {}
     for acct_id in account_ids:
-        activities = snaptrade_get(
+        resp = snaptrade_get(
             f"/accounts/{acct_id}/activities",
             params={"startDate": start_date, "type": "SELL"},
         )
-        if not activities:
+        if not resp:
+            continue
+        # SnapTrade may return either a bare list or an envelope {"data": [...]} or
+        # {"activities": [...]}. Be defensive — also gracefully handle string items.
+        if isinstance(resp, dict):
+            activities = resp.get("data") or resp.get("activities") or []
+        elif isinstance(resp, list):
+            activities = resp
+        else:
             continue
         for act in activities:
+            if not isinstance(act, dict):
+                continue
             try:
                 action = (act.get("type") or act.get("action") or "").upper()
                 if action not in ("SELL", "SOLD"):
                     continue
                 sym_block = act.get("symbol") or {}
-                sym_inner = sym_block.get("symbol") or {}
-                ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
+                if isinstance(sym_block, str):
+                    ticker = sym_block
+                elif isinstance(sym_block, dict):
+                    sym_inner = sym_block.get("symbol") or {}
+                    if isinstance(sym_inner, dict):
+                        ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
+                    elif isinstance(sym_inner, str):
+                        ticker = sym_inner
+                    else:
+                        ticker = sym_block.get("local_id") or ""
+                else:
+                    ticker = ""
                 if not ticker:
                     continue
                 price = float(act.get("price") or 0)
