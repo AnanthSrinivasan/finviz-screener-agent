@@ -106,6 +106,7 @@ def load_data(data_dir):
     alerts_state = _load_json(os.path.join(data_dir, "alerts_state.json"), {})
     market_history = _load_json(os.path.join(data_dir, "market_monitor_history.json"), [])
     peel_calib = _load_json(os.path.join(data_dir, "peel_calibration.json"), {})
+    position_history = _load_json(os.path.join(data_dir, "position_history.json"), {"history": {}})
 
     # Latest market monitor snapshot
     monitor_files = sorted(glob.glob(os.path.join(data_dir, "market_monitor_2*.json")), reverse=True)
@@ -128,6 +129,7 @@ def load_data(data_dir):
         "market_history": market_history,
         "position_snapshots": position_snapshots,
         "peel_calib": peel_calib,
+        "position_history": position_history.get("history", {}),
     }
 
 
@@ -164,11 +166,101 @@ def _peel_status(ticker, atr_pct, calib):
     return thresholds, p90_str, mx_str, "calibrated" if calibrated else "fallback"
 
 
-def _build_positions_html(positions, peel_calib=None):
+def _format_history_date(s):
+    """ISO datetime → 'DD MMM' compact."""
+    if not s:
+        return "—"
+    try:
+        from datetime import datetime as _dt
+        for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%d"):
+            try:
+                d = _dt.strptime(s.replace("+00:00", "Z").rstrip("Z") + "Z", fmt)
+                return d.strftime("%d %b").lstrip("0")
+            except ValueError:
+                continue
+    except Exception:
+        pass
+    return s[:10]
+
+
+def _build_history_subrow(ticker, events, colspan, closed_meta=None):
+    """Render an expandable transaction timeline as a hidden child row.
+
+    events: list of {date, action, shares, price} ascending.
+    closed_meta: optional dict with {result_pct, close_source, close_price} for
+                 closed positions — appended as a final summary line.
+    """
+    if not events:
+        msg = f'<em class="history-empty">No SnapTrade activity found for {ticker} in last 90 days.</em>'
+        return f'<tr class="history-row" data-ticker="{ticker}" hidden><td colspan="{colspan}">{msg}</td></tr>'
+
+    # Walk forward computing running cost basis.
+    running_shares = 0.0
+    running_cost = 0.0
+    body_rows = ""
+    for ev in events:
+        sh = float(ev.get("shares", 0))
+        px = float(ev.get("price", 0))
+        action = ev.get("action", "")
+        if action == "BUY":
+            running_cost += sh * px
+            running_shares += sh
+        elif action == "SELL":
+            # Reduce running_cost proportionally so avg cost stays unchanged on partial sells.
+            if running_shares > 0:
+                avg = running_cost / running_shares
+                running_cost -= sh * avg
+                running_shares = max(0.0, running_shares - sh)
+        avg_cost = (running_cost / running_shares) if running_shares > 0 else 0.0
+        action_class = "buy" if action == "BUY" else "sell"
+        avg_str = f"${avg_cost:.2f}" if running_shares > 0 else "—"
+        body_rows += f"""
+          <tr>
+            <td>{_format_history_date(ev.get("date", ""))}</td>
+            <td><span class="action-{action_class}">{action}</span></td>
+            <td>{sh:g}</td>
+            <td>${px:.2f}</td>
+            <td>{avg_str}</td>
+            <td>{running_shares:g}</td>
+          </tr>"""
+
+    summary_line = ""
+    if closed_meta:
+        rp = closed_meta.get("result_pct", 0)
+        cls = "pos" if rp > 1 else ("neg" if rp < -1 else "neutral")
+        verdict = "WIN" if rp > 1 else ("LOSS" if rp < -1 else "BREAKEVEN")
+        src = closed_meta.get("close_source", "—")
+        cp = closed_meta.get("close_price", 0)
+        summary_line = f"""
+          <div class="history-summary {cls}">
+            <strong>Result:</strong> {rp:+.2f}% ({verdict}) at ${cp:.2f}
+            · <span class="history-src">source: {src}</span>
+          </div>"""
+
+    return f"""
+      <tr class="history-row" data-ticker="{ticker}" hidden>
+        <td colspan="{colspan}">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>{body_rows}</tbody>
+          </table>
+          {summary_line}
+        </td>
+      </tr>"""
+
+
+def _build_positions_html(positions, peel_calib=None, position_history=None):
     open_pos = positions.get("open_positions", [])
     closed_pos = positions.get("closed_positions", [])
     if peel_calib is None:
         peel_calib = {}
+    if position_history is None:
+        position_history = {}
 
     if not open_pos:
         return '<div class="empty-state">No open positions</div>'
@@ -214,9 +306,11 @@ def _build_positions_html(positions, peel_calib=None):
         peel_src_badge = '' if peel_src == 'calibrated' else ' <span class="peel-fallback">~</span>'
         peel_html = f'<span class="peel-thresholds">{peel_thresholds}</span>{peel_src_badge}'
 
+        events = position_history.get(ticker_name, [])
         rows += f"""
-        <tr>
+        <tr class="position-row" data-ticker-row="{ticker_name}">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="{ticker_name}" aria-expanded="false">▸</button>
             <span class="ticker">{ticker_name}</span>
             <span class="entry-date">{_format_date(p.get("entry_date", ""))}</span>
           </td>
@@ -228,7 +322,7 @@ def _build_positions_html(positions, peel_calib=None):
           <td class="risk-cell {_pnl_class(risk_pct)}">{_format_pct(risk_pct)}</td>
           <td class="targets-cell">{target_html}</td>
           <td class="peel-cell">{peel_html}</td>
-        </tr>"""
+        </tr>{_build_history_subrow(ticker_name, events, colspan=9)}"""
 
     total_pnl_pct = (total_pnl / total_cost * 100) if total_cost else 0
 
@@ -248,6 +342,46 @@ def _build_positions_html(positions, peel_calib=None):
       </div>
     </div>"""
 
+    # --- Closed positions section ---
+    closed_html = ""
+    if closed_pos:
+        closed_rows = ""
+        for c in closed_pos[-12:][::-1]:  # last 12, newest first
+            ck = c.get("ticker", "?")
+            csh = c.get("shares", 0)
+            cent = c.get("entry_price", 0)
+            ccp = c.get("close_price", 0)
+            cres = c.get("result_pct", 0)
+            csrc = c.get("close_source", "—")
+            cdate = _format_date(c.get("close_date", ""))
+            verdict_cls = _pnl_class(cres)
+            events = position_history.get(ck, [])
+            closed_rows += f"""
+            <tr class="position-row closed-row" data-ticker-row="{ck}-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="{ck}-c" aria-expanded="false">▸</button>
+                <span class="ticker">{ck}</span>
+                <span class="entry-date">{cdate}</span>
+              </td>
+              <td>{csh:g}</td>
+              <td>${cent:.2f}</td>
+              <td>${ccp:.2f}</td>
+              <td class="{verdict_cls}">{cres:+.2f}%</td>
+              <td class="history-src">{csrc}</td>
+            </tr>{_build_history_subrow(f"{ck}-c", events, colspan=6, closed_meta=c)}"""
+        closed_html = f"""
+        <h3 class="closed-heading">Closed Positions <span class="closed-count">({len(closed_pos)} total · last 12 shown)</span></h3>
+        <div class="table-wrap">
+        <table class="positions-table closed-table">
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Shares</th><th>Entry</th><th>Close</th><th>Result</th><th>Source</th>
+            </tr>
+          </thead>
+          <tbody>{closed_rows}</tbody>
+        </table>
+        </div>"""
+
     return f"""{summary}
     <div class="table-wrap">
     <table class="positions-table">
@@ -258,7 +392,8 @@ def _build_positions_html(positions, peel_calib=None):
       </thead>
       <tbody>{rows}</tbody>
     </table>
-    </div>"""
+    </div>
+    {closed_html}"""
 
 
 def _build_market_html(market_latest, market_history):
@@ -485,7 +620,10 @@ def generate_dashboard(data, base_url):
     market_state = data["market_latest"].get("market_state", "—")
     sizing_mode = data["trading_state"].get("current_sizing_mode", "normal")
 
-    positions_html = _build_positions_html(data["positions"], data.get("peel_calib", {}))
+    positions_html = _build_positions_html(
+        data["positions"], data.get("peel_calib", {}),
+        position_history=data.get("position_history", {}),
+    )
     market_html = _build_market_html(data["market_latest"], data["market_history"])
     alerts_html = _build_alerts_html(data["alerts_state"])
     trading_html = _build_trading_state_html(data["trading_state"])
@@ -671,7 +809,45 @@ def generate_dashboard(data, base_url):
     .pdf-btn {{ display: none; }}
     .top-badges, .dash-header {{ break-inside: avoid; }}
     .positions-table tr {{ break-inside: avoid; }}
+    .history-row {{ display: table-row !important; }}
+    .history-row[hidden] {{ display: table-row !important; }}
   }}
+  /* Expandable transaction history */
+  .hist-toggle {{
+    background: none; border: none; color: #2563eb; font-size: 13px;
+    cursor: pointer; padding: 0 4px 0 0; transition: transform .15s ease;
+    font-weight: bold;
+  }}
+  .hist-toggle[aria-expanded="true"] {{ transform: rotate(90deg); }}
+  .history-row {{ background: #f9fafb; }}
+  .history-row td {{ padding: 8px 16px !important; }}
+  .history-table {{
+    width: 100%; border-collapse: collapse; margin: 4px 0;
+    font-size: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+  }}
+  .history-table thead th {{
+    background: #f3f4f6; color: #374151; font-weight: 600; text-align: left;
+    padding: 6px 10px; border-bottom: 1px solid #e5e7eb;
+  }}
+  .history-table tbody td {{ padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }}
+  .history-table tbody tr:last-child td {{ border-bottom: none; }}
+  .action-buy {{ color: #16a34a; font-weight: 600; }}
+  .action-sell {{ color: #dc2626; font-weight: 600; }}
+  .history-summary {{
+    margin-top: 8px; padding: 6px 10px; background: #fff; border-radius: 6px;
+    border-left: 3px solid #6b7280; color: #111827; font-size: 12px;
+  }}
+  .history-summary.pos {{ border-left-color: #16a34a; }}
+  .history-summary.neg {{ border-left-color: #dc2626; }}
+  .history-summary.neutral {{ border-left-color: #6b7280; }}
+  .history-empty {{ color: #6b7280; font-size: 12px; }}
+  .history-src {{ color: #6b7280; font-size: 11px; font-family: ui-monospace, monospace; }}
+  .closed-heading {{
+    margin: 24px 0 8px 0; font-size: 14px; color: #374151;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }}
+  .closed-count {{ color: #6b7280; font-weight: normal; text-transform: none; letter-spacing: 0; }}
+  .closed-table {{ font-size: 13px; }}
 </style>
 </head>
 <body>
@@ -718,6 +894,21 @@ def generate_dashboard(data, base_url):
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
+
+<script>
+(function() {{
+  document.querySelectorAll('.hist-toggle').forEach(function(btn) {{
+    btn.addEventListener('click', function() {{
+      var key = btn.getAttribute('data-target');
+      var row = document.querySelector('.history-row[data-ticker="' + key + '"]');
+      if (!row) return;
+      var open = row.hasAttribute('hidden') ? false : true;
+      if (open) {{ row.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false'); }}
+      else      {{ row.removeAttribute('hidden');  btn.setAttribute('aria-expanded', 'true');  }}
+    }});
+  }});
+}})();
+</script>
 
 </body>
 </html>"""

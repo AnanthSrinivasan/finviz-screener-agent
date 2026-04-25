@@ -196,6 +196,72 @@ def fetch_positions() -> list:
     return all_positions
 
 
+def fetch_position_history(account_ids: list, days: int = 90) -> dict:
+    """Fetch all BUY+SELL activities and group by ticker. Returns
+    {ticker: [{date, action, shares, price}, ...]} sorted ascending by date.
+
+    Used by the dashboard to render the per-position transaction timeline
+    (avg-up, avg-down, partial trim, full close).
+    """
+    if not account_ids:
+        return {}
+    start_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    history: dict = {}
+    for acct_id in account_ids:
+        resp = snaptrade_get(
+            f"/accounts/{acct_id}/activities",
+            params={"startDate": start_date},
+        )
+        if not resp:
+            continue
+        if isinstance(resp, dict):
+            activities = resp.get("data") or resp.get("activities") or []
+        elif isinstance(resp, list):
+            activities = resp
+        else:
+            continue
+        for act in activities:
+            if not isinstance(act, dict):
+                continue
+            try:
+                action = (act.get("type") or act.get("action") or "").upper()
+                if action not in ("BUY", "SELL", "BOUGHT", "SOLD"):
+                    continue
+                action = "BUY" if action in ("BUY", "BOUGHT") else "SELL"
+                sym_block = act.get("symbol") or {}
+                if isinstance(sym_block, dict):
+                    sym_inner = sym_block.get("symbol") or {}
+                    if isinstance(sym_inner, dict):
+                        ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
+                    elif isinstance(sym_inner, str):
+                        ticker = sym_inner
+                    else:
+                        ticker = sym_block.get("local_id") or ""
+                elif isinstance(sym_block, str):
+                    ticker = sym_block
+                else:
+                    ticker = ""
+                if not ticker:
+                    continue
+                price = float(act.get("price") or 0)
+                units = abs(float(act.get("units") or 0))
+                trade_date = act.get("trade_date") or act.get("settlement_date") or ""
+                if price <= 0 or units <= 0:
+                    continue
+                history.setdefault(ticker, []).append({
+                    "date": trade_date,
+                    "action": action,
+                    "shares": units,
+                    "price": round(price, 4),
+                })
+            except Exception as e:
+                log.warning(f"Could not parse SnapTrade activity for history: {e}")
+    # Sort each ticker's events ascending by date
+    for tk in history:
+        history[tk].sort(key=lambda e: e["date"])
+    return history
+
+
 def fetch_recent_sell_fills(account_ids: list, days: int = 14) -> dict:
     """Fetch recent SELL activities from SnapTrade and return latest fill price
     per ticker symbol.
@@ -1715,6 +1781,14 @@ if __name__ == "__main__":
     # Pull recent SELL fills so auto-close uses real exit prices, not peak highs.
     account_ids = sorted({p["account_id"] for p in positions if p.get("account_id")})
     sell_fills = fetch_recent_sell_fills(account_ids) if account_ids else {}
+    if account_ids:
+        history = fetch_position_history(account_ids, days=90)
+        try:
+            with open(os.path.join(DATA_DIR, "position_history.json"), "w") as f:
+                json.dump({"updated": datetime.datetime.utcnow().isoformat() + "Z",
+                           "history": history}, f, indent=2)
+        except Exception as e:
+            log.warning(f"Could not write position_history.json: {e}")
     sync_alerts = sync_snaptrade_with_rules(
         positions, positions_data, trading_state, market_state, sell_fills=sell_fills
     )
