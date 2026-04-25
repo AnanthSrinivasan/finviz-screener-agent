@@ -842,6 +842,16 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
     SHARE_EPS = 0.01  # tolerate fractional rounding
     for ticker in snap_tickers & rules_tickers:
         rpos = next(p for p in positions_data["open_positions"] if p["ticker"] == ticker)
+        # Stale stop_hit override: SnapTrade still holds, so the user kept the
+        # position past the system's exit signal. Reset to active so trail/peak
+        # logic resumes. Stop is left intact (the user can adjust manually).
+        if rpos.get("status") == "stop_hit":
+            rpos["status"] = "active"
+            alerts.append(
+                f"\U0001f504 {ticker} — stop_hit flag cleared (SnapTrade still holds; "
+                f"resuming trail logic)"
+            )
+            log.info(f"Sync: {ticker} stop_hit → active (user override)")
         snap = snap_by_ticker[ticker]
         snap_shares = float(snap["shares"])
         rules_shares = float(rpos.get("shares", 0))

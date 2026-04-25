@@ -12,7 +12,7 @@
       "target1_hit": true,
       "target2": 162.4,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "stop_hit",
+      "status": "active",
       "highest_price_seen": 172.75,
       "current_gain_pct": 39.8,
       "peak_gain_pct": 51.07
@@ -121,8 +121,9 @@
       "current_gain_pct": 19.63,
       "peak_gain_pct": 20.49,
       "close_date": "2026-04-22",
-      "close_price": 296.48,
-      "result_pct": 20.49
+      "close_price": 293.09,
+      "result_pct": 19.11,
+      "close_source": "snaptrade_fill_retro"
     },
     {
       "ticker": "FLY",
@@ -142,8 +143,9 @@
       "peak_gain_pct": 32.29,
       "last_fade_alert_gain_pct": 4.36,
       "close_date": "2026-04-24",
-      "close_price": 45.56,
-      "result_pct": 32.29
+      "close_price": 34.44,
+      "result_pct": 0.0,
+      "close_source": "user_reported_breakeven"
     },
     {
       "ticker": "PL",
@@ -163,8 +165,9 @@
       "peak_gain_pct": 20.31,
       "last_fade_alert_gain_pct": 2.8,
       "close_date": "2026-04-24",
-      "close_price": 41.7,
-      "result_pct": 20.31
+      "close_price": 34.66,
+      "result_pct": 0.0,
+      "close_source": "user_reported_breakeven"
     }
   ]
 }

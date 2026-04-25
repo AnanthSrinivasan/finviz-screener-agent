@@ -500,6 +500,20 @@ class ShareDriftReconcileTests(unittest.TestCase):
         self.assertTrue(rules_pos["target1_hit"])     # preserved
         self.assertTrue(any("PARTIAL SELL" in a for a in alerts))
 
+    def test_stop_hit_resets_when_still_in_snaptrade(self):
+        # User kept holding past the system's stop_hit signal — reset to active.
+        rules_pos = {"ticker": "AAOI", "shares": 80, "entry_price": 116.0,
+                     "highest_price_seen": 172.75, "stop": 155.47,
+                     "target1": 139.20, "target2": 162.40, "status": "stop_hit",
+                     "breakeven_stop_activated": True}
+        snap = [{"ticker": "AAOI", "shares": 80, "avg_cost": 116.0,
+                 "current_price": 162.18, "account_id": "a"}]
+        positions_data = {"open_positions": [rules_pos], "closed_positions": []}
+        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, self._trading(),
+                                              "GREEN", sell_fills={})
+        self.assertEqual(rules_pos["status"], "active")
+        self.assertTrue(any("stop_hit flag cleared" in a for a in alerts))
+
     def test_no_drift_no_alert(self):
         rules_pos = {"ticker": "X", "shares": 100, "entry_price": 50.0,
                      "highest_price_seen": 60.0, "stop": 47.5,
