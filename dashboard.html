@@ -158,7 +158,45 @@
     .pdf-btn { display: none; }
     .top-badges, .dash-header { break-inside: avoid; }
     .positions-table tr { break-inside: avoid; }
+    .history-row { display: table-row !important; }
+    .history-row[hidden] { display: table-row !important; }
   }
+  /* Expandable transaction history */
+  .hist-toggle {
+    background: none; border: none; color: #2563eb; font-size: 13px;
+    cursor: pointer; padding: 0 4px 0 0; transition: transform .15s ease;
+    font-weight: bold;
+  }
+  .hist-toggle[aria-expanded="true"] { transform: rotate(90deg); }
+  .history-row { background: #f9fafb; }
+  .history-row td { padding: 8px 16px !important; }
+  .history-table {
+    width: 100%; border-collapse: collapse; margin: 4px 0;
+    font-size: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+  }
+  .history-table thead th {
+    background: #f3f4f6; color: #374151; font-weight: 600; text-align: left;
+    padding: 6px 10px; border-bottom: 1px solid #e5e7eb;
+  }
+  .history-table tbody td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }
+  .history-table tbody tr:last-child td { border-bottom: none; }
+  .action-buy { color: #16a34a; font-weight: 600; }
+  .action-sell { color: #dc2626; font-weight: 600; }
+  .history-summary {
+    margin-top: 8px; padding: 6px 10px; background: #fff; border-radius: 6px;
+    border-left: 3px solid #6b7280; color: #111827; font-size: 12px;
+  }
+  .history-summary.pos { border-left-color: #16a34a; }
+  .history-summary.neg { border-left-color: #dc2626; }
+  .history-summary.neutral { border-left-color: #6b7280; }
+  .history-empty { color: #6b7280; font-size: 12px; }
+  .history-src { color: #6b7280; font-size: 11px; font-family: ui-monospace, monospace; }
+  .closed-heading {
+    margin: 24px 0 8px 0; font-size: 14px; color: #374151;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .closed-count { color: #6b7280; font-weight: normal; text-transform: none; letter-spacing: 0; }
+  .closed-table { font-size: 13px; }
 </style>
 </head>
 <body>
@@ -167,7 +205,7 @@
 <div class="dash-header">
   <h1>Dashboard</h1>
   <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 25 Apr 2026 14:16 UTC</div>
+  <div class="dash-meta">Updated 25 Apr 2026 16:26 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -200,8 +238,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="position-row" data-ticker-row="AAOI">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="AAOI" aria-expanded="false">▸</button>
             <span class="ticker">AAOI</span>
             <span class="entry-date">Wed 08 Apr</span>
           </td>
@@ -214,8 +253,47 @@
           <td class="targets-cell"><span class="target-hit">T1 $139 hit</span> <span class="target-pending">T2 $162</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 11.8x · sig 15.8x · p90 19.6x</span></td>
         </tr>
-        <tr>
+      <tr class="history-row" data-ticker="AAOI" hidden>
+        <td colspan="9">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>7 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$113.60</td>
+            <td>$113.60</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>7 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>25</td>
+            <td>$115.85</td>
+            <td>$114.35</td>
+            <td>75</td>
+          </tr>
+          <tr>
+            <td>16 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>5</td>
+            <td>$140.73</td>
+            <td>$116.00</td>
+            <td>80</td>
+          </tr></tbody>
+          </table>
+          
+        </td>
+      </tr>
+        <tr class="position-row" data-ticker-row="CORZ">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="CORZ" aria-expanded="false">▸</button>
             <span class="ticker">CORZ</span>
             <span class="entry-date">Tue 14 Apr</span>
           </td>
@@ -228,8 +306,39 @@
           <td class="targets-cell"><span class="target-pending">T1 $23</span> <span class="target-pending">T2 $27</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 10.0x · sig 13.3x · p90 17.1x</span></td>
         </tr>
-        <tr>
+      <tr class="history-row" data-ticker="CORZ" hidden>
+        <td colspan="9">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>14 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>300</td>
+            <td>$19.30</td>
+            <td>$19.30</td>
+            <td>300</td>
+          </tr>
+          <tr>
+            <td>16 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$19.19</td>
+            <td>$19.29</td>
+            <td>350</td>
+          </tr></tbody>
+          </table>
+          
+        </td>
+      </tr>
+        <tr class="position-row" data-ticker-row="GLW">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="GLW" aria-expanded="false">▸</button>
             <span class="ticker">GLW</span>
             <span class="entry-date">Fri 17 Apr</span>
           </td>
@@ -242,8 +351,47 @@
           <td class="targets-cell"><span class="target-pending">T1 $201</span> <span class="target-pending">T2 $235</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 7.9x · sig 10.5x · p90 11.9x</span></td>
         </tr>
-        <tr>
+      <tr class="history-row" data-ticker="GLW" hidden>
+        <td colspan="9">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>17 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>30</td>
+            <td>$167.10</td>
+            <td>$167.10</td>
+            <td>30</td>
+          </tr>
+          <tr>
+            <td>20 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$166.53</td>
+            <td>$166.96</td>
+            <td>40</td>
+          </tr>
+          <tr>
+            <td>23 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$169.75</td>
+            <td>$167.52</td>
+            <td>50</td>
+          </tr></tbody>
+          </table>
+          
+        </td>
+      </tr>
+        <tr class="position-row" data-ticker-row="MU">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="MU" aria-expanded="false">▸</button>
             <span class="ticker">MU</span>
             <span class="entry-date">Thu 23 Apr</span>
           </td>
@@ -256,8 +404,31 @@
           <td class="targets-cell"><span class="target-pending">T1 $591</span> <span class="target-pending">T2 $689</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 8.6x · sig 11.5x · p90 11.6x</span></td>
         </tr>
-        <tr>
+      <tr class="history-row" data-ticker="MU" hidden>
+        <td colspan="9">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>23 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>5</td>
+            <td>$483.78</td>
+            <td>$483.78</td>
+            <td>5</td>
+          </tr></tbody>
+          </table>
+          
+        </td>
+      </tr>
+        <tr class="position-row" data-ticker-row="NBIS">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="NBIS" aria-expanded="false">▸</button>
             <span class="ticker">NBIS</span>
             <span class="entry-date">Fri 24 Apr</span>
           </td>
@@ -269,9 +440,10 @@
           <td class="risk-cell neg">-28.6%</td>
           <td class="targets-cell"><span class="target-pending">T1 $195</span> <span class="target-pending">T2 $228</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 7.5x · sig 10.0x · p90 11.3x</span></td>
-        </tr>
-        <tr>
+        </tr><tr class="history-row" data-ticker="NBIS" hidden><td colspan="9"><em class="history-empty">No SnapTrade activity found for NBIS in last 90 days.</em></td></tr>
+        <tr class="position-row" data-ticker-row="FIGS">
           <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="FIGS" aria-expanded="false">▸</button>
             <span class="ticker">FIGS</span>
             <span class="entry-date">Fri 24 Apr</span>
           </td>
@@ -283,9 +455,237 @@
           <td class="risk-cell neg">-8.7%</td>
           <td class="targets-cell"><span class="target-pending">T1 $20</span> <span class="target-pending">T2 $23</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 7.5x · sig 10.0x · p90 9.5x</span></td>
-        </tr></tbody>
+        </tr>
+      <tr class="history-row" data-ticker="FIGS" hidden>
+        <td colspan="9">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>24 Mar</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>500</td>
+            <td>$15.60</td>
+            <td>$15.60</td>
+            <td>500</td>
+          </tr>
+          <tr>
+            <td>27 Mar</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>500</td>
+            <td>$14.97</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+        </td>
+      </tr></tbody>
     </table>
     </div>
+    
+        <h3 class="closed-heading">Closed Positions <span class="closed-count">(3 total · last 12 shown)</span></h3>
+        <div class="table-wrap">
+        <table class="positions-table closed-table">
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Shares</th><th>Entry</th><th>Close</th><th>Result</th><th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="position-row closed-row" data-ticker-row="PL-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="PL-c" aria-expanded="false">▸</button>
+                <span class="ticker">PL</span>
+                <span class="entry-date">Fri 24 Apr</span>
+              </td>
+              <td>150</td>
+              <td>$34.69</td>
+              <td>$35.49</td>
+              <td class="pos">+2.31%</td>
+              <td class="history-src">robinhood_user_reported</td>
+            </tr>
+      <tr class="history-row" data-ticker="PL-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>15 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>100</td>
+            <td>$34.66</td>
+            <td>$34.66</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>16 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$34.75</td>
+            <td>$34.69</td>
+            <td>150</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +2.31% (WIN) at $35.49
+            · <span class="history-src">source: robinhood_user_reported</span>
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="FLY-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="FLY-c" aria-expanded="false">▸</button>
+                <span class="ticker">FLY</span>
+                <span class="entry-date">Fri 24 Apr</span>
+              </td>
+              <td>250</td>
+              <td>$35.13</td>
+              <td>$35.13</td>
+              <td class="flat">+0.00%</td>
+              <td class="history-src">robinhood_user_reported</td>
+            </tr>
+      <tr class="history-row" data-ticker="FLY-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>16 Mar</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>400</td>
+            <td>$24.67</td>
+            <td>$24.67</td>
+            <td>400</td>
+          </tr>
+          <tr>
+            <td>19 Mar</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>400</td>
+            <td>$22.13</td>
+            <td>—</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td>6 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>100</td>
+            <td>$33.78</td>
+            <td>$33.78</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>6 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>100</td>
+            <td>$35.09</td>
+            <td>$34.44</td>
+            <td>200</td>
+          </tr>
+          <tr>
+            <td>16 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$37.92</td>
+            <td>$35.13</td>
+            <td>250</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neutral">
+            <strong>Result:</strong> +0.00% (BREAKEVEN) at $35.13
+            · <span class="history-src">source: robinhood_user_reported</span>
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="AMD-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="AMD-c" aria-expanded="false">▸</button>
+                <span class="ticker">AMD</span>
+                <span class="entry-date">Wed 22 Apr</span>
+              </td>
+              <td>25</td>
+              <td>$246.06</td>
+              <td>$293.09</td>
+              <td class="pos">+19.11%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="AMD-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>13 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>25</td>
+            <td>$246.06</td>
+            <td>$246.06</td>
+            <td>25</td>
+          </tr>
+          <tr>
+            <td>14 Apr</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>15</td>
+            <td>$252.06</td>
+            <td>$248.31</td>
+            <td>40</td>
+          </tr>
+          <tr>
+            <td>22 Apr</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>20</td>
+            <td>$289.67</td>
+            <td>$248.31</td>
+            <td>20</td>
+          </tr>
+          <tr>
+            <td>22 Apr</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>10</td>
+            <td>$296.27</td>
+            <td>$248.31</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>22 Apr</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>10</td>
+            <td>$296.75</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +19.11% (WIN) at $293.09
+            · <span class="history-src">source: snaptrade_fill_retro</span>
+          </div>
+        </td>
+      </tr></tbody>
+        </table>
+        </div>
 </div>
 
 <div class="section">
@@ -386,7 +786,7 @@
       </div>
       <div class="ts-card">
         <div class="ts-label">Win Streak</div>
-        <div class="ts-val pos">3</div>
+        <div class="ts-val pos">2</div>
       </div>
       <div class="ts-card">
         <div class="ts-label">Loss Streak</div>
@@ -394,21 +794,36 @@
       </div>
       <div class="ts-card">
         <div class="ts-label">Total W / L</div>
-        <div class="ts-val">3 / 0</div>
+        <div class="ts-val">2 / 0</div>
       </div>
     </div>
     <div class="streak-row">
       <span class="sub-label">Recent trades</span>
-      <div class="streak-dots"><span class="streak-dot dot-win" title="AMD win"></span><span class="streak-dot dot-win" title="FLY win"></span><span class="streak-dot dot-win" title="PL win"></span></div>
+      <div class="streak-dots"><span class="streak-dot dot-win" title="AMD win"></span><span class="streak-dot dot-flat" title="FLY neutral"></span><span class="streak-dot dot-win" title="PL win"></span></div>
       <span class="ts-updated">Updated Fri 24 Apr</span>
     </div>
 </div>
 
 <div class="footer">
-  Generated 25 Apr 2026 14:16 UTC &middot;
+  Generated 25 Apr 2026 16:26 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
+
+<script>
+(function() {
+  document.querySelectorAll('.hist-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var key = btn.getAttribute('data-target');
+      var row = document.querySelector('.history-row[data-ticker="' + key + '"]');
+      if (!row) return;
+      var open = row.hasAttribute('hidden') ? false : true;
+      if (open) { row.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false'); }
+      else      { row.removeAttribute('hidden');  btn.setAttribute('aria-expanded', 'true');  }
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
