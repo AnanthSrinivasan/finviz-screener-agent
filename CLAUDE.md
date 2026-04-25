@@ -116,6 +116,10 @@ The position monitor has two layers:
 - Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
 - `highest_price_seen` and `peak_gain_pct` use Finviz intraday "Range" high (fixes missed-intraday-peak bug where hourly snap missed spikes between ticks)
 
+**Share-drift reconcile (ticker in both, share counts differ):**
+- Avg-up (SnapTrade > rules): trust SnapTrade weighted `avg_cost`, recompute T1/T2, reset `target1_hit` + `breakeven_stop_activated`. Alert: 🟡 SHARES INCREASED.
+- Partial sell (SnapTrade < rules): sync `shares` only; entry/T1/T2/flags untouched. Alert: 🟡 PARTIAL SELL.
+
 **Auto-close (positions in positions.json gone from SnapTrade):**
 - Real exit price priority: SnapTrade SELL fill (via `/accounts/{id}/activities`) > live Finviz quote > `highest_price_seen` (last-resort fallback)
 - Neutral band: `|result_pct| < 1.0%` → tagged BREAKEVEN, **does not** bump consecutive_wins/losses or total_wins/losses (sizing mode unaffected). `recent_trades.result = "neutral"`.

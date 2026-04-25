@@ -502,6 +502,12 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 | Trailing | `peak_gain_pct ≥ 30` | `stop = max(stop, highest_price_seen × 0.90)` |
 | Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) |
 
+**Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
+
+- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_stop_activated` to False so the new levels apply afresh. Slack alert "🟡 SHARES INCREASED".
+- **Partial sell** (SnapTrade < rules): sync `shares` only; keep `entry_price`, `target1`, `target2`, `target1_hit`, `breakeven_stop_activated` intact (still the same trade). Slack alert "🟡 PARTIAL SELL".
+- 0.01-share tolerance for fractional rounding.
+
 **Auto-close (positions in `positions.json` gone from SnapTrade) — `sync_snaptrade_with_rules`:**
 
 Real exit price priority for `close_price`:
