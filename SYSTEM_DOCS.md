@@ -519,6 +519,8 @@ Real exit price priority for `close_price`:
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
+**Retro-patch lagged fills — `retro_patch_closed_positions`:** runs every cycle. Iterates `closed_positions` where `close_source ∈ {fallback_high, user_reported_breakeven}` AND `close_date` is within last 14 days. If SnapTrade `/activities` now returns a SELL fill for that ticker, rewrites `close_price`, `result_pct`, `close_source = snaptrade_fill_retro`. Adjusts `total_wins`/`total_losses` if result type flips (win ↔ loss ↔ neutral); leaves `consecutive_*` streaks alone (out-of-order history is messy). Slack alert: 🔄 RETRO-PATCHED CLOSE. Solves broker activity sync lag (24-48h common for after-hours trades).
+
 **Neutral band:** `|result_pct| < 1.0%` → tagged BREAKEVEN. Does NOT touch `consecutive_wins`, `consecutive_losses`, `total_wins`, `total_losses`. `recent_trades.result = "neutral"`. Round-trip exits no longer phantom-pollute sizing-mode state.
 
 ---

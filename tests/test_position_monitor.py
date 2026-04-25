@@ -526,5 +526,74 @@ class ShareDriftReconcileTests(unittest.TestCase):
         self.assertFalse(any("SHARES" in a or "PARTIAL" in a for a in alerts))
 
 
+class RetroPatchClosedTests(unittest.TestCase):
+    """Once SnapTrade catches up on lagged after-hours SELLs, retro-patch the
+    closed_positions records that used fallback or user-reported pricing."""
+
+    def _ts(self, **over):
+        base = {"consecutive_wins": 0, "consecutive_losses": 0,
+                "total_wins": 0, "total_losses": 0, "recent_trades": []}
+        base.update(over)
+        return base
+
+    def _today(self):
+        import datetime
+        return datetime.date.today().isoformat()
+
+    def test_breakeven_user_reported_flips_to_win_when_real_fill_arrives(self):
+        # FLY/PL-style: was tagged user_reported_breakeven (0%); real SnapTrade
+        # SELL came in later at $42 — should become a real win.
+        cd = self._today()
+        closed = {"ticker": "FLY", "entry_price": 34.44, "shares": 200,
+                  "close_price": 34.44, "result_pct": 0.0, "close_date": cd,
+                  "close_source": "user_reported_breakeven"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        ts = self._ts(total_wins=0)
+        ts["recent_trades"] = [{"ticker": "FLY", "result": "neutral",
+                                "result_pct": 0.0, "date": cd, "side": "SELL"}]
+        sell_fills = {"FLY": {"price": 42.00, "date": cd, "units": 200}}
+        alerts = pm.retro_patch_closed_positions(pd, ts, sell_fills)
+        self.assertEqual(closed["close_price"], 42.00)
+        self.assertAlmostEqual(closed["result_pct"], 21.95, places=1)
+        self.assertEqual(closed["close_source"], "snaptrade_fill_retro")
+        self.assertEqual(ts["total_wins"], 1)  # neutral → win flip
+        self.assertEqual(ts["recent_trades"][0]["result"], "win")
+        self.assertTrue(any("RETRO-PATCHED" in a for a in alerts))
+
+    def test_no_patch_when_already_real_source(self):
+        cd = self._today()
+        closed = {"ticker": "AMD", "entry_price": 246.06, "shares": 25,
+                  "close_price": 293.09, "result_pct": 19.11, "close_date": cd,
+                  "close_source": "snaptrade_fill"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        sell_fills = {"AMD": {"price": 300.0, "date": cd, "units": 25}}
+        alerts = pm.retro_patch_closed_positions(pd, self._ts(), sell_fills)
+        self.assertEqual(closed["close_price"], 293.09)  # unchanged
+        self.assertEqual(alerts, [])
+
+    def test_no_patch_when_fill_missing(self):
+        cd = self._today()
+        closed = {"ticker": "X", "entry_price": 10, "shares": 100,
+                  "close_price": 10, "result_pct": 0, "close_date": cd,
+                  "close_source": "user_reported_breakeven"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        alerts = pm.retro_patch_closed_positions(pd, self._ts(), sell_fills={})
+        self.assertEqual(closed["close_source"], "user_reported_breakeven")
+        self.assertEqual(alerts, [])
+
+    def test_does_not_patch_old_closes_outside_lookback(self):
+        # close_date 30 days ago, lookback 14 → skip
+        import datetime
+        old = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
+        closed = {"ticker": "X", "entry_price": 10, "shares": 100,
+                  "close_price": 10, "result_pct": 0, "close_date": old,
+                  "close_source": "user_reported_breakeven"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        sell_fills = {"X": {"price": 12, "date": old, "units": 100}}
+        alerts = pm.retro_patch_closed_positions(pd, self._ts(), sell_fills, lookback_days=14)
+        self.assertEqual(closed["close_price"], 10)
+        self.assertEqual(alerts, [])
+
+
 if __name__ == "__main__":
     unittest.main()

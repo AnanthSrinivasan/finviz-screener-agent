@@ -780,6 +780,87 @@ def load_latest_market_state() -> str:
         return "CAUTION"
 
 
+def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
+                                 sell_fills: dict, lookback_days: int = 14) -> list:
+    """Retroactively correct close_price for recently-closed positions whose
+    initial close used a fallback (peak high or user-reported). Brokers/SnapTrade
+    sometimes lag 24-48h on after-hours trades; this pass rewrites the record
+    once the real SELL fill shows up.
+
+    Patches close_price, result_pct, close_source. Adjusts total_wins/losses
+    if the result-type flips (win <-> loss <-> neutral). Leaves consecutive_*
+    streaks alone (reordering history is messy; user adjusts if needed).
+    """
+    today = datetime.date.today()
+    cutoff = today - datetime.timedelta(days=lookback_days)
+    alerts: list = []
+    PATCHABLE_SOURCES = {"fallback_high", "user_reported_breakeven", None, ""}
+
+    def _result_type(pct: float) -> str:
+        if abs(pct) < 1.0:
+            return "neutral"
+        return "win" if pct > 0 else "loss"
+
+    for closed in positions_data.get("closed_positions", []):
+        if closed.get("close_source") not in PATCHABLE_SOURCES:
+            continue
+        cd = closed.get("close_date")
+        if not cd:
+            continue
+        try:
+            close_dt = datetime.date.fromisoformat(cd)
+        except Exception:
+            continue
+        if close_dt < cutoff:
+            continue
+        ticker = closed.get("ticker")
+        fill = sell_fills.get(ticker)
+        if not fill or float(fill.get("price", 0)) <= 0:
+            continue
+
+        entry = float(closed.get("entry_price") or 0)
+        if entry <= 0:
+            continue
+        old_price = float(closed.get("close_price", 0))
+        old_result = float(closed.get("result_pct", 0))
+        new_price = round(float(fill["price"]), 2)
+        new_result = round((new_price - entry) / entry * 100, 2)
+
+        closed["close_price"] = new_price
+        closed["result_pct"] = new_result
+        closed["close_source"] = "snaptrade_fill_retro"
+
+        old_typ = _result_type(old_result)
+        new_typ = _result_type(new_result)
+        if old_typ != new_typ:
+            if old_typ == "win":
+                trading_state["total_wins"] = max(0, trading_state.get("total_wins", 0) - 1)
+            elif old_typ == "loss":
+                trading_state["total_losses"] = max(0, trading_state.get("total_losses", 0) - 1)
+            if new_typ == "win":
+                trading_state["total_wins"] = trading_state.get("total_wins", 0) + 1
+            elif new_typ == "loss":
+                trading_state["total_losses"] = trading_state.get("total_losses", 0) + 1
+
+        for trade in trading_state.get("recent_trades", []):
+            if trade.get("ticker") == ticker and trade.get("date") == cd:
+                trade["result_pct"] = new_result
+                trade["result"] = new_typ
+                break
+
+        flip_note = f" (was {old_typ.upper()}, now {new_typ.upper()})" if old_typ != new_typ else ""
+        alerts.append(
+            f"\U0001f504 RETRO-PATCHED CLOSE: {ticker} — "
+            f"${old_price:.2f} → ${new_price:.2f} "
+            f"({old_result:+.1f}% → {new_result:+.1f}%){flip_note}"
+        )
+        log.info(
+            f"Retro-patch: {ticker} close ${old_price:.2f} → ${new_price:.2f} "
+            f"({old_typ} → {new_typ})"
+        )
+    return alerts
+
+
 def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                               trading_state: dict, market_state: str,
                               sell_fills: dict | None = None) -> list:
@@ -1638,6 +1719,11 @@ if __name__ == "__main__":
         positions, positions_data, trading_state, market_state, sell_fills=sell_fills
     )
     rules_alerts.extend(sync_alerts)
+
+    # Step 9b: Retro-patch any recently-closed records that used fallback prices
+    # — broker activity may have arrived since the original close.
+    retro_alerts = retro_patch_closed_positions(positions_data, trading_state, sell_fills)
+    rules_alerts.extend(retro_alerts)
 
     # Steps 10-12: Apply Minervini rules per position
     rules_state_modified = False

@@ -122,6 +122,8 @@ The position monitor has two layers:
 - Avg-up (SnapTrade > rules): trust SnapTrade weighted `avg_cost`, recompute T1/T2, reset `target1_hit` + `breakeven_stop_activated`. Alert: 🟡 SHARES INCREASED.
 - Partial sell (SnapTrade < rules): sync `shares` only; entry/T1/T2/flags untouched. Alert: 🟡 PARTIAL SELL.
 
+**Retro-patch lagged fills:** every run, closed positions in last 14 days with `close_source ∈ {fallback_high, user_reported_breakeven}` get re-checked against SnapTrade activities. Real fill → patched in (close_price/result_pct/source). Adjusts total_wins/losses on result-type flip. Solves 24-48h broker sync lag.
+
 **Auto-close (positions in positions.json gone from SnapTrade):**
 - Real exit price priority: SnapTrade SELL fill (via `/accounts/{id}/activities`) > live Finviz quote > `highest_price_seen` (last-resort fallback)
 - Neutral band: `|result_pct| < 1.0%` → tagged BREAKEVEN, **does not** bump consecutive_wins/losses or total_wins/losses (sizing mode unaffected). `recent_trades.result = "neutral"`.
