@@ -31,6 +31,43 @@ CNN_FNG_URL        = "https://production.dataviz.cnn.io/index/fearandgreed/graph
 DATA_DIR           = os.environ.get("DATA_DIR", "data")
 HISTORY_FILE       = os.path.join(DATA_DIR, "market_monitor_history.json")
 TRADING_STATE_FILE = os.path.join(DATA_DIR, "trading_state.json")
+RECENT_EVENTS_FILE = os.path.join(DATA_DIR, "recent_events.json")
+
+
+def _append_recent_event(category: str, title: str, date: str | None = None,
+                         severity: str = "med", detail: str | None = None,
+                         max_keep: int = 50):
+    """Append an event to data/recent_events.json (rolling). Used by the
+    dashboard Recent Alerts widget to surface what actually happened.
+
+    category: market_state | position_close | target_hit | breakeven | stop_hit | etc.
+    severity: low | med | high — drives visual treatment in the dashboard.
+    """
+    import datetime as _dt
+    rec = {
+        "ts": _dt.datetime.utcnow().isoformat() + "Z",
+        "date": date or _dt.date.today().isoformat(),
+        "category": category,
+        "title": title,
+        "severity": severity,
+    }
+    if detail:
+        rec["detail"] = detail
+    try:
+        if os.path.exists(RECENT_EVENTS_FILE):
+            with open(RECENT_EVENTS_FILE) as f:
+                data = json.load(f)
+            events = data.get("events", []) if isinstance(data, dict) else []
+        else:
+            events = []
+        events.append(rec)
+        events = events[-max_keep:]
+        with open(RECENT_EVENTS_FILE, "w") as f:
+            json.dump({"updated": rec["ts"], "events": events}, f, indent=2)
+    except Exception as e:
+        # Never break the calling agent on dashboard-feed write failures.
+        import logging as _logging
+        _logging.getLogger(__name__).warning(f"recent_events write failed: {e}")
 SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
@@ -920,6 +957,18 @@ def run_market_monitor(date: datetime.date | None = None):
 
     if state_changed:
         send_state_change_alert(record, prev_state, history)
+        # Append to dashboard recent-events feed.
+        try:
+            _append_recent_event(
+                category="market_state",
+                title=f"Market: {prev_state} → {state}",
+                date=record.get("date"),
+                severity={"RED": "high", "DANGER": "high", "BLACKOUT": "high",
+                          "COOLING": "med", "CAUTION": "med",
+                          "GREEN": "low", "THRUST": "low"}.get(state, "med"),
+            )
+        except Exception as e:
+            log.warning(f"Failed to append market_state event: {e}")
         # Send confirmation alert when moving to GREEN from THRUST, CAUTION, or COOLING
         if state == "GREEN" and prev_state in ("THRUST", "CAUTION", "COOLING"):
             send_confirmation_alert(record)

@@ -122,6 +122,8 @@ The position monitor has two layers:
 - Avg-up (SnapTrade > rules): trust SnapTrade weighted `avg_cost`, recompute T1/T2, reset `target1_hit` + `breakeven_stop_activated`. Alert: 🟡 SHARES INCREASED.
 - Partial sell (SnapTrade < rules): sync `shares` only; entry/T1/T2/flags untouched. Alert: 🟡 PARTIAL SELL.
 
+**Recent events feed (`data/recent_events.json`):** rolling last 50 events written by agents (market state transitions, etc). Dashboard "Recent Alerts" widget reads this. Severity color-bar: high/med/low (red/amber/green left border). Helper `_append_recent_event()` — currently called from `market_monitor.py` on state change.
+
 **Position history cache (`data/position_history.json`):** every run pulls 90d of BUY+SELL activities grouped by ticker. Dashboard renders expandable per-row transaction timeline (chevron click) showing avg-up / partial sell / full close with running cost basis.
 
 **Retro-patch lagged fills:** every run, closed positions in last 14 days with `close_source ∈ {fallback_high, user_reported_breakeven}` get re-checked against SnapTrade activities. Real fill → patched in (close_price/result_pct/source). Adjusts total_wins/losses on result-type flip. Solves 24-48h broker sync lag.

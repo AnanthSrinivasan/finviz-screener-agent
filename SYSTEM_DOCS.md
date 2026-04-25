@@ -519,6 +519,10 @@ Real exit price priority for `close_price`:
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
+**Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. Categories used today: `market_state`. Helper `_append_recent_event` lives in `agents/market/market_monitor.py`; future call sites can append `position_close`, `target_hit`, `breakeven`, `stop_hit`, etc. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
+
+Per-position transaction timeline is filtered to events at or after the position's `entry_date` AND a global system floor of `2026-04-01` — so prior trade cycles on the same ticker (e.g. an old FIGS round-trip on Mar 24/27 before the current 2026-04-24 entry) don't pollute the view.
+
 **Position history cache (`data/position_history.json`):** every position-monitor run, `fetch_position_history(account_ids, days=90)` pulls all BUY+SELL activities, groups by ticker, and writes `{updated, history: {ticker: [{date, action, shares, price}]}}`. Used by the dashboard generator to render an expandable transaction timeline (chevron toggle) per open and closed position — shows avg-up, partial trim, full close events with running cost basis.
 
 **Retro-patch lagged fills — `retro_patch_closed_positions`:** runs every cycle. Iterates `closed_positions` where `close_source ∈ {fallback_high, user_reported_breakeven}` AND `close_date` is within last 14 days. If SnapTrade `/activities` now returns a SELL fill for that ticker, rewrites `close_price`, `result_pct`, `close_source = snaptrade_fill_retro`. Adjusts `total_wins`/`total_losses` if result type flips (win ↔ loss ↔ neutral); leaves `consecutive_*` streaks alone (out-of-order history is messy). Slack alert: 🔄 RETRO-PATCHED CLOSE. Solves broker activity sync lag (24-48h common for after-hours trades).

@@ -107,6 +107,7 @@ def load_data(data_dir):
     market_history = _load_json(os.path.join(data_dir, "market_monitor_history.json"), [])
     peel_calib = _load_json(os.path.join(data_dir, "peel_calibration.json"), {})
     position_history = _load_json(os.path.join(data_dir, "position_history.json"), {"history": {}})
+    recent_events = _load_json(os.path.join(data_dir, "recent_events.json"), {"events": []})
 
     # Latest market monitor snapshot
     monitor_files = sorted(glob.glob(os.path.join(data_dir, "market_monitor_2*.json")), reverse=True)
@@ -130,6 +131,7 @@ def load_data(data_dir):
         "position_snapshots": position_snapshots,
         "peel_calib": peel_calib,
         "position_history": position_history.get("history", {}),
+        "recent_events": recent_events,
     }
 
 
@@ -181,6 +183,27 @@ def _format_history_date(s):
     except Exception:
         pass
     return s[:10]
+
+
+SYSTEM_HISTORY_FLOOR = "2026-04-01"  # Don't show pre-system trades.
+
+
+def _filter_history_for_position(events, entry_date=None, close_date=None):
+    """Trim events to the current trade cycle: only those at or after entry_date
+    (and not after close_date if given). Always respects the system-wide floor.
+    """
+    if not events:
+        return []
+    floor = max(entry_date or SYSTEM_HISTORY_FLOOR, SYSTEM_HISTORY_FLOOR)
+    out = []
+    for ev in events:
+        d = (ev.get("date") or "")[:10]
+        if d < floor:
+            continue
+        if close_date and d > close_date:
+            continue
+        out.append(ev)
+    return out
 
 
 def _build_history_subrow(ticker, events, colspan, closed_meta=None):
@@ -306,7 +329,10 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
         peel_src_badge = '' if peel_src == 'calibrated' else ' <span class="peel-fallback">~</span>'
         peel_html = f'<span class="peel-thresholds">{peel_thresholds}</span>{peel_src_badge}'
 
-        events = position_history.get(ticker_name, [])
+        events = _filter_history_for_position(
+            position_history.get(ticker_name, []),
+            entry_date=p.get("entry_date"),
+        )
         rows += f"""
         <tr class="position-row" data-ticker-row="{ticker_name}">
           <td class="ticker-cell">
@@ -355,7 +381,11 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
             csrc = c.get("close_source", "—")
             cdate = _format_date(c.get("close_date", ""))
             verdict_cls = _pnl_class(cres)
-            events = position_history.get(ck, [])
+            events = _filter_history_for_position(
+                position_history.get(ck, []),
+                entry_date=c.get("entry_date"),
+                close_date=c.get("close_date"),
+            )
             closed_rows += f"""
             <tr class="position-row closed-row" data-ticker-row="{ck}-c">
               <td class="ticker-cell">
@@ -500,23 +530,40 @@ def _build_watchlist_html(watchlist):
     </div>"""
 
 
-def _build_alerts_html(alerts_state):
+def _build_alerts_html(alerts_state, recent_events=None):
     fng_hist = alerts_state.get("fng_history", [])
     slv_hist = alerts_state.get("slv_week_history", [])
     gld_hist = alerts_state.get("gld_week_history", [])
     last_alerts = alerts_state.get("last_alerts_sent", {})
+    events = (recent_events or {}).get("events", []) or []
 
-    if not fng_hist and not last_alerts:
+    if not fng_hist and not last_alerts and not events:
         return '<div class="empty-state">No alert data</div>'
 
-    # Build alert timeline from last_alerts_sent
+    # Merge recent_events + last_alerts_sent into one timeline (events win on
+    # category granularity; legacy last_alerts_sent fallback if no events).
+    timeline_items = []
+    for ev in events[-10:][::-1]:  # newest first, last 10
+        timeline_items.append({
+            "date": ev.get("date", ""),
+            "label": ev.get("title", ev.get("category", "Event")),
+            "severity": ev.get("severity", "med"),
+        })
+    if not timeline_items:
+        for alert_type, date in sorted(last_alerts.items(), key=lambda x: x[1], reverse=True):
+            timeline_items.append({
+                "date": date,
+                "label": alert_type.replace("_", " ").title(),
+                "severity": "med",
+            })
+
     timeline = ""
-    for alert_type, date in sorted(last_alerts.items(), key=lambda x: x[1], reverse=True):
-        label = alert_type.replace("_", " ").title()
+    for item in timeline_items:
+        sev_cls = f' alert-{item["severity"]}'
         timeline += f"""
-        <div class="alert-item">
-          <span class="alert-date">{_format_date(date)}</span>
-          <span class="alert-label">{label}</span>
+        <div class="alert-item{sev_cls}">
+          <span class="alert-date">{_format_date(item["date"])}</span>
+          <span class="alert-label">{item["label"]}</span>
         </div>"""
 
     # Build commodity trackers
@@ -625,7 +672,7 @@ def generate_dashboard(data, base_url):
         position_history=data.get("position_history", {}),
     )
     market_html = _build_market_html(data["market_latest"], data["market_history"])
-    alerts_html = _build_alerts_html(data["alerts_state"])
+    alerts_html = _build_alerts_html(data["alerts_state"], data.get("recent_events", {}))
     trading_html = _build_trading_state_html(data["trading_state"])
 
     # Watchlist summary counts only — full list lives at watchlist.html
@@ -848,6 +895,9 @@ def generate_dashboard(data, base_url):
   }}
   .closed-count {{ color: #6b7280; font-weight: normal; text-transform: none; letter-spacing: 0; }}
   .closed-table {{ font-size: 13px; }}
+  .alert-item.alert-high {{ border-left: 3px solid #dc2626; padding-left: 8px; }}
+  .alert-item.alert-med  {{ border-left: 3px solid #f59e0b; padding-left: 8px; }}
+  .alert-item.alert-low  {{ border-left: 3px solid #16a34a; padding-left: 8px; }}
 </style>
 </head>
 <body>

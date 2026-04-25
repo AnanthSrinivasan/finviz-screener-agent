@@ -1,0 +1,47 @@
+{
+  "updated": "2026-04-25T17:12:51.971774Z",
+  "events": [
+    {
+      "ts": "2026-04-25T17:12:51.971072Z",
+      "date": "2026-04-08",
+      "category": "market_state",
+      "title": "Market: RED \u2192 THRUST",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-25T17:12:51.971482Z",
+      "date": "2026-04-09",
+      "category": "market_state",
+      "title": "Market: THRUST \u2192 GREEN",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-25T17:12:51.971486Z",
+      "date": "2026-04-17",
+      "category": "market_state",
+      "title": "Market: GREEN \u2192 THRUST",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-25T17:12:51.971488Z",
+      "date": "2026-04-20",
+      "category": "market_state",
+      "title": "Market: THRUST \u2192 GREEN",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-25T17:12:51.971490Z",
+      "date": "2026-04-23",
+      "category": "market_state",
+      "title": "Market: GREEN \u2192 COOLING",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-04-25T17:12:51.971491Z",
+      "date": "2026-04-24",
+      "category": "market_state",
+      "title": "Market: COOLING \u2192 RED",
+      "severity": "high"
+    }
+  ]
+}

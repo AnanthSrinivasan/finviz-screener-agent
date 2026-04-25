@@ -197,6 +197,9 @@
   }
   .closed-count { color: #6b7280; font-weight: normal; text-transform: none; letter-spacing: 0; }
   .closed-table { font-size: 13px; }
+  .alert-item.alert-high { border-left: 3px solid #dc2626; padding-left: 8px; }
+  .alert-item.alert-med  { border-left: 3px solid #f59e0b; padding-left: 8px; }
+  .alert-item.alert-low  { border-left: 3px solid #16a34a; padding-left: 8px; }
 </style>
 </head>
 <body>
@@ -204,8 +207,8 @@
 
 <div class="dash-header">
   <h1>Dashboard</h1>
-  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 25 Apr 2026 16:26 UTC</div>
+  <a href="index.html" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 25 Apr 2026 19:13 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -264,28 +267,12 @@
             </thead>
             <tbody>
           <tr>
-            <td>7 Apr</td>
-            <td><span class="action-buy">BUY</span></td>
-            <td>50</td>
-            <td>$113.60</td>
-            <td>$113.60</td>
-            <td>50</td>
-          </tr>
-          <tr>
-            <td>7 Apr</td>
-            <td><span class="action-buy">BUY</span></td>
-            <td>25</td>
-            <td>$115.85</td>
-            <td>$114.35</td>
-            <td>75</td>
-          </tr>
-          <tr>
             <td>16 Apr</td>
             <td><span class="action-buy">BUY</span></td>
             <td>5</td>
             <td>$140.73</td>
-            <td>$116.00</td>
-            <td>80</td>
+            <td>$140.73</td>
+            <td>5</td>
           </tr></tbody>
           </table>
           
@@ -455,37 +442,7 @@
           <td class="risk-cell neg">-8.7%</td>
           <td class="targets-cell"><span class="target-pending">T1 $20</span> <span class="target-pending">T2 $23</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 7.5x · sig 10.0x · p90 9.5x</span></td>
-        </tr>
-      <tr class="history-row" data-ticker="FIGS" hidden>
-        <td colspan="9">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
-                <th>Avg Cost</th><th>Running Shares</th>
-              </tr>
-            </thead>
-            <tbody>
-          <tr>
-            <td>24 Mar</td>
-            <td><span class="action-buy">BUY</span></td>
-            <td>500</td>
-            <td>$15.60</td>
-            <td>$15.60</td>
-            <td>500</td>
-          </tr>
-          <tr>
-            <td>27 Mar</td>
-            <td><span class="action-sell">SELL</span></td>
-            <td>500</td>
-            <td>$14.97</td>
-            <td>—</td>
-            <td>0</td>
-          </tr></tbody>
-          </table>
-          
-        </td>
-      </tr></tbody>
+        </tr><tr class="history-row" data-ticker="FIGS" hidden><td colspan="9"><em class="history-empty">No SnapTrade activity found for FIGS in last 90 days.</em></td></tr></tbody>
     </table>
     </div>
     
@@ -566,22 +523,6 @@
               </tr>
             </thead>
             <tbody>
-          <tr>
-            <td>16 Mar</td>
-            <td><span class="action-buy">BUY</span></td>
-            <td>400</td>
-            <td>$24.67</td>
-            <td>$24.67</td>
-            <td>400</td>
-          </tr>
-          <tr>
-            <td>19 Mar</td>
-            <td><span class="action-sell">SELL</span></td>
-            <td>400</td>
-            <td>$22.13</td>
-            <td>—</td>
-            <td>0</td>
-          </tr>
           <tr>
             <td>6 Apr</td>
             <td><span class="action-buy">BUY</span></td>
@@ -732,7 +673,7 @@
         <div><span style="font-size:1.4rem;font-weight:700;color:#111827">70</span><br>
           <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Watching</span></div>
       </div>
-      <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
+      <a href="watchlist.html" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
          border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
         Open Watchlist →
       </a>
@@ -746,17 +687,29 @@
       <div class="alerts-col">
         <div class="sub-label">Recent Alerts</div>
         <div class="alert-timeline">
-        <div class="alert-item">
-          <span class="alert-date">Tue 31 Mar</span>
-          <span class="alert-label">Gld Breakout In Fear</span>
+        <div class="alert-item alert-high">
+          <span class="alert-date">Fri 24 Apr</span>
+          <span class="alert-label">Market: COOLING → RED</span>
         </div>
-        <div class="alert-item">
-          <span class="alert-date">Fri 27 Mar</span>
-          <span class="alert-label">Slv Breakout In Fear</span>
+        <div class="alert-item alert-med">
+          <span class="alert-date">Thu 23 Apr</span>
+          <span class="alert-label">Market: GREEN → COOLING</span>
         </div>
-        <div class="alert-item">
-          <span class="alert-date">Fri 20 Mar</span>
-          <span class="alert-label">Fng Extreme Fear</span>
+        <div class="alert-item alert-low">
+          <span class="alert-date">Mon 20 Apr</span>
+          <span class="alert-label">Market: THRUST → GREEN</span>
+        </div>
+        <div class="alert-item alert-low">
+          <span class="alert-date">Fri 17 Apr</span>
+          <span class="alert-label">Market: GREEN → THRUST</span>
+        </div>
+        <div class="alert-item alert-low">
+          <span class="alert-date">Thu 09 Apr</span>
+          <span class="alert-label">Market: THRUST → GREEN</span>
+        </div>
+        <div class="alert-item alert-low">
+          <span class="alert-date">Wed 08 Apr</span>
+          <span class="alert-label">Market: RED → THRUST</span>
         </div></div>
       </div>
       <div class="alerts-col">
@@ -805,7 +758,7 @@
 </div>
 
 <div class="footer">
-  Generated 25 Apr 2026 16:26 UTC &middot;
+  Generated 25 Apr 2026 19:13 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
