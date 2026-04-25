@@ -601,10 +601,15 @@ def select_emerging_candidates(persistence_df: pd.DataFrame, top_n: int = 5,
     excluded = set(excluded_tickers or set()) | top5_tickers
 
     def _is_stage2(stage_label):
+        # Persistence CSV uses Weinstein word labels (Uptrend/Downtrend/Basing/Transitional);
+        # Stage 2 = Uptrend. Some other surfaces use "Stage 2 perfect" string.
         if not isinstance(stage_label, str):
             return False
         s = stage_label.lower()
-        return "stage 2" in s or "stage2" in s or s.startswith("2")
+        return ("uptrend" in s
+                or "stage 2" in s
+                or "stage2" in s
+                or s.startswith("2"))
 
     def _has_catalyst(row):
         return bool(row.get("EP") or row.get("IPO") or row.get("MULTI")

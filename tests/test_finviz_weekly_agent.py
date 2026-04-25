@@ -118,9 +118,22 @@ class EmergingCandidatesTests(unittest.TestCase):
     def test_requires_stage_2(self):
         from agents.screener.finviz_weekly_agent import select_emerging_candidates
         df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
-                      + [self._row(ticker="X1", signal=50, ep=True, stage="Stage 1")])
+                      + [self._row(ticker="X1", signal=50, ep=True, stage="Stage 1"),
+                         self._row(ticker="X2", signal=49, ep=True, stage="Downtrend"),
+                         self._row(ticker="X3", signal=48, ep=True, stage="Basing")])
         out = select_emerging_candidates(df)
-        self.assertNotIn("X1", out["Ticker"].tolist())
+        names = out["Ticker"].tolist()
+        self.assertNotIn("X1", names)
+        self.assertNotIn("X2", names)
+        self.assertNotIn("X3", names)
+
+    def test_uptrend_label_qualifies_as_stage_2(self):
+        # Persistence CSV uses Weinstein word labels — "Uptrend" must qualify.
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="UP1", signal=55, ep=True, stage="Uptrend")])
+        out = select_emerging_candidates(df)
+        self.assertIn("UP1", out["Ticker"].tolist())
 
     def test_requires_q_rank_70(self):
         from agents.screener.finviz_weekly_agent import select_emerging_candidates
