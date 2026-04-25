@@ -127,8 +127,8 @@
     },
     {
       "ticker": "FLY",
-      "shares": 200,
-      "entry_price": 34.44,
+      "shares": 250,
+      "entry_price": 35.13,
       "entry_date": "2026-04-06",
       "stop": 40.84,
       "stop_type": "atr_trail",
@@ -143,14 +143,14 @@
       "peak_gain_pct": 32.29,
       "last_fade_alert_gain_pct": 4.36,
       "close_date": "2026-04-24",
-      "close_price": 34.44,
+      "close_price": 35.13,
       "result_pct": 0.0,
-      "close_source": "user_reported_breakeven"
+      "close_source": "robinhood_user_reported"
     },
     {
       "ticker": "PL",
-      "shares": 100,
-      "entry_price": 34.66,
+      "shares": 150,
+      "entry_price": 34.69,
       "entry_date": "2026-04-15",
       "stop": 33.03,
       "stop_type": "atr_trail",
@@ -165,9 +165,9 @@
       "peak_gain_pct": 20.31,
       "last_fade_alert_gain_pct": 2.8,
       "close_date": "2026-04-24",
-      "close_price": 34.66,
-      "result_pct": 0.0,
-      "close_source": "user_reported_breakeven"
+      "close_price": 35.49,
+      "result_pct": 2.31,
+      "close_source": "robinhood_user_reported"
     }
   ]
 }
