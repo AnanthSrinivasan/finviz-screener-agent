@@ -196,6 +196,49 @@ def fetch_positions() -> list:
     return all_positions
 
 
+def fetch_recent_sell_fills(account_ids: list, days: int = 14) -> dict:
+    """Fetch recent SELL activities from SnapTrade and return latest fill price
+    per ticker symbol.
+
+    Returns: {ticker: {"price": float, "date": str, "units": float}} keyed by symbol,
+    keeping the latest SELL by trade date.
+    """
+    if not account_ids:
+        return {}
+    start_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    fills: dict = {}
+    for acct_id in account_ids:
+        activities = snaptrade_get(
+            f"/accounts/{acct_id}/activities",
+            params={"startDate": start_date, "type": "SELL"},
+        )
+        if not activities:
+            continue
+        for act in activities:
+            try:
+                action = (act.get("type") or act.get("action") or "").upper()
+                if action not in ("SELL", "SOLD"):
+                    continue
+                sym_block = act.get("symbol") or {}
+                sym_inner = sym_block.get("symbol") or {}
+                ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
+                if not ticker:
+                    continue
+                price = float(act.get("price") or 0)
+                units = float(act.get("units") or 0)
+                trade_date = act.get("trade_date") or act.get("settlement_date") or ""
+                if price <= 0:
+                    continue
+                existing = fills.get(ticker)
+                if not existing or trade_date > existing["date"]:
+                    fills[ticker] = {"price": price, "date": trade_date, "units": units}
+            except Exception as e:
+                log.warning(f"Could not parse SnapTrade activity: {e}")
+    if fills:
+        log.info(f"Recent SELL fills: {list(fills.keys())}")
+    return fills
+
+
 # ----------------------------
 # Part 2: Fetch Metrics from Finviz
 # ----------------------------
@@ -308,37 +351,87 @@ def _ema(values: list, span: int) -> list:
     return out
 
 
-def check_ma_trail_violation(ticker: str, market_state: str) -> dict | None:
+def _ma_trail_signal_for_atr(atr_pct: float, regime_span: int) -> tuple[str, int, int | None]:
     """
-    Regime-adaptive moving-average trail. Runs on last completed daily bars.
+    Pick trail signal for a position based on its ATR%.
 
-    Returns {'ma_type': '21EMA'|'8EMA', 'consecutive': N, 'last_close': X,
-             'last_ema': Y} on violation, else None. Returns None if regime
-             disables the rule or data is unavailable.
+    Returns (signal_type, consecutive_needed, ema_span_or_None):
+      - ATR% ≤ 5%   → ('ema', regime_span, regime_span)   # 21 EMA close-below
+      - 5% < ATR% ≤ 8% → ('ema', 1, 8)                     # 8 EMA close-below
+      - ATR% > 8%        → ('pct_trail', 1, None)              # 10% trail from high
+
+    `regime_span` controls only the low-ATR tier (so COOLING regime’s 8 EMA still wins
+    over the default 21 EMA for low-vol stocks; in practice regime_span comes from
+    _MA_TRAIL_REGIME — passing 21 here means low-vol uses 21 EMA, 8 means 8 EMA).
+    """
+    if atr_pct > 8.0:
+        return ("pct_trail", 1, None)
+    if atr_pct > 5.0:
+        return ("ema", 1, 8)
+    return ("ema", 1 if regime_span <= 8 else 2, regime_span if regime_span > 0 else 21)
+
+
+def check_ma_trail_violation(ticker: str, market_state: str,
+                             atr_pct: float = 0.0,
+                             highest_price_seen: float = 0.0) -> dict | None:
+    """
+    ATR%-tiered, regime-adaptive trail. Runs on last completed daily bars.
+
+    Tier (per `_ma_trail_signal_for_atr`):
+      - low-vol (ATR% ≤ 5%) — regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION,
+        8 EMA in COOLING).
+      - mid-vol (5% < ATR% ≤ 8%) — 8 EMA close-below.
+      - high-vol (ATR% > 8%) — 10% fixed trail from `highest_price_seen`.
+
+    Returns dict on violation, else None. None if regime disables the rule.
     """
     cfg = _MA_TRAIL_REGIME.get(market_state)
     if cfg is None:
         return None
-    span, consecutive_needed = cfg
+    regime_span, regime_consec = cfg
+    signal_type, consec_needed, ema_span = _ma_trail_signal_for_atr(atr_pct, regime_span)
+    # In low-vol tier, respect regime's consecutive_needed (2 for GREEN/THRUST, 1 elsewhere).
+    if signal_type == "ema" and ema_span == regime_span:
+        consec_needed = regime_consec
 
-    bars = fetch_alpaca_daily_bars(ticker, limit=max(30, span * 2))
-    if len(bars) < span + consecutive_needed:
+    bars = fetch_alpaca_daily_bars(ticker, limit=max(30, (ema_span or 21) * 2))
+    if not bars:
         return None
-
     closes = [float(b["c"]) for b in bars if b.get("c") is not None]
-    if len(closes) < span + consecutive_needed:
+    if not closes:
         return None
 
-    ema_series = _ema(closes, span)
-    last_closes = closes[-consecutive_needed:]
-    last_emas   = ema_series[-consecutive_needed:]
+    if signal_type == "pct_trail":
+        last_close = closes[-1]
+        if highest_price_seen <= 0:
+            return None
+        trail_floor = round(highest_price_seen * 0.90, 2)
+        if last_close < trail_floor:
+            return {
+                "ma_type": "10% trail",
+                "consecutive": 1,
+                "last_close": round(last_close, 2),
+                "last_ema": trail_floor,  # use last_ema slot for the floor — keeps schema stable
+                "atr_pct": round(atr_pct, 2),
+                "tier": "high_vol",
+            }
+        return None
 
+    # EMA close-below path
+    span = ema_span or regime_span
+    if len(closes) < span + consec_needed:
+        return None
+    ema_series = _ema(closes, span)
+    last_closes = closes[-consec_needed:]
+    last_emas   = ema_series[-consec_needed:]
     if all(c < e for c, e in zip(last_closes, last_emas)):
         return {
             "ma_type": f"{span}EMA",
-            "consecutive": consecutive_needed,
+            "consecutive": consec_needed,
             "last_close": round(last_closes[-1], 2),
             "last_ema": round(last_emas[-1], 2),
+            "atr_pct": round(atr_pct, 2),
+            "tier": "low_vol" if span == regime_span else "mid_vol",
         }
     return None
 
@@ -668,7 +761,8 @@ def load_latest_market_state() -> str:
 
 
 def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
-                              trading_state: dict, market_state: str) -> list:
+                              trading_state: dict, market_state: str,
+                              sell_fills: dict | None = None) -> list:
     """
     Reconcile SnapTrade (source of truth for what exists) with positions.json
     (source of truth for rules-specific fields like stops/targets/gain protection).
@@ -724,39 +818,59 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
 
     # --- AUTO-CLOSE: Tickers in positions.json but NOT in SnapTrade ---
     closed_externally = []
+    sell_fills = sell_fills or {}
     for pos in positions_data["open_positions"]:
         if pos["ticker"] not in snap_tickers:
             ticker = pos["ticker"]
             entry_price = pos["entry_price"]
 
-            # Use last known price for result calculation
-            last_price = pos.get("highest_price_seen", entry_price)
-            # Try to get current price from a recent metric fetch
+            # Resolve real exit price: SnapTrade SELL fill > live quote > last-known fallback.
+            close_source = "fallback_high"
+            fill = sell_fills.get(ticker)
+            if fill and fill.get("price"):
+                last_price = float(fill["price"])
+                close_source = "snaptrade_fill"
+            else:
+                # Fallback: live Finviz quote, then last-known peak.
+                metrics = fetch_position_metrics(ticker)
+                if metrics and metrics.get("price"):
+                    last_price = float(metrics["price"])
+                    close_source = "live_quote"
+                else:
+                    last_price = pos.get("highest_price_seen", entry_price)
+
             result_pct = (last_price - entry_price) / entry_price * 100 if entry_price else 0
 
             pos["status"] = "closed_external"
             pos["close_date"] = today
             pos["close_price"] = round(last_price, 2)
+            pos["close_source"] = close_source
             pos["result_pct"] = round(result_pct, 2)
             positions_data["closed_positions"].append(pos)
             closed_externally.append(ticker)
 
-            # Update win/loss streak
-            if result_pct > 0:
+            # Neutral band: small +/- 1% counts as breakeven, doesn't penalize sizing.
+            if abs(result_pct) < 1.0:
+                result_label = "BREAKEVEN"
+                trade_result = "neutral"
+                # Streak/sizing untouched.
+            elif result_pct > 0:
                 trading_state["total_wins"] += 1
                 trading_state["consecutive_wins"] += 1
                 trading_state["consecutive_losses"] = 0
                 result_label = "WIN"
+                trade_result = "win"
             else:
                 trading_state["total_losses"] += 1
                 trading_state["consecutive_losses"] += 1
                 trading_state["consecutive_wins"] = 0
                 result_label = "LOSS"
+                trade_result = "loss"
 
             # Record trade
             trading_state["recent_trades"].append({
                 "ticker": ticker,
-                "result": "win" if result_pct > 0 else "loss",
+                "result": trade_result,
                 "result_pct": round(result_pct, 2),
                 "date": today,
                 "side": "SELL",
@@ -765,9 +879,14 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             trading_state["recent_trades"] = trading_state["recent_trades"][-20:]
             trading_state["last_updated"] = today
 
+            source_tag = {
+                "snaptrade_fill": " (fill)",
+                "live_quote": " (quote)",
+                "fallback_high": " (peak — fill unavailable)",
+            }.get(close_source, "")
             alerts.append(
                 f"\U0001f534 AUTO-DETECTED CLOSE: {ticker}\n"
-                f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f} ({result_pct:+.1f}%) — {result_label}\n"
+                f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f}{source_tag} ({result_pct:+.1f}%) — {result_label}\n"
                 f"   Streak: {trading_state['consecutive_wins']}W / {trading_state['consecutive_losses']}L"
             )
             log.info(f"Sync: auto-closed {ticker} — {result_pct:+.1f}% ({result_label})")
@@ -846,20 +965,22 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
             modified = True
             log.info(f"{ticker}: ATR trail stop raised to ${atr_trail:.2f} (price=${current_price:.2f}, 2×ATR=${2*atr:.2f})")
 
-    # Breakeven stop activation at +20%
-    if gain_pct >= 20 and not position.get("breakeven_stop_activated", False):
+    # Breakeven stop activation at +20% \u2014 keys off peak_gain_pct so a brief
+    # intraday touch locks the stop forever (don't lose to snap timing).
+    peak_gain_for_trigger = position.get("peak_gain_pct", gain_pct)
+    if peak_gain_for_trigger >= 20 and not position.get("breakeven_stop_activated", False):
         new_stop = round(entry * 1.005, 2)  # just above breakeven (+0.5%)
         if new_stop > position.get("stop", 0):
             position["stop"] = new_stop
         position["breakeven_stop_activated"] = True
         modified = True
         alerts.append(
-            f"\U0001f512 {ticker} +{gain_pct:.1f}% \u2014 stop moved to breakeven ${new_stop:.2f}"
+            f"\U0001f512 {ticker} peak +{peak_gain_for_trigger:.1f}% \u2014 stop moved to breakeven ${new_stop:.2f}"
         )
-        log.info(f"{ticker}: Breakeven stop activated at ${new_stop:.2f}")
+        log.info(f"{ticker}: Breakeven stop activated at ${new_stop:.2f} (peak gain {peak_gain_for_trigger:.1f}%)")
 
-    # Trailing stop at +30%
-    if gain_pct >= 30:
+    # Trailing stop at peak +30% \u2014 uses peak_gain_pct, not current.
+    if peak_gain_for_trigger >= 30:
         trail_stop = round(position["highest_price_seen"] * 0.90, 2)  # 10% trail from high
         if trail_stop > position.get("stop", 0):
             position["stop"] = trail_stop
@@ -1435,7 +1556,12 @@ if __name__ == "__main__":
     rules_alerts = []
 
     # Step 9: Sync SnapTrade positions with positions.json (auto-add/auto-close)
-    sync_alerts = sync_snaptrade_with_rules(positions, positions_data, trading_state, market_state)
+    # Pull recent SELL fills so auto-close uses real exit prices, not peak highs.
+    account_ids = sorted({p["account_id"] for p in positions if p.get("account_id")})
+    sell_fills = fetch_recent_sell_fills(account_ids) if account_ids else {}
+    sync_alerts = sync_snaptrade_with_rules(
+        positions, positions_data, trading_state, market_state, sell_fills=sell_fills
+    )
     rules_alerts.extend(sync_alerts)
 
     # Steps 10-12: Apply Minervini rules per position
@@ -1462,19 +1588,28 @@ if __name__ == "__main__":
                 rules_state_modified = True
 
     # Step 12b: MA-trail regime rule (post-close only, once per day).
-    # Checks last completed daily bars for consecutive closes below regime-adaptive
-    # EMA (21 for GREEN/THRUST/CAUTION, 8 for COOLING). Skipped in RED/DANGER/BLACKOUT —
-    # existing tight ATR stops are tighter there anyway.
+    # ATR%-tiered: ≤5% → 21 EMA (regime-adaptive), 5-8% → 8 EMA, >8% → 10% trail.
+    # Skipped in RED/DANGER/BLACKOUT — existing tight ATR stops are tighter there.
     import datetime as _dt
     is_post_close = _dt.datetime.utcnow().hour >= 22
     if is_post_close:
         today_iso = _dt.date.today().isoformat()
+        # Build ticker → atr_pct map from already-fetched metrics
+        atr_pct_by_ticker = {
+            p["ticker"]: p.get("metrics", {}).get("atr_pct", 0.0)
+            for p in positions_with_metrics
+        }
         for rpos in positions_data["open_positions"]:
             if rpos.get("status") != "active":
                 continue
             if rpos.get("ma_trail_alerted_date") == today_iso:
                 continue  # dedup — already alerted today
-            violation = check_ma_trail_violation(rpos["ticker"], market_state)
+            atr_pct_for = atr_pct_by_ticker.get(rpos["ticker"], 0.0)
+            high_seen = rpos.get("highest_price_seen", 0.0)
+            violation = check_ma_trail_violation(
+                rpos["ticker"], market_state,
+                atr_pct=atr_pct_for, highest_price_seen=high_seen,
+            )
             if not violation:
                 continue
             rules_alerts.append(

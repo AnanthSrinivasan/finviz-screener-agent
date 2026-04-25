@@ -95,23 +95,31 @@ The position monitor has two layers:
 - Peel warn/signal: per-ticker calibrated from `data/peel_calibration.json` (p75 as signal, floor 10x; p75×0.75 as warn, floor 7.5x). Falls back to ATR% tier table if ticker not calibrated: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
 - AI commentary via Claude API
 
-**Layer 1b — Regime-adaptive MA trail (runs post-close only, 22:00 UTC):**
+**Layer 1b — ATR%-tiered, regime-adaptive MA trail (runs post-close only, 22:00 UTC):**
 - Fetches last 30 daily bars from Alpaca per held position
-- Checks for N consecutive daily closes below regime-adaptive EMA:
-  - GREEN / THRUST → 2 closes below **21 EMA** (Qullamaggie trail, give room)
-  - CAUTION → 1 close below 21 EMA (tighter trigger)
-  - COOLING → 1 close below **8 EMA** (fastest exit)
+- Trail signal picked by ATR% tier (high-vol stocks need a $-floor, not an MA):
+  - **ATR% ≤ 5%** (low-vol) → regime-adaptive EMA close-below:
+    - GREEN / THRUST → 2 closes below **21 EMA** (Qullamaggie, give room)
+    - CAUTION → 1 close below 21 EMA
+    - COOLING → 1 close below **8 EMA**
+  - **5% < ATR% ≤ 8%** (mid-vol) → 1 close below **8 EMA**
+  - **ATR% > 8%** (high-vol) → close below **10% trail from `highest_price_seen`** (FLY/PL class — MA can't keep up)
   - RED / DANGER / BLACKOUT → skipped (existing ATR stops tighter)
-- Non-exit: fires Slack alert only, human decides. Dedup via `ma_trail_alerted_date` on position entry
+- Non-exit: fires Slack alert only, human decides. Dedup via `ma_trail_alerted_date`
 
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
 - Rule 1: Stop loss check (positions.json stop price)
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
-- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at +20%; trailing stop at +30% (10% trail from `highest_price_seen`, intraday-aware)
+- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at **peak +20%** (keys off `peak_gain_pct`, locks forever after first touch — fixes prior bug where a brief intraday touch missed by hourly snap left no breakeven); trailing stop at **peak +30%** (10% trail from `highest_price_seen`, intraday-aware)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
 - Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight. T1/T2 status (✅/⏳) shown in every daily summary; daily reminder while T1 locked and T2 pending
 - Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
 - `highest_price_seen` and `peak_gain_pct` use Finviz intraday "Range" high (fixes missed-intraday-peak bug where hourly snap missed spikes between ticks)
+
+**Auto-close (positions in positions.json gone from SnapTrade):**
+- Real exit price priority: SnapTrade SELL fill (via `/accounts/{id}/activities`) > live Finviz quote > `highest_price_seen` (last-resort fallback)
+- Neutral band: `|result_pct| < 1.0%` → tagged BREAKEVEN, **does not** bump consecutive_wins/losses or total_wins/losses (sizing mode unaffected). `recent_trades.result = "neutral"`.
+- Slack alert tags fill source: `(fill)`, `(quote)`, or `(peak — fill unavailable)`. `close_source` field persisted on closed position.
 
 **Sizing modes** (in `trading_state.json`):
 - `suspended` — 3+ consecutive losses → paper trade only

@@ -261,5 +261,199 @@ class UpdateSizingModeTests(unittest.TestCase):
         self.assertEqual(alerts, [])
 
 
+class PeakGainBreakevenTests(unittest.TestCase):
+    """Breakeven and +30% trail must trigger off peak_gain_pct, not current gain.
+    A brief intraday +20% touch should lock breakeven forever even if current snap
+    catches price already below.
+    """
+
+    def _pos(self, **overrides):
+        base = {
+            "ticker": "PL",
+            "entry_price": 100.0,
+            "stop": 95.0,
+            "target1": 200.0,
+            "target2": 300.0,
+            "highest_price_seen": 120.5,  # peak +20.5%
+            "peak_gain_pct": 20.5,
+            "current_gain_pct": 0,
+            "status": "open",
+        }
+        base.update(overrides)
+        return base
+
+    def test_breakeven_locks_from_peak_even_when_current_below(self):
+        # Current price is back at entry — current gain ~0, but peak was +20.5%.
+        # Old code missed this; new code activates breakeven.
+        pos = self._pos()
+        alerts, modified = pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
+        self.assertTrue(pos.get("breakeven_stop_activated"))
+        self.assertGreaterEqual(pos["stop"], 100.5)
+        self.assertTrue(any("breakeven" in a.lower() for a in alerts))
+        self.assertTrue(modified)
+
+    def test_breakeven_does_not_activate_below_peak_20(self):
+        pos = self._pos(highest_price_seen=119.0, peak_gain_pct=19.0)
+        pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
+        self.assertFalse(pos.get("breakeven_stop_activated", False))
+
+    def test_trailing_stop_locks_from_peak_30(self):
+        # Peak +35% (high=135), current back at 110. 10% trail = 121.5.
+        pos = self._pos(highest_price_seen=135.0, peak_gain_pct=35.0,
+                        breakeven_stop_activated=True, stop=100.5)
+        pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
+        self.assertAlmostEqual(pos["stop"], 121.5, places=1)
+
+
+class MaTrailTierTests(unittest.TestCase):
+    """ATR%-tiered MA trail. Tier picker is pure; check_ma_trail_violation
+    is integration-tested by mocking the bars fetch."""
+
+    def test_tier_low_vol_uses_regime_span(self):
+        # ATR <= 5% → use regime span (21 in GREEN/THRUST)
+        sig, consec, span = pm._ma_trail_signal_for_atr(4.0, regime_span=21)
+        self.assertEqual(sig, "ema")
+        self.assertEqual(span, 21)
+        self.assertEqual(consec, 2)
+
+    def test_tier_low_vol_cooling_regime_uses_8ema(self):
+        sig, consec, span = pm._ma_trail_signal_for_atr(4.0, regime_span=8)
+        self.assertEqual(sig, "ema")
+        self.assertEqual(span, 8)
+        self.assertEqual(consec, 1)
+
+    def test_tier_mid_vol_uses_8ema(self):
+        # 5% < ATR <= 8% → 8 EMA close-below
+        sig, consec, span = pm._ma_trail_signal_for_atr(7.0, regime_span=21)
+        self.assertEqual(sig, "ema")
+        self.assertEqual(span, 8)
+        self.assertEqual(consec, 1)
+
+    def test_tier_high_vol_uses_pct_trail(self):
+        # ATR > 8% → 10% trail
+        sig, consec, span = pm._ma_trail_signal_for_atr(11.0, regime_span=21)
+        self.assertEqual(sig, "pct_trail")
+        self.assertIsNone(span)
+
+    def test_high_vol_pct_trail_fires_when_close_below_floor(self):
+        # FLY-ish: ATR 11.2%, peak high 46.30, trail floor = 41.67. Close at 35 → fire.
+        bars = [{"c": v} for v in [40, 42, 44, 46, 35]]
+        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=bars):
+            v = pm.check_ma_trail_violation("FLY", "GREEN",
+                                            atr_pct=11.2, highest_price_seen=46.30)
+        self.assertIsNotNone(v)
+        self.assertEqual(v["ma_type"], "10% trail")
+        self.assertEqual(v["tier"], "high_vol")
+        self.assertAlmostEqual(v["last_ema"], 41.67, places=1)
+
+    def test_high_vol_pct_trail_no_fire_above_floor(self):
+        bars = [{"c": v} for v in [40, 42, 44, 46, 42]]
+        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=bars):
+            v = pm.check_ma_trail_violation("FLY", "GREEN",
+                                            atr_pct=11.2, highest_price_seen=46.30)
+        self.assertIsNone(v)
+
+    def test_red_regime_skips_rule(self):
+        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=[]):
+            self.assertIsNone(pm.check_ma_trail_violation("X", "RED", atr_pct=5))
+            self.assertIsNone(pm.check_ma_trail_violation("X", "DANGER", atr_pct=5))
+
+
+class AutoCloseTests(unittest.TestCase):
+    """Auto-close: real fill > live quote > peak fallback; neutral 1% band leaves
+    streak/sizing untouched."""
+
+    def _state(self, **over):
+        base = {
+            "open_positions": [],
+            "closed_positions": [],
+        }
+        base.update(over)
+        return base
+
+    def _trading(self, **over):
+        base = {
+            "consecutive_wins": 0,
+            "consecutive_losses": 0,
+            "total_wins": 0,
+            "total_losses": 0,
+            "recent_trades": [],
+            "current_sizing_mode": "normal",
+            "last_updated": "",
+        }
+        base.update(over)
+        return base
+
+    def test_neutral_close_does_not_bump_streak(self):
+        # Position at entry $100 closed at $100.5 (+0.5% < 1% band)
+        pos = {"ticker": "PL", "shares": 100, "entry_price": 100.0,
+               "highest_price_seen": 120.0, "stop": 95.0, "status": "active"}
+        positions_data = self._state(open_positions=[pos])
+        ts = self._trading(consecutive_wins=2)
+        sell_fills = {"PL": {"price": 100.5, "date": "2026-04-24", "units": 100}}
+        alerts = pm.sync_snaptrade_with_rules(
+            snaptrade_positions=[],
+            positions_data=positions_data,
+            trading_state=ts,
+            market_state="GREEN",
+            sell_fills=sell_fills,
+        )
+        # Streak preserved (no win added, no loss added)
+        self.assertEqual(ts["consecutive_wins"], 2)
+        self.assertEqual(ts["consecutive_losses"], 0)
+        self.assertEqual(ts["total_wins"], 0)
+        self.assertEqual(ts["total_losses"], 0)
+        self.assertTrue(any("BREAKEVEN" in a for a in alerts))
+        # Recorded as neutral
+        self.assertEqual(ts["recent_trades"][-1]["result"], "neutral")
+        self.assertEqual(positions_data["closed_positions"][-1]["close_source"],
+                         "snaptrade_fill")
+
+    def test_real_win_uses_snaptrade_fill_not_peak(self):
+        # Peak high was $150 but actual fill was $135 → result_pct uses 135, not 150
+        pos = {"ticker": "AAOI", "shares": 75, "entry_price": 100.0,
+               "highest_price_seen": 150.0, "stop": 95.0, "status": "active"}
+        positions_data = self._state(open_positions=[pos])
+        ts = self._trading()
+        sell_fills = {"AAOI": {"price": 135.0, "date": "2026-04-24", "units": 75}}
+        pm.sync_snaptrade_with_rules(
+            snaptrade_positions=[], positions_data=positions_data,
+            trading_state=ts, market_state="GREEN", sell_fills=sell_fills,
+        )
+        closed = positions_data["closed_positions"][-1]
+        self.assertEqual(closed["close_price"], 135.0)
+        self.assertEqual(closed["result_pct"], 35.0)
+        self.assertEqual(closed["close_source"], "snaptrade_fill")
+        self.assertEqual(ts["consecutive_wins"], 1)
+
+    def test_loss_close_bumps_loss_streak(self):
+        pos = {"ticker": "X", "shares": 10, "entry_price": 100.0,
+               "highest_price_seen": 110.0, "stop": 95.0, "status": "active"}
+        positions_data = self._state(open_positions=[pos])
+        ts = self._trading(consecutive_wins=1)
+        sell_fills = {"X": {"price": 90.0, "date": "2026-04-24", "units": 10}}
+        pm.sync_snaptrade_with_rules(
+            snaptrade_positions=[], positions_data=positions_data,
+            trading_state=ts, market_state="GREEN", sell_fills=sell_fills,
+        )
+        self.assertEqual(ts["consecutive_losses"], 1)
+        self.assertEqual(ts["consecutive_wins"], 0)
+
+    def test_falls_back_to_quote_when_no_fill(self):
+        pos = {"ticker": "Z", "shares": 10, "entry_price": 100.0,
+               "highest_price_seen": 150.0, "stop": 95.0, "status": "active"}
+        positions_data = self._state(open_positions=[pos])
+        ts = self._trading()
+        with patch.object(pm, "fetch_position_metrics",
+                          return_value={"price": 105.0, "atr_pct": 4.0}):
+            pm.sync_snaptrade_with_rules(
+                snaptrade_positions=[], positions_data=positions_data,
+                trading_state=ts, market_state="GREEN", sell_fills={},
+            )
+        closed = positions_data["closed_positions"][-1]
+        self.assertEqual(closed["close_price"], 105.0)
+        self.assertEqual(closed["close_source"], "live_quote")
+
+
 if __name__ == "__main__":
     unittest.main()
