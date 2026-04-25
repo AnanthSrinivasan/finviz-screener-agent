@@ -502,6 +502,8 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 | Trailing | `peak_gain_pct ≥ 30` | `stop = max(stop, highest_price_seen × 0.90)` |
 | Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) |
 
+**Stale `stop_hit` reset — `sync_snaptrade_with_rules`:** when a ticker is in both SnapTrade and `positions.json` and the rules state is `status="stop_hit"`, the user has decided to keep holding past the system's exit signal. Sync resets `status="active"` so trail / peak / target logic resumes; `stop` value is left intact (user can adjust manually). Slack alert: 🔄 stop_hit flag cleared.
+
 **Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
 
 - **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_stop_activated` to False so the new levels apply afresh. Slack alert "🟡 SHARES INCREASED".
