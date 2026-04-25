@@ -480,16 +480,38 @@ $4,500 hard stop rule: no single position loses more than this. Period.
 8. 🔵 Peel warning — approaching peel level
 9. ⚪ Healthy — no action
 
-**Regime-adaptive MA trail rule** (runs only on post-close run, 22:00 UTC): For each open (`status=active`) position, fetches last 30 daily bars from Alpaca and checks for consecutive closes below a regime-adaptive EMA:
+**ATR%-tiered, regime-adaptive MA trail rule** (post-close only, 22:00 UTC): For each open (`status=active`) position, fetches last 30 daily bars from Alpaca. Trail signal picked by **ATR%** first, then market regime:
 
-| Market state | MA | Consecutive closes needed | Rationale |
-|---|---|---|---|
-| GREEN, THRUST | 21 EMA | 2 | Qullamaggie trail — give room in strong regime, normal pullbacks to 8/21 EMA expected |
-| CAUTION | 21 EMA | 1 | Tighter trigger in mixed regime |
-| COOLING | 8 EMA | 1 | Fastest exit as tape fades |
-| RED, DANGER, BLACKOUT | *skipped* | — | Existing ATR-based stops are tighter anyway |
+| ATR% tier | Signal | Notes |
+|---|---|---|
+| ≤ 5% (low-vol) | Regime-adaptive EMA close-below | GREEN/THRUST → 2× below 21 EMA · CAUTION → 1× below 21 EMA · COOLING → 1× below 8 EMA |
+| 5% < ATR% ≤ 8% (mid-vol) | 1× close below **8 EMA** | Mid-vol stocks — 21 EMA too generous |
+| ATR% > 8% (high-vol) | Close below **10% trail from `highest_price_seen`** | High-vol runners (FLY/PL class) — MA can't keep up; uses dollar-floor instead |
+| RED, DANGER, BLACKOUT | *skipped* — existing ATR stops tighter | — |
 
-Non-exit: fires a Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on the position entry to dedup, and human decides whether to close/trim. EMA computed client-side (simple iterative formula, tested against pandas `ewm(span=N, adjust=False)`). Rule implemented as `check_ma_trail_violation(ticker, market_state)` in `position_monitor.py` — pure function, unit-tested in `tests/test_ma_trail.py`.
+Why ATR%-tiered: high-ATR runners can give back 30%+ before MA catches up. FLY (ATR 11.2%, peak $46.30) → 10% trail floor $41.67 vs prior $35 stop-out. PL (ATR 9.5%, peak $41.70) → floor $37.54.
+
+Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on position entry for dedup, human decides. EMA computed client-side (iterative formula). Implemented as `check_ma_trail_violation(ticker, market_state, atr_pct, highest_price_seen)` in `position_monitor.py` (caller passes ATR% from the same Finviz metrics fetch used for hard-stop/peel). Tier picker `_ma_trail_signal_for_atr` is pure and unit-tested.
+
+**Gain-protection stops (Rule 5 — `apply_minervini_rules`):** All triggers key off `peak_gain_pct`, not current `gain_pct`. A brief intraday touch locks the floor forever, even if hourly snap missed the moment current ≥ threshold.
+
+| Stop | Trigger | Action |
+|---|---|---|
+| ATR trail (silent) | `gain_pct > 0` AND `peak_gain_pct < 20` | `stop = max(stop, price − 2×ATR)` |
+| Breakeven | `peak_gain_pct ≥ 20` (one-shot) | `stop = max(stop, entry × 1.005)`, sets `breakeven_stop_activated=True` |
+| Trailing | `peak_gain_pct ≥ 30` | `stop = max(stop, highest_price_seen × 0.90)` |
+| Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) |
+
+**Auto-close (positions in `positions.json` gone from SnapTrade) — `sync_snaptrade_with_rules`:**
+
+Real exit price priority for `close_price`:
+1. **SnapTrade SELL fill** — `fetch_recent_sell_fills(account_ids, days=14)` calls `/accounts/{id}/activities?type=SELL&startDate=…`, latest SELL by `trade_date` per ticker. `close_source = "snaptrade_fill"`.
+2. **Live Finviz quote** — `fetch_position_metrics(ticker)["price"]`. `close_source = "live_quote"`.
+3. **`highest_price_seen`** — last-resort fallback only. `close_source = "fallback_high"`.
+
+`close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
+
+**Neutral band:** `|result_pct| < 1.0%` → tagged BREAKEVEN. Does NOT touch `consecutive_wins`, `consecutive_losses`, `total_wins`, `total_losses`. `recent_trades.result = "neutral"`. Round-trip exits no longer phantom-pollute sizing-mode state.
 
 ---
 
