@@ -836,6 +836,51 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
         )
         log.info(f"Sync: auto-added {ticker} — {int(shares)} shares @ ${entry_price:.2f}")
 
+    # --- SHARE-DRIFT RECONCILE: Ticker in both, but shares differ ---
+    # Avg-up (more shares): trust SnapTrade's weighted avg_cost, recompute T1/T2.
+    # Partial sell (fewer shares): keep entry/T1/T2; just sync the count.
+    SHARE_EPS = 0.01  # tolerate fractional rounding
+    for ticker in snap_tickers & rules_tickers:
+        rpos = next(p for p in positions_data["open_positions"] if p["ticker"] == ticker)
+        snap = snap_by_ticker[ticker]
+        snap_shares = float(snap["shares"])
+        rules_shares = float(rpos.get("shares", 0))
+        delta = snap_shares - rules_shares
+        if abs(delta) < SHARE_EPS:
+            continue
+        if delta > 0:
+            # Averaged up: SnapTrade avg_cost is already the weighted blend.
+            new_avg = round(float(snap["avg_cost"]), 2)
+            old_shares = rules_shares
+            old_entry = rpos.get("entry_price", new_avg)
+            rpos["shares"] = int(snap_shares) if snap_shares == int(snap_shares) else snap_shares
+            rpos["entry_price"] = new_avg
+            rpos["target1"] = round(new_avg * 1.20, 2)
+            rpos["target2"] = round(new_avg * 1.40, 2)
+            # Reset target/breakeven flags so the recomputed levels are used afresh.
+            rpos["target1_hit"] = False
+            rpos["breakeven_stop_activated"] = False
+            alerts.append(
+                f"\U0001f7e1 SHARES INCREASED: {ticker}\n"
+                f"   {old_shares:g} → {snap_shares:g} shares "
+                f"(avg cost ${old_entry:.2f} → ${new_avg:.2f})\n"
+                f"   T1 ${rpos['target1']:.2f} | T2 ${rpos['target2']:.2f} (recomputed)"
+            )
+            log.info(
+                f"Sync: avg-up {ticker} — {old_shares:g} → {snap_shares:g} shares, "
+                f"avg ${old_entry:.2f} → ${new_avg:.2f}"
+            )
+        else:
+            rpos["shares"] = int(snap_shares) if snap_shares == int(snap_shares) else snap_shares
+            alerts.append(
+                f"\U0001f7e1 PARTIAL SELL: {ticker}\n"
+                f"   {rules_shares:g} → {snap_shares:g} shares "
+                f"({-delta:g} sold) — entry/targets unchanged"
+            )
+            log.info(
+                f"Sync: partial-sell {ticker} — {rules_shares:g} → {snap_shares:g} shares"
+            )
+
     # --- AUTO-CLOSE: Tickers in positions.json but NOT in SnapTrade ---
     closed_externally = []
     sell_fills = sell_fills or {}

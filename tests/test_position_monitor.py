@@ -455,5 +455,62 @@ class AutoCloseTests(unittest.TestCase):
         self.assertEqual(closed["close_source"], "live_quote")
 
 
+class ShareDriftReconcileTests(unittest.TestCase):
+    """When a ticker stays in both SnapTrade and positions.json but the share
+    count diverges, we must reconcile or the rules engine sizes off stale data."""
+
+    def _trading(self):
+        return {"consecutive_wins": 0, "consecutive_losses": 0,
+                "total_wins": 0, "total_losses": 0,
+                "recent_trades": [], "current_sizing_mode": "normal",
+                "last_updated": ""}
+
+    def test_avg_up_recomputes_entry_and_targets(self):
+        # GLW-style: positions.json has 30 shares @ $167.10, SnapTrade now reports 50 @ $170 weighted.
+        rules_pos = {"ticker": "GLW", "shares": 30, "entry_price": 167.10,
+                     "highest_price_seen": 178.99, "stop": 159.95,
+                     "target1": 200.52, "target2": 233.94, "status": "active",
+                     "breakeven_stop_activated": False, "target1_hit": False}
+        snap = [{"ticker": "GLW", "shares": 50, "avg_cost": 170.00,
+                 "current_price": 175.0, "account_id": "a"}]
+        positions_data = {"open_positions": [rules_pos], "closed_positions": []}
+        ts = self._trading()
+        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
+        self.assertEqual(rules_pos["shares"], 50)
+        self.assertEqual(rules_pos["entry_price"], 170.00)
+        self.assertAlmostEqual(rules_pos["target1"], 204.0, places=1)
+        self.assertAlmostEqual(rules_pos["target2"], 238.0, places=1)
+        self.assertFalse(rules_pos["target1_hit"])
+        self.assertFalse(rules_pos["breakeven_stop_activated"])
+        self.assertTrue(any("SHARES INCREASED" in a for a in alerts))
+
+    def test_partial_sell_keeps_entry_and_targets(self):
+        rules_pos = {"ticker": "X", "shares": 100, "entry_price": 50.0,
+                     "highest_price_seen": 60.0, "stop": 47.5,
+                     "target1": 60.0, "target2": 70.0, "status": "active",
+                     "target1_hit": True, "breakeven_stop_activated": True}
+        snap = [{"ticker": "X", "shares": 50, "avg_cost": 50.0,
+                 "current_price": 58.0, "account_id": "a"}]
+        positions_data = {"open_positions": [rules_pos], "closed_positions": []}
+        ts = self._trading()
+        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
+        self.assertEqual(rules_pos["shares"], 50)
+        self.assertEqual(rules_pos["entry_price"], 50.0)
+        self.assertEqual(rules_pos["target1"], 60.0)  # unchanged
+        self.assertTrue(rules_pos["target1_hit"])     # preserved
+        self.assertTrue(any("PARTIAL SELL" in a for a in alerts))
+
+    def test_no_drift_no_alert(self):
+        rules_pos = {"ticker": "X", "shares": 100, "entry_price": 50.0,
+                     "highest_price_seen": 60.0, "stop": 47.5,
+                     "target1": 60.0, "target2": 70.0, "status": "active"}
+        snap = [{"ticker": "X", "shares": 100, "avg_cost": 50.0,
+                 "current_price": 58.0, "account_id": "a"}]
+        positions_data = {"open_positions": [rules_pos], "closed_positions": []}
+        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, self._trading(),
+                                              "GREEN", sell_fills={})
+        self.assertFalse(any("SHARES" in a or "PARTIAL" in a for a in alerts))
+
+
 if __name__ == "__main__":
     unittest.main()
