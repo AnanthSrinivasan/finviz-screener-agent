@@ -6,7 +6,7 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 
 | ID | Item | Priority | Status | Notes |
 |---|---|---|---|---|
-| B-01 | Performance charts page — populate 2026 YTD numbers | med | ⏳ | Needs user's Robinhood 2026 YTD transaction report (CSV) — system has no historical broker data before SnapTrade was wired in. |
+| B-01 | Performance charts page — populate 2026 YTD numbers | med | ✅ | `f4925a4` |
 | B-02 | Open positions: rename `Entry` → `First Entry`, add new `Avg Price` column | low | ✅ | `6827dce` |
 | B-03 | Move closed positions to a separate page | low | ⏳ | Standalone `closed.html` linked from dashboard. Reuse the expandable timeline component already built. |
 | B-04 | Add SPY / QQQ / TNA / IWM tile-row to dashboard | low | ⏳ | Already in MACRO_WATCHLIST in weekly; need a compact tile component on dashboard near Crypto/Market State. Could just embed the macro snapshot from weekly. |
@@ -33,6 +33,12 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | D-13 | Market-state transitions auto-append to `recent_events.json` | `284e973` | Helper `_append_recent_event` reusable for future categories. |
 | D-14 | Weekly: 🔭 Next on the Radar — predictive emerging candidates section | `8b06717`, `012f4ca` | Stage 2 + Q≥70 + fresh catalyst, excluding Top 5 + held. Bugfix `012f4ca` accepts Weinstein "Uptrend" label. |
 | D-15 | Weekly page reorder: macro lifted above AI brief | `8b06717` | Read environment first, then setups. |
+
+## Done (2026-04-26, continued)
+
+| ID | Item | Commit | Notes |
+|---|---|---|---|
+| D-18 | Performance charts page — 2026 YTD Robinhood data | `f4925a4` | FIFO engine, same-day ordering fix, prior-period flagging. 41 trades, -$36.5K, 37% win rate. 9 new tests. |
 
 ## Done (2026-04-26)
 

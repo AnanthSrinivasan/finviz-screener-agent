@@ -786,6 +786,18 @@ Updates `paper_stops.json` with trailing stop raises, flags, and removes exited 
 
 After the monitor loop finishes, calls `utils/generators/generate_portfolio.py` (non-fatal) to rebuild `data/claude_portfolio.html`.
 
+### 10.6 Performance Charts — `utils/generate_performance.py`
+
+One-shot generator for realized P&L from the Robinhood account. Run manually: `python utils/generate_performance.py`.
+
+**Input:** `data/RH-2026.csv` — Robinhood 2026 YTD export (Jan–Apr 2026 and forward). Only `Buy`/`Sell` rows are processed; fees, dividends, and margin interest are skipped.
+
+**FIFO matching:** Per-ticker buy queues. Same-day: Buys processed before Sells. Sells with no matching buy in the CSV are flagged `prior_period=True` (cost basis from 2025); their P&L is zeroed and they appear in the trade table with a badge.
+
+**Output:** `data/performance_charts.html` (light theme, Chart.js). Sections: stat cards (realized P&L, win rate, avg win/loss, profit factor, best/worst trade), cumulative equity curve, monthly P&L bar chart, per-trade table with close date, ticker, qty, proceeds, cost basis, P&L $, P&L %, first buy date.
+
+Linked from the hero bar in `index.html` as **Performance Overview**.
+
 ### 10.5 Claude Model Portfolio — `utils/generators/generate_portfolio.py`
 
 Public dashboard of the Alpaca paper account — regenerated hourly inside `position-monitor.yml` so Pages stays current during market hours.
