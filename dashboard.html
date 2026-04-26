@@ -47,6 +47,19 @@
   .summary-label { font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
   .summary-val { font-size: 1.2rem; font-weight: 700; color: #111827; }
 
+  /* Index tiles (SPY / QQQ / IWM / TNA) */
+  .idx-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .idx-tile { flex: 1; min-width: 110px; background: #fff; border: 1px solid #e5e7eb;
+               border-radius: 10px; padding: 12px 14px; }
+  .idx-name { font-size: 0.7rem; font-weight: 700; color: #6b7280;
+               text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .idx-price { font-size: 1.05rem; font-weight: 700; color: #111827; display: flex;
+                align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .idx-chg { font-size: 0.8rem; font-weight: 600; }
+  .idx-sub { margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .idx-week { font-size: 0.72rem; color: #6b7280; }
+  .idx-ma { font-size: 0.72rem; }
+
   /* Tables */
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -208,7 +221,7 @@
 <div class="dash-header">
   <h1>Dashboard</h1>
   <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 26 Apr 2026 16:06 UTC</div>
+  <div class="dash-meta">Updated 26 Apr 2026 22:08 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -667,6 +680,23 @@
         <div class="mc-sub">% above 40d MA</div>
       </div>
     </div>
+  <div class="idx-row"><div class="idx-tile">
+          <div class="idx-name">SPY</div>
+          <div class="idx-price">$713.94 <span class="idx-chg pos">+0.8%</span></div>
+          <div class="idx-sub"><span class="idx-week pos">Wk +0.5%</span> <span class="idx-ma pos">+5.5% Above 50d</span></div>
+        </div><div class="idx-tile">
+          <div class="idx-name">QQQ</div>
+          <div class="idx-price">$663.88 <span class="idx-chg pos">+1.9%</span></div>
+          <div class="idx-sub"><span class="idx-week pos">Wk +2.3%</span> <span class="idx-ma pos">+9.5% Above 50d</span></div>
+        </div><div class="idx-tile">
+          <div class="idx-name">IWM</div>
+          <div class="idx-price">$276.65 <span class="idx-chg pos">+0.4%</span></div>
+          <div class="idx-sub"><span class="idx-week pos">Wk +0.3%</span> <span class="idx-ma pos">+7.0% Above 50d</span></div>
+        </div><div class="idx-tile">
+          <div class="idx-name">TNA</div>
+          <div class="idx-price">$60.57 <span class="idx-chg pos">+1.1%</span></div>
+          <div class="idx-sub"><span class="idx-week pos">Wk +0.8%</span> <span class="idx-ma pos">+19.8% Above 50d</span></div>
+        </div></div>
 </div>
 
 <div class="section">
@@ -764,7 +794,7 @@
 </div>
 
 <div class="footer">
-  Generated 26 Apr 2026 16:06 UTC &middot;
+  Generated 26 Apr 2026 22:08 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
