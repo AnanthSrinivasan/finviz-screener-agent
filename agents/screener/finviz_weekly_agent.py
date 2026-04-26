@@ -646,7 +646,10 @@ def select_emerging_candidates(persistence_df: pd.DataFrame, top_n: int = 5,
         if row.get("CC_WATCH"):    s += 20
         if row.get("EP"):          s += 15
         if row.get("IPO"):         s += 15
-        if row.get("HIGH"):        s += 10
+        # HIGH removed from score: at-52w-high names have already shown the move.
+        # Pre-breakout bonus: stock hasn't crossed its 52w high yet — this is the
+        # "truly next" setup. Rewards coiling names like NATL over already-at-high ones.
+        if not row.get("HIGH"):    s += 8
         if row.get("MULTI"):       s += 8
         days = int(row.get("Days Seen") or 1)
         s -= max(0, days - 1) * 3

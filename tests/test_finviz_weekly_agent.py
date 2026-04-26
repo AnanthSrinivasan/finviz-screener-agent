@@ -170,6 +170,19 @@ class EmergingCandidatesTests(unittest.TestCase):
         self.assertIn("CC_WATCH_ONLY", tickers)
         self.assertLess(tickers.index("CC_WATCH_ONLY"), tickers.index("EP_ONLY"))
 
+    def test_pre_breakout_outranks_at_high_at_same_q(self):
+        # A name NOT yet at a 52w high (HIGH=False) should score higher than one
+        # already at a new high (HIGH=True) at the same Q rank — it's more "next".
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="AT_HIGH",  signal=60, ipo=True, high=True,  q=90),
+                         self._row(ticker="PRE_BREAK", signal=55, ipo=True, high=False, q=90)])
+        out = select_emerging_candidates(df)
+        tickers = out["Ticker"].tolist()
+        self.assertIn("AT_HIGH",   tickers)
+        self.assertIn("PRE_BREAK", tickers)
+        self.assertLess(tickers.index("PRE_BREAK"), tickers.index("AT_HIGH"))
+
     def test_high_alone_does_not_qualify(self):
         # HIGH (52w-high screener) means already broken out — must NOT be the sole
         # qualifying catalyst. A name with only HIGH should be excluded.
