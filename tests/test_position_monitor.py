@@ -595,5 +595,116 @@ class RetroPatchClosedTests(unittest.TestCase):
         self.assertEqual(alerts, [])
 
 
+class RecentEventTests(unittest.TestCase):
+    """_append_recent_event writes the correct shape and never raises."""
+
+    def _run(self, tmp_dir, **kwargs):
+        import os, json
+        from utils.events import _append_recent_event
+        with patch.dict(os.environ, {"DATA_DIR": tmp_dir}):
+            _append_recent_event(**kwargs)
+        with open(os.path.join(tmp_dir, "recent_events.json")) as f:
+            return json.load(f)
+
+    def test_writes_correct_shape(self):
+        import tempfile, os
+        with tempfile.TemporaryDirectory() as d:
+            data = self._run(d, category="stop_hit", title="AAPL stop hit @ $150.00", severity="high")
+        self.assertIn("events", data)
+        self.assertIn("updated", data)
+        ev = data["events"][-1]
+        self.assertEqual(ev["category"], "stop_hit")
+        self.assertEqual(ev["title"], "AAPL stop hit @ $150.00")
+        self.assertEqual(ev["severity"], "high")
+        self.assertIn("ts", ev)
+        self.assertIn("date", ev)
+
+    def test_detail_field_included_when_provided(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            data = self._run(d, category="position_close", title="AAPL closed +5%",
+                             detail="Entry $140 → $147 (fill)")
+        ev = data["events"][-1]
+        self.assertEqual(ev["detail"], "Entry $140 → $147 (fill)")
+
+    def test_detail_omitted_when_not_provided(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            data = self._run(d, category="breakeven", title="AAPL breakeven set")
+        ev = data["events"][-1]
+        self.assertNotIn("detail", ev)
+
+    def test_rolling_cap_at_max_keep(self):
+        import tempfile, os
+        from utils.events import _append_recent_event
+        with tempfile.TemporaryDirectory() as d:
+            with patch.dict(os.environ, {"DATA_DIR": d}):
+                for i in range(7):
+                    _append_recent_event("market_state", f"event {i}", max_keep=5)
+            import json
+            with open(os.path.join(d, "recent_events.json")) as f:
+                data = json.load(f)
+        self.assertEqual(len(data["events"]), 5)
+        self.assertEqual(data["events"][-1]["title"], "event 6")
+
+    def test_never_raises_on_bad_dir(self):
+        import os
+        from utils.events import _append_recent_event
+        # Should not raise even when DATA_DIR doesn't exist
+        with patch.dict(os.environ, {"DATA_DIR": "/nonexistent/path/xyz"}):
+            try:
+                _append_recent_event("stop_hit", "test")
+            except Exception as e:
+                self.fail(f"_append_recent_event raised: {e}")
+
+    def test_stop_hit_fires_event(self):
+        import tempfile, os, json
+        pos = {"ticker": "AAPL", "entry_price": 140.0, "shares": 10,
+               "stop": 133.0, "target1": 168.0, "target2": 196.0,
+               "highest_price_seen": 150.0, "peak_gain_pct": 0.0,
+               "status": "active"}
+        with tempfile.TemporaryDirectory() as d:
+            with patch.dict(os.environ, {"DATA_DIR": d}):
+                alerts, _ = pm.apply_minervini_rules(pos, current_price=132.0, atr=2.0)
+            with open(os.path.join(d, "recent_events.json")) as f:
+                data = json.load(f)
+        self.assertTrue(any("stop" in a.lower() for a in alerts))
+        evs = [e for e in data["events"] if e["category"] == "stop_hit"]
+        self.assertEqual(len(evs), 1)
+        self.assertEqual(evs[0]["severity"], "high")
+
+    def test_breakeven_fires_event(self):
+        import tempfile, os, json
+        pos = {"ticker": "NVDA", "entry_price": 100.0, "shares": 5,
+               "stop": 90.0, "target1": 120.0, "target2": 140.0,
+               "highest_price_seen": 121.0, "peak_gain_pct": 21.0,
+               "status": "active"}
+        with tempfile.TemporaryDirectory() as d:
+            with patch.dict(os.environ, {"DATA_DIR": d}):
+                alerts, _ = pm.apply_minervini_rules(pos, current_price=119.0, atr=2.0)
+            with open(os.path.join(d, "recent_events.json")) as f:
+                data = json.load(f)
+        evs = [e for e in data["events"] if e["category"] == "breakeven"]
+        self.assertEqual(len(evs), 1)
+        self.assertEqual(evs[0]["severity"], "low")
+
+    def test_target1_fires_event(self):
+        import tempfile, os, json
+        pos = {"ticker": "SMCI", "entry_price": 100.0, "shares": 5,
+               "stop": 90.0, "target1": 120.0, "target2": 140.0,
+               "highest_price_seen": 121.0, "peak_gain_pct": 21.0,
+               "breakeven_stop_activated": True,
+               "status": "active"}
+        with tempfile.TemporaryDirectory() as d:
+            with patch.dict(os.environ, {"DATA_DIR": d}):
+                with patch.object(pm, "_save_winner_chart", return_value=None):
+                    alerts, _ = pm.apply_minervini_rules(pos, current_price=121.0, atr=2.0)
+            with open(os.path.join(d, "recent_events.json")) as f:
+                data = json.load(f)
+        evs = [e for e in data["events"] if e["category"] == "target_hit"]
+        self.assertGreaterEqual(len(evs), 1)
+        self.assertEqual(evs[0]["severity"], "low")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -34,6 +34,7 @@ jobs:
     timeout-minutes: 10
     env:
       TZ: Europe/Luxembourg
+      PYTHONPATH: .
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_POSITIONS }}
       SNAPTRADE_CLIENT_ID: ${{ secrets.SNAPTRADE_CLIENT_ID }}
       SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}

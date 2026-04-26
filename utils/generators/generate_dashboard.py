@@ -294,7 +294,8 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
     rows = ""
     for p in open_pos:
         shares = p.get("shares", 0)
-        entry = p.get("entry_price", 0)
+        entry = p.get("entry_price", 0)          # current weighted avg (post avg-up)
+        first_entry = p.get("first_entry_price", entry)  # original entry, fallback to entry
         gain_pct = p.get("current_gain_pct", 0)
         cost = shares * entry
         pnl = cost * (gain_pct / 100)
@@ -341,6 +342,7 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
             <span class="entry-date">{_format_date(p.get("entry_date", ""))}</span>
           </td>
           <td>{shares}</td>
+          <td>${first_entry:.2f}</td>
           <td>${entry:.2f}</td>
           <td>{stop_label}</td>
           <td class="{_pnl_class(gain_pct)}">{_format_pct(gain_pct)}</td>
@@ -348,7 +350,7 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
           <td class="risk-cell {_pnl_class(risk_pct)}">{_format_pct(risk_pct)}</td>
           <td class="targets-cell">{target_html}</td>
           <td class="peel-cell">{peel_html}</td>
-        </tr>{_build_history_subrow(ticker_name, events, colspan=9)}"""
+        </tr>{_build_history_subrow(ticker_name, events, colspan=10)}"""
 
     total_pnl_pct = (total_pnl / total_cost * 100) if total_cost else 0
 
@@ -417,7 +419,7 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
     <table class="positions-table">
       <thead>
         <tr>
-          <th>Ticker</th><th>Shares</th><th>Entry</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th><th>Peel (p90)</th>
+          <th>Ticker</th><th>Shares</th><th>First Entry</th><th>Avg Price</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th><th>Peel (p90)</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>

@@ -31,43 +31,7 @@ CNN_FNG_URL        = "https://production.dataviz.cnn.io/index/fearandgreed/graph
 DATA_DIR           = os.environ.get("DATA_DIR", "data")
 HISTORY_FILE       = os.path.join(DATA_DIR, "market_monitor_history.json")
 TRADING_STATE_FILE = os.path.join(DATA_DIR, "trading_state.json")
-RECENT_EVENTS_FILE = os.path.join(DATA_DIR, "recent_events.json")
-
-
-def _append_recent_event(category: str, title: str, date: str | None = None,
-                         severity: str = "med", detail: str | None = None,
-                         max_keep: int = 50):
-    """Append an event to data/recent_events.json (rolling). Used by the
-    dashboard Recent Alerts widget to surface what actually happened.
-
-    category: market_state | position_close | target_hit | breakeven | stop_hit | etc.
-    severity: low | med | high — drives visual treatment in the dashboard.
-    """
-    import datetime as _dt
-    rec = {
-        "ts": _dt.datetime.utcnow().isoformat() + "Z",
-        "date": date or _dt.date.today().isoformat(),
-        "category": category,
-        "title": title,
-        "severity": severity,
-    }
-    if detail:
-        rec["detail"] = detail
-    try:
-        if os.path.exists(RECENT_EVENTS_FILE):
-            with open(RECENT_EVENTS_FILE) as f:
-                data = json.load(f)
-            events = data.get("events", []) if isinstance(data, dict) else []
-        else:
-            events = []
-        events.append(rec)
-        events = events[-max_keep:]
-        with open(RECENT_EVENTS_FILE, "w") as f:
-            json.dump({"updated": rec["ts"], "events": events}, f, indent=2)
-    except Exception as e:
-        # Never break the calling agent on dashboard-feed write failures.
-        import logging as _logging
-        _logging.getLogger(__name__).warning(f"recent_events write failed: {e}")
+from utils.events import _append_recent_event
 SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))

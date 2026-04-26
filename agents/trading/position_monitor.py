@@ -78,6 +78,7 @@ def make_session() -> requests.Session:
 # ----------------------------
 from base64 import b64encode
 from urllib.parse import urlencode
+from utils.events import _append_recent_event
 
 def snaptrade_get(path: str, params: dict = None) -> dict | list | None:
     """Authenticated GET using SnapTrade's signature scheme."""
@@ -924,6 +925,11 @@ def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
             f"Retro-patch: {ticker} close ${old_price:.2f} → ${new_price:.2f} "
             f"({old_typ} → {new_typ})"
         )
+        _append_recent_event(
+            category="retro_patch",
+            title=f"{ticker} fill patched {old_result:+.1f}% → {new_result:+.1f}%{flip_note}",
+            severity="med",
+        )
     return alerts
 
 
@@ -972,6 +978,7 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             "status": "active",
             "highest_price_seen": round(snap["current_price"], 2),
             "current_gain_pct": round(snap["pnl_pct"], 2),
+            "first_entry_price": entry_price,
         }
         positions_data["open_positions"].append(new_position)
 
@@ -1012,6 +1019,9 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             old_entry = rpos.get("entry_price", new_avg)
             rpos["shares"] = int(snap_shares) if snap_shares == int(snap_shares) else snap_shares
             rpos["entry_price"] = new_avg
+            # Preserve original entry price on first avg-up
+            if "first_entry_price" not in rpos:
+                rpos["first_entry_price"] = old_entry
             rpos["target1"] = round(new_avg * 1.20, 2)
             rpos["target2"] = round(new_avg * 1.40, 2)
             # Reset target/breakeven flags so the recomputed levels are used afresh.
@@ -1111,6 +1121,12 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                 f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f}{source_tag} ({result_pct:+.1f}%) — {result_label}\n"
                 f"   Streak: {trading_state['consecutive_wins']}W / {trading_state['consecutive_losses']}L"
             )
+            _append_recent_event(
+                category="position_close",
+                title=f"{ticker} closed {result_pct:+.1f}% — {result_label}",
+                severity="low" if trade_result == "win" else ("high" if trade_result == "loss" else "med"),
+                detail=f"Entry ${entry_price:.2f} → ${last_price:.2f}{source_tag}",
+            )
             log.info(f"Sync: auto-closed {ticker} — {result_pct:+.1f}% ({result_label})")
 
     # Remove closed positions from open list
@@ -1173,6 +1189,11 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
         position["status"] = "stop_hit"
         modified = True
         log.warning(f"{ticker}: Rules engine STOP HIT — ${current_price:.2f} <= ${stop:.2f}")
+        _append_recent_event(
+            category="stop_hit",
+            title=f"{ticker} stop hit @ ${current_price:.2f} (stop ${stop:.2f})",
+            severity="high",
+        )
 
     # Rule 5 — Gain protection
 
@@ -1200,6 +1221,11 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
             f"\U0001f512 {ticker} peak +{peak_gain_for_trigger:.1f}% \u2014 stop moved to breakeven ${new_stop:.2f}"
         )
         log.info(f"{ticker}: Breakeven stop activated at ${new_stop:.2f} (peak gain {peak_gain_for_trigger:.1f}%)")
+        _append_recent_event(
+            category="breakeven",
+            title=f"{ticker} breakeven stop set at ${new_stop:.2f}",
+            severity="low",
+        )
 
     # Trailing stop at peak +30% \u2014 uses peak_gain_pct, not current.
     if peak_gain_for_trigger >= 30:
@@ -1255,6 +1281,11 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
         log.info(f"{ticker}: Target 1 hit at ${target1:.2f}")
         today_str = datetime.date.today().isoformat()
         _save_winner_chart(ticker, "T1", today_str)
+        _append_recent_event(
+            category="target_hit",
+            title=f"{ticker} T1 +20% hit — consider selling half",
+            severity="low",
+        )
 
     target2 = position.get("target2", 0)
     if target2 > 0 and current_price >= target2:
@@ -1263,6 +1294,11 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
             f"trail remaining position tightly"
         )
         log.info(f"{ticker}: Target 2 hit at ${target2:.2f}")
+        _append_recent_event(
+            category="target_hit",
+            title=f"{ticker} T2 +40% hit — trail tight",
+            severity="low",
+        )
 
     return alerts, modified
 
@@ -1357,6 +1393,9 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             new_total  = old_shares + shares
             new_avg    = round((old_shares * old_cost + shares * price) / new_total, 2)
             existing["shares"]       = new_total
+            # Preserve original entry on first avg-up
+            if "first_entry_price" not in existing:
+                existing["first_entry_price"] = old_cost
             existing["entry_price"]  = new_avg
             existing["avg_cost"]     = new_avg
             # Recalculate targets from new avg cost
@@ -1384,6 +1423,7 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             "ticker": ticker,
             "shares": shares,
             "entry_price": round(price, 2),
+            "first_entry_price": round(price, 2),
             "entry_date": today,
             "stop": initial_stop,
             "stop_type": "50ma",
@@ -1760,6 +1800,11 @@ if __name__ == "__main__":
             if atr_mult >= peel_signal_mult:
                 alerts_to_fire.append(("PEEL", pos, metrics))
                 log.info(f"{ticker}: PEEL SIGNAL — ATR mult {atr_mult:.2f}")
+                _append_recent_event(
+                    category="peel_signal",
+                    title=f"{ticker} peel signal — ATR mult {atr_mult:.2f}x",
+                    severity="med",
+                )
             elif atr_mult >= peel_warn_mult:
                 alerts_to_fire.append(("PEEL_WARN", pos, metrics))
                 log.info(f"{ticker}: PEEL WARNING — ATR mult {atr_mult:.2f}")
