@@ -114,6 +114,7 @@ def generate_index(reports: dict, base_url: str) -> str:
     dashboard_url = f"{base_url}/dashboard.html" if base_url else "dashboard.html"
 
     perf_url      = f"{base_url}/data/performance_charts.html" if base_url else "data/performance_charts.html"
+    perf_2026_url = f"{base_url}/data/performance_2026.html" if base_url else "data/performance_2026.html"
     mae_url       = f"{base_url}/data/mae_analysis.html" if base_url else "data/mae_analysis.html"
     watchlist_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
     portfolio_url = f"{base_url}/data/claude_portfolio.html" if base_url else "data/claude_portfolio.html"
@@ -125,7 +126,8 @@ def generate_index(reports: dict, base_url: str) -> str:
         hero_links += f'<a href="{report_url(latest_weekly)}" class="hero-btn btn-weekly">Latest Weekly Review</a>'
     if latest_gallery:
         hero_links += f'<a href="{report_url(latest_gallery)}" class="hero-btn btn-daily">Latest Chart Gallery</a>'
-    hero_links += f'<a href="{perf_url}" class="hero-btn btn-perf">Performance Overview</a>'
+    hero_links += f'<a href="{perf_url}" class="hero-btn btn-perf">Performance 2024–25</a>'
+    hero_links += f'<a href="{perf_2026_url}" class="hero-btn btn-perf">Performance 2026 YTD</a>'
     hero_links += f'<a href="{mae_url}" class="hero-btn btn-mae">MAE / MFE Analysis</a>'
 
     total_daily  = len(reports["daily_gallery"])

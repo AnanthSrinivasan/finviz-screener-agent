@@ -23,7 +23,7 @@ import re
 
 DATA_DIR    = os.environ.get("DATA_DIR", "data")
 CSV_PATH    = os.path.join(DATA_DIR, "RH-2026.csv")
-OUTPUT_PATH = os.path.join(DATA_DIR, "performance_charts.html")
+OUTPUT_PATH = os.path.join(DATA_DIR, "performance_2026.html")
 
 TRADE_CODES = {"Buy", "Sell"}
 
