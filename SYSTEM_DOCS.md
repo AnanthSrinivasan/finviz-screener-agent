@@ -260,10 +260,13 @@ Top 3 actionable tickers (Watch List excluded) sent to Claude API with `web_sear
 **Agent 3 — Synthesiser:**
 Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market monitor state** and generates the weekly AI brief. Quality rules enforced in prompt:
 - Only Stage 2 or high-quality Transitional (Q > 60) recommended as Monday actionable
-- Watch List names explicitly flagged as not actionable
+- Watch-only names get **one sentence max** — `[TICKER]: watch-only — [one reason].` No paragraph, no "why it ranks here."
 - CC Confirmed names highlighted with fundamental turnaround context; CC Watch flagged with caveat
 - Extended names flagged explicitly
-- **Market state conditioning:** RED/BLACKOUT → "names to watch" only, no actionable entries. CAUTION → half size. GREEN/THRUST → full size with price levels.
+- **Market state conditioning (structured output):**
+  - RED/BLACKOUT → exactly 3 paragraphs: (1) state + exact re-entry trigger, (2) 1-2 first-in-queue names with specific entry levels, (3) macro one-liner. No per-ticker analysis for other names.
+  - CAUTION → 4 paragraphs: state + GREEN trigger, 1-2 highest-conviction setups at half size, macro, Monday plan.
+  - GREEN/THRUST → 4 paragraphs: backdrop, actionable names with catalyst + entry level, macro, Monday plan.
 
 **Report structure:**
 1. Crypto snapshot (BTC, ETH)
@@ -271,7 +274,7 @@ Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market moni
 3. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%; Month cell also shows the prior 30-day return in brackets) — *moved up from #5 so environment reads first*
 4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
 5. **Top 5 this week** (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. ⚡CC/🔄 CHAR) — labeled "already broken out" to emphasize this is coincident, not predictive
-6. **🔭 Next on the Radar** (emerging candidates — `select_emerging_candidates`): Stage 2 + Q≥70 + at least one fresh-catalyst signal (EP / IPO / MULTI / CC_WATCH / 52w-HIGH proximity), excluding current Top 5 AND currently held positions (loaded from `positions.json`). Ranked by an emergence score: Q rank base + 20 (CC_WATCH) + 15 (EP/IPO) + 10 (HIGH) + 8 (MULTI) − 3·(Days Seen − 1). Predictive setup, not coincident. **Stage 2 detection accepts both "Stage 2 perfect" and Weinstein word label "Uptrend"** (the persistence CSV uses Uptrend/Downtrend/Basing/Transitional, while `daily_quality.json` uses "Stage 2 perfect").
+6. **🔭 Next on the Radar** (emerging candidates — `select_emerging_candidates`): Stage 2 + Q≥70 + at least one fresh-catalyst signal (**EP / IPO / MULTI / CC_WATCH only** — HIGH alone no longer qualifies; 52w-high screener means already broken out) + **SMA50% ≤ 20%** (extension guard — names >20% above 50MA have already made their move). Excludes current Top 5 AND currently held positions (loaded from `positions.json`). Ranked by emergence score: Q rank base + 20 (CC_WATCH) + 15 (EP/IPO) + 10 (HIGH) + 8 (MULTI) − 3·(Days Seen − 1). `Last SMA50%` tracked per ticker in `build_persistence_scores` from weekly combined_df. Predictive setup, not coincident. **Stage 2 detection accepts both "Stage 2 perfect" and Weinstein word label "Uptrend"** (the persistence CSV uses Uptrend/Downtrend/Basing/Transitional, while `daily_quality.json` uses "Stage 2 perfect").
 7. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
 8. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
 
@@ -854,12 +857,12 @@ Returns `{ticker: research_summary}`. Handles 429s with exponential backoff.
 
 **Location:** `finviz_weekly_agent.py` → `generate_weekly_ai_brief(research=None)`
 
-Takes Agent 2's research dict + macro + Fear & Greed + crypto and injects catalyst context into the prompt. The AI brief now explains *why* tickers rank where they do using real-world catalysts, not just screener appearances.
+Takes Agent 2's research dict + macro + Fear & Greed + crypto and injects catalyst context into the prompt. The AI brief explains *why* tickers rank where they do using real-world catalysts, not just screener appearances.
 
-Backward compatible — `research=None` default means existing callers work without changes.
-
-**Key difference from pre-Agent 3 brief:**
-- Before: "SNDK appeared 7/7 days in Growth screener"
-- After: "SNDK appeared 7/7 days — Western Digital spin-off completed, institutions rotating in, storage cycle recovery thesis intact"
+**Prompt structure (market-state-gated):**
+- RED/BLACKOUT: 3 paragraphs — re-entry trigger + 1-2 first-in-queue names + macro. No per-ticker analysis for non-actionable names.
+- CAUTION: 4 paragraphs — state + GREEN trigger, 1-2 setups at half size, macro, Monday plan.
+- GREEN/THRUST: 4 paragraphs — backdrop, actionable names with catalyst + entry, macro, Monday plan.
+- Watch-only names: one sentence max in all states. Never given their own paragraph.
 
 **Test coverage:** 6 tests (4 catalyst, 2 synthesiser) in `test_finviz_agent.py`.
