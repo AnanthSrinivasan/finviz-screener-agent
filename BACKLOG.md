@@ -6,15 +6,20 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 
 | ID | Item | Priority | Status | Notes |
 |---|---|---|---|---|
-| B-01 | Performance charts page — populate 2026 YTD numbers | med | ✅ | `f4925a4` |
-| B-02 | Open positions: rename `Entry` → `First Entry`, add new `Avg Price` column | low | ✅ | `6827dce` |
 | B-03 | Move closed positions to a separate page | low | ⏳ | Standalone `closed.html` linked from dashboard. Reuse the expandable timeline component already built. |
-| B-04 | Add SPY / QQQ / TNA / IWM tile-row to dashboard | low | ⏳ | Already in MACRO_WATCHLIST in weekly; need a compact tile component on dashboard near Crypto/Market State. Could just embed the macro snapshot from weekly. |
-| B-05 | More categories in `recent_events.json` feed | med | ✅ | `6827dce` |
+| B-04 | Add SPY / QQQ / TNA / IWM tile-row to dashboard | low | ⏳ | Already in MACRO_WATCHLIST in weekly; need a compact tile component on dashboard near Crypto/Market State. |
 | B-06 | Auto-MAE/MFE rebuild after each close | low | ⏳ | `utils/analyze_mae.py` is ad-hoc. Wire into position-monitor post-close so the analysis stays fresh without manual run. |
 | B-07 | Calibrate emerging-score weights against historical Top 5 transitions | low | ⏳ | Track which "Next on the Radar" candidates make Top 5 the following week; tune CC_WATCH/EP/HIGH multipliers from outcomes. |
 
-## Done this session (2026-04-25)
+## Done — 2026-04-26
+
+| ID | Item | Commit | Notes |
+|---|---|---|---|
+| D-16 | B-05: recent_events feed — 6 new categories | `6827dce` | Helper extracted to `utils/events.py` (shared). position_monitor wired: position_close, stop_hit, breakeven, target_hit (T1+T2), peel_signal, retro_patch. PYTHONPATH added to position-monitor.yml. 8 new tests. |
+| D-17 | B-02: Dashboard — First Entry + Avg Price columns | `6827dce` | `first_entry_price` stored on create, preserved through avg-ups. Dashboard thead + colspan updated (9→10). |
+| D-18 | B-01: Performance charts page — 2026 YTD | `f4925a4` | `utils/generate_performance.py`: FIFO engine, same-day ordering fix, prior-period flagging. `data/RH-2026.csv` stored. 41 trades · **-$36.5K realized** · 37% win rate. Equity curve + monthly bars + per-trade table. 9 new tests. Live at GitHub Pages `/data/performance_charts.html`. |
+
+## Done — 2026-04-25
 
 | ID | Item | Commit | Notes |
 |---|---|---|---|
@@ -33,19 +38,6 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | D-13 | Market-state transitions auto-append to `recent_events.json` | `284e973` | Helper `_append_recent_event` reusable for future categories. |
 | D-14 | Weekly: 🔭 Next on the Radar — predictive emerging candidates section | `8b06717`, `012f4ca` | Stage 2 + Q≥70 + fresh catalyst, excluding Top 5 + held. Bugfix `012f4ca` accepts Weinstein "Uptrend" label. |
 | D-15 | Weekly page reorder: macro lifted above AI brief | `8b06717` | Read environment first, then setups. |
-
-## Done (2026-04-26, continued)
-
-| ID | Item | Commit | Notes |
-|---|---|---|---|
-| D-18 | Performance charts page — 2026 YTD Robinhood data | `f4925a4` | FIFO engine, same-day ordering fix, prior-period flagging. 41 trades, -$36.5K, 37% win rate. 9 new tests. |
-
-## Done (2026-04-26)
-
-| ID | Item | Commit | Notes |
-|---|---|---|---|
-| D-16 | recent_events feed: 6 new categories (position_close, stop_hit, breakeven, target_hit, peel_signal, retro_patch) | `6827dce` | Helper extracted to `utils/events.py`; shared by market_monitor + position_monitor. PYTHONPATH added to position-monitor.yml. 8 new tests. |
-| D-17 | Dashboard open positions: First Entry + Avg Price columns | `6827dce` | `first_entry_price` preserved on new position and through avg-ups. Dashboard thead + colspan updated. |
 
 ## Older / archived items
 
