@@ -507,7 +507,7 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 
 **Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
 
-- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_stop_activated` to False so the new levels apply afresh. Slack alert "🟡 SHARES INCREASED".
+- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_stop_activated` to False so the new levels apply afresh. `first_entry_price` is set on first avg-up and never overwritten thereafter. Slack alert "🟡 SHARES INCREASED".
 - **Partial sell** (SnapTrade < rules): sync `shares` only; keep `entry_price`, `target1`, `target2`, `target1_hit`, `breakeven_stop_activated` intact (still the same trade). Slack alert "🟡 PARTIAL SELL".
 - 0.01-share tolerance for fractional rounding.
 
@@ -520,7 +520,7 @@ Real exit price priority for `close_price`:
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
-**Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. Categories used today: `market_state`. Helper `_append_recent_event` lives in `agents/market/market_monitor.py`; future call sites can append `position_close`, `target_hit`, `breakeven`, `stop_hit`, etc. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
+**Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. Categories: `market_state` (market_monitor), `position_close`, `stop_hit`, `breakeven`, `target_hit`, `peel_signal`, `retro_patch` (all from position_monitor). Helper `_append_recent_event` lives in `utils/events.py` (shared, DATA_DIR-aware); imported by both market_monitor and position_monitor. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
 
 Per-position transaction timeline is filtered to events at or after the position's `entry_date` AND a global system floor of `2026-04-01` — so prior trade cycles on the same ticker (e.g. an old FIGS round-trip on Mar 24/27 before the current 2026-04-24 entry) don't pollute the view.
 

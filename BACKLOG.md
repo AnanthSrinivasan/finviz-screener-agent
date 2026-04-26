@@ -7,10 +7,10 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | ID | Item | Priority | Status | Notes |
 |---|---|---|---|---|
 | B-01 | Performance charts page — populate 2026 YTD numbers | med | ⏳ | Needs user's Robinhood 2026 YTD transaction report (CSV) — system has no historical broker data before SnapTrade was wired in. |
-| B-02 | Open positions: rename `Entry` → `First Entry`, add new `Avg Price` column | low | ⏳ | First Entry = original avg cost when first opened; Avg Price = current weighted (post avg-up). Both already in `positions.json`; just a dashboard column add. |
+| B-02 | Open positions: rename `Entry` → `First Entry`, add new `Avg Price` column | low | ✅ | `6827dce` |
 | B-03 | Move closed positions to a separate page | low | ⏳ | Standalone `closed.html` linked from dashboard. Reuse the expandable timeline component already built. |
 | B-04 | Add SPY / QQQ / TNA / IWM tile-row to dashboard | low | ⏳ | Already in MACRO_WATCHLIST in weekly; need a compact tile component on dashboard near Crypto/Market State. Could just embed the macro snapshot from weekly. |
-| B-05 | More categories in `recent_events.json` feed | med | ⏳ | Currently only `market_state`. Add `position_close`, `target_hit`, `breakeven`, `stop_hit`, `peel_signal`, `retro_patch`. Helper already exists — just append from each call site. |
+| B-05 | More categories in `recent_events.json` feed | med | ✅ | `6827dce` |
 | B-06 | Auto-MAE/MFE rebuild after each close | low | ⏳ | `utils/analyze_mae.py` is ad-hoc. Wire into position-monitor post-close so the analysis stays fresh without manual run. |
 | B-07 | Calibrate emerging-score weights against historical Top 5 transitions | low | ⏳ | Track which "Next on the Radar" candidates make Top 5 the following week; tune CC_WATCH/EP/HIGH multipliers from outcomes. |
 
@@ -33,6 +33,13 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | D-13 | Market-state transitions auto-append to `recent_events.json` | `284e973` | Helper `_append_recent_event` reusable for future categories. |
 | D-14 | Weekly: 🔭 Next on the Radar — predictive emerging candidates section | `8b06717`, `012f4ca` | Stage 2 + Q≥70 + fresh catalyst, excluding Top 5 + held. Bugfix `012f4ca` accepts Weinstein "Uptrend" label. |
 | D-15 | Weekly page reorder: macro lifted above AI brief | `8b06717` | Read environment first, then setups. |
+
+## Done (2026-04-26)
+
+| ID | Item | Commit | Notes |
+|---|---|---|---|
+| D-16 | recent_events feed: 6 new categories (position_close, stop_hit, breakeven, target_hit, peel_signal, retro_patch) | `6827dce` | Helper extracted to `utils/events.py`; shared by market_monitor + position_monitor. PYTHONPATH added to position-monitor.yml. 8 new tests. |
+| D-17 | Dashboard open positions: First Entry + Avg Price columns | `6827dce` | `first_entry_price` preserved on new position and through avg-ups. Dashboard thead + colspan updated. |
 
 ## Older / archived items
 
