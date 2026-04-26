@@ -12,6 +12,8 @@ import json
 import glob
 import datetime
 import logging
+import requests
+from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -96,6 +98,98 @@ def _watchlist_status_class(status):
         "stopped": "ws-stopped",
         "removed": "ws-removed",
     }.get(status, "ws-watching")
+
+
+INDEX_TICKERS = ["SPY", "QQQ", "IWM", "TNA"]
+_FINVIZ_BASE = "https://finviz.com"
+_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+
+
+def _fetch_index_tiles() -> dict:
+    """Fetch price, day-change, week-change, and SMA50% for each index ticker.
+    Non-fatal — returns {} on any error so the dashboard still renders."""
+    results = {}
+    try:
+        session = requests.Session()
+        session.headers.update({"User-Agent": _UA})
+        for ticker in INDEX_TICKERS:
+            try:
+                resp = session.get(
+                    f"{_FINVIZ_BASE}/quote.ashx",
+                    params={"t": ticker},
+                    timeout=10,
+                )
+                if not resp.ok:
+                    continue
+                soup = BeautifulSoup(resp.content, "html.parser")
+                table = soup.find("table", class_="snapshot-table2")
+                if not table:
+                    continue
+                raw = {}
+                for row in table.find_all("tr"):
+                    cells = row.find_all("td")
+                    for k, v in zip(cells[0::2], cells[1::2]):
+                        raw[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
+
+                def _pct(key):
+                    try:
+                        return round(float(raw.get(key, "").replace("%", "").replace(",", "")), 2)
+                    except (ValueError, TypeError):
+                        return None
+
+                def _price(key):
+                    try:
+                        return round(float(raw.get(key, "").replace(",", "")), 2)
+                    except (ValueError, TypeError):
+                        return None
+
+                results[ticker] = {
+                    "price":      _price("Price"),
+                    "change_pct": _pct("Change"),
+                    "week_pct":   _pct("Perf Week"),
+                    "sma50_pct":  _pct("SMA50"),
+                }
+                log.info(f"Index tile {ticker}: {results[ticker]}")
+            except Exception as e:
+                log.warning(f"Index tile {ticker} failed: {e}")
+    except Exception as e:
+        log.warning(f"_fetch_index_tiles session failed: {e}")
+    return results
+
+
+def _build_index_tiles_html(tiles: dict) -> str:
+    if not tiles:
+        return ""
+
+    def _tile(ticker):
+        d = tiles.get(ticker)
+        if not d or d.get("price") is None:
+            return f'<div class="idx-tile"><div class="idx-name">{ticker}</div><div class="idx-price">—</div></div>'
+
+        price     = d["price"]
+        chg       = d.get("change_pct")
+        week      = d.get("week_pct")
+        sma50     = d.get("sma50_pct")
+
+        chg_str   = (f'<span class="idx-chg {_pnl_class(chg)}">{_format_pct(chg)}</span>'
+                     if chg is not None else "")
+        week_str  = (f'<span class="idx-week {_pnl_class(week)}">Wk {_format_pct(week)}</span>'
+                     if week is not None else "")
+        sma50_str = ""
+        if sma50 is not None:
+            label = "Above 50d" if sma50 >= 0 else "Below 50d"
+            sma50_str = (f'<span class="idx-ma {_pnl_class(sma50)}">'
+                         f'{_format_pct(sma50)} {label}</span>')
+
+        return f"""<div class="idx-tile">
+          <div class="idx-name">{ticker}</div>
+          <div class="idx-price">${price:,.2f} {chg_str}</div>
+          <div class="idx-sub">{week_str} {sma50_str}</div>
+        </div>"""
+
+    inner = "".join(_tile(t) for t in INDEX_TICKERS)
+    return f'<div class="idx-row">{inner}</div>'
 
 
 def load_data(data_dir):
@@ -676,6 +770,7 @@ def generate_dashboard(data, base_url):
     market_html = _build_market_html(data["market_latest"], data["market_history"])
     alerts_html = _build_alerts_html(data["alerts_state"], data.get("recent_events", {}))
     trading_html = _build_trading_state_html(data["trading_state"])
+    index_tiles_html = _build_index_tiles_html(_fetch_index_tiles())
 
     # Watchlist summary counts only — full list lives at watchlist.html
     wl_items = data["watchlist"].get("watchlist", [])
@@ -746,6 +841,19 @@ def generate_dashboard(data, base_url):
   .summary-item {{ display: flex; flex-direction: column; gap: 2px; }}
   .summary-label {{ font-size: 0.68rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }}
   .summary-val {{ font-size: 1.2rem; font-weight: 700; color: #111827; }}
+
+  /* Index tiles (SPY / QQQ / IWM / TNA) */
+  .idx-row {{ display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }}
+  .idx-tile {{ flex: 1; min-width: 110px; background: #fff; border: 1px solid #e5e7eb;
+               border-radius: 10px; padding: 12px 14px; }}
+  .idx-name {{ font-size: 0.7rem; font-weight: 700; color: #6b7280;
+               text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }}
+  .idx-price {{ font-size: 1.05rem; font-weight: 700; color: #111827; display: flex;
+                align-items: baseline; gap: 6px; flex-wrap: wrap; }}
+  .idx-chg {{ font-size: 0.8rem; font-weight: 600; }}
+  .idx-sub {{ margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }}
+  .idx-week {{ font-size: 0.72rem; color: #6b7280; }}
+  .idx-ma {{ font-size: 0.72rem; }}
 
   /* Tables */
   .table-wrap {{ overflow-x: auto; }}
@@ -924,6 +1032,7 @@ def generate_dashboard(data, base_url):
 <div class="section">
   <div class="section-title">Market State</div>
   {market_html}
+  {index_tiles_html}
 </div>
 
 <div class="section">
