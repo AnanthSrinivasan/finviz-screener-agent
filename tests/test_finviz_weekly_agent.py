@@ -88,7 +88,7 @@ class EmergingCandidatesTests(unittest.TestCase):
 
     def _row(self, ticker="X", signal=55, q=80, stage="Stage 2 perfect",
              ep=False, ipo=False, multi=False, high=False, cc_watch=False,
-             watch=False, days=1):
+             watch=False, days=1, sma50=None):
         return {
             "Ticker": ticker, "Company": ticker + " Inc", "Sector": "Tech",
             "Industry": "Software", "Market Cap": "1B", "Days Seen": days,
@@ -99,6 +99,7 @@ class EmergingCandidatesTests(unittest.TestCase):
             "Quality Mod": 0, "Watch": watch,
             "EP": ep, "IPO": ipo, "MULTI": multi, "HIGH": high, "CHAR": False,
             "CC_DEEP": False, "CC_WATCH": cc_watch,
+            "Last SMA50%": sma50,
         }
 
     def test_excludes_top5(self):
@@ -168,6 +169,49 @@ class EmergingCandidatesTests(unittest.TestCase):
         self.assertIn("EP_ONLY", tickers)
         self.assertIn("CC_WATCH_ONLY", tickers)
         self.assertLess(tickers.index("CC_WATCH_ONLY"), tickers.index("EP_ONLY"))
+
+    def test_high_alone_does_not_qualify(self):
+        # HIGH (52w-high screener) means already broken out — must NOT be the sole
+        # qualifying catalyst. A name with only HIGH should be excluded.
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="HIGH_ONLY", signal=60, high=True)])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("HIGH_ONLY", out["Ticker"].tolist())
+
+    def test_high_plus_ipo_qualifies(self):
+        # HIGH alone is blocked, but HIGH + IPO (or any other catalyst) still qualifies.
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="HIGH_IPO", signal=60, high=True, ipo=True)])
+        out = select_emerging_candidates(df)
+        self.assertIn("HIGH_IPO", out["Ticker"].tolist())
+
+    def test_extended_sma50_excluded(self):
+        # Stock >20% above 50MA has already made its move — filter it out.
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="EXTENDED", signal=60, ep=True, sma50=57.0),
+                         self._row(ticker="SETUP",    signal=55, ep=True, sma50=8.0)])
+        out = select_emerging_candidates(df)
+        self.assertNotIn("EXTENDED", out["Ticker"].tolist())
+        self.assertIn("SETUP", out["Ticker"].tolist())
+
+    def test_sma50_at_boundary_passes(self):
+        # Exactly 20% above 50MA is the boundary — should pass (≤ 20).
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="BOUNDARY", signal=60, ep=True, sma50=20.0)])
+        out = select_emerging_candidates(df)
+        self.assertIn("BOUNDARY", out["Ticker"].tolist())
+
+    def test_missing_sma50_passes(self):
+        # No SMA50 data at all (None) — let through, don't penalise missing data.
+        from agents.screener.finviz_weekly_agent import select_emerging_candidates
+        df = self._df([self._row(ticker=f"T{i}", signal=99 - i, ep=True) for i in range(5)]
+                      + [self._row(ticker="NOSMA", signal=60, ep=True, sma50=None)])
+        out = select_emerging_candidates(df)
+        self.assertIn("NOSMA", out["Ticker"].tolist())
 
 
 if __name__ == "__main__":

@@ -449,6 +449,7 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         "max_appearances": 0, "screeners_hit": set(),
         "sector": "", "industry": "", "company": "", "market_cap": "",
         "has_char_change": False,
+        "last_sma50_pct": None,
     })
 
     for _, row in combined_df.iterrows():
@@ -470,6 +471,10 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
         if screeners:
             for s in str(screeners).split(","):
                 r["screeners_hit"].add(s.strip())
+
+        sma50 = row.get("SMA50%")
+        if pd.notna(sma50):
+            r["last_sma50_pct"] = float(sma50)
 
         # Character change detection: 200d gain > 50%, RVol > 2.5x, Week 20%+ Gain
         sma200 = row.get("SMA200%")
@@ -544,6 +549,7 @@ def build_persistence_scores(combined_df: pd.DataFrame, dates_found: list,
             "Stage":           stage_label,
             "Quality Mod":     quality_mod,
             "Watch":           is_watch,
+            "Last SMA50%":     round(r["last_sma50_pct"], 1) if r["last_sma50_pct"] is not None else None,
             # Individual signal flags for badges
             "EP":              signals.get("EP",    False),
             "IPO":             signals.get("IPO",   False),
@@ -612,14 +618,24 @@ def select_emerging_candidates(persistence_df: pd.DataFrame, top_n: int = 5,
                 or s.startswith("2"))
 
     def _has_catalyst(row):
+        # HIGH (52w-high screener) means the stock has already broken out — not a
+        # qualifying catalyst for "next on radar". Require a fundamental/structural
+        # signal instead: EP, IPO, MULTI, or CC_WATCH.
         return bool(row.get("EP") or row.get("IPO") or row.get("MULTI")
-                    or row.get("CC_WATCH") or row.get("HIGH"))
+                    or row.get("CC_WATCH"))
+
+    def _not_extended(row):
+        sma50 = row.get("Last SMA50%")
+        if sma50 is None:
+            return True  # no data — let it through
+        return float(sma50) <= 20.0
 
     candidates = actionable[
         (~actionable["Ticker"].isin(excluded))
         & (actionable["Q Rank"].fillna(0) >= 70)
         & actionable["Stage"].apply(_is_stage2)
         & actionable.apply(_has_catalyst, axis=1)
+        & actionable.apply(_not_extended, axis=1)
     ].copy()
 
     if candidates.empty:
@@ -1630,58 +1646,64 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
             f"THRUST LAST 30 DAYS: {thrust_recent}\n"
         )
 
-    market_rules = ""
-    if market_state:
-        state = market_state.get("market_state", "UNKNOWN")
-        if state in ("RED", "BLACKOUT"):
-            market_rules = (
-                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
-                "- Market state is RED/BLACKOUT — do NOT recommend actionable Monday entries.\n"
-                "- Frame the top 5 as 'names to watch when conditions improve'.\n"
-                "- Note what breadth signal would trigger re-entry (e.g. 5-day ratio > 1.5, thrust).\n"
-            )
-        elif state in ("CAUTION",):
-            market_rules = (
-                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
-                "- Market state is CAUTION — recommend entries but at HALF SIZE only.\n"
-                "- Be more selective — only highest conviction setups.\n"
-                "- Note that full sizing requires GREEN confirmation.\n"
-            )
-        elif state in ("GREEN", "THRUST"):
-            market_rules = (
-                "\n\nMARKET STATE RULES (MUST FOLLOW):\n"
-                "- Market state is GREEN/THRUST — full size entries are appropriate.\n"
-                "- Recommend entries with specific price levels.\n"
-                "- Size guidance: 10-15% for high conviction names.\n"
-            )
+    current_state = market_state.get("market_state", "UNKNOWN") if market_state else "UNKNOWN"
+
+    if current_state in ("RED", "BLACKOUT"):
+        structure_rules = (
+            "STRUCTURE — RED/BLACKOUT market. Write exactly 3 paragraphs, no more:\n"
+            "Para 1: Market state in one sentence. Then the EXACT re-entry trigger: which breadth "
+            "metric must clear what level (e.g. 5-day ratio reclaims 1.5, or a thrust day). "
+            "What does the tape need to show before the trigger is valid?\n"
+            "Para 2: Name the 1-2 setups that are FIRST in queue when the trigger fires — "
+            "why those specifically (catalyst, setup quality, where entry is). Be specific: "
+            "price level, what to watch for. Nothing else.\n"
+            "Para 3: Macro/sector one sentence. Done.\n"
+            "DO NOT write per-ticker analysis for the other names. DO NOT explain why watch-only "
+            "names rank where they do. If a name is not in the first-in-queue shortlist, skip it.\n"
+        )
+    elif current_state == "CAUTION":
+        structure_rules = (
+            "STRUCTURE — CAUTION market. Write 4 paragraphs:\n"
+            "Para 1: Market state and what's needed for full GREEN confirmation.\n"
+            "Para 2: The 1-2 highest-conviction setups only — real-world catalyst (from research), "
+            "specific entry trigger, HALF SIZE. Skip any watch-only or extended names entirely.\n"
+            "Para 3: Macro/sector one sentence.\n"
+            "Para 4: Monday plan — name, trigger, size. One line per name.\n"
+            "Watch-only names: one sentence each max — '[TICKER]: watch-only, needs [condition].' "
+            "Do not give them their own paragraph.\n"
+        )
+    else:  # GREEN / THRUST / UNKNOWN
+        structure_rules = (
+            "STRUCTURE — write 4 paragraphs:\n"
+            "Para 1: Market backdrop in 2 sentences.\n"
+            "Para 2: Top actionable names — for each, 2 sentences: real-world catalyst (from research) "
+            "and specific entry trigger/level. Skip any watch-only or extended names.\n"
+            "Para 3: Macro/sector in 2 sentences.\n"
+            "Para 4: Monday plan — name, trigger, size. One line per name. "
+            "Only names where both setup quality and screener persistence agree.\n"
+            "Watch-only names: one sentence each max. Do not give them their own paragraph.\n"
+        )
+
+    quality_rules = (
+        "QUALITY RULES:\n"
+        "- Actionable = Stage 2 (Uptrend) + Q > 60. Anything else is watch-only.\n"
+        "- Watch-only names get ONE sentence max: '[TICKER]: watch-only — [one specific reason why not yet].' "
+        "No paragraph. No 'why it ranks here.' Skip it if there's nothing actionable to say.\n"
+        "- CC CONFIRMED (⚡ CC): highest-conviction — improving EPS, accelerating sales, 200MA cleared. "
+        "Lead with the fundamental turnaround, not the screener count.\n"
+        "- CC WATCH (⚡ CC Watch): promising but sales need confirmation. Flag the caveat in one clause.\n"
+        "- Extended names (up >30% in a month, far above 50MA): flag as extended, not a valid entry point.\n"
+        "Be direct. Name names. No disclaimers. Plain paragraphs."
+    )
 
     prompt = (
         f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
-        "Top 5 names this week, ranked by unified signal score "
-        "(persistence + EP bonus + IPO bonus + multi-screen bonus + 52w high bonus):\n"
+        "Top 5 names this week (ranked by unified signal score):\n"
         f"{newline.join(ticker_lines)}\n\n"
         f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
-        f"{fng_ctx}{crypto_ctx}{research_ctx}{market_ctx}{market_rules}\n\n"
-        "Write a sharp weekly brief (4-6 paragraphs):\n"
-        "1. For each of the top 5: why it ranks here, and critically — use the catalyst research "
-        "to explain the *real-world reason* behind the screener activity (earnings beat, analyst upgrade, "
-        "sector rotation, product launch, etc). Don't just say 'appeared in screeners' — say *why*.\n"
-        "2. Sector themes and macro backdrop — what's supporting or fighting these names?\n"
-        "3. Monday plan — specific names, specific entry triggers to watch.\n\n"
-        "QUALITY RULES — follow strictly:\n"
-        "- Only recommend names as Monday actionable if they are Stage 2 (Uptrend) or "
-        "high-quality Transitional (Q > 60). These are the only names that belong in the Monday plan.\n"
-        "- Watch List names (Transitional with low Q, Stage 3/4, or section='watch') are NOT actionable. "
-        "If any appear in the data, explicitly flag them as 'watch only — not actionable' and explain why.\n"
-        "- Character Change CONFIRMED (⚡ CC) names are the highest-conviction reversal plays — "
-        "they have 3+ quarters of improving EPS, accelerating sales, cleared 200MA, and volume confirmation. "
-        "These are Stage 1→2 character change trades, not sector trades. Highlight the fundamental turnaround.\n"
-        "- Character Change WATCH (⚡ CC Watch) names meet most criteria but sales need confirmation. "
-        "Worth mentioning but flag the caveat.\n"
-        "- Simple CHAR (🔄) names show price/volume character change but haven't been verified fundamentally.\n"
-        "- Flag extended names explicitly.\n"
-        "- The Monday plan should only include names where both screener persistence and chart quality agree.\n\n"
-        "Be direct. Name names. No disclaimers. Plain paragraphs."
+        f"{fng_ctx}{crypto_ctx}{research_ctx}{market_ctx}\n\n"
+        f"{structure_rules}\n"
+        f"{quality_rules}"
     )
 
     for attempt in range(3):
