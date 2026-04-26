@@ -1,248 +1,618 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading System — Performance Overview</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Performance Overview — 2026 YTD</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #f8f9fc; color: #1a202c; font-family: 'Segoe UI', system-ui, sans-serif; padding: 40px 24px; }
-  h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 4px; }
-  .subtitle { color: #6b7280; font-size: 0.875rem; margin-bottom: 36px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
-  .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-  .card.full { grid-column: 1 / -1; }
-  .card h2 { font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
-  .stat-row { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 8px; }
-  .stat .label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 3px; }
-  .stat .value { font-size: 1.5rem; font-weight: 700; color: #111827; }
-  .stat .value.green { color: #16a34a; }
-  .stat .value.amber { color: #d97706; }
-  .stat .value.red { color: #dc2626; }
-  canvas { max-height: 260px; }
-  .heatmap { display: grid; grid-template-columns: 60px repeat(12, 1fr); gap: 3px; font-size: 0.7rem; }
-  .heatmap .year-label { display: flex; align-items: center; color: #6b7280; font-weight: 600; }
-  .heatmap .month-header { text-align: center; color: #9ca3af; padding: 4px 0; font-size: 0.65rem; font-weight: 600; }
-  .cell { border-radius: 4px; padding: 6px 2px; text-align: center; font-weight: 600; font-size: 0.68rem; }
-  .pos-strong { background: #dcfce7; color: #15803d; }
-  .pos-mid    { background: #d1fae5; color: #059669; }
-  .pos-light  { background: #ecfdf5; color: #10b981; }
-  .neg-light  { background: #fff7ed; color: #d97706; }
-  .neg-mid    { background: #fee2e2; color: #dc2626; }
-  .neg-strong { background: #fecaca; color: #b91c1c; }
-  .neutral    { background: #f3f4f6; color: #9ca3af; }
-  .note { font-size: 0.72rem; color: #9ca3af; margin-top: 10px; font-style: italic; line-height: 1.5; }
-  .header-row { max-width: 1100px; margin: 0 auto 28px; }
-  .badge { display: inline-block; background: #eff6ff; color: #2563eb; font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; margin-left: 10px; vertical-align: middle; border: 1px solid #bfdbfe; }
-  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 8px 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#111827;font-size:14px}
+.page-wrap{max-width:1200px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
+.subtitle{color:#6b7280;font-size:13px;margin-bottom:24px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:700;color:#111827}
+.stat-val.pos{color:#16a34a}
+.stat-val.neg{color:#dc2626}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+@media(max-width:700px){.charts-row{grid-template-columns:1fr}}
+.chart-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px}
+.chart-card h2{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px}
+.chart-card canvas{max-height:260px}
+.table-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:28px}
+.table-card h2{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px}
+.trade-table{width:100%;border-collapse:collapse;font-size:13px}
+.trade-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase}
+.trade-table td{padding:7px 10px;border-bottom:1px solid #f3f4f6}
+.trade-table tr:hover td{background:#f9fafb}
+.pos{color:#16a34a}
+.neg{color:#dc2626}
+.neu{color:#6b7280}
+.pnl-col{font-weight:600}
+.ticker-col{font-weight:600;color:#2563eb}
+.pp-badge{font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}
+.prior-note{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e}
+.footer{color:#9ca3af;font-size:12px;text-align:center;margin-top:16px}
 </style>
 </head>
 <body>
+<div class="page-wrap">
+  <h1>Performance Overview — 2026 YTD</h1>
+  <div class="subtitle">Robinhood account · realized trades · generated 2026-04-26 12:48</div>
 
-<div class="header-row">
-  <h1>Trading System — Performance Overview <span class="badge">1099 Verified</span></h1>
-  <p class="subtitle">Realized P&amp;L · Live Robinhood Account · 2024–2025 · Rules-based, fully automated</p>
-</div>
-
-<div class="grid">
-
-  <!-- KPI row -->
-  <div class="card full">
-    <h2>Key Metrics</h2>
-    <div class="stat-row">
-      <div class="stat"><div class="label">2024 Net Realized P&L</div><div class="value green">+$47,636</div></div>
-      <div class="stat"><div class="label">2025 Net Realized P&L</div><div class="value green">+$42,481</div></div>
-      <div class="stat"><div class="label">Combined 2-Year P&L</div><div class="value green">+$90,117</div></div>
-      <div class="stat"><div class="label">2024 Return on Net Capital</div><div class="value amber">~100%</div></div>
-      <div class="stat"><div class="label">2025 Return on Account</div><div class="value amber">~45%</div></div>
-      <div class="stat"><div class="label">Total Notional Traded</div><div class="value">$2.03M</div></div>
-      <div class="stat"><div class="label">2024 Max Drawdown</div><div class="value">−4.9%</div></div>
-      <div class="stat"><div class="label">2025 Max Drawdown</div><div class="value red">−23.5%</div></div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Realized P&amp;L</div>
+      <div class="stat-val neg">$-36,511</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-val">36.6%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Win</div>
+      <div class="stat-val pos">+$449</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Loss</div>
+      <div class="stat-val neg">$-1,663</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Profit Factor</div>
+      <div class="stat-val">0.16x</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Trades</div>
+      <div class="stat-val">15W / 26L</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Trade</div>
+      <div class="stat-val pos" style="font-size:16px">COIN +$2,055</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Worst Trade</div>
+      <div class="stat-val neg" style="font-size:16px">SLV $-11,488</div>
     </div>
   </div>
 
-  <!-- Annual P&L bar -->
-  <div class="card">
-    <h2>Annual Net Realized P&amp;L</h2>
-    <canvas id="annualBar"></canvas>
+  
+        <div class="prior-note">
+          ⚠ +$2 from sells with cost basis in a prior period
+          (excluded from stats above, included in equity curve).
+        </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h2>Cumulative P&amp;L — 2026 YTD</h2>
+      <canvas id="eqChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>Monthly P&amp;L</h2>
+      <canvas id="moChart"></canvas>
+    </div>
   </div>
 
-  <!-- Equity curve -->
-  <div class="card">
-    <h2>Estimated Account Equity Curve</h2>
-    <canvas id="equityCurve"></canvas>
-    <p class="note">2024: reconstructed from $44,792 net new capital (front-loaded Jan–Apr) + exact monthly realized P&amp;L (1099-B). 2025: monthly P&amp;L applied to starting balance; July 2025 was the account peak at ~$115K.</p>
+  <div class="table-card">
+    <h2>Closed Trades</h2>
+    <div style="overflow-x:auto">
+    <table class="trade-table">
+      <thead>
+        <tr>
+          <th>Close Date</th><th>Ticker</th><th>Qty</th>
+          <th>Proceeds</th><th>Cost Basis</th><th>P&amp;L $</th><th>P&amp;L %</th><th>First Buy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Apr 24, 2026</td>
+          <td class="ticker-col">PL</td>
+          <td>150</td>
+          <td>$5,323.36</td>
+          <td>$5,203.99</td>
+          <td class="pos pnl-col">+$119</td>
+          <td class="pos">+2.3%</td>
+          <td>Apr 15</td>
+        </tr>
+        <tr>
+          <td>Apr 24, 2026</td>
+          <td class="ticker-col">FLY</td>
+          <td>250</td>
+          <td>$8,782.26</td>
+          <td>$8,783.40</td>
+          <td class="neg pnl-col">$-1</td>
+          <td class="neg">-0.0%</td>
+          <td>Apr 06</td>
+        </tr>
+        <tr>
+          <td>Apr 22, 2026</td>
+          <td class="ticker-col">AMD</td>
+          <td>10</td>
+          <td>$2,967.48</td>
+          <td>$2,460.55</td>
+          <td class="pos pnl-col">+$507</td>
+          <td class="pos">+20.6%</td>
+          <td>Apr 13</td>
+        </tr>
+        <tr>
+          <td>Apr 22, 2026</td>
+          <td class="ticker-col">AMD</td>
+          <td>10</td>
+          <td>$2,962.63</td>
+          <td>$2,460.55</td>
+          <td class="pos pnl-col">+$502</td>
+          <td class="pos">+20.4%</td>
+          <td>Apr 13</td>
+        </tr>
+        <tr>
+          <td>Apr 22, 2026</td>
+          <td class="ticker-col">AMD</td>
+          <td>20</td>
+          <td>$5,793.28</td>
+          <td>$5,011.18</td>
+          <td class="pos pnl-col">+$782</td>
+          <td class="pos">+15.6%</td>
+          <td>Apr 13</td>
+        </tr>
+        <tr>
+          <td>Mar 27, 2026</td>
+          <td class="ticker-col">FIGS</td>
+          <td>500</td>
+          <td>$7,484.90</td>
+          <td>$7,800.00</td>
+          <td class="neg pnl-col">$-315</td>
+          <td class="neg">-4.0%</td>
+          <td>Mar 24</td>
+        </tr>
+        <tr>
+          <td>Mar 27, 2026</td>
+          <td class="ticker-col">PLAB</td>
+          <td>100</td>
+          <td>$3,905.98</td>
+          <td>$4,294.00</td>
+          <td class="neg pnl-col">$-388</td>
+          <td class="neg">-9.0%</td>
+          <td>Mar 24</td>
+        </tr>
+        <tr>
+          <td>Mar 23, 2026</td>
+          <td class="ticker-col">XLE</td>
+          <td>94</td>
+          <td>$5,448.22</td>
+          <td>$5,329.33</td>
+          <td class="pos pnl-col">+$119</td>
+          <td class="pos">+2.2%</td>
+          <td>Mar 11</td>
+        </tr>
+        <tr>
+          <td>Mar 23, 2026</td>
+          <td class="ticker-col">XLE</td>
+          <td>106</td>
+          <td>$6,143.74</td>
+          <td>$6,009.67</td>
+          <td class="pos pnl-col">+$134</td>
+          <td class="pos">+2.2%</td>
+          <td>Mar 11</td>
+        </tr>
+        <tr>
+          <td>Mar 23, 2026</td>
+          <td class="ticker-col">XLE</td>
+          <td>100</td>
+          <td>$5,796.98</td>
+          <td>$5,669.50</td>
+          <td class="pos pnl-col">+$127</td>
+          <td class="pos">+2.2%</td>
+          <td>Mar 11</td>
+        </tr>
+        <tr>
+          <td>Mar 20, 2026</td>
+          <td class="ticker-col">TNA</td>
+          <td>500</td>
+          <td>$20,584.90</td>
+          <td>$24,318.98</td>
+          <td class="neg pnl-col">$-3,734</td>
+          <td class="neg">-15.3%</td>
+          <td>Mar 10</td>
+        </tr>
+        <tr>
+          <td>Mar 20, 2026</td>
+          <td class="ticker-col">SLV</td>
+          <td>600</td>
+          <td>$36,872.88</td>
+          <td>$48,361.00</td>
+          <td class="neg pnl-col">$-11,488</td>
+          <td class="neg">-23.8%</td>
+          <td>Feb 23</td>
+        </tr>
+        <tr>
+          <td>Mar 19, 2026</td>
+          <td class="ticker-col">KRMN</td>
+          <td>100</td>
+          <td>$9,775.98</td>
+          <td>$10,703.00</td>
+          <td class="neg pnl-col">$-927</td>
+          <td class="neg">-8.7%</td>
+          <td>Mar 17</td>
+        </tr>
+        <tr>
+          <td>Mar 19, 2026</td>
+          <td class="ticker-col">FLY</td>
+          <td>400</td>
+          <td>$8,851.92</td>
+          <td>$9,869.08</td>
+          <td class="neg pnl-col">$-1,017</td>
+          <td class="neg">-10.3%</td>
+          <td>Mar 16</td>
+        </tr>
+        <tr>
+          <td>Mar 19, 2026</td>
+          <td class="ticker-col">SNDK</td>
+          <td>20</td>
+          <td>$14,143.00</td>
+          <td>$14,217.90</td>
+          <td class="neg pnl-col">$-75</td>
+          <td class="neg">-0.5%</td>
+          <td>Mar 16</td>
+        </tr>
+        <tr>
+          <td>Mar 05, 2026</td>
+          <td class="ticker-col">COIN</td>
+          <td>100</td>
+          <td>$20,159.98</td>
+          <td>$18,105.00</td>
+          <td class="pos pnl-col">+$2,055</td>
+          <td class="pos">+11.3%</td>
+          <td>Feb 26</td>
+        </tr>
+        <tr>
+          <td>Feb 11, 2026</td>
+          <td class="ticker-col">AMZN</td>
+          <td>50</td>
+          <td>$10,134.25</td>
+          <td>$12,043.40</td>
+          <td class="neg pnl-col">$-1,909</td>
+          <td class="neg">-15.8%</td>
+          <td>Jan 07</td>
+        </tr>
+        <tr>
+          <td>Feb 11, 2026</td>
+          <td class="ticker-col">TNA</td>
+          <td>100</td>
+          <td>$5,462.48</td>
+          <td>$5,671.50</td>
+          <td class="neg pnl-col">$-209</td>
+          <td class="neg">-3.7%</td>
+          <td>Feb 09</td>
+        </tr>
+        <tr>
+          <td>Feb 11, 2026</td>
+          <td class="ticker-col">AMZN</td>
+          <td>50</td>
+          <td>$10,375.50</td>
+          <td>$11,998.04</td>
+          <td class="neg pnl-col">$-1,623</td>
+          <td class="neg">-13.5%</td>
+          <td>Jan 08</td>
+        </tr>
+        <tr>
+          <td>Feb 11, 2026</td>
+          <td class="ticker-col">TNA</td>
+          <td>100</td>
+          <td>$5,656.98</td>
+          <td>$5,671.50</td>
+          <td class="neg pnl-col">$-15</td>
+          <td class="neg">-0.3%</td>
+          <td>Feb 09</td>
+        </tr>
+        <tr>
+          <td>Feb 06, 2026</td>
+          <td class="ticker-col">RDDT</td>
+          <td>40</td>
+          <td>$5,798.84</td>
+          <td>$10,339.94</td>
+          <td class="neg pnl-col">$-4,541</td>
+          <td class="neg">-43.9%</td>
+          <td>Jan 09</td>
+        </tr>
+        <tr>
+          <td>Feb 05, 2026</td>
+          <td class="ticker-col">OKLO</td>
+          <td>200</td>
+          <td>$12,481.02</td>
+          <td>$17,956.27</td>
+          <td class="neg pnl-col">$-5,475</td>
+          <td class="neg">-30.5%</td>
+          <td>Jan 02</td>
+        </tr>
+        <tr>
+          <td>Feb 05, 2026</td>
+          <td class="ticker-col">SLV</td>
+          <td>100</td>
+          <td>$6,876.98</td>
+          <td>$7,900.00</td>
+          <td class="neg pnl-col">$-1,023</td>
+          <td class="neg">-12.9%</td>
+          <td>Feb 03</td>
+        </tr>
+        <tr>
+          <td>Feb 05, 2026</td>
+          <td class="ticker-col">SLV</td>
+          <td>100</td>
+          <td>$6,876.98</td>
+          <td>$7,900.00</td>
+          <td class="neg pnl-col">$-1,023</td>
+          <td class="neg">-12.9%</td>
+          <td>Feb 03</td>
+        </tr>
+        <tr>
+          <td>Feb 04, 2026</td>
+          <td class="ticker-col">LMND</td>
+          <td>100</td>
+          <td>$7,011.48</td>
+          <td>$8,981.00</td>
+          <td class="neg pnl-col">$-1,970</td>
+          <td class="neg">-21.9%</td>
+          <td>Jan 23</td>
+        </tr>
+        <tr>
+          <td>Feb 04, 2026</td>
+          <td class="ticker-col">ARKK</td>
+          <td>80</td>
+          <td>$5,591.18</td>
+          <td>$6,444.17</td>
+          <td class="neg pnl-col">$-853</td>
+          <td class="neg">-13.2%</td>
+          <td>Jan 09</td>
+        </tr>
+        <tr>
+          <td>Feb 04, 2026</td>
+          <td class="ticker-col">ARKK</td>
+          <td>110</td>
+          <td>$7,687.88</td>
+          <td>$9,011.29</td>
+          <td class="neg pnl-col">$-1,323</td>
+          <td class="neg">-14.7%</td>
+          <td>Jan 09</td>
+        </tr>
+        <tr>
+          <td>Feb 04, 2026</td>
+          <td class="ticker-col">ARKK</td>
+          <td>10</td>
+          <td>$698.90</td>
+          <td>$822.25</td>
+          <td class="neg pnl-col">$-123</td>
+          <td class="neg">-15.0%</td>
+          <td>Jan 12</td>
+        </tr>
+        <tr>
+          <td>Feb 04, 2026</td>
+          <td class="ticker-col">ARKK</td>
+          <td>100</td>
+          <td>$6,988.98</td>
+          <td>$8,207.50</td>
+          <td class="neg pnl-col">$-1,219</td>
+          <td class="neg">-14.8%</td>
+          <td>Jan 22</td>
+        </tr>
+        <tr>
+          <td>Feb 03, 2026</td>
+          <td class="ticker-col">QLD</td>
+          <td>200</td>
+          <td>$13,975.96</td>
+          <td>$14,583.50</td>
+          <td class="neg pnl-col">$-608</td>
+          <td class="neg">-4.2%</td>
+          <td>Jan 22</td>
+        </tr>
+        <tr>
+          <td>Feb 02, 2026</td>
+          <td class="ticker-col">QLD</td>
+          <td>200</td>
+          <td>$14,553.96</td>
+          <td>$14,473.00</td>
+          <td class="pos pnl-col">+$81</td>
+          <td class="pos">+0.6%</td>
+          <td>Jan 06</td>
+        </tr>
+        <tr>
+          <td>Jan 30, 2026</td>
+          <td class="ticker-col">TNA</td>
+          <td>300</td>
+          <td>$15,653.94</td>
+          <td>$15,100.00</td>
+          <td class="pos pnl-col">+$554</td>
+          <td class="pos">+3.7%</td>
+          <td>Jan 05</td>
+        </tr>
+        <tr>
+          <td>Jan 29, 2026</td>
+          <td class="ticker-col">GLD</td>
+          <td>5</td>
+          <td>$2,439.21</td>
+          <td>$2,253.53</td>
+          <td class="pos pnl-col">+$186</td>
+          <td class="pos">+8.2%</td>
+          <td>Jan 22</td>
+        </tr>
+        <tr>
+          <td>Jan 29, 2026</td>
+          <td class="ticker-col">GLD</td>
+          <td>15</td>
+          <td>$7,348.05</td>
+          <td>$6,760.58</td>
+          <td class="pos pnl-col">+$587</td>
+          <td class="pos">+8.7%</td>
+          <td>Jan 22</td>
+        </tr>
+        <tr>
+          <td>Jan 21, 2026</td>
+          <td class="ticker-col">LMND</td>
+          <td>100</td>
+          <td>$8,051.48</td>
+          <td>$7,919.00</td>
+          <td class="pos pnl-col">+$132</td>
+          <td class="pos">+1.7%</td>
+          <td>Jan 06</td>
+        </tr>
+        <tr>
+          <td>Jan 20, 2026</td>
+          <td class="ticker-col">LUMN</td>
+          <td>100</td>
+          <td>$811.98</td>
+          <td>$842.50</td>
+          <td class="neg pnl-col">$-31</td>
+          <td class="neg">-3.6%</td>
+          <td>Jan 16</td>
+        </tr>
+        <tr>
+          <td>Jan 20, 2026</td>
+          <td class="ticker-col">IBIT</td>
+          <td>100</td>
+          <td>$5,155.48</td>
+          <td>$5,519.50</td>
+          <td class="neg pnl-col">$-364</td>
+          <td class="neg">-6.6%</td>
+          <td>Jan 14</td>
+        </tr>
+        <tr>
+          <td>Jan 15, 2026</td>
+          <td class="ticker-col">PATH</td>
+          <td>1000</td>
+          <td>$14,860.70</td>
+          <td>$17,575.98</td>
+          <td class="neg pnl-col">$-2,715</td>
+          <td class="neg">-15.4%</td>
+          <td>Jan 07</td>
+        </tr>
+        <tr>
+          <td>Jan 13, 2026</td>
+          <td class="ticker-col">SLV</td>
+          <td>100</td>
+          <td>$7,861.98</td>
+          <td>$7,340.50</td>
+          <td class="pos pnl-col">+$521</td>
+          <td class="pos">+7.1%</td>
+          <td>Jan 06</td>
+        </tr>
+        <tr>
+          <td>Jan 08, 2026</td>
+          <td class="ticker-col">RDDT</td>
+          <td>40</td>
+          <td>$9,953.60</td>
+          <td>$10,225.99</td>
+          <td class="neg pnl-col">$-272</td>
+          <td class="neg">-2.7%</td>
+          <td>Jan 07</td>
+        </tr>
+        <tr>
+          <td>Jan 05, 2026</td>
+          <td class="ticker-col">RDDT</td>
+          <td>50</td>
+          <td>$12,262.00</td>
+          <td>$11,939.72</td>
+          <td class="pos pnl-col">+$322</td>
+          <td class="pos">+2.7%</td>
+          <td>Jan 02</td>
+        </tr>
+        <tr>
+          <td>Jan 02, 2026</td>
+          <td class="ticker-col">FROG <span class="pp-badge">prior period</span></td>
+          <td>100</td>
+          <td>$5,930.58</td>
+          <td>$5,931.00</td>
+          <td class="neg pnl-col">$-0</td>
+          <td class="neg">-0.0%</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Jan 02, 2026</td>
+          <td class="ticker-col">TNA <span class="pp-badge">prior period</span></td>
+          <td>100</td>
+          <td>$4,565.41</td>
+          <td>$4,565.00</td>
+          <td class="pos pnl-col">+$0</td>
+          <td class="pos">+0.0%</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Jan 02, 2026</td>
+          <td class="ticker-col">PATH <span class="pp-badge">prior period</span></td>
+          <td>500</td>
+          <td>$7,832.40</td>
+          <td>$7,830.00</td>
+          <td class="pos pnl-col">+$2</td>
+          <td class="pos">+0.0%</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Jan 02, 2026</td>
+          <td class="ticker-col">TSLA <span class="pp-badge">prior period</span></td>
+          <td>15</td>
+          <td>$6,701.78</td>
+          <td>$6,701.70</td>
+          <td class="pos pnl-col">+$0</td>
+          <td class="pos">+0.0%</td>
+          <td>—</td>
+        </tr></tbody>
+    </table>
+    </div>
   </div>
 
-  <!-- Monthly heatmap -->
-  <div class="card full">
-    <h2>Monthly P&amp;L Heatmap</h2>
-    <div class="heatmap" id="heatmap"></div>
-    <p class="note">Exact monthly realized P&amp;L computed from 1099-B consolidated CSV (proceeds − cost basis, grouped by sale month). 2024 total: $44,970 (difference from 1099 verified $47,636 = dividends/interest). 2025 computed total: −$6,894 vs. 1099 verified $42,481 — the $49,374 gap is wash-sale disallowed amounts: losses deferred on stocks re-entered within 30 days, recognized as gains for tax purposes.</p>
-  </div>
-
-  <!-- Drawdown chart -->
-  <div class="card full">
-    <h2>Drawdown from Peak — 2024–2025</h2>
-    <canvas id="drawdownChart"></canvas>
-    <p class="note">July 2025 peak (~$115K) → Dec 2025 (~$88K) = <strong>−23.5% max drawdown</strong>. Driven by concentrated positions in volatile names (Aug–Sep 2025). 2024 max drawdown: −4.9% (gains concentrated in Nov–Dec).</p>
-  </div>
-
+  <div class="footer">Source: Robinhood export · FIFO cost basis · prior-period sells estimated at sell price (P&amp;L = $0)</div>
 </div>
 
 <script>
-Chart.defaults.color = '#6b7280';
-Chart.defaults.borderColor = '#e5e7eb';
-
-const green  = '#16a34a';
-const red    = '#dc2626';
-const amber  = '#d97706';
-const blue   = '#2563eb';
-const gridC  = '#e5e7eb';
-
-// ── Annual bar ─────────────────────────────────────────────
-new Chart(document.getElementById('annualBar'), {
-  type: 'bar',
-  data: {
-    labels: ['2024', '2025'],
-    datasets: [{
-      label: 'Net Realized P&L ($)',
-      data: [47636, 42481],
-      backgroundColor: [green + '33', green + '33'],
-      borderColor:     [green, green],
-      borderWidth: 2,
-      borderRadius: 6,
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.y.toLocaleString() } }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' },
-        grid: { color: gridC }
-      },
-      x: { grid: { display: false } }
-    }
-  }
-});
-
-// ── Equity curve ───────────────────────────────────────────
-const eqLabels = [
-  'Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24',
-  'Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24',
-  'Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25',
-  'Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25'
-];
-const eqData = [
-  24000, 28000, 34000, 38000, 36000, 34000,
-  35000, 40000, 41000, 47000, 78000, 92000,
-  88000, 89000, 89000, 91000, 93000, 90000,
-  115000, 97000, 91000, 92000, 90000, 88000
-];
-new Chart(document.getElementById('equityCurve'), {
+const eqCtx = document.getElementById('eqChart').getContext('2d');
+const eqLabels = ["Jan 02", "Jan 02", "Jan 02", "Jan 02", "Jan 05", "Jan 08", "Jan 13", "Jan 15", "Jan 20", "Jan 20", "Jan 21", "Jan 29", "Jan 29", "Jan 30", "Feb 02", "Feb 03", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 05", "Feb 05", "Feb 05", "Feb 06", "Feb 11", "Feb 11", "Feb 11", "Feb 11", "Mar 05", "Mar 19", "Mar 19", "Mar 19", "Mar 20", "Mar 20", "Mar 23", "Mar 23", "Mar 23", "Mar 27", "Mar 27", "Apr 22", "Apr 22", "Apr 22", "Apr 24", "Apr 24"];
+const eqData   = [-0.42, -0.01, 2.39, 2.47, 324.75, 52.36, 573.84, -2141.44, -2171.96, -2535.98, -2403.5, -2217.82, -1630.35, -1076.41, -995.45, -1602.99, -3572.51, -4425.5, -5748.91, -5872.26, -7090.78, -12566.03, -13589.05, -14612.07, -19153.17, -21062.32, -21271.34, -22893.88, -22908.4, -20853.42, -21780.44, -22797.6, -22872.5, -26606.58, -38094.7, -37975.81, -37841.74, -37714.26, -38029.36, -38417.38, -37910.45, -37408.37, -36626.27, -36506.9, -36508.04];
+const eqColors = eqData.map(v => v >= 0 ? '#16a34a' : '#dc2626');
+new Chart(eqCtx, {
   type: 'line',
   data: {
     labels: eqLabels,
     datasets: [{
-      label: 'Account Equity ($)',
       data: eqData,
-      borderColor: blue,
-      backgroundColor: blue + '18',
-      fill: true,
-      tension: 0.35,
-      pointRadius: 3,
-      pointHoverRadius: 6,
+      borderColor: '#2563eb',
+      backgroundColor: 'rgba(37,99,235,0.07)',
       borderWidth: 2,
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ' ~$' + ctx.parsed.y.toLocaleString() } }
-    },
-    scales: {
-      y: {
-        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' },
-        grid: { color: gridC }
-      },
-      x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } }
-    }
-  }
-});
-
-// ── Drawdown from peak ─────────────────────────────────────
-function drawdownSeries(equity) {
-  let peak = equity[0];
-  return equity.map(v => {
-    if (v > peak) peak = v;
-    return peak > 0 ? ((v - peak) / peak * 100) : 0;
-  });
-}
-const dd = drawdownSeries(eqData);
-new Chart(document.getElementById('drawdownChart'), {
-  type: 'line',
-  data: {
-    labels: eqLabels,
-    datasets: [{
-      label: 'Drawdown from Peak (%)',
-      data: dd,
-      borderColor: red,
-      backgroundColor: red + '18',
+      pointRadius: 3,
+      pointBackgroundColor: eqColors,
       fill: true,
       tension: 0.3,
-      pointRadius: 2,
-      borderWidth: 2,
     }]
   },
   options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(1) + '%' } }
-    },
+    plugins: { legend: { display: false } },
     scales: {
-      y: {
-        max: 2,
-        ticks: { callback: v => v.toFixed(0) + '%' },
-        grid: { color: gridC }
-      },
-      x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } }
+      x: { ticks: { maxTicksLimit: 8, font: { size: 11 } }, grid: { display: false } },
+      y: { ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 11 } } }
     }
   }
 });
 
-// ── Monthly heatmap ────────────────────────────────────────
-const monthlyEst = {
-  '2024': [-759, -90, 786, -351, -3893, -2441, -450, 3414, -100, 4213, 30953, 13687],
-  '2025': [-3588, 659, -147, 1359, 883, -3155, 24863, -17796, -5478, 502, -2578, -2418],
-};
-
-function cellClass(v) {
-  if (v > 8000) return 'pos-strong';
-  if (v > 2000) return 'pos-mid';
-  if (v > 0)    return 'pos-light';
-  if (v > -2000) return 'neg-light';
-  if (v > -5000) return 'neg-mid';
-  return 'neg-strong';
-}
-
-const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const hm = document.getElementById('heatmap');
-hm.innerHTML += '<div></div>' + months.map(m => `<div class="month-header">${m}</div>`).join('');
-
-['2024','2025'].forEach(yr => {
-  hm.innerHTML += `<div class="year-label">${yr}</div>`;
-  monthlyEst[yr].forEach(v => {
-    const label = v >= 0 ? '+$'+(Math.abs(v)/1000).toFixed(1)+'K' : '-$'+(Math.abs(v)/1000).toFixed(1)+'K';
-    hm.innerHTML += `<div class="cell ${cellClass(v)}">${label}</div>`;
-  });
+const moCtx = document.getElementById('moChart').getContext('2d');
+const moLabels = ["Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026"];
+const moData   = [-1076.41, -21831.99, -15508.98, 1909.34];
+const moColors = ["#dc2626", "#dc2626", "#dc2626", "#16a34a"];
+new Chart(moCtx, {
+  type: 'bar',
+  data: {
+    labels: moLabels,
+    datasets: [{
+      data: moData,
+      backgroundColor: moColors,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+      y: { ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 11 } } }
+    }
+  }
 });
 </script>
 </body>
