@@ -719,7 +719,15 @@ def _build_trading_state_html(trading_state):
     for t in recent[-10:]:
         result = t.get("result", "")
         cls = "dot-win" if result == "win" else "dot-loss" if result == "loss" else "dot-flat"
-        streak_dots += f'<span class="streak-dot {cls}" title="{t.get("ticker", "")} {result}"></span>'
+        rp = t.get("result_pct", 0)
+        usd = t.get("profit_loss_usd")
+        if usd is not None and rp != 0:
+            label = f" {usd:+,.0f} ({rp:+.1f}%)"
+        elif rp != 0:
+            label = f" {rp:+.1f}%"
+        else:
+            label = ""
+        streak_dots += f'<span class="streak-dot {cls}" title="{t.get("ticker", "")} {result}{label}"></span>'
 
     override_html = f' <span class="override-badge">Override: {override}</span>' if override else ""
 

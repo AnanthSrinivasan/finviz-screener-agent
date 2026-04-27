@@ -1100,10 +1100,13 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                 trade_result = "loss"
 
             # Record trade
+            _shares = pos.get("shares", 0)
+            _pnl_usd = round((last_price - entry_price) * _shares, 2) if _shares else 0
             trading_state["recent_trades"].append({
                 "ticker": ticker,
                 "result": trade_result,
                 "result_pct": round(result_pct, 2),
+                "profit_loss_usd": _pnl_usd,
                 "date": today,
                 "side": "SELL",
                 "source": "auto_detected",
@@ -1479,9 +1482,13 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             trading_state["consecutive_wins"] = 0
 
         # Record trade
+        _shares = position.get("shares", 0) if position else 0
+        _ep = position.get("entry_price", 0) if position else 0
+        _pnl_usd = round((price - _ep) * _shares, 2) if _shares and _ep else 0
         trading_state["recent_trades"].append({
             "ticker": ticker,
             "result_pct": round(result_pct, 2),
+            "profit_loss_usd": _pnl_usd,
             "date": today,
             "side": "SELL",
         })
