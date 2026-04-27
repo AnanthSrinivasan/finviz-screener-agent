@@ -14,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 25.73,
+      "current_gain_pct": 25.31,
       "peak_gain_pct": 51.07,
       "last_fade_alert_gain_pct": 25.73
     },
@@ -32,7 +32,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 178.99,
-      "current_gain_pct": 1.09,
+      "current_gain_pct": 1.11,
       "peak_gain_pct": 7.12
     },
     {
@@ -49,7 +49,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 531.32,
-      "current_gain_pct": 6.57,
+      "current_gain_pct": 5.82,
       "peak_gain_pct": 7.92
     },
     {
@@ -66,8 +66,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 17.43,
-      "current_gain_pct": -6.49,
+      "current_gain_pct": -5.35,
       "peak_gain_pct": 6.54
+    },
+    {
+      "ticker": "INDV",
+      "shares": 200,
+      "entry_price": 34.2,
+      "entry_date": "2026-04-27",
+      "stop": 31.88,
+      "stop_type": "auto_50ma",
+      "breakeven_stop_activated": false,
+      "target1": 41.04,
+      "target1_hit": false,
+      "target2": 47.88,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 35.33,
+      "current_gain_pct": -0.85,
+      "first_entry_price": 34.2,
+      "peak_gain_pct": 3.3
     }
   ],
   "closed_positions": [
