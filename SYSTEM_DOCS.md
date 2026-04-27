@@ -821,6 +821,8 @@ Public dashboard of the Alpaca paper account — regenerated hourly inside `posi
 
 Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflow and no new secrets — reuses the Alpaca paper credentials already in `position-monitor.yml`.
 
+**Commit fix (2026-04-27):** `data/claude_portfolio.html` was generated but missing from the `git add` in `position-monitor.yml` — so GitHub Pages never received updates. Fixed: added to the commit step. Now publishes 6× per trading day (12, 14, 16, 18, 20, 22 UTC).
+
 ### 10.4 Separation from Real System
 
 | Concern | Real (Robinhood) | Paper (Alpaca) |

@@ -1,47 +1,365 @@
 {
-  "updated": "2026-04-25T17:12:51.971774Z",
+  "updated": "2026-04-26T18:26:33.193625Z",
   "events": [
     {
-      "ts": "2026-04-25T17:12:51.971072Z",
-      "date": "2026-04-08",
-      "category": "market_state",
-      "title": "Market: RED \u2192 THRUST",
+      "ts": "2026-04-26T13:58:58.813549Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "PL closed +0.5% \u2014 BREAKEVEN",
+      "severity": "med",
+      "detail": "Entry $100.00 \u2192 $100.50 (fill)"
+    },
+    {
+      "ts": "2026-04-26T13:58:58.814678Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "AAOI closed +35.0% \u2014 WIN",
+      "severity": "low",
+      "detail": "Entry $100.00 \u2192 $135.00 (fill)"
+    },
+    {
+      "ts": "2026-04-26T13:58:58.815588Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "PL breakeven stop set at $100.50",
       "severity": "low"
     },
     {
-      "ts": "2026-04-25T17:12:51.971482Z",
-      "date": "2026-04-09",
-      "category": "market_state",
-      "title": "Market: THRUST \u2192 GREEN",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-25T17:12:51.971486Z",
-      "date": "2026-04-17",
-      "category": "market_state",
-      "title": "Market: GREEN \u2192 THRUST",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-25T17:12:51.971488Z",
-      "date": "2026-04-20",
-      "category": "market_state",
-      "title": "Market: THRUST \u2192 GREEN",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-25T17:12:51.971490Z",
-      "date": "2026-04-23",
-      "category": "market_state",
-      "title": "Market: GREEN \u2192 COOLING",
+      "ts": "2026-04-26T13:58:58.825383Z",
+      "date": "2026-04-26",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
       "severity": "med"
     },
     {
-      "ts": "2026-04-25T17:12:51.971491Z",
-      "date": "2026-04-24",
-      "category": "market_state",
-      "title": "Market: COOLING \u2192 RED",
+      "ts": "2026-04-26T16:52:50.650573Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:52:50.651086Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:52:50.651536Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:54:21.475890Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:54:21.478432Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:54:21.480103Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:17.640839Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:17.642606Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:17.644003Z",
+      "date": "2026-04-26",
+      "category": "stop_hit",
+      "title": "NVDA stop hit @ $132.00 (stop $135.00)",
       "severity": "high"
+    },
+    {
+      "ts": "2026-04-26T16:56:17.645254Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:17.646345Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.431586Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.433704Z",
+      "date": "2026-04-26",
+      "category": "stop_hit",
+      "title": "NVDA stop hit @ $94.50 (stop $95.00)",
+      "severity": "high"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.435596Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.437121Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.439133Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.440624Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.445366Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "Z closed +5.0% \u2014 WIN",
+      "severity": "low",
+      "detail": "Entry $100.00 \u2192 $105.00 (quote)"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.446733Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "X closed -10.0% \u2014 LOSS",
+      "severity": "high",
+      "detail": "Entry $100.00 \u2192 $90.00 (fill)"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.447898Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "PL closed +0.5% \u2014 BREAKEVEN",
+      "severity": "med",
+      "detail": "Entry $100.00 \u2192 $100.50 (fill)"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.449045Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "AAOI closed +35.0% \u2014 WIN",
+      "severity": "low",
+      "detail": "Entry $100.00 \u2192 $135.00 (fill)"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.450719Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "PL breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T16:56:18.469471Z",
+      "date": "2026-04-26",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-04-26T18:26:24.374665Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:24.375313Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:24.375851Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:31.735167Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:31.736613Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:31.737811Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:32.471853Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:32.473610Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:32.475156Z",
+      "date": "2026-04-26",
+      "category": "stop_hit",
+      "title": "NVDA stop hit @ $132.00 (stop $135.00)",
+      "severity": "high"
+    },
+    {
+      "ts": "2026-04-26T18:26:32.476561Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:32.477815Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.162919Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.164447Z",
+      "date": "2026-04-26",
+      "category": "stop_hit",
+      "title": "NVDA stop hit @ $94.50 (stop $95.00)",
+      "severity": "high"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.165897Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.166948Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T1 +20% hit \u2014 consider selling half",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.168155Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "NVDA breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.169201Z",
+      "date": "2026-04-26",
+      "category": "target_hit",
+      "title": "NVDA T2 +40% hit \u2014 trail tight",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.173002Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "Z closed +5.0% \u2014 WIN",
+      "severity": "low",
+      "detail": "Entry $100.00 \u2192 $105.00 (quote)"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.174180Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "X closed -10.0% \u2014 LOSS",
+      "severity": "high",
+      "detail": "Entry $100.00 \u2192 $90.00 (fill)"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.175191Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "PL closed +0.5% \u2014 BREAKEVEN",
+      "severity": "med",
+      "detail": "Entry $100.00 \u2192 $100.50 (fill)"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.176099Z",
+      "date": "2026-04-26",
+      "category": "position_close",
+      "title": "AAOI closed +35.0% \u2014 WIN",
+      "severity": "low",
+      "detail": "Entry $100.00 \u2192 $135.00 (fill)"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.177400Z",
+      "date": "2026-04-26",
+      "category": "breakeven",
+      "title": "PL breakeven stop set at $100.50",
+      "severity": "low"
+    },
+    {
+      "ts": "2026-04-26T18:26:33.193625Z",
+      "date": "2026-04-26",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
+      "severity": "med"
     }
   ]
 }
