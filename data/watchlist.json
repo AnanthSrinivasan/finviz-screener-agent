@@ -130,9 +130,10 @@
       "thesis": "Technology | Q=92 | ATR 6.0%",
       "added": "2026-04-02",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-21"
+      "focus_promoted_date": "2026-04-21",
+      "entry_ready_date": "2026-04-27"
     },
     {
       "ticker": "VG",
@@ -394,11 +395,13 @@
       "stop": null,
       "thesis": "Technology | Q=89 | VCP | ATR 6.3%",
       "added": "2026-04-08",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-27",
+      "focus_promoted_date": "2026-04-27"
     },
     {
       "ticker": "CTRI",
@@ -515,10 +518,11 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
+      "priority": "focus",
       "archive_reason": null,
-      "archived_date": "2026-04-24",
-      "reactivated_date": "2026-04-24"
+      "archived_date": "2026-04-27",
+      "reactivated_date": "2026-04-27",
+      "focus_promoted_date": "2026-04-27"
     },
     {
       "ticker": "GMED",
@@ -649,8 +653,9 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
-      "focus_promoted_date": "2026-04-23"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-27"
     },
     {
       "ticker": "ARWR",
@@ -685,9 +690,11 @@
       "stop": null,
       "thesis": "Technology | Q=97 | VCP | ATR 4.2%",
       "added": "2026-04-10",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-27"
     },
     {
       "ticker": "KLAC",
@@ -708,9 +715,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=86 | VCP | ATR 6.6%",
       "added": "2026-04-10",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-27"
     },
     {
       "ticker": "CGAU",
@@ -731,9 +740,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=85 | ATR 8.5%",
       "added": "2026-04-10",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "watching"
+      "priority": "watching",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-27"
     },
     {
       "ticker": "BEAM",
@@ -742,9 +753,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=114 | VCP | ATR 5.7%",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-27"
     },
     {
       "ticker": "LEG",
@@ -890,8 +903,10 @@
       "thesis": "Energy | Q=86 | VCP | ATR 4.7%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "entry-ready",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-27",
+      "entry_ready_date": "2026-04-27"
     },
     {
       "ticker": "ALGM",
@@ -1157,8 +1172,9 @@
       "thesis": "Technology | Q=99 | VCP | ATR 5.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-27"
     },
     {
       "ticker": "WPM",
@@ -1214,8 +1230,9 @@
       "thesis": "Consumer Cyclical | Q=98 | ATR 12.8%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-27"
     },
     {
       "ticker": "IAG",
@@ -1552,9 +1569,11 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-04-24",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "hidden_growth_auto"
+      "source": "hidden_growth_auto",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-27"
     },
     {
       "ticker": "FLG",
