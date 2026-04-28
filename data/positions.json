@@ -14,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 18.34,
+      "current_gain_pct": 18.24,
       "peak_gain_pct": 51.07,
       "last_fade_alert_gain_pct": 18.34
     },
@@ -32,7 +32,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 178.99,
-      "current_gain_pct": -8.69,
+      "current_gain_pct": -7.86,
       "peak_gain_pct": 7.12
     },
     {
@@ -49,7 +49,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 531.32,
-      "current_gain_pct": -2.33,
+      "current_gain_pct": -0.09,
       "peak_gain_pct": 7.92,
       "first_entry_price": 492.33
     },
@@ -65,9 +65,9 @@
       "target1_hit": false,
       "target2": 23.31,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "stop_hit",
+      "status": "active",
       "highest_price_seen": 17.43,
-      "current_gain_pct": -8.77,
+      "current_gain_pct": -8.05,
       "peak_gain_pct": 6.54
     },
     {
@@ -84,9 +84,27 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 35.33,
-      "current_gain_pct": 0.47,
+      "current_gain_pct": 0.03,
       "first_entry_price": 34.2,
       "peak_gain_pct": 3.46
+    },
+    {
+      "ticker": "NVDA",
+      "shares": 50,
+      "entry_price": 213.97,
+      "entry_date": "2026-04-28",
+      "stop": 202.34,
+      "stop_type": "atr_trail",
+      "breakeven_stop_activated": false,
+      "target1": 256.76,
+      "target1_hit": false,
+      "target2": 299.56,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 214.72,
+      "current_gain_pct": 0.11,
+      "first_entry_price": 213.97,
+      "peak_gain_pct": 0.35
     }
   ],
   "closed_positions": [
