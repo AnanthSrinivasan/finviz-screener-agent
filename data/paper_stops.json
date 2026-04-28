@@ -1,33 +1,9 @@
 {
-  "GEV": {
-    "stop_price": 1087.17,
-    "entry_price": 991.335,
-    "atr_pct": 4.126820804583787,
-    "entry_date": "2026-04-10",
-    "highest_price_seen": 1181.05,
-    "peak_gain_pct": 19.14,
-    "breakeven_activated": false,
-    "target1": 1189.6,
-    "target2": 1387.87,
-    "target1_hit": false
-  },
   "MRVL": {
     "stop_price": 116.26,
     "entry_price": 128.44,
     "atr_pct": 4.739668456689236,
     "entry_date": "2026-04-10"
-  },
-  "VRT": {
-    "stop_price": 300.57,
-    "entry_price": 300.01,
-    "atr_pct": 4.653953860514736,
-    "entry_date": "2026-04-14",
-    "highest_price_seen": 330.18,
-    "peak_gain_pct": 10.06,
-    "breakeven_activated": false,
-    "target1": 360.01,
-    "target2": 420.01,
-    "target1_hit": false
   },
   "VIK": {
     "stop_price": 76.35,
@@ -39,18 +15,6 @@
     "breakeven_activated": false,
     "target1": 92.57,
     "target2": 108.0,
-    "target1_hit": false
-  },
-  "MTSI": {
-    "stop_price": 265.32,
-    "entry_price": 263.44,
-    "atr_pct": 4.859082805447028,
-    "entry_date": "2026-04-14",
-    "highest_price_seen": 291.71,
-    "peak_gain_pct": 10.73,
-    "breakeven_activated": false,
-    "target1": 316.13,
-    "target2": 368.82,
     "target1_hit": false
   },
   "BEAM": {
@@ -67,6 +31,12 @@
     "stop_price": 946.86,
     "entry_price": 1069.93,
     "atr_pct": 5.751261446458606,
-    "entry_date": "2026-04-27"
+    "entry_date": "2026-04-27",
+    "highest_price_seen": 1069.93,
+    "peak_gain_pct": 0.0,
+    "breakeven_activated": false,
+    "target1": 1283.92,
+    "target2": 1497.9,
+    "target1_hit": false
   }
 }
