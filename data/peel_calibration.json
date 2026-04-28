@@ -495,7 +495,7 @@
     "runs": 6,
     "atr_pct_avg": 4.16,
     "calibrated": true,
-    "updated": "2026-04-27"
+    "updated": "2026-04-28"
   },
   "ERO": {
     "signal": 10.0,
@@ -1554,7 +1554,7 @@
     "runs": 4,
     "atr_pct_avg": 3.24,
     "calibrated": true,
-    "updated": "2026-04-27"
+    "updated": "2026-04-28"
   },
   "FLG": {
     "signal": 10.0,
@@ -1579,5 +1579,17 @@
     "atr_pct_avg": 4.11,
     "calibrated": true,
     "updated": "2026-04-26"
+  },
+  "NVDA": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 8.9,
+    "p75": 9.7,
+    "p90": 11.2,
+    "max_seen": 12.3,
+    "runs": 7,
+    "atr_pct_avg": 5.41,
+    "calibrated": true,
+    "updated": "2026-04-28"
   }
 }

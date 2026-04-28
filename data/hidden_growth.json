@@ -1,12 +1,12 @@
 {
-  "date": "2026-04-27",
+  "date": "2026-04-28",
   "candidates": [
     {
-      "ticker": "CORZ",
-      "signal_score": 5,
-      "eps_yy_ttm": 128.35,
-      "eps_qq": 167.94,
-      "inst_trans": 15.58,
+      "ticker": "AAOI",
+      "signal_score": 4,
+      "eps_yy_ttm": 84.71,
+      "eps_qq": 98.89,
+      "inst_trans": 4.46,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -14,7 +14,23 @@
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": true
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "ALHC",
+      "signal_score": 4,
+      "eps_yy_ttm": 99.39,
+      "eps_qq": 66.17,
+      "inst_trans": 8.94,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
       }
     },
     {
@@ -34,12 +50,28 @@
       }
     },
     {
+      "ticker": "BEN",
+      "signal_score": 4,
+      "eps_yy_ttm": 66.56,
+      "eps_qq": 61.43,
+      "inst_trans": 3.28,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "BTSG",
       "signal_score": 4,
       "eps_yy_ttm": 893.58,
       "eps_qq": 369.91,
       "inst_trans": 0.96,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -55,7 +87,7 @@
       "eps_yy_ttm": 94.61,
       "eps_qq": 78.46,
       "inst_trans": 4.65,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -63,6 +95,22 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "CORZ",
+      "signal_score": 4,
+      "eps_yy_ttm": 0.0,
+      "eps_qq": 167.94,
+      "inst_trans": 15.58,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
       }
     },
     {
@@ -82,28 +130,12 @@
       }
     },
     {
-      "ticker": "INDV",
+      "ticker": "KNSA",
       "signal_score": 4,
-      "eps_yy_ttm": 751.75,
-      "eps_qq": 410.0,
-      "inst_trans": 4.02,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "LASR",
-      "signal_score": 4,
-      "eps_yy_ttm": 62.85,
-      "eps_qq": 81.25,
-      "inst_trans": 5.9,
-      "appearances": 1,
+      "eps_yy_ttm": 231.11,
+      "eps_qq": 241.66,
+      "inst_trans": 6.35,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -130,22 +162,6 @@
       }
     },
     {
-      "ticker": "ROLR",
-      "signal_score": 4,
-      "eps_yy_ttm": 156.81,
-      "eps_qq": 275.22,
-      "inst_trans": 19.46,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "SN",
       "signal_score": 4,
       "eps_yy_ttm": 58.67,
@@ -155,22 +171,6 @@
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "SNDK",
-      "signal_score": 4,
-      "eps_yy_ttm": -327.99,
-      "eps_qq": 617.71,
-      "inst_trans": -9.08,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
         "eps_qq_strong": true,
         "inst_buying": false,
         "stage2_perfect": true,

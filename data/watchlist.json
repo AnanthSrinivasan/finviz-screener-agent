@@ -75,9 +75,11 @@
       "stop": null,
       "thesis": "IPO lifecycle, 81% EPS beat, NAND cycle",
       "added": "2026-03-24",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
-      "entry_ready_date": "2026-04-23"
+      "entry_ready_date": "2026-04-23",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-04-28"
     },
     {
       "ticker": "MRVL",
@@ -194,9 +196,10 @@
       "thesis": "Industrials | Q=102 | VCP | ATR 3.8%",
       "added": "2026-04-02",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-21"
+      "focus_promoted_date": "2026-04-21",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "VRT",
@@ -280,11 +283,12 @@
       "added": "2026-04-03",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-18",
       "reactivated_date": "2026-04-23",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "LITE",
@@ -334,9 +338,10 @@
       "thesis": "Technology | Q=101 | VCP | ATR 3.1%",
       "added": "2026-04-06",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-21"
+      "focus_promoted_date": "2026-04-21",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "CRWV",
@@ -356,11 +361,13 @@
       "stop": null,
       "thesis": "Healthcare | Q=103 | VCP | ATR 4.6%",
       "added": "2026-04-08",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-28",
+      "focus_promoted_date": "2026-04-28"
     },
     {
       "ticker": "CSTM",
@@ -440,8 +447,9 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
-      "focus_promoted_date": "2026-04-16"
+      "priority": "entry-ready",
+      "focus_promoted_date": "2026-04-16",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "INTC",
@@ -518,11 +526,12 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-27",
       "reactivated_date": "2026-04-27",
-      "focus_promoted_date": "2026-04-27"
+      "focus_promoted_date": "2026-04-27",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "GMED",
@@ -916,8 +925,9 @@
       "thesis": "Technology | Q=86 | VCP | ATR 4.9%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-28"
     },
     {
       "ticker": "LQDA",
@@ -1093,8 +1103,10 @@
       "thesis": "Technology | Q=79 | ATR 4.0%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "entry-ready",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-28",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "INGM",
@@ -1412,9 +1424,10 @@
       "thesis": "Technology | Q=98 | VCP | ATR 3.0%",
       "added": "2026-04-18",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-24"
+      "focus_promoted_date": "2026-04-24",
+      "entry_ready_date": "2026-04-28"
     },
     {
       "ticker": "MXL",
@@ -1597,6 +1610,41 @@
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
+    },
+    {
+      "ticker": "CECO",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Industrials | Q=118 | VCP | ATR 4.8%",
+      "added": "2026-04-28",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-28"
+    },
+    {
+      "ticker": "BEN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-28",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "KNSA",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-28",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-04-28"
     }
   ],
   "tickers": [
