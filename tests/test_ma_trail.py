@@ -1,11 +1,10 @@
-"""Unit tests for the regime-adaptive moving-average trail rule."""
+"""Unit tests for the regime-adaptive moving-average trail rule (shared rules.py)."""
 
 import unittest
-from unittest.mock import patch
 
-from agents.trading.position_monitor import (
+from agents.trading.rules import (
     _ema,
-    check_ma_trail_violation,
+    check_ma_trail_alert,
 )
 
 
@@ -34,107 +33,91 @@ class TestEMA(unittest.TestCase):
 # --------------------------------------------------------------------------
 
 class TestRegimeGating(unittest.TestCase):
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_red_regime_skips(self, mock_bars):
-        self.assertIsNone(check_ma_trail_violation("XXX", "RED"))
-        mock_bars.assert_not_called()
+    def test_red_regime_skips(self):
+        self.assertIsNone(check_ma_trail_alert([100.0] * 30, "RED"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_danger_regime_skips(self, mock_bars):
-        self.assertIsNone(check_ma_trail_violation("XXX", "DANGER"))
-        mock_bars.assert_not_called()
+    def test_danger_regime_skips(self):
+        self.assertIsNone(check_ma_trail_alert([100.0] * 30, "DANGER"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_blackout_regime_skips(self, mock_bars):
-        self.assertIsNone(check_ma_trail_violation("XXX", "BLACKOUT"))
-        mock_bars.assert_not_called()
+    def test_blackout_regime_skips(self):
+        self.assertIsNone(check_ma_trail_alert([100.0] * 30, "BLACKOUT"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_unknown_regime_skips(self, mock_bars):
-        self.assertIsNone(check_ma_trail_violation("XXX", "UNKNOWN"))
-        mock_bars.assert_not_called()
+    def test_unknown_regime_skips(self):
+        self.assertIsNone(check_ma_trail_alert([100.0] * 30, "UNKNOWN"))
 
 
 # --------------------------------------------------------------------------
 # Violation detection per regime
 # --------------------------------------------------------------------------
 
-def _rising_bars(start: float = 100, n: int = 30) -> list:
-    """Bars where close rises monotonically — price always above EMAs, no violation."""
-    return [{"c": start + i * 0.5} for i in range(n)]
+def _rising_closes(start: float = 100, n: int = 30) -> list:
+    return [start + i * 0.5 for i in range(n)]
 
 
-def _falling_below_ema_bars(start: float = 130, drop_tail: int = 5) -> list:
-    """Start high, drop sharply below what the EMA will settle at."""
-    # 25 stable bars, then drop_tail bars collapsing to ~80
-    head = [{"c": start} for _ in range(25)]
-    tail = [{"c": start - 40 - i * 3} for i in range(drop_tail)]
+def _falling_below_ema_closes(start: float = 130, drop_tail: int = 5) -> list:
+    head = [start] * 25
+    tail = [start - 40 - i * 3 for i in range(drop_tail)]
     return head + tail
 
 
 class TestViolations(unittest.TestCase):
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_green_rising_no_violation(self, mock_bars):
-        mock_bars.return_value = _rising_bars()
-        self.assertIsNone(check_ma_trail_violation("XXX", "GREEN"))
+    def test_green_rising_no_violation(self):
+        # Low-vol path uses 21 EMA. Default atr_pct=0 → low-vol.
+        self.assertIsNone(check_ma_trail_alert(_rising_closes(), "GREEN"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_green_2_closes_below_21ema(self, mock_bars):
-        """GREEN regime requires 2 consecutive closes below 21 EMA."""
-        mock_bars.return_value = _falling_below_ema_bars(drop_tail=5)
-        v = check_ma_trail_violation("XXX", "GREEN")
+    def test_green_2_closes_below_21ema(self):
+        v = check_ma_trail_alert(_falling_below_ema_closes(drop_tail=5), "GREEN")
         self.assertIsNotNone(v)
         self.assertEqual(v["ma_type"], "21EMA")
         self.assertEqual(v["consecutive"], 2)
         self.assertLess(v["last_close"], v["last_ema"])
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_green_only_1_close_below_not_enough(self, mock_bars):
-        """GREEN requires 2 — single close below should not trigger."""
-        bars = _rising_bars(n=30)
-        # Drop ONLY the last close below EMA — only 1 below
-        bars[-1] = {"c": 10.0}
-        self.assertIsNone(check_ma_trail_violation("XXX", "GREEN"))
+    def test_green_only_1_close_below_not_enough(self):
+        closes = _rising_closes(n=30)
+        closes[-1] = 10.0
+        self.assertIsNone(check_ma_trail_alert(closes, "GREEN"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_thrust_uses_same_rule_as_green(self, mock_bars):
-        mock_bars.return_value = _falling_below_ema_bars()
-        v = check_ma_trail_violation("XXX", "THRUST")
+    def test_thrust_uses_same_rule_as_green(self):
+        v = check_ma_trail_alert(_falling_below_ema_closes(), "THRUST")
         self.assertIsNotNone(v)
         self.assertEqual(v["ma_type"], "21EMA")
         self.assertEqual(v["consecutive"], 2)
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_caution_1_close_below_21ema_triggers(self, mock_bars):
-        """CAUTION: tighter — 1 close below 21 EMA = violation."""
-        bars = _rising_bars(n=30)
-        bars[-1] = {"c": 10.0}  # 1 close well below
-        mock_bars.return_value = bars
-        v = check_ma_trail_violation("XXX", "CAUTION")
+    def test_caution_1_close_below_21ema_triggers(self):
+        closes = _rising_closes(n=30)
+        closes[-1] = 10.0
+        v = check_ma_trail_alert(closes, "CAUTION")
         self.assertIsNotNone(v)
         self.assertEqual(v["ma_type"], "21EMA")
         self.assertEqual(v["consecutive"], 1)
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_cooling_uses_8ema_1_close(self, mock_bars):
-        """COOLING: 1 close below 8 EMA (faster, tighter)."""
-        bars = _rising_bars(n=30)
-        bars[-1] = {"c": 10.0}
-        mock_bars.return_value = bars
-        v = check_ma_trail_violation("XXX", "COOLING")
+    def test_cooling_uses_8ema_1_close(self):
+        closes = _rising_closes(n=30)
+        closes[-1] = 10.0
+        v = check_ma_trail_alert(closes, "COOLING")
         self.assertIsNotNone(v)
         self.assertEqual(v["ma_type"], "8EMA")
         self.assertEqual(v["consecutive"], 1)
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_insufficient_bars_returns_none(self, mock_bars):
-        mock_bars.return_value = [{"c": 100.0}] * 3  # way fewer than 21
-        self.assertIsNone(check_ma_trail_violation("XXX", "GREEN"))
+    def test_insufficient_bars_returns_none(self):
+        self.assertIsNone(check_ma_trail_alert([100.0] * 3, "GREEN"))
 
-    @patch("agents.trading.position_monitor.fetch_alpaca_daily_bars")
-    def test_empty_bars_returns_none(self, mock_bars):
-        mock_bars.return_value = []
-        self.assertIsNone(check_ma_trail_violation("XXX", "GREEN"))
+    def test_empty_bars_returns_none(self):
+        self.assertIsNone(check_ma_trail_alert([], "GREEN"))
+
+    def test_high_vol_pct_trail_below_floor(self):
+        # ATR% > 8 → 10% trail from highest_price_seen
+        closes = [100.0] * 25 + [85.0]  # last close 15% below high 100 → trail floor 90
+        v = check_ma_trail_alert(closes, "GREEN", atr_pct=10.0, highest_price_seen=100.0)
+        self.assertIsNotNone(v)
+        self.assertEqual(v["ma_type"], "10% trail")
+        self.assertEqual(v["tier"], "high_vol")
+        self.assertEqual(v["last_ema"], 90.0)
+
+    def test_high_vol_pct_trail_above_floor(self):
+        closes = [100.0] * 25 + [95.0]  # 5% off, above floor 90
+        v = check_ma_trail_alert(closes, "GREEN", atr_pct=10.0, highest_price_seen=100.0)
+        self.assertIsNone(v)
 
 
 if __name__ == "__main__":

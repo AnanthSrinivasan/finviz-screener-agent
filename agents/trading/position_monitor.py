@@ -17,6 +17,8 @@ import base64
 import glob as globmod
 from pathlib import Path
 
+from agents.trading import rules
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -412,115 +414,6 @@ def fetch_alpaca_daily_bars(ticker: str, limit: int = 30) -> list:
     except Exception as e:
         log.warning(f"{ticker}: Alpaca bars fetch failed — {e}")
         return []
-
-
-# Regime → (moving-average span, consecutive closes needed for violation).
-# None = rule inactive for that regime (existing ATR-based stops are tighter in RED/DANGER).
-_MA_TRAIL_REGIME: dict[str, tuple[int, int] | None] = {
-    "THRUST":   (21, 2),   # Big regime — give room
-    "GREEN":    (21, 2),
-    "CAUTION":  (21, 1),   # Mixed regime — tighter trigger
-    "COOLING":  (8, 1),    # Fading regime — very tight
-    "RED":      None,      # ATR stops own it
-    "DANGER":   None,
-    "BLACKOUT": None,
-}
-
-
-def _ema(values: list, span: int) -> list:
-    """Simple EMA implementation (no pandas dependency). Returns list aligned to input."""
-    if not values:
-        return []
-    alpha = 2 / (span + 1)
-    out = [float(values[0])]
-    for v in values[1:]:
-        out.append(alpha * float(v) + (1 - alpha) * out[-1])
-    return out
-
-
-def _ma_trail_signal_for_atr(atr_pct: float, regime_span: int) -> tuple[str, int, int | None]:
-    """
-    Pick trail signal for a position based on its ATR%.
-
-    Returns (signal_type, consecutive_needed, ema_span_or_None):
-      - ATR% ≤ 5%   → ('ema', regime_span, regime_span)   # 21 EMA close-below
-      - 5% < ATR% ≤ 8% → ('ema', 1, 8)                     # 8 EMA close-below
-      - ATR% > 8%        → ('pct_trail', 1, None)              # 10% trail from high
-
-    `regime_span` controls only the low-ATR tier (so COOLING regime’s 8 EMA still wins
-    over the default 21 EMA for low-vol stocks; in practice regime_span comes from
-    _MA_TRAIL_REGIME — passing 21 here means low-vol uses 21 EMA, 8 means 8 EMA).
-    """
-    if atr_pct > 8.0:
-        return ("pct_trail", 1, None)
-    if atr_pct > 5.0:
-        return ("ema", 1, 8)
-    return ("ema", 1 if regime_span <= 8 else 2, regime_span if regime_span > 0 else 21)
-
-
-def check_ma_trail_violation(ticker: str, market_state: str,
-                             atr_pct: float = 0.0,
-                             highest_price_seen: float = 0.0) -> dict | None:
-    """
-    ATR%-tiered, regime-adaptive trail. Runs on last completed daily bars.
-
-    Tier (per `_ma_trail_signal_for_atr`):
-      - low-vol (ATR% ≤ 5%) — regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION,
-        8 EMA in COOLING).
-      - mid-vol (5% < ATR% ≤ 8%) — 8 EMA close-below.
-      - high-vol (ATR% > 8%) — 10% fixed trail from `highest_price_seen`.
-
-    Returns dict on violation, else None. None if regime disables the rule.
-    """
-    cfg = _MA_TRAIL_REGIME.get(market_state)
-    if cfg is None:
-        return None
-    regime_span, regime_consec = cfg
-    signal_type, consec_needed, ema_span = _ma_trail_signal_for_atr(atr_pct, regime_span)
-    # In low-vol tier, respect regime's consecutive_needed (2 for GREEN/THRUST, 1 elsewhere).
-    if signal_type == "ema" and ema_span == regime_span:
-        consec_needed = regime_consec
-
-    bars = fetch_alpaca_daily_bars(ticker, limit=max(30, (ema_span or 21) * 2))
-    if not bars:
-        return None
-    closes = [float(b["c"]) for b in bars if b.get("c") is not None]
-    if not closes:
-        return None
-
-    if signal_type == "pct_trail":
-        last_close = closes[-1]
-        if highest_price_seen <= 0:
-            return None
-        trail_floor = round(highest_price_seen * 0.90, 2)
-        if last_close < trail_floor:
-            return {
-                "ma_type": "10% trail",
-                "consecutive": 1,
-                "last_close": round(last_close, 2),
-                "last_ema": trail_floor,  # use last_ema slot for the floor — keeps schema stable
-                "atr_pct": round(atr_pct, 2),
-                "tier": "high_vol",
-            }
-        return None
-
-    # EMA close-below path
-    span = ema_span or regime_span
-    if len(closes) < span + consec_needed:
-        return None
-    ema_series = _ema(closes, span)
-    last_closes = closes[-consec_needed:]
-    last_emas   = ema_series[-consec_needed:]
-    if all(c < e for c, e in zip(last_closes, last_emas)):
-        return {
-            "ma_type": f"{span}EMA",
-            "consecutive": consec_needed,
-            "last_close": round(last_closes[-1], 2),
-            "last_ema": round(last_emas[-1], 2),
-            "atr_pct": round(atr_pct, 2),
-            "tier": "low_vol" if span == regime_span else "mid_vol",
-        }
-    return None
 
 
 def fetch_position_metrics(ticker: str) -> dict:
@@ -968,9 +861,8 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             "shares": int(shares) if shares == int(shares) else shares,
             "entry_price": entry_price,
             "entry_date": today,
-            "stop": initial_stop,
-            "stop_type": "auto_50ma",
-            "breakeven_stop_activated": False,
+            "stop_price": initial_stop,
+            "breakeven_activated": False,
             "target1": round(entry_price * 1.20, 2),
             "target1_hit": False,
             "target2": round(entry_price * 1.40, 2),
@@ -996,16 +888,6 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
     SHARE_EPS = 0.01  # tolerate fractional rounding
     for ticker in snap_tickers & rules_tickers:
         rpos = next(p for p in positions_data["open_positions"] if p["ticker"] == ticker)
-        # Stale stop_hit override: SnapTrade still holds, so the user kept the
-        # position past the system's exit signal. Reset to active so trail/peak
-        # logic resumes. Stop is left intact (the user can adjust manually).
-        if rpos.get("status") == "stop_hit":
-            rpos["status"] = "active"
-            alerts.append(
-                f"\U0001f504 {ticker} — stop_hit flag cleared (SnapTrade still holds; "
-                f"resuming trail logic)"
-            )
-            log.info(f"Sync: {ticker} stop_hit → active (user override)")
         snap = snap_by_ticker[ticker]
         snap_shares = float(snap["shares"])
         rules_shares = float(rpos.get("shares", 0))
@@ -1026,7 +908,7 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             rpos["target2"] = round(new_avg * 1.40, 2)
             # Reset target/breakeven flags so the recomputed levels are used afresh.
             rpos["target1_hit"] = False
-            rpos["breakeven_stop_activated"] = False
+            rpos["breakeven_activated"] = False
             alerts.append(
                 f"\U0001f7e1 SHARES INCREASED: {ticker}\n"
                 f"   {old_shares:g} → {snap_shares:g} shares "
@@ -1081,38 +963,19 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             positions_data["closed_positions"].append(pos)
             closed_externally.append(ticker)
 
-            # Neutral band: small +/- 1% counts as breakeven, doesn't penalize sizing.
-            if abs(result_pct) < 1.0:
-                result_label = "BREAKEVEN"
-                trade_result = "neutral"
-                # Streak/sizing untouched.
-            elif result_pct > 0:
-                trading_state["total_wins"] += 1
-                trading_state["consecutive_wins"] += 1
-                trading_state["consecutive_losses"] = 0
-                result_label = "WIN"
-                trade_result = "win"
-            else:
-                trading_state["total_losses"] += 1
-                trading_state["consecutive_losses"] += 1
-                trading_state["consecutive_wins"] = 0
-                result_label = "LOSS"
-                trade_result = "loss"
-
-            # Record trade
+            # Record trade via shared engine (neutral band, streaks, cap).
             _shares = pos.get("shares", 0)
             _pnl_usd = round((last_price - entry_price) * _shares, 2) if _shares else 0
-            trading_state["recent_trades"].append({
-                "ticker": ticker,
-                "result": trade_result,
-                "result_pct": round(result_pct, 2),
-                "profit_loss_usd": _pnl_usd,
-                "date": today,
-                "side": "SELL",
-                "source": "auto_detected",
-            })
-            trading_state["recent_trades"] = trading_state["recent_trades"][-20:]
-            trading_state["last_updated"] = today
+            trade_result = rules.record_trade_result(
+                trading_state, ticker, result_pct, today,
+                side="SELL", source="auto_detected",
+                profit_loss_usd=_pnl_usd,
+            )
+            result_label = {"win": "WIN", "loss": "LOSS", "neutral": "BREAKEVEN"}[trade_result]
+
+            # Winner chart fires only on real close-on-profit (per spec B.3/B.8).
+            if trade_result == "win":
+                _save_winner_chart(ticker, "exit_win", today)
 
             source_tag = {
                 "snaptrade_fill": " (fill)",
@@ -1123,12 +986,6 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                 f"\U0001f534 AUTO-DETECTED CLOSE: {ticker}\n"
                 f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f}{source_tag} ({result_pct:+.1f}%) — {result_label}\n"
                 f"   Streak: {trading_state['consecutive_wins']}W / {trading_state['consecutive_losses']}L"
-            )
-            _append_recent_event(
-                category="position_close",
-                title=f"{ticker} closed {result_pct:+.1f}% — {result_label}",
-                severity="low" if trade_result == "win" else ("high" if trade_result == "loss" else "med"),
-                detail=f"Entry ${entry_price:.2f} → ${last_price:.2f}{source_tag}",
             )
             log.info(f"Sync: auto-closed {ticker} — {result_pct:+.1f}% ({result_label})")
 
@@ -1148,196 +1005,58 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
 def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0,
                           day_high: float | None = None) -> tuple:
     """
-    Apply Minervini rules to a single position.
-    Returns (alerts_list, position_was_modified).
+    Live caller into the shared rules engine.
 
-    `day_high` (when provided) is used to capture intraday peaks that the
-    hourly snap price misses. Trailing stops and peak_gain_pct use
-    max(current_price, day_high, prior highest_price_seen).
+    Returns (alerts, modified):
+      - alerts is a list of Slack-ready strings (Rule 1 stop-hit + engine events).
+      - Rule 1 stop-hit fires alert only — status stays "active". The user often
+        holds through the signal (system flags; human decides). No recent_event
+        write (recent_events.json is market-only).
+
+    `atr` is in DOLLARS (live convention). Shared engine takes atr_pct, so we
+    convert: atr_pct = atr / entry_price * 100. Pre-port behaviour preserved.
     """
     alerts = []
     modified = False
     ticker = position["ticker"]
     entry = position["entry_price"]
 
-    # Use intraday high if caller supplied one (fixes stale highest_price_seen)
-    high_candidate = current_price
-    if day_high is not None and day_high > high_candidate:
-        high_candidate = day_high
-
-    prev_high = position.get("highest_price_seen", entry)
-    if high_candidate > prev_high:
-        position["highest_price_seen"] = round(high_candidate, 2)
-        modified = True
-
-    gain_pct = (current_price - entry) / entry * 100
-    if round(gain_pct, 2) != position.get("current_gain_pct", 0):
-        position["current_gain_pct"] = round(gain_pct, 2)
-        modified = True
-
-    # peak_gain_pct — tracks the best gain ever seen (intraday-aware)
-    high_gain_pct = (position["highest_price_seen"] - entry) / entry * 100
-    prev_peak = position.get("peak_gain_pct", 0.0)
-    if high_gain_pct > prev_peak:
-        position["peak_gain_pct"] = round(high_gain_pct, 2)
-        modified = True
-
-    # Rule 1 — Stop loss check (positions.json stop, tighter than ATR may be)
-    stop = position.get("stop", 0)
+    # Rule 1 — Stop loss check (alert only; no status mutation, no recent_event)
+    stop = position.get("stop_price", 0)
     if stop > 0 and current_price <= stop:
         alerts.append(
             f"\U0001f6a8 STOP HIT: {ticker} @ ${current_price:.2f} \u2014 "
             f"exit immediately (stop ${stop:.2f})"
         )
-        position["status"] = "stop_hit"
-        modified = True
-        log.warning(f"{ticker}: Rules engine STOP HIT — ${current_price:.2f} <= ${stop:.2f}")
-        _append_recent_event(
-            category="stop_hit",
-            title=f"{ticker} stop hit @ ${current_price:.2f} (stop ${stop:.2f})",
-            severity="high",
-        )
+        log.warning(f"{ticker}: STOP HIT signal — ${current_price:.2f} <= ${stop:.2f} (status stays active)")
 
-    # Rule 5 — Gain protection
-
-    # ATR trailing stop — raises incrementally from entry onwards (price - 2×ATR).
-    # Silent (no Slack alert) — just moves the floor up automatically every run.
-    # Only fires when price is profitable and stop would move higher than current stop.
-    if atr > 0 and gain_pct > 0 and not position.get("breakeven_stop_activated", False):
-        atr_trail = round(current_price - 2 * atr, 2)
-        if atr_trail > position.get("stop", 0):
-            position["stop"] = atr_trail
-            position["stop_type"] = "atr_trail"
-            modified = True
-            log.info(f"{ticker}: ATR trail stop raised to ${atr_trail:.2f} (price=${current_price:.2f}, 2×ATR=${2*atr:.2f})")
-
-    # Breakeven stop activation at +20% \u2014 keys off peak_gain_pct so a brief
-    # intraday touch locks the stop forever (don't lose to snap timing).
-    peak_gain_for_trigger = position.get("peak_gain_pct", gain_pct)
-    if peak_gain_for_trigger >= 20 and not position.get("breakeven_stop_activated", False):
-        new_stop = round(entry * 1.005, 2)  # just above breakeven (+0.5%)
-        if new_stop > position.get("stop", 0):
-            position["stop"] = new_stop
-        position["breakeven_stop_activated"] = True
-        modified = True
-        alerts.append(
-            f"\U0001f512 {ticker} peak +{peak_gain_for_trigger:.1f}% \u2014 stop moved to breakeven ${new_stop:.2f}"
-        )
-        log.info(f"{ticker}: Breakeven stop activated at ${new_stop:.2f} (peak gain {peak_gain_for_trigger:.1f}%)")
-        _append_recent_event(
-            category="breakeven",
-            title=f"{ticker} breakeven stop set at ${new_stop:.2f}",
-            severity="low",
-        )
-
-    # Trailing stop at peak +30% \u2014 uses peak_gain_pct, not current.
-    if peak_gain_for_trigger >= 30:
-        trail_stop = round(position["highest_price_seen"] * 0.90, 2)  # 10% trail from high
-        if trail_stop > position.get("stop", 0):
-            position["stop"] = trail_stop
-            modified = True
-            alerts.append(
-                f"\U0001f4c8 {ticker} +{gain_pct:.1f}% \u2014 trailing stop raised to ${trail_stop:.2f}"
-            )
-            log.info(f"{ticker}: Trailing stop raised to ${trail_stop:.2f}")
-
-    # Gain fading warning — fires when peak ≥ +20% AND price has dropped 1×ATR
-    # below the highest_price_seen. Alert (not exit); the stop is the exit.
-    # Dedup: suppress re-alert unless current_gain has fallen another 5pp since last alert.
-    peak_gain = position.get("peak_gain_pct", gain_pct)
-    high = position.get("highest_price_seen", entry)
-    fade_trigger_price = high - atr if atr > 0 else None
-    in_fade_zone = (
-        peak_gain >= 20
-        and fade_trigger_price is not None
-        and current_price < fade_trigger_price
+    # Trail / breakeven / targets / fade — delegated to shared engine.
+    atr_pct = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
+    events, eng_modified = rules.apply_position_rules(
+        ticker, position, current_price,
+        day_high=day_high or current_price,
+        atr_pct=atr_pct,
     )
-    if in_fade_zone:
-        last_alert_gain = position.get("last_fade_alert_gain_pct")
-        should_fire = (
-            last_alert_gain is None
-            or (last_alert_gain - gain_pct) >= 5
-        )
-        if should_fire:
-            given_back = peak_gain - gain_pct
-            alerts.append(
-                f"\u26a0\ufe0f {ticker} fading \u2014 peak +{peak_gain:.1f}%, "
-                f"now +{gain_pct:.1f}% (gave back {given_back:.1f}pp, "
-                f"price ${current_price:.2f} < high ${high:.2f} \u2212 1\u00d7ATR ${atr:.2f})"
-            )
-            position["last_fade_alert_gain_pct"] = round(gain_pct, 2)
-            modified = True
-    elif "last_fade_alert_gain_pct" in position:
-        # Recovered (or out of zone) — clear dedup so next fade fires cleanly
-        position.pop("last_fade_alert_gain_pct", None)
+    if eng_modified:
         modified = True
-
-    # Target alerts
-    target1 = position.get("target1", 0)
-    if target1 > 0 and current_price >= target1 and not position.get("target1_hit", False):
-        position["target1_hit"] = True
-        modified = True
-        alerts.append(
-            f"\U0001f3af {ticker} HIT TARGET 1 ${target1:.2f} \u2014 "
-            f"consider selling half, move stop to breakeven"
-        )
-        log.info(f"{ticker}: Target 1 hit at ${target1:.2f}")
-        today_str = datetime.date.today().isoformat()
-        _save_winner_chart(ticker, "T1", today_str)
-        _append_recent_event(
-            category="target_hit",
-            title=f"{ticker} T1 +20% hit — consider selling half",
-            severity="low",
-        )
-
-    target2 = position.get("target2", 0)
-    if target2 > 0 and current_price >= target2:
-        alerts.append(
-            f"\U0001f3af\U0001f3af {ticker} HIT TARGET 2 ${target2:.2f} \u2014 "
-            f"trail remaining position tightly"
-        )
-        log.info(f"{ticker}: Target 2 hit at ${target2:.2f}")
-        _append_recent_event(
-            category="target_hit",
-            title=f"{ticker} T2 +40% hit — trail tight",
-            severity="low",
-        )
+    for ev in events:
+        alerts.append(ev["message"])
+        kind = ev.get("kind")
+        if kind == "breakeven":
+            log.info(f"{ticker}: Breakeven stop activated at ${ev['stop_price']:.2f} (peak +{ev['peak_gain_pct']}%)")
+        elif kind == "trailing_stop":
+            log.info(f"{ticker}: Trailing stop raised to ${ev['stop_price']:.2f}")
+        elif kind == "target1":
+            log.info(f"{ticker}: Target 1 hit at ${ev['target']:.2f}")
+        elif kind == "target2":
+            log.info(f"{ticker}: Target 2 hit at ${ev['target']:.2f}")
 
     return alerts, modified
 
 
 def update_sizing_mode(trading_state: dict, market_state: str) -> list:
-    """
-    Recalculate sizing mode based on streak and market state.
-    Returns list of alerts if mode changed.
-    """
-    alerts = []
-    old_mode = trading_state["current_sizing_mode"]
-
-    if trading_state["consecutive_losses"] >= 3:
-        trading_state["current_sizing_mode"] = "suspended"
-    elif trading_state["consecutive_losses"] == 2:
-        trading_state["current_sizing_mode"] = "reduced"
-    elif trading_state["consecutive_wins"] >= 2 and market_state in ("GREEN", "THRUST"):
-        trading_state["current_sizing_mode"] = "aggressive"
-    else:
-        trading_state["current_sizing_mode"] = "normal"
-
-    new_mode = trading_state["current_sizing_mode"]
-    if new_mode != old_mode:
-        if new_mode == "suspended":
-            alerts.append(
-                "\U0001f6a8 SIZING SUSPENDED \u2014 3 consecutive losses. "
-                "Paper trade only until 2 consecutive wins."
-            )
-        elif new_mode == "reduced":
-            alerts.append(
-                "\u26a0\ufe0f SIZING REDUCED \u2014 2 consecutive losses. "
-                "Max 5% position size until streak breaks."
-            )
-        log.info(f"Sizing mode changed: {old_mode} -> {new_mode}")
-
-    return alerts
+    """Thin wrapper — delegates to rules.update_sizing_mode for shared semantics."""
+    return rules.update_sizing_mode(trading_state, market_state)
 
 
 def handle_trade_input(ticker: str, shares: int, price: float, side: str,
@@ -1406,14 +1125,13 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             existing["target2"]      = round(new_avg * 1.40, 2)
             existing["target1_hit"]  = False  # reset — targets shift up
             # Keep stop unchanged (already trailed up), but raise if new stop is higher
-            if initial_stop > existing.get("stop", 0):
-                existing["stop"]      = initial_stop
-                existing["stop_type"] = "50ma_add"
+            if initial_stop > existing.get("stop_price", 0):
+                existing["stop_price"] = initial_stop
             existing["highest_price_seen"] = max(existing.get("highest_price_seen", price), price)
             alerts.append(
                 f"\U0001f7e2 ADDED TO {ticker}: +{shares} shares @ ${price:.2f}\n"
                 f"   Total: {new_total} shares | New avg: ${new_avg:.2f}\n"
-                f"   Stop: ${existing['stop']:.2f} | T1: ${existing['target1']:.2f} | T2: ${existing['target2']:.2f}"
+                f"   Stop: ${existing['stop_price']:.2f} | T1: ${existing['target1']:.2f} | T2: ${existing['target2']:.2f}"
                 f"{sizing_note}"
             )
             return alerts
@@ -1428,16 +1146,14 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             "entry_price": round(price, 2),
             "first_entry_price": round(price, 2),
             "entry_date": today,
-            "stop": initial_stop,
-            "stop_type": "50ma",
-            "breakeven_stop_activated": False,
+            "stop_price": initial_stop,
+            "breakeven_activated": False,
             "target1": target1,
             "target1_hit": False,
             "target2": target2,
             "thesis": "Added via workflow_dispatch",
             "status": "active",
             "highest_price_seen": round(price, 2),
-            "current_gain_pct": 0.0,
         }
         positions_data["open_positions"].append(new_position)
 
@@ -1467,33 +1183,19 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             positions_data["open_positions"].remove(position)
             positions_data["closed_positions"].append(position)
 
-        # Save chart if this is a winning exit
-        if result_pct > 0:
-            _save_winner_chart(ticker, "exit_win", today)
-
-        # Update streak
-        if result_pct > 0:
-            trading_state["total_wins"] += 1
-            trading_state["consecutive_wins"] += 1
-            trading_state["consecutive_losses"] = 0
-        else:
-            trading_state["total_losses"] += 1
-            trading_state["consecutive_losses"] += 1
-            trading_state["consecutive_wins"] = 0
-
-        # Record trade
+        # Record trade via shared engine (neutral band, streaks, cap).
         _shares = position.get("shares", 0) if position else 0
         _ep = position.get("entry_price", 0) if position else 0
         _pnl_usd = round((price - _ep) * _shares, 2) if _shares and _ep else 0
-        trading_state["recent_trades"].append({
-            "ticker": ticker,
-            "result_pct": round(result_pct, 2),
-            "profit_loss_usd": _pnl_usd,
-            "date": today,
-            "side": "SELL",
-        })
-        trading_state["recent_trades"] = trading_state["recent_trades"][-20:]
-        trading_state["last_updated"] = today
+        trade_result = rules.record_trade_result(
+            trading_state, ticker, result_pct, today,
+            side="SELL", source="manual",
+            profit_loss_usd=_pnl_usd,
+        )
+
+        # Winner chart fires only on real close-on-profit.
+        if trade_result == "win":
+            _save_winner_chart(ticker, "exit_win", today)
 
         # Recalculate sizing mode
         sizing_alerts = update_sizing_mode(trading_state, market_state)
@@ -1535,12 +1237,12 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
         cur_price = snap["metrics"].get("price", snap["current_price"]) if snap and snap.get("metrics") else rp.get("highest_price_seen", rp["entry_price"])
         gain = (cur_price - rp["entry_price"]) / rp["entry_price"] * 100
         peak = rp.get("peak_gain_pct", gain)
-        stop = rp.get("stop", 0)
+        stop = rp.get("stop_price", 0)
         t1 = rp.get("target1", 0)
         t2 = rp.get("target2", 0)
         t1_mark = "\u2705" if rp.get("target1_hit") else "\u23f3"
         t2_mark = "\u2705" if (t2 > 0 and cur_price >= t2) else "\u23f3"
-        be_suffix = " BE" if rp.get("breakeven_stop_activated") else ""
+        be_suffix = " BE" if rp.get("breakeven_activated") else ""
         peak_str = f", peak +{peak:.1f}%" if peak > gain + 0.1 else ""
         pos_lines.append(
             f"{ticker}  {rp['shares']} @ ${rp['entry_price']:.2f} \u2192 ${cur_price:.2f} "
@@ -1893,8 +1595,11 @@ if __name__ == "__main__":
                 continue  # dedup — already alerted today
             atr_pct_for = atr_pct_by_ticker.get(rpos["ticker"], 0.0)
             high_seen = rpos.get("highest_price_seen", 0.0)
-            violation = check_ma_trail_violation(
-                rpos["ticker"], market_state,
+            # Caller fetches bars; rules engine is pure on closes.
+            bars = fetch_alpaca_daily_bars(rpos["ticker"], limit=60)
+            closes = [float(b["c"]) for b in bars if b.get("c") is not None]
+            violation = rules.check_ma_trail_alert(
+                closes, market_state,
                 atr_pct=atr_pct_for, highest_price_seen=high_seen,
             )
             if not violation:

@@ -374,10 +374,10 @@ if __name__ == "__main__":
         day_high, atr_pct = fetch_day_high_atr(ticker)
         if atr_pct > 0 and "atr_pct" not in stop_info:
             stop_info["atr_pct"] = atr_pct
-        rule_alerts, _ = apply_paper_rules(ticker, stop_info, current, day_high,
+        rule_events, _ = apply_paper_rules(ticker, stop_info, current, day_high,
                                            stop_info.get("atr_pct", atr_pct))
-        for msg in rule_alerts:
-            slack_send(msg)
+        for event in rule_events:
+            slack_send(event["message"])
 
         # Layer 1b — post-close MA trail alert (alert-only, human decides)
         if post_close:

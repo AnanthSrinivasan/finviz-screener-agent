@@ -395,7 +395,7 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
         pnl = cost * (gain_pct / 100)
         total_cost += cost
         total_pnl += pnl
-        stop = p.get("stop", 0)
+        stop = p.get("stop_price", 0)
         risk_pct = ((stop - entry) / entry * 100) if entry and stop else 0
 
         # Target progress
@@ -413,7 +413,7 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
             if t2:
                 target_html += f' <span class="target-pending">T2 ${t2:.0f}</span>'
 
-        be_stop = p.get("breakeven_stop_activated", False)
+        be_stop = p.get("breakeven_activated", False)
         stop_label = f'${stop:.2f}' if stop else "—"
         if be_stop:
             stop_label += ' <span class="be-badge">BE</span>'

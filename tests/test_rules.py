@@ -27,24 +27,24 @@ def _entry(**overrides):
 class ApplyPositionRulesTests(unittest.TestCase):
     def test_atr_trail_silent_pre_breakeven(self):
         e = _entry()
-        alerts, _ = rules.apply_position_rules("FOO", e, 110.0, 110.0, 4.0)
+        events, _ = rules.apply_position_rules("FOO", e, 110.0, 110.0, 4.0)
         # 110 - 2*4 = 102
         self.assertEqual(e["stop_price"], 102.0)
-        self.assertFalse(any("breakeven" in a.lower() for a in alerts))
+        self.assertFalse(any("breakeven" in e["message"].lower() for e in events))
 
     def test_breakeven_triggered_by_peak_not_live_gain(self):
         # Price has already pulled back below +20%, but peak hit it.
         e = _entry(highest_price_seen=125.0, peak_gain_pct=25.0)
-        alerts, _ = rules.apply_position_rules("FOO", e, 115.0, 115.0, 4.0)
+        events, _ = rules.apply_position_rules("FOO", e, 115.0, 115.0, 4.0)
         self.assertTrue(e["breakeven_activated"])
         self.assertGreaterEqual(e["stop_price"], 100.5)
-        self.assertTrue(any("breakeven" in a.lower() for a in alerts))
+        self.assertTrue(any("breakeven" in e["message"].lower() for e in events))
 
     def test_breakeven_does_not_fire_when_peak_under_20(self):
         e = _entry(highest_price_seen=119.0, peak_gain_pct=19.0)
-        alerts, _ = rules.apply_position_rules("FOO", e, 119.0, 119.0, 4.0)
+        events, _ = rules.apply_position_rules("FOO", e, 119.0, 119.0, 4.0)
         self.assertFalse(e["breakeven_activated"])
-        self.assertFalse(any("breakeven" in a.lower() for a in alerts))
+        self.assertFalse(any("breakeven" in e["message"].lower() for e in events))
 
     def test_breakeven_locks_one_way(self):
         e = _entry(highest_price_seen=125.0, peak_gain_pct=25.0,
@@ -56,36 +56,36 @@ class ApplyPositionRulesTests(unittest.TestCase):
 
     def test_target1_alert_once(self):
         e = _entry()
-        alerts, _ = rules.apply_position_rules("FOO", e, 120.0, 120.0, 4.0)
-        self.assertTrue(any("TARGET 1" in a for a in alerts))
+        events, _ = rules.apply_position_rules("FOO", e, 120.0, 120.0, 4.0)
+        self.assertTrue(any("TARGET 1" in e["message"] for e in events))
         self.assertTrue(e["target1_hit"])
-        alerts2, _ = rules.apply_position_rules("FOO", e, 125.0, 125.0, 4.0)
-        self.assertFalse(any("TARGET 1" in a for a in alerts2))
+        events2, _ = rules.apply_position_rules("FOO", e, 125.0, 125.0, 4.0)
+        self.assertFalse(any("TARGET 1" in e["message"] for e in events2))
 
     def test_30pct_trail_raises_stop(self):
         e = _entry(highest_price_seen=130.0, peak_gain_pct=30.0,
                    breakeven_activated=True, target1_hit=True, stop_price=100.5)
-        alerts, _ = rules.apply_position_rules("FOO", e, 130.0, 130.0, 4.0)
+        events, _ = rules.apply_position_rules("FOO", e, 130.0, 130.0, 4.0)
         self.assertAlmostEqual(e["stop_price"], 117.0, places=2)
-        self.assertTrue(any("trailing stop raised" in a for a in alerts))
+        self.assertTrue(any("trailing stop raised" in e["message"] for e in events))
 
     def test_fade_alert_one_atr_below_peak(self):
         e = _entry(highest_price_seen=125.0, peak_gain_pct=25.0,
                    breakeven_activated=True, target1_hit=True, stop_price=100.5)
-        alerts, _ = rules.apply_position_rules("FOO", e, 120.0, 125.0, 4.0)
-        self.assertTrue(any("fading" in a for a in alerts))
+        events, _ = rules.apply_position_rules("FOO", e, 120.0, 125.0, 4.0)
+        self.assertTrue(any("fading" in e["message"] for e in events))
 
     def test_fade_does_not_fire_within_one_atr(self):
         e = _entry(highest_price_seen=125.0, peak_gain_pct=25.0,
                    breakeven_activated=True, target1_hit=True, stop_price=100.5)
-        alerts, _ = rules.apply_position_rules("FOO", e, 123.0, 125.0, 4.0)
-        self.assertFalse(any("fading" in a for a in alerts))
+        events, _ = rules.apply_position_rules("FOO", e, 123.0, 125.0, 4.0)
+        self.assertFalse(any("fading" in e["message"] for e in events))
 
     def test_label_prefix(self):
         e = _entry(highest_price_seen=125.0, peak_gain_pct=25.0)
-        alerts, _ = rules.apply_position_rules("FOO", e, 115.0, 115.0, 4.0,
+        events, _ = rules.apply_position_rules("FOO", e, 115.0, 115.0, 4.0,
                                                 label_prefix="PAPER")
-        self.assertTrue(any("[PAPER]" in a for a in alerts))
+        self.assertTrue(any("[PAPER]" in e["message"] for e in events))
 
 
 class MaTrailAlertTests(unittest.TestCase):

@@ -2,7 +2,7 @@
 Shared per-position rules for the live (RH/SnapTrade) and paper (Alpaca) monitors.
 
 Two layers:
-  - apply_position_rules()    — per-tick trail / breakeven / targets / fade alert
+  - apply_position_rules()    — per-tick trail / breakeven / targets / fade
   - check_ma_trail_alert()    — post-close ATR%-tiered, regime-adaptive MA trail (alert only)
 
 Plus shared streak/sizing helpers:
@@ -13,6 +13,14 @@ Position state schema (dict, mutated in place):
   entry_price, stop_price, atr_pct, entry_date,
   highest_price_seen, peak_gain_pct, breakeven_activated,
   target1, target1_hit, target2, last_fade_alert_gain_pct (optional)
+
+Returned events (list of dicts) — caller formats Slack / logs / side effects:
+  {kind: "breakeven"|"trailing_stop"|"target1"|"target2"|"fade",
+   ticker, message, ...payload}
+
+Stop-hit (Rule 1 — hard stop crossed) is NOT an event from this engine. The caller
+handles it separately so the engine stays focused on trail / target logic and the
+caller decides how to render the alert (and whether to mutate `status`).
 """
 
 import os
@@ -27,7 +35,8 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
     """
     Per-tick trail / breakeven / targets / fade alert.
 
-    Mutates `entry` in place. Returns (alerts, modified).
+    Mutates `entry` in place. Returns (events, modified) where events is a list
+    of dicts, each `{kind, ticker, message, ...payload}`.
 
     Trail order:
       1. Update highest_price_seen / peak_gain_pct (intraday-aware via day_high).
@@ -41,12 +50,12 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
     the lock arms even if price has already pulled back.
     """
     prefix = ("[" + label_prefix + "] ") if label_prefix else ""
-    alerts: list = []
+    events: list = []
     modified = False
 
     entry_price = entry.get("entry_price", 0) or 0
     if entry_price <= 0 or current_price <= 0:
-        return alerts, modified
+        return events, modified
 
     atr_dollar = entry_price * (atr_pct / 100.0) if atr_pct > 0 else 0
 
@@ -83,10 +92,16 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
             current_stop = be_stop
         entry["breakeven_activated"] = True
         modified = True
-        alerts.append(
-            ":lock: " + prefix + ticker + " peak +" + str(round(peak_gain_pct, 1))
-            + "% — stop moved to breakeven $" + str(be_stop)
-        )
+        events.append({
+            "kind": "breakeven",
+            "ticker": ticker,
+            "stop_price": be_stop,
+            "peak_gain_pct": round(peak_gain_pct, 1),
+            "message": (
+                ":lock: " + prefix + ticker + " peak +" + str(round(peak_gain_pct, 1))
+                + "% — stop moved to breakeven $" + str(be_stop)
+            ),
+        })
 
     # 4. +30% trail (10% from highest)
     if peak_gain_pct >= 30:
@@ -95,28 +110,44 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
             entry["stop_price"] = trail_stop
             current_stop = trail_stop
             modified = True
-            alerts.append(
-                ":chart_with_upwards_trend: " + prefix + ticker + " peak +"
-                + str(round(peak_gain_pct, 1)) + "% — trailing stop raised to $"
-                + str(trail_stop)
-            )
+            events.append({
+                "kind": "trailing_stop",
+                "ticker": ticker,
+                "stop_price": trail_stop,
+                "peak_gain_pct": round(peak_gain_pct, 1),
+                "message": (
+                    ":chart_with_upwards_trend: " + prefix + ticker + " peak +"
+                    + str(round(peak_gain_pct, 1)) + "% — trailing stop raised to $"
+                    + str(trail_stop)
+                ),
+            })
 
     # 5. Targets
     t1 = entry.get("target1", 0) or 0
     if t1 > 0 and current_price >= t1 and not entry.get("target1_hit"):
         entry["target1_hit"] = True
         modified = True
-        alerts.append(
-            ":dart: " + prefix + ticker + " HIT TARGET 1 $" + str(t1)
-            + " — consider selling half, move stop to breakeven"
-        )
+        events.append({
+            "kind": "target1",
+            "ticker": ticker,
+            "target": t1,
+            "message": (
+                ":dart: " + prefix + ticker + " HIT TARGET 1 $" + str(t1)
+                + " — consider selling half, move stop to breakeven"
+            ),
+        })
 
     t2 = entry.get("target2", 0) or 0
     if t2 > 0 and current_price >= t2:
-        alerts.append(
-            ":dart::dart: " + prefix + ticker + " HIT TARGET 2 $" + str(t2)
-            + " — trail remaining position tightly"
-        )
+        events.append({
+            "kind": "target2",
+            "ticker": ticker,
+            "target": t2,
+            "message": (
+                ":dart::dart: " + prefix + ticker + " HIT TARGET 2 $" + str(t2)
+                + " — trail remaining position tightly"
+            ),
+        })
 
     # 6. Fade alert
     peak_gain = entry.get("peak_gain_pct", 0.0)
@@ -124,19 +155,26 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
         last_fade = entry.get("last_fade_alert_gain_pct")
         if last_fade is None or (last_fade - gain_pct) >= 5:
             given_back = peak_gain - gain_pct
-            alerts.append(
-                ":warning: " + prefix + ticker + " fading — peak +"
-                + str(round(peak_gain, 1)) + "%, now +"
-                + str(round(gain_pct, 1)) + "% (gave back "
-                + str(round(given_back, 1)) + "pp)"
-            )
+            events.append({
+                "kind": "fade",
+                "ticker": ticker,
+                "peak_gain_pct": round(peak_gain, 1),
+                "current_gain_pct": round(gain_pct, 1),
+                "given_back_pp": round(given_back, 1),
+                "message": (
+                    ":warning: " + prefix + ticker + " fading — peak +"
+                    + str(round(peak_gain, 1)) + "%, now +"
+                    + str(round(gain_pct, 1)) + "% (gave back "
+                    + str(round(given_back, 1)) + "pp)"
+                ),
+            })
             entry["last_fade_alert_gain_pct"] = round(gain_pct, 2)
             modified = True
     elif "last_fade_alert_gain_pct" in entry:
         entry.pop("last_fade_alert_gain_pct", None)
         modified = True
 
-    return alerts, modified
+    return events, modified
 
 
 # --- Layer 1b: ATR%-tiered, regime-adaptive MA trail (alert-only) ---------
@@ -227,6 +265,9 @@ def check_ma_trail_alert(closes: list, market_state: str,
 
 # --- Streak / sizing mode -------------------------------------------------
 
+RECENT_TRADES_CAP = 30
+
+
 def update_sizing_mode(trading_state: dict, market_state: str) -> list:
     """
     Recompute current_sizing_mode from streak + market state.
@@ -268,11 +309,14 @@ def update_sizing_mode(trading_state: dict, market_state: str) -> list:
 
 def record_trade_result(trading_state: dict, ticker: str, result_pct: float,
                         date_iso: str, side: str = "SELL",
-                        source: str = "auto_detected") -> None:
+                        source: str = "auto_detected",
+                        profit_loss_usd: float | None = None) -> str:
     """
     Append to recent_trades and update consecutive_wins / consecutive_losses
     streaks. Neutral band (|result_pct| < 1.0) → 'neutral', does not bump
     either streak. Mirrors the SnapTrade-side semantics.
+
+    Returns the result label: 'win' | 'loss' | 'neutral'.
     """
     if abs(result_pct) < 1.0:
         result = "neutral"
@@ -281,16 +325,19 @@ def record_trade_result(trading_state: dict, ticker: str, result_pct: float,
     else:
         result = "loss"
 
-    trading_state.setdefault("recent_trades", []).append({
+    trade_record = {
         "ticker":     ticker,
         "result":     result,
         "result_pct": round(result_pct, 2),
         "date":       date_iso,
         "side":       side,
         "source":     source,
-    })
-    # Cap at 50 to mirror live retention
-    trading_state["recent_trades"] = trading_state["recent_trades"][-50:]
+    }
+    if profit_loss_usd is not None:
+        trade_record["profit_loss_usd"] = round(float(profit_loss_usd), 2)
+
+    trading_state.setdefault("recent_trades", []).append(trade_record)
+    trading_state["recent_trades"] = trading_state["recent_trades"][-RECENT_TRADES_CAP:]
 
     if result == "win":
         trading_state["consecutive_wins"]   = trading_state.get("consecutive_wins", 0) + 1
@@ -303,3 +350,4 @@ def record_trade_result(trading_state: dict, ticker: str, result_pct: float,
     # neutral → no streak change
 
     trading_state["last_updated"] = date_iso
+    return result

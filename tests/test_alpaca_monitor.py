@@ -56,37 +56,37 @@ class ApplyPaperRulesTests(unittest.TestCase):
     def test_atr_trail_raises_silently_before_breakeven(self):
         entry = self._entry()
         # price=110, atr_pct=4% → atr$=4 (on entry price), trail = 110 - 8 = 102
-        alerts, _ = am.apply_paper_rules("FOO", entry, 110.0, day_high=110.0, atr_pct=4.0)
+        events, _ = am.apply_paper_rules("FOO", entry, 110.0, day_high=110.0, atr_pct=4.0)
         self.assertEqual(entry["stop_price"], 102.0)
-        self.assertFalse(any("trailing" in a.lower() for a in alerts))
-        self.assertFalse(any("breakeven" in a.lower() for a in alerts))
+        self.assertFalse(any("trailing" in e["message"].lower() for e in events))
+        self.assertFalse(any("breakeven" in e["message"].lower() for e in events))
 
     def test_breakeven_fires_and_sets_stop(self):
         entry = self._entry()
-        alerts, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=120.0, atr_pct=4.0)
+        events, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=120.0, atr_pct=4.0)
         self.assertTrue(entry["breakeven_activated"])
         self.assertGreaterEqual(entry["stop_price"], 100.5)
-        self.assertTrue(any("breakeven" in a.lower() for a in alerts))
+        self.assertTrue(any("breakeven" in e["message"].lower() for e in events))
 
     def test_target1_alert_once(self):
         entry = self._entry()
-        alerts, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=120.0, atr_pct=4.0)
-        self.assertTrue(any("TARGET 1" in a for a in alerts))
+        events, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=120.0, atr_pct=4.0)
+        self.assertTrue(any("TARGET 1" in e["message"] for e in events))
         self.assertTrue(entry["target1_hit"])
 
         # Second tick above T1 — no re-fire
-        alerts2, _ = am.apply_paper_rules("FOO", entry, 125.0, day_high=125.0, atr_pct=4.0)
-        self.assertFalse(any("TARGET 1" in a for a in alerts2))
+        events2, _ = am.apply_paper_rules("FOO", entry, 125.0, day_high=125.0, atr_pct=4.0)
+        self.assertFalse(any("TARGET 1" in e["message"] for e in events2))
 
     def test_trail_30pct_fires_and_raises_stop(self):
         entry = self._entry(
             highest_price_seen=130.0, peak_gain_pct=30.0,
             breakeven_activated=True, target1_hit=True, stop_price=100.5,
         )
-        alerts, _ = am.apply_paper_rules("FOO", entry, 130.0, day_high=130.0, atr_pct=4.0)
+        events, _ = am.apply_paper_rules("FOO", entry, 130.0, day_high=130.0, atr_pct=4.0)
         # 10% trail = 117
         self.assertAlmostEqual(entry["stop_price"], 117.0, places=2)
-        self.assertTrue(any("trailing stop raised" in a for a in alerts))
+        self.assertTrue(any("trailing stop raised" in e["message"] for e in events))
 
     def test_fade_fires_when_price_drops_one_atr(self):
         entry = self._entry(
@@ -94,8 +94,8 @@ class ApplyPaperRulesTests(unittest.TestCase):
             breakeven_activated=True, target1_hit=True, stop_price=100.5,
         )
         # atr_pct=4% on entry_price=100 → atr$=4. High 125, price 120 = 5 below → fires
-        alerts, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=125.0, atr_pct=4.0)
-        self.assertTrue(any("fading" in a for a in alerts))
+        events, _ = am.apply_paper_rules("FOO", entry, 120.0, day_high=125.0, atr_pct=4.0)
+        self.assertTrue(any("fading" in e["message"] for e in events))
 
     def test_fade_does_not_fire_within_one_atr(self):
         entry = self._entry(
@@ -103,8 +103,8 @@ class ApplyPaperRulesTests(unittest.TestCase):
             breakeven_activated=True, target1_hit=True, stop_price=100.5,
         )
         # High 125, price 123 = 2 below, ATR$=4 → still within 1×ATR
-        alerts, _ = am.apply_paper_rules("FOO", entry, 123.0, day_high=125.0, atr_pct=4.0)
-        self.assertFalse(any("fading" in a for a in alerts))
+        events, _ = am.apply_paper_rules("FOO", entry, 123.0, day_high=125.0, atr_pct=4.0)
+        self.assertFalse(any("fading" in e["message"] for e in events))
 
     def test_day_high_updates_highest_price_seen(self):
         entry = self._entry()

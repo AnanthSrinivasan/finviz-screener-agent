@@ -495,23 +495,23 @@ $4,500 hard stop rule: no single position loses more than this. Period.
 
 Why ATR%-tiered: high-ATR runners can give back 30%+ before MA catches up. FLY (ATR 11.2%, peak $46.30) → 10% trail floor $41.67 vs prior $35 stop-out. PL (ATR 9.5%, peak $41.70) → floor $37.54.
 
-Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on position entry for dedup, human decides. EMA computed client-side (iterative formula). Implemented as `check_ma_trail_violation(ticker, market_state, atr_pct, highest_price_seen)` in `position_monitor.py` (caller passes ATR% from the same Finviz metrics fetch used for hard-stop/peel). Tier picker `_ma_trail_signal_for_atr` is pure and unit-tested.
+Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on position entry for dedup, human decides. EMA computed client-side (iterative formula). Implemented as `rules.check_ma_trail_alert(closes, market_state, atr_pct, highest_price_seen)` in the shared engine `agents/trading/rules.py` — caller (`position_monitor.py` for live, `alpaca_monitor.py` for paper) fetches bars via `fetch_alpaca_daily_bars` and passes the close list. Tier picker `_ma_trail_signal_for_atr` is pure and unit-tested.
 
-**Gain-protection stops (Rule 5 — `apply_minervini_rules`):** All triggers key off `peak_gain_pct`, not current `gain_pct`. A brief intraday touch locks the floor forever, even if hourly snap missed the moment current ≥ threshold.
+**Gain-protection stops (Rule 5 — shared `rules.apply_position_rules`):** All triggers key off `peak_gain_pct`, not current `gain_pct`. A brief intraday touch locks the floor forever, even if hourly snap missed the moment current ≥ threshold. Persisted state: `stop_price` (renamed from `stop` in Apr 29 2026 port) and `breakeven_activated` (renamed from `breakeven_stop_activated`).
 
 | Stop | Trigger | Action |
 |---|---|---|
-| ATR trail (silent) | `gain_pct > 0` AND `peak_gain_pct < 20` | `stop = max(stop, price − 2×ATR)` |
-| Breakeven | `peak_gain_pct ≥ 20` (one-shot) | `stop = max(stop, entry × 1.005)`, sets `breakeven_stop_activated=True` |
-| Trailing | `peak_gain_pct ≥ 30` | `stop = max(stop, highest_price_seen × 0.90)` |
+| ATR trail (silent) | `gain_pct > 0` AND `peak_gain_pct < 20` | `stop_price = max(stop_price, price − 2×ATR)` |
+| Breakeven | `peak_gain_pct ≥ 20` (one-shot) | `stop_price = max(stop_price, entry × 1.005)`, sets `breakeven_activated=True` |
+| Trailing | `peak_gain_pct ≥ 30` | `stop_price = max(stop_price, highest_price_seen × 0.90)` |
 | Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) |
 
-**Stale `stop_hit` reset — `sync_snaptrade_with_rules`:** when a ticker is in both SnapTrade and `positions.json` and the rules state is `status="stop_hit"`, the user has decided to keep holding past the system's exit signal. Sync resets `status="active"` so trail / peak / target logic resumes; `stop` value is left intact (user can adjust manually). Slack alert: 🔄 stop_hit flag cleared.
+**Stop hit (Rule 1) — alert-only, no status mutation.** When `current_price <= stop_price`, the live caller fires a 🚨 STOP HIT Slack alert and a WARNING log line. Position `status` stays `"active"`. The user often holds through the alert (the FIGS pattern); the system only signals — the human decides. (The Apr 29 2026 port removed prior `status="stop_hit"` mutation and the now-dead `sync_snaptrade_with_rules` reset block. `data/positions.json` migrated once via `utils/migrate_positions_keys.py`.)
 
 **Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
 
-- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_stop_activated` to False so the new levels apply afresh. `first_entry_price` is set on first avg-up and never overwritten thereafter. Slack alert "🟡 SHARES INCREASED".
-- **Partial sell** (SnapTrade < rules): sync `shares` only; keep `entry_price`, `target1`, `target2`, `target1_hit`, `breakeven_stop_activated` intact (still the same trade). Slack alert "🟡 PARTIAL SELL".
+- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_activated` to False so the new levels apply afresh. `first_entry_price` is set on first avg-up and never overwritten thereafter. Slack alert "🟡 SHARES INCREASED".
+- **Partial sell** (SnapTrade < rules): sync `shares` only; keep `entry_price`, `target1`, `target2`, `target1_hit`, `breakeven_activated` intact (still the same trade). Slack alert "🟡 PARTIAL SELL".
 - 0.01-share tolerance for fractional rounding.
 
 **Auto-close (positions in `positions.json` gone from SnapTrade) — `sync_snaptrade_with_rules`:**
@@ -523,7 +523,7 @@ Real exit price priority for `close_price`:
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
-**Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. Categories: `market_state` (market_monitor), `position_close`, `stop_hit`, `breakeven`, `target_hit`, `peel_signal`, `retro_patch` (all from position_monitor). Helper `_append_recent_event` lives in `utils/events.py` (shared, DATA_DIR-aware); imported by both market_monitor and position_monitor. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
+**Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. **Market events only** — categories: `market_state` (market_monitor) and other regime/breadth events. Position events (stop_hit, breakeven, target_hit, position_close) deliberately do NOT write here — they go to Slack only. The Apr 29 2026 port removed all position-event writes from `apply_minervini_rules` and the auto-close branch per spec. Helper `_append_recent_event` lives in `utils/events.py` (shared, DATA_DIR-aware); called only from `market_monitor.py` on state change. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
 
 Per-position transaction timeline is filtered to events at or after the position's `entry_date` AND a global system floor of `2026-04-01` — so prior trade cycles on the same ticker (e.g. an old FIGS round-trip on Mar 24/27 before the current 2026-04-24 entry) don't pollute the view.
 
@@ -716,7 +716,7 @@ Not needed yet. Revisit if automated execution is added.
 - Existing `archived` row where `archive_reason=age_out` + `source=screener_auto` → **reactivate** back to `watching` (sets `reactivated_date`, clears `archive_reason`). Manually archived / stopped-out rows are never reactivated.
 - `entry_note` set based on VCP confirmation and perfect alignment
 
-**Held-position auto-archive pass (runs first):** any watchlist entry whose ticker is currently held is archived with `archive_reason=entered_position`. "Held" = `open_positions[].status == "active"` in `positions.json` (real account) OR any key in `paper_stops.json` (paper account). Prevents held positions from appearing in actionable tiers (Ready-to-Enter, Focus). `stop_hit` status is NOT treated as held — those are effectively closed and should allow re-entry signals.
+**Held-position auto-archive pass (runs first):** any watchlist entry whose ticker is currently held is archived with `archive_reason=entered_position`. "Held" = `open_positions[].status == "active"` in `positions.json` (real account) OR any key in `paper_stops.json` (paper account). Prevents held positions from appearing in actionable tiers (Ready-to-Enter, Focus). Note: live position status is always `"active"` (Apr 29 2026 port removed `stop_hit` mutation — the system only signals; the human exits).
 
 **Age-out pass:** screener_auto entries older than 14 days are archived — but **only when `priority=watching`**. `focus` and `entry-ready` entries are never auto-archived (they earned their place).
 

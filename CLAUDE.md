@@ -2,10 +2,11 @@
 
 ## MANDATORY — Read before every action
 
-1. Read all memory files in `/Users/sananth/.claude/projects/-Users-sananth-Documents-Mac-Backup-Languages-Python-finviz-screener-agent-new/memory/` before doing anything
-2. Always `git pull --rebase origin main` before `git push` — Actions commits data files back constantly
-3. After any screener/agent logic change: run the relevant GH Actions workflow and verify the logs, not just unit tests
-4. Run `python -m unittest discover -s tests -t .` before every push
+1. **Read memory FIRST.** Open `MEMORY.md` and every file it references in `/Users/sananth/.claude/projects/-Users-sananth-Documents-Mac-Backup-Languages-Python-finviz-screener-agent-new/memory/` BEFORE the first non-read action of every session, BEFORE writing a spec, and BEFORE executing tasks. The MEMORY.md auto-loaded into the prompt is the index — you must actually read the linked files (user prefs, feedback, project state) not just the index. If you skip this step, you will repeat past mistakes the user already corrected.
+2. Always `git pull --rebase origin main` before `git push` — Actions commits data files back constantly.
+3. After any screener/agent logic change: run the relevant GH Actions workflow and verify the logs, not just unit tests.
+4. Run `python -m unittest discover -s tests -t .` before every push.
+5. When you learn something new about the user's preferences or the project (especially after a correction), save it to memory as the FIRST step of the response, not the last.
 
 ## Workflow for every non-trivial task — spec → review → tasks → execute
 
@@ -43,10 +44,10 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
-**Shared rules engine — `agents/trading/rules.py`** (used by paper monitor; live position_monitor parity port pending):
-- `apply_position_rules()` — per-tick trail/breakeven/targets/fade. **Breakeven trigger keys off `peak_gain_pct`** (one-way lock once peak hits +20%, even if price has already faded). ATR incremental trail (silent, pre-breakeven). 10% trail at peak +30%. Target1/T2 alerts. 1×ATR fade alert.
+**Shared rules engine — `agents/trading/rules.py`** (used by BOTH paper monitor and live position_monitor):
+- `apply_position_rules()` — per-tick trail/breakeven/targets/fade. **Breakeven trigger keys off `peak_gain_pct`** (one-way lock once peak hits +20%, even if price has already faded). ATR incremental trail (silent, pre-breakeven). 10% trail at peak +30%. Target1/T2 alerts. 1×ATR fade alert. **Returns structured events** (`{kind, ticker, message, ...}`) — caller forwards `message` to Slack and may key side effects off `kind` (e.g. live wraps with `log.info` per kind).
 - `check_ma_trail_alert()` — Layer 1b ATR%-tiered MA trail (alert-only): low-vol (≤5%) regime EMA close-below (21 EMA GREEN/THRUST/CAUTION, 8 EMA COOLING); mid-vol (5-8%) 8 EMA close-below; high-vol (>8%) 10% pct trail from peak. RED/DANGER/BLACKOUT skipped. Caller passes daily closes.
-- `update_sizing_mode()` / `record_trade_result()` — streak → mode transitions and recent_trades append. Neutral band `|result_pct| < 1.0%` does not bump streaks.
+- `update_sizing_mode()` / `record_trade_result()` — streak → mode transitions and recent_trades append. Neutral band `|result_pct| < 1.0%` does not bump streaks. `record_trade_result` accepts optional `profit_loss_usd` and returns the result label. `recent_trades` capped at 30 entries (shared constant `RECENT_TRADES_CAP`).
 
 **Supporting files:**
 - `utils/generate_index.py` — Generates GitHub Pages index
@@ -113,7 +114,7 @@ The position monitor has two layers:
 - Non-exit: fires Slack alert only, human decides. Dedup via `ma_trail_alerted_date`
 
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
-- Rule 1: Stop loss check (positions.json stop price)
+- Rule 1: Stop loss check (`positions.json` `stop_price`) — alert only; `status` stays "active".
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
 - Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at **peak +20%** (keys off `peak_gain_pct`, locks forever after first touch — fixes prior bug where a brief intraday touch missed by hourly snap left no breakeven); trailing stop at **peak +30%** (10% trail from `highest_price_seen`, intraday-aware)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
@@ -121,13 +122,13 @@ The position monitor has two layers:
 - Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
 - `highest_price_seen` and `peak_gain_pct` use Finviz intraday "Range" high (fixes missed-intraday-peak bug where hourly snap missed spikes between ticks)
 
-**Stale `stop_hit` reset:** ticker in both with `status=stop_hit` → reset to `active` (user kept holding past system signal). Stop value untouched. Alert: 🔄 stop_hit flag cleared.
+**Stop hit fires alert only — no status mutation.** When live engine detects `current_price <= stop_price`, it emits the 🚨 STOP HIT Slack alert and logs at WARNING. Position `status` stays `"active"` (user often holds through the alert — system signals; human decides). Persisted state schema: `stop_price` and `breakeven_activated` (renamed from legacy `stop` / `breakeven_stop_activated` in the Apr 29 2026 port; one-shot migration in `utils/migrate_positions_keys.py`).
 
 **Share-drift reconcile (ticker in both, share counts differ):**
-- Avg-up (SnapTrade > rules): trust SnapTrade weighted `avg_cost`, recompute T1/T2, reset `target1_hit` + `breakeven_stop_activated`. Alert: 🟡 SHARES INCREASED.
+- Avg-up (SnapTrade > rules): trust SnapTrade weighted `avg_cost`, recompute T1/T2, reset `target1_hit` + `breakeven_activated`. Alert: 🟡 SHARES INCREASED.
 - Partial sell (SnapTrade < rules): sync `shares` only; entry/T1/T2/flags untouched. Alert: 🟡 PARTIAL SELL.
 
-**Recent events feed (`data/recent_events.json`):** rolling last 50 events written by agents (market state transitions, etc). Dashboard "Recent Alerts" widget reads this. Severity color-bar: high/med/low (red/amber/green left border). Helper `_append_recent_event()` — currently called from `market_monitor.py` on state change.
+**Recent events feed (`data/recent_events.json`):** rolling last 50 events written by agents. **Market events only** (state transitions, breadth thresholds). Dashboard "Recent Alerts" widget reads this. Severity color-bar: high/med/low (red/amber/green left border). Helper `_append_recent_event()` — called from `market_monitor.py` on state change. Position events (stop_hit, breakeven, target hits, position close) deliberately do NOT write here — those go to Slack only (Apr 29 2026: removed prior position-event writes per user spec).
 
 **Position history cache (`data/position_history.json`):** every run pulls 90d of BUY+SELL activities grouped by ticker. Dashboard renders expandable per-row transaction timeline (chevron click) showing avg-up / partial sell / full close with running cost basis.
 

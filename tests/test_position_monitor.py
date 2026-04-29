@@ -58,7 +58,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         base = {
             "ticker":       "NVDA",
             "entry_price":  100.0,
-            "stop":         95.0,
+            "stop_price":         95.0,
             "target1":      120.0,
             "target2":      140.0,
             "highest_price_seen": 100.0,
@@ -69,11 +69,11 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         return base
 
     def test_stop_hit_fires_alert(self):
-        pos = self._pos(stop=95.0)
+        pos = self._pos(stop_price=95.0)
         alerts, modified = pm.apply_minervini_rules(pos, current_price=94.50, atr=2.0)
         self.assertTrue(any("STOP HIT" in a for a in alerts))
-        self.assertEqual(pos["status"], "stop_hit")
-        self.assertTrue(modified)
+        # Per spec B.1: status stays "active" (alert only, human decides).
+        self.assertNotEqual(pos["status"], "stop_hit")
 
     def test_no_stop_alert_above_stop(self):
         pos = self._pos(stop=95.0)
@@ -85,10 +85,10 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)  # lift targets out of range
         alerts, modified = pm.apply_minervini_rules(pos, current_price=120.0, atr=2.0)
-        self.assertTrue(pos.get("breakeven_stop_activated"))
+        self.assertTrue(pos.get("breakeven_activated"))
         # Stop must be at or above breakeven (100.50). ATR trail may already have
         # raised it higher (price − 2×ATR = 116) — that's fine; breakeven is a floor.
-        self.assertGreaterEqual(pos["stop"], 100.5)
+        self.assertGreaterEqual(pos["stop_price"], 100.5)
         self.assertTrue(any("stop moved to breakeven" in a for a in alerts))
         self.assertTrue(modified)
 
@@ -97,18 +97,18 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)
         alerts, _ = pm.apply_minervini_rules(pos, current_price=120.0, atr=0)
-        self.assertTrue(pos.get("breakeven_stop_activated"))
-        self.assertAlmostEqual(pos["stop"], 100.5, places=2)
+        self.assertTrue(pos.get("breakeven_activated"))
+        self.assertAlmostEqual(pos["stop_price"], 100.5, places=2)
         self.assertTrue(any("stop moved to breakeven" in a for a in alerts))
 
     def test_trailing_stop_raises_at_30_pct_gain(self):
         pos = self._pos(entry_price=100.0, stop=100.5,
                         highest_price_seen=130.0,
                         target1=200.0, target2=300.0,
-                        breakeven_stop_activated=True)
+                        breakeven_activated=True)
         alerts, _ = pm.apply_minervini_rules(pos, current_price=130.0, atr=2.0)
         # 10% trail from 130 = 117
-        self.assertAlmostEqual(pos["stop"], 117.0, places=2)
+        self.assertAlmostEqual(pos["stop_price"], 117.0, places=2)
         self.assertTrue(any("trailing stop raised" in a for a in alerts))
 
     def test_atr_trail_silent_before_breakeven(self):
@@ -116,7 +116,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0)
         alerts, modified = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
         # price - 2*ATR = 110 - 4 = 106 → stop raised silently (no alert text for ATR trail)
-        self.assertAlmostEqual(pos["stop"], 106.0, places=2)
+        self.assertAlmostEqual(pos["stop_price"], 106.0, places=2)
         self.assertTrue(modified)
         self.assertFalse(any("ATR trail" in a for a in alerts))
 
@@ -126,7 +126,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0,
                         highest_price_seen=125.0,
                         peak_gain_pct=25.0,
-                        breakeven_stop_activated=True)
+                        breakeven_activated=True)
         alerts, _ = pm.apply_minervini_rules(pos, current_price=122.0, atr=2.0)
         self.assertTrue(any("fading" in a for a in alerts))
 
@@ -136,7 +136,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0,
                         highest_price_seen=125.0,
                         peak_gain_pct=25.0,
-                        breakeven_stop_activated=True)
+                        breakeven_activated=True)
         alerts, _ = pm.apply_minervini_rules(pos, current_price=124.0, atr=2.0)
         self.assertFalse(any("fading" in a for a in alerts))
 
@@ -155,7 +155,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0,
                         highest_price_seen=150.0,
                         peak_gain_pct=50.0,
-                        breakeven_stop_activated=True)
+                        breakeven_activated=True)
         alerts1, _ = pm.apply_minervini_rules(pos, current_price=140.0, atr=2.0)
         self.assertTrue(any("fading" in a for a in alerts1))
 
@@ -271,7 +271,7 @@ class PeakGainBreakevenTests(unittest.TestCase):
         base = {
             "ticker": "PL",
             "entry_price": 100.0,
-            "stop": 95.0,
+            "stop_price": 95.0,
             "target1": 200.0,
             "target2": 300.0,
             "highest_price_seen": 120.5,  # peak +20.5%
@@ -287,76 +287,23 @@ class PeakGainBreakevenTests(unittest.TestCase):
         # Old code missed this; new code activates breakeven.
         pos = self._pos()
         alerts, modified = pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
-        self.assertTrue(pos.get("breakeven_stop_activated"))
-        self.assertGreaterEqual(pos["stop"], 100.5)
+        self.assertTrue(pos.get("breakeven_activated"))
+        self.assertGreaterEqual(pos["stop_price"], 100.5)
         self.assertTrue(any("breakeven" in a.lower() for a in alerts))
         self.assertTrue(modified)
 
     def test_breakeven_does_not_activate_below_peak_20(self):
         pos = self._pos(highest_price_seen=119.0, peak_gain_pct=19.0)
         pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
-        self.assertFalse(pos.get("breakeven_stop_activated", False))
+        self.assertFalse(pos.get("breakeven_activated", False))
 
     def test_trailing_stop_locks_from_peak_30(self):
         # Peak +35% (high=135), current back at 110. 10% trail = 121.5.
         pos = self._pos(highest_price_seen=135.0, peak_gain_pct=35.0,
-                        breakeven_stop_activated=True, stop=100.5)
+                        breakeven_activated=True, stop=100.5)
         pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
-        self.assertAlmostEqual(pos["stop"], 121.5, places=1)
+        self.assertAlmostEqual(pos["stop_price"], 121.5, places=1)
 
-
-class MaTrailTierTests(unittest.TestCase):
-    """ATR%-tiered MA trail. Tier picker is pure; check_ma_trail_violation
-    is integration-tested by mocking the bars fetch."""
-
-    def test_tier_low_vol_uses_regime_span(self):
-        # ATR <= 5% → use regime span (21 in GREEN/THRUST)
-        sig, consec, span = pm._ma_trail_signal_for_atr(4.0, regime_span=21)
-        self.assertEqual(sig, "ema")
-        self.assertEqual(span, 21)
-        self.assertEqual(consec, 2)
-
-    def test_tier_low_vol_cooling_regime_uses_8ema(self):
-        sig, consec, span = pm._ma_trail_signal_for_atr(4.0, regime_span=8)
-        self.assertEqual(sig, "ema")
-        self.assertEqual(span, 8)
-        self.assertEqual(consec, 1)
-
-    def test_tier_mid_vol_uses_8ema(self):
-        # 5% < ATR <= 8% → 8 EMA close-below
-        sig, consec, span = pm._ma_trail_signal_for_atr(7.0, regime_span=21)
-        self.assertEqual(sig, "ema")
-        self.assertEqual(span, 8)
-        self.assertEqual(consec, 1)
-
-    def test_tier_high_vol_uses_pct_trail(self):
-        # ATR > 8% → 10% trail
-        sig, consec, span = pm._ma_trail_signal_for_atr(11.0, regime_span=21)
-        self.assertEqual(sig, "pct_trail")
-        self.assertIsNone(span)
-
-    def test_high_vol_pct_trail_fires_when_close_below_floor(self):
-        # FLY-ish: ATR 11.2%, peak high 46.30, trail floor = 41.67. Close at 35 → fire.
-        bars = [{"c": v} for v in [40, 42, 44, 46, 35]]
-        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=bars):
-            v = pm.check_ma_trail_violation("FLY", "GREEN",
-                                            atr_pct=11.2, highest_price_seen=46.30)
-        self.assertIsNotNone(v)
-        self.assertEqual(v["ma_type"], "10% trail")
-        self.assertEqual(v["tier"], "high_vol")
-        self.assertAlmostEqual(v["last_ema"], 41.67, places=1)
-
-    def test_high_vol_pct_trail_no_fire_above_floor(self):
-        bars = [{"c": v} for v in [40, 42, 44, 46, 42]]
-        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=bars):
-            v = pm.check_ma_trail_violation("FLY", "GREEN",
-                                            atr_pct=11.2, highest_price_seen=46.30)
-        self.assertIsNone(v)
-
-    def test_red_regime_skips_rule(self):
-        with patch.object(pm, "fetch_alpaca_daily_bars", return_value=[]):
-            self.assertIsNone(pm.check_ma_trail_violation("X", "RED", atr_pct=5))
-            self.assertIsNone(pm.check_ma_trail_violation("X", "DANGER", atr_pct=5))
 
 
 class AutoCloseTests(unittest.TestCase):
@@ -387,7 +334,7 @@ class AutoCloseTests(unittest.TestCase):
     def test_neutral_close_does_not_bump_streak(self):
         # Position at entry $100 closed at $100.5 (+0.5% < 1% band)
         pos = {"ticker": "PL", "shares": 100, "entry_price": 100.0,
-               "highest_price_seen": 120.0, "stop": 95.0, "status": "active"}
+               "highest_price_seen": 120.0, "stop_price": 95.0, "status": "active"}
         positions_data = self._state(open_positions=[pos])
         ts = self._trading(consecutive_wins=2)
         sell_fills = {"PL": {"price": 100.5, "date": "2026-04-24", "units": 100}}
@@ -412,7 +359,7 @@ class AutoCloseTests(unittest.TestCase):
     def test_real_win_uses_snaptrade_fill_not_peak(self):
         # Peak high was $150 but actual fill was $135 → result_pct uses 135, not 150
         pos = {"ticker": "AAOI", "shares": 75, "entry_price": 100.0,
-               "highest_price_seen": 150.0, "stop": 95.0, "status": "active"}
+               "highest_price_seen": 150.0, "stop_price": 95.0, "status": "active"}
         positions_data = self._state(open_positions=[pos])
         ts = self._trading()
         sell_fills = {"AAOI": {"price": 135.0, "date": "2026-04-24", "units": 75}}
@@ -428,7 +375,7 @@ class AutoCloseTests(unittest.TestCase):
 
     def test_loss_close_bumps_loss_streak(self):
         pos = {"ticker": "X", "shares": 10, "entry_price": 100.0,
-               "highest_price_seen": 110.0, "stop": 95.0, "status": "active"}
+               "highest_price_seen": 110.0, "stop_price": 95.0, "status": "active"}
         positions_data = self._state(open_positions=[pos])
         ts = self._trading(consecutive_wins=1)
         sell_fills = {"X": {"price": 90.0, "date": "2026-04-24", "units": 10}}
@@ -441,7 +388,7 @@ class AutoCloseTests(unittest.TestCase):
 
     def test_falls_back_to_quote_when_no_fill(self):
         pos = {"ticker": "Z", "shares": 10, "entry_price": 100.0,
-               "highest_price_seen": 150.0, "stop": 95.0, "status": "active"}
+               "highest_price_seen": 150.0, "stop_price": 95.0, "status": "active"}
         positions_data = self._state(open_positions=[pos])
         ts = self._trading()
         with patch.object(pm, "fetch_position_metrics",
@@ -468,9 +415,9 @@ class ShareDriftReconcileTests(unittest.TestCase):
     def test_avg_up_recomputes_entry_and_targets(self):
         # GLW-style: positions.json has 30 shares @ $167.10, SnapTrade now reports 50 @ $170 weighted.
         rules_pos = {"ticker": "GLW", "shares": 30, "entry_price": 167.10,
-                     "highest_price_seen": 178.99, "stop": 159.95,
+                     "highest_price_seen": 178.99, "stop_price": 159.95,
                      "target1": 200.52, "target2": 233.94, "status": "active",
-                     "breakeven_stop_activated": False, "target1_hit": False}
+                     "breakeven_activated": False, "target1_hit": False}
         snap = [{"ticker": "GLW", "shares": 50, "avg_cost": 170.00,
                  "current_price": 175.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
@@ -481,14 +428,14 @@ class ShareDriftReconcileTests(unittest.TestCase):
         self.assertAlmostEqual(rules_pos["target1"], 204.0, places=1)
         self.assertAlmostEqual(rules_pos["target2"], 238.0, places=1)
         self.assertFalse(rules_pos["target1_hit"])
-        self.assertFalse(rules_pos["breakeven_stop_activated"])
+        self.assertFalse(rules_pos["breakeven_activated"])
         self.assertTrue(any("SHARES INCREASED" in a for a in alerts))
 
     def test_partial_sell_keeps_entry_and_targets(self):
         rules_pos = {"ticker": "X", "shares": 100, "entry_price": 50.0,
-                     "highest_price_seen": 60.0, "stop": 47.5,
+                     "highest_price_seen": 60.0, "stop_price": 47.5,
                      "target1": 60.0, "target2": 70.0, "status": "active",
-                     "target1_hit": True, "breakeven_stop_activated": True}
+                     "target1_hit": True, "breakeven_activated": True}
         snap = [{"ticker": "X", "shares": 50, "avg_cost": 50.0,
                  "current_price": 58.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
@@ -500,23 +447,10 @@ class ShareDriftReconcileTests(unittest.TestCase):
         self.assertTrue(rules_pos["target1_hit"])     # preserved
         self.assertTrue(any("PARTIAL SELL" in a for a in alerts))
 
-    def test_stop_hit_resets_when_still_in_snaptrade(self):
-        # User kept holding past the system's stop_hit signal — reset to active.
-        rules_pos = {"ticker": "AAOI", "shares": 80, "entry_price": 116.0,
-                     "highest_price_seen": 172.75, "stop": 155.47,
-                     "target1": 139.20, "target2": 162.40, "status": "stop_hit",
-                     "breakeven_stop_activated": True}
-        snap = [{"ticker": "AAOI", "shares": 80, "avg_cost": 116.0,
-                 "current_price": 162.18, "account_id": "a"}]
-        positions_data = {"open_positions": [rules_pos], "closed_positions": []}
-        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, self._trading(),
-                                              "GREEN", sell_fills={})
-        self.assertEqual(rules_pos["status"], "active")
-        self.assertTrue(any("stop_hit flag cleared" in a for a in alerts))
 
     def test_no_drift_no_alert(self):
         rules_pos = {"ticker": "X", "shares": 100, "entry_price": 50.0,
-                     "highest_price_seen": 60.0, "stop": 47.5,
+                     "highest_price_seen": 60.0, "stop_price": 47.5,
                      "target1": 60.0, "target2": 70.0, "status": "active"}
         snap = [{"ticker": "X", "shares": 100, "avg_cost": 50.0,
                  "current_price": 58.0, "account_id": "a"}]
@@ -657,53 +591,7 @@ class RecentEventTests(unittest.TestCase):
             except Exception as e:
                 self.fail(f"_append_recent_event raised: {e}")
 
-    def test_stop_hit_fires_event(self):
-        import tempfile, os, json
-        pos = {"ticker": "AAPL", "entry_price": 140.0, "shares": 10,
-               "stop": 133.0, "target1": 168.0, "target2": 196.0,
-               "highest_price_seen": 150.0, "peak_gain_pct": 0.0,
-               "status": "active"}
-        with tempfile.TemporaryDirectory() as d:
-            with patch.dict(os.environ, {"DATA_DIR": d}):
-                alerts, _ = pm.apply_minervini_rules(pos, current_price=132.0, atr=2.0)
-            with open(os.path.join(d, "recent_events.json")) as f:
-                data = json.load(f)
-        self.assertTrue(any("stop" in a.lower() for a in alerts))
-        evs = [e for e in data["events"] if e["category"] == "stop_hit"]
-        self.assertEqual(len(evs), 1)
-        self.assertEqual(evs[0]["severity"], "high")
 
-    def test_breakeven_fires_event(self):
-        import tempfile, os, json
-        pos = {"ticker": "NVDA", "entry_price": 100.0, "shares": 5,
-               "stop": 90.0, "target1": 120.0, "target2": 140.0,
-               "highest_price_seen": 121.0, "peak_gain_pct": 21.0,
-               "status": "active"}
-        with tempfile.TemporaryDirectory() as d:
-            with patch.dict(os.environ, {"DATA_DIR": d}):
-                alerts, _ = pm.apply_minervini_rules(pos, current_price=119.0, atr=2.0)
-            with open(os.path.join(d, "recent_events.json")) as f:
-                data = json.load(f)
-        evs = [e for e in data["events"] if e["category"] == "breakeven"]
-        self.assertEqual(len(evs), 1)
-        self.assertEqual(evs[0]["severity"], "low")
-
-    def test_target1_fires_event(self):
-        import tempfile, os, json
-        pos = {"ticker": "SMCI", "entry_price": 100.0, "shares": 5,
-               "stop": 90.0, "target1": 120.0, "target2": 140.0,
-               "highest_price_seen": 121.0, "peak_gain_pct": 21.0,
-               "breakeven_stop_activated": True,
-               "status": "active"}
-        with tempfile.TemporaryDirectory() as d:
-            with patch.dict(os.environ, {"DATA_DIR": d}):
-                with patch.object(pm, "_save_winner_chart", return_value=None):
-                    alerts, _ = pm.apply_minervini_rules(pos, current_price=121.0, atr=2.0)
-            with open(os.path.join(d, "recent_events.json")) as f:
-                data = json.load(f)
-        evs = [e for e in data["events"] if e["category"] == "target_hit"]
-        self.assertGreaterEqual(len(evs), 1)
-        self.assertEqual(evs[0]["severity"], "low")
 
 
 if __name__ == "__main__":
