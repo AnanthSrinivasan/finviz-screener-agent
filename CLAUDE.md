@@ -43,6 +43,11 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
+**Shared rules engine — `agents/trading/rules.py`** (used by paper monitor; live position_monitor parity port pending):
+- `apply_position_rules()` — per-tick trail/breakeven/targets/fade. **Breakeven trigger keys off `peak_gain_pct`** (one-way lock once peak hits +20%, even if price has already faded). ATR incremental trail (silent, pre-breakeven). 10% trail at peak +30%. Target1/T2 alerts. 1×ATR fade alert.
+- `check_ma_trail_alert()` — Layer 1b ATR%-tiered MA trail (alert-only): low-vol (≤5%) regime EMA close-below (21 EMA GREEN/THRUST/CAUTION, 8 EMA COOLING); mid-vol (5-8%) 8 EMA close-below; high-vol (>8%) 10% pct trail from peak. RED/DANGER/BLACKOUT skipped. Caller passes daily closes.
+- `update_sizing_mode()` / `record_trade_result()` — streak → mode transitions and recent_trades append. Neutral band `|result_pct| < 1.0%` does not bump streaks.
+
 **Supporting files:**
 - `utils/generate_index.py` — Generates GitHub Pages index
 - `utils/calibrate_peel.py` — Per-ticker peel threshold calibration. Formula: `(close-SMA50)*close/(SMA50*ATR14)` matching TradingView "ATR% Multiple". Finds historical run peaks (continuous periods above 50MA), computes p75 as signal threshold (floor 10x), p75×0.75 as warn (floor 7.5x). CLI: `--mode positions|watchlist|all`. Runs daily (positions) and weekly (watchlist). Output: `data/peel_calibration.json`.
@@ -188,7 +193,8 @@ data/
   positions.json                          # Rules engine state (open/closed positions, stops, targets)
   trading_state.json                      # Win/loss streaks, sizing mode, recent trades
   watchlist.json                          # Market pulse watchlist (auto-populated by screener + manual entries)
-  paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit}}
+  paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit, pending_close}}
+  paper_trading_state.json                # Paper streaks/sizing — independent from live trading_state.json. Same schema (consecutive_wins/losses, current_sizing_mode, recent_trades). Drives executor's size_mul + suspended block.
   hidden_growth.json                      # Today's Hidden Growth candidates (overwritten daily) — {date, candidates: [{ticker, signal_score, criteria, eps_yy_ttm, eps_qq, inst_trans, appearances}]}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
   market_monitor_history.json             # Rolling 30-day breadth history
@@ -214,6 +220,7 @@ data/
 | ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
 | Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme (warn at ~75% of signal) |
 | Entry gate (extended) | `alpaca_executor.py` blocks new entry when ATR multiple > per-ticker `peel_warn` (from `peel_calibration.json`). Falls back to ATR% tier warn when ticker is uncalibrated. Slack notes `calibrated` vs `tier` source. |
+| Paper market-state gate | `alpaca_executor.py` reads `market_state` from `market_monitor_history.json` (single source of truth — replaced the old SPY/SMA200 check). RED/DANGER/BLACKOUT → no buys, but still posts a Slack alert listing top-5 would-have candidates ("your call"). CAUTION/COOLING → half size. GREEN/THRUST → full. Sizing mode overlays: `suspended` blocks entirely, `reduced` clamps size_mul ≤ 0.25, `aggressive` boosts to 1.25× in GREEN/THRUST. |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
 | ATR incremental trail | From entry onwards: stop = max(stop, price − 2×ATR). Silent. Disabled at +20% (breakeven takes over) |

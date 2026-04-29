@@ -586,7 +586,8 @@ data/
   market_monitor_history.json              # rolling 30-day history (weekly agent reads this)
   positions_YYYY-MM-DD.json                # real Robinhood position snapshots (via SnapTrade)
   watchlist.json                           # market pulse watchlist — manual entries + auto-populated by screener
-  paper_stops.json                         # paper state {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit}}
+  paper_stops.json                         # paper state {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit, pending_close}}
+  paper_trading_state.json                 # paper streaks/sizing — independent from live trading_state.json (consecutive_wins/losses, current_sizing_mode, recent_trades). Drives executor's size_mul + suspended block.
 ```
 
 Volume is ~100–200 tickers/day. GitHub Actions reads/writes CSV natively. Reports are static HTML on GitHub Pages. No server, no cost, fully auditable via git history.
@@ -748,7 +749,11 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 **Trigger:** `workflow_run` on Daily Finviz Screener success + manual `workflow_dispatch`
 
 **Flow:**
-1. SPY regime check (Finviz SMA200 %) — RED exits immediately
+1. **Market state gate** (replaces old SPY/SMA200 check). Reads latest `market_state` from `data/market_monitor_history.json`:
+   - **RED / DANGER / BLACKOUT** → no buys, but post a Slack alert listing top-5 would-have-bought candidates ("your call"). Sizing-mode `suspended` overlays the same block.
+   - **CAUTION / COOLING** → continue, `size_mul = 0.5` (half size)
+   - **GREEN / THRUST** → continue, `size_mul = 1.0`
+   - Sizing overlays from `paper_trading_state.json`: `reduced` clamps `size_mul ≤ 0.25`; `aggressive` boosts to 1.25× in GREEN/THRUST.
 2. Cancel stale GTC buy orders older than 2 days (avoids fills on outdated entries)
 3. Load today's enriched CSV + merge watchlist tickers from `daily_quality_YYYY-MM-DD.json` — ensures high-Q watchlist names get evaluated even if not in today's raw screener
 4. Pre-filter: Q≥60 + Stage 2, cap at top 10 candidates by Q score
@@ -778,20 +783,29 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 
 **Trigger:** Runs as a step inside `position-monitor.yml` (after SnapTrade monitor)
 
-**For each open Alpaca paper position:**
-1. Migrate `paper_stops.json` entry to full schema (`highest_price_seen`, `peak_gain_pct`, `breakeven_activated`, `target1` = entry × 1.20, `target2` = entry × 1.40, `target1_hit`). Idempotent — runs on every invocation, no-ops for already-migrated entries.
-2. Fetch today's intraday high (Finviz "Range") and ATR% via `fetch_position_metrics`.
-3. Apply trailing rules (`apply_paper_rules`):
-   - ATR trail (silent): `stop_price = max(stop, price − 2×ATR)` while profitable and pre-breakeven
-   - Breakeven at +20% gain: stop → `entry × 1.005`, `breakeven_activated=True`, disables ATR trail
-   - +30% trail: `stop = highest_price_seen × 0.90` (10% from intraday high)
-   - Target 1 alert at +20%, Target 2 alert at +40% (one-shot via `target1_hit` flag)
-   - 1×ATR fade alert: fires when `peak_gain_pct ≥ 20% AND current_price < highest_price_seen − 1×ATR`. Every-run with 5pp dedup
-4. After rules: stop hit (`current_price ≤ stop_price`) → market sell
-5. Stage 3 or 4 in latest screener CSV → market sell
-6. Otherwise → hold, log P&L to Slack with `[PAPER]` context, showing stop, peak gain, T1/T2 status
+**Pre-loop pass (every run):**
+- **Close-detection** — for any ticker in `paper_stops.json` not present in Alpaca positions, fetch the most recent SELL fill (Alpaca closed-orders API, last 7 days). Compute `result_pct = (exit − entry) / entry × 100`. Append to `recent_trades` and update streaks via `rules.record_trade_result`. Falls back to `highest_price_seen` if no fill found (`source=peak_fallback`). Emits a `:checkered_flag: [PAPER] CLOSED` Slack line per ticker, then pops from stops.
+- **Sizing mode update** — `rules.update_sizing_mode(paper_state, market_state)` recomputes `current_sizing_mode` from streaks; transitions emit Slack alerts.
 
-Updates `paper_stops.json` with trailing stop raises, flags, and removes exited positions.
+**For each open Alpaca paper position:**
+1. Migrate `paper_stops.json` entry to full schema (idempotent).
+2. Fetch today's intraday high (Finviz "Range") and ATR%.
+3. Apply trailing rules via shared `rules.apply_position_rules` (now used by paper; live port pending):
+   - **Breakeven trigger keys off `peak_gain_pct`**, not live `gain_pct` — once peak hits +20%, lock to `entry × 1.005` even if price has already faded (fixes the GEV-class miss).
+   - ATR incremental trail (silent, pre-breakeven): `stop = max(stop, price − 2×ATR)`.
+   - Peak +30%: `stop = max(stop, highest_price_seen × 0.90)`.
+   - Target 1 / T2 alerts; 1×ATR fade alert (5pp dedup).
+4. **Post-close run only (≥21:00 UTC weekday)** — call `rules.check_ma_trail_alert` with last 60 daily Alpaca closes. Tier rules:
+   - ATR% ≤ 5% → regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION, 8 EMA in COOLING; GREEN/THRUST need 2 consecutive)
+   - 5% < ATR% ≤ 8% → 8 EMA close-below (1 close)
+   - ATR% > 8% → 10% trail from `highest_price_seen`
+   - RED/DANGER/BLACKOUT → skipped (existing ATR stops are tighter)
+   - Alert-only (`:warning: [PAPER] MA TRAIL`); does not place sell.
+5. Stop hit → market sell. SELL placement marks `pending_close=True` (entry kept so close-detection can compute `result_pct` from the actual fill).
+6. Stage 3/4 in latest screener CSV → market sell.
+7. Otherwise → hold, log P&L to Slack with `[PAPER]` context.
+
+Saves `paper_stops.json` and `paper_trading_state.json` at end of run.
 
 After the monitor loop finishes, calls `utils/generators/generate_portfolio.py` (non-fatal) to rebuild `data/claude_portfolio.html`.
 

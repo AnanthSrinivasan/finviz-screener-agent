@@ -38,8 +38,22 @@ ALPACA_DATA_URL   = "https://data.alpaca.markets/v2"
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
+PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
+MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 MAX_POSITIONS     = 5
+
+# Market state → (block_entries, size_multiplier)
+# Mirrors the live position_monitor's Rule 6 / regime-conditioning policy.
+_MARKET_GATE = {
+    "BLACKOUT": (True,  0.0),  # seasonal freeze
+    "DANGER":   (True,  0.0),
+    "RED":      (True,  0.0),
+    "COOLING":  (False, 0.5),  # trim/tighten regime — half size
+    "CAUTION":  (False, 0.5),  # half size
+    "GREEN":    (False, 1.0),
+    "THRUST":   (False, 1.0),
+}
 
 # ATR% tier fallback for peel warn — mirrors PEEL_THRESHOLDS in position_monitor.py.
 # Used only when the ticker is not present (or not calibrated) in peel_calibration.json.
@@ -96,8 +110,37 @@ def slack_send(text: str):
 
 
 # ----------------------------
-# Step 1: Regime Check
+# Step 1: Market state (breadth) — single source of truth
 # ----------------------------
+def load_market_state() -> str:
+    """Read latest market_state from market_monitor_history.json.
+    Defaults to RED on failure (safe-by-default — same posture as old SPY/SMA200 fallback)."""
+    try:
+        with open(MARKET_HISTORY_FILE) as f:
+            h = json.load(f)
+        hist = h if isinstance(h, list) else h.get("history", [])
+        if hist:
+            state = hist[-1].get("market_state") or "RED"
+            log.info("Market state (from market_monitor_history): %s", state)
+            return state
+    except Exception as e:
+        log.warning("Could not load market_monitor_history: %s — defaulting RED", e)
+    return "RED"
+
+
+def load_paper_trading_state() -> dict:
+    if os.path.exists(PAPER_TRADING_STATE_FILE):
+        try:
+            with open(PAPER_TRADING_STATE_FILE) as f:
+                return json.load(f)
+        except Exception as e:
+            log.warning("Could not load paper_trading_state: %s", e)
+    return {
+        "consecutive_wins": 0, "consecutive_losses": 0,
+        "current_sizing_mode": "normal", "recent_trades": [],
+    }
+
+
 def get_spy_regime() -> tuple:
     """
     Returns (regime, spy_price, sma200_approx).
@@ -522,21 +565,19 @@ if __name__ == "__main__":
 
     log.info("=== Alpaca executor starting — %s ===", today)
 
-    # Step 1: Regime check
-    regime, spy_price, sma200 = get_spy_regime()
-    if regime == "RED":
-        msg = (
-            ":red_circle: *REGIME RED* — SPY ("
-            + str(round(spy_price, 2))
-            + ") below 200-day SMA ("
-            + str(round(sma200, 2))
-            + "). No new buys today."
-        )
-        log.info(msg)
-        slack_send(msg)
-        raise SystemExit(0)
+    # Step 1: Market state gate (breadth-based — single source of truth)
+    market_state    = load_market_state()
+    block, size_mul = _MARKET_GATE.get(market_state, (True, 0.0))
+    paper_state     = load_paper_trading_state()
+    sizing_mode     = paper_state.get("current_sizing_mode", "normal")
 
-    log.info("Regime GREEN — SPY %.2f above SMA200 %.2f", spy_price, sma200)
+    # Sizing mode overlays on top of market gate
+    if sizing_mode == "suspended":
+        block = True
+    elif sizing_mode == "reduced":
+        size_mul = min(size_mul, 0.25)  # 5% of equity ≈ ¼ of normal 20% base
+    elif sizing_mode == "aggressive" and size_mul == 1.0:
+        size_mul = 1.25
 
     # Step 2: Load screener CSV + merge watchlist tickers
     rows = load_screener_csv(today)
@@ -598,6 +639,31 @@ if __name__ == "__main__":
     log.info("%d candidates after Q≥60 + Stage 2 filter, evaluating top %d", len(pre_filtered), MAX_CANDIDATES)
     sorted_rows = pre_filtered[:MAX_CANDIDATES]
 
+    # Market-state gate: in RED/DANGER/BLACKOUT (or sizing=suspended), don't trade —
+    # but post a Slack alert listing the would-have-bought candidates so the human
+    # can decide. Mirrors live's "no entries in RED" rule with an informational layer.
+    if block:
+        if sorted_rows:
+            lines = [
+                ":no_entry: *PAPER ENTRIES BLOCKED* — market " + market_state
+                + (", sizing " + sizing_mode if sizing_mode != "normal" else "")
+                + ". " + str(len(sorted_rows)) + " candidate(s) — your call:"
+            ]
+            for r in sorted_rows[:5]:
+                tk = r.get("Ticker", "").strip()
+                qs = int(r.get("Quality Score", 0))
+                atr = round(r.get("ATR%", 0) or 0, 1)
+                lines.append("• " + tk + " — Q=" + str(qs) + " ATR=" + str(atr) + "%")
+            slack_send("\n".join(lines))
+        else:
+            slack_send(
+                ":no_entry: *PAPER ENTRIES BLOCKED* — market " + market_state
+                + ". No qualifying candidates today."
+            )
+        raise SystemExit(0)
+
+    log.info("Market %s | sizing %s | size_mul=%.2f", market_state, sizing_mode, size_mul)
+
     for row in sorted_rows:
         ticker = (row.get("Ticker") or "").strip()
         if not ticker:
@@ -615,7 +681,7 @@ if __name__ == "__main__":
 
         # Compute allocation
         vcp_dict     = row.get("VCP", {})
-        dollar_alloc = compute_allocation(qs, vcp_dict, portfolio_equity)
+        dollar_alloc = compute_allocation(qs, vcp_dict, portfolio_equity) * size_mul
         if dollar_alloc <= 0:
             log.info("Skipping %s — no allocation (Q=%.0f)", ticker, qs)
             continue
@@ -714,8 +780,8 @@ if __name__ == "__main__":
     # Step 8: Summary
     slack_send(
         ":bar_chart: *Alpaca Executor Summary — " + today + "*\n"
-        "Regime: GREEN (SPY " + str(round(spy_price, 2))
-        + " > SMA200 " + str(round(sma200, 2)) + ")\n"
+        "Market: " + market_state + " | Mode: " + sizing_mode
+        + " | Size multiplier: " + str(size_mul) + "x\n"
         "Positions opened today: *" + str(orders_placed) + "*\n"
         "Total deployed: *$" + str(int(total_deployed)) + "*\n"
         "Cash remaining: *$" + str(int(buying_power)) + "*"

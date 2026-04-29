@@ -16,6 +16,8 @@ import logging
 import datetime
 import requests
 
+from agents.trading import rules
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -28,6 +30,8 @@ ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
+PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
+MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 
 
 def alpaca_headers() -> dict:
@@ -167,104 +171,110 @@ def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
 
 def apply_paper_rules(ticker: str, entry: dict, current_price: float,
                      day_high: float, atr_pct: float) -> tuple:
-    """
-    Apply trailing stop rules to a paper position. Mirrors apply_minervini_rules
-    but writes to paper_stops dict shape and returns (alerts, modified).
-    Rules: ATR trail (silent) → breakeven at +20% → 10% trail at +30% → fade alert at peak-1×ATR.
-    """
-    alerts = []
-    modified = False
-    entry_price = entry.get("entry_price", 0) or 0
-    if entry_price <= 0 or current_price <= 0:
-        return alerts, modified
+    """Thin shim — delegates to the shared rules engine."""
+    return rules.apply_position_rules(ticker, entry, current_price, day_high,
+                                      atr_pct, label_prefix="PAPER")
 
-    atr_dollar = entry_price * (atr_pct / 100.0) if atr_pct > 0 else 0
-    # Use the higher of current price or today's intraday high
-    high_candidate = max(current_price, day_high or current_price)
-    prev_high = entry.get("highest_price_seen", entry_price)
-    if high_candidate > prev_high:
-        entry["highest_price_seen"] = round(high_candidate, 2)
-        prev_high = entry["highest_price_seen"]
-        modified = True
 
-    gain_pct = (current_price - entry_price) / entry_price * 100
-    peak_gain_pct = (prev_high - entry_price) / entry_price * 100
-    if peak_gain_pct > entry.get("peak_gain_pct", 0.0):
-        entry["peak_gain_pct"] = round(peak_gain_pct, 2)
-        modified = True
+# ----------------------------
+# Market state (read-only — written by market_monitor)
+# ----------------------------
+def load_market_state() -> str:
+    """Return latest persisted market_state, or 'GREEN' if unknown (don't gate exits)."""
+    try:
+        with open(MARKET_HISTORY_FILE) as f:
+            h = json.load(f)
+        hist = h if isinstance(h, list) else h.get("history", [])
+        if hist:
+            return hist[-1].get("market_state") or "GREEN"
+    except Exception as e:
+        log.warning("Could not load market_monitor_history: %s", e)
+    return "GREEN"
 
-    current_stop = float(entry.get("stop_price") or 0)
 
-    # ATR trail (silent, pre-breakeven only)
-    if atr_dollar > 0 and gain_pct > 0 and not entry.get("breakeven_activated"):
-        atr_trail = round(current_price - 2 * atr_dollar, 2)
-        if atr_trail > current_stop:
-            entry["stop_price"] = atr_trail
-            current_stop = atr_trail
-            modified = True
+# ----------------------------
+# Paper trading state (streaks / sizing — separate from live trading_state.json)
+# ----------------------------
+def load_paper_trading_state() -> dict:
+    if os.path.exists(PAPER_TRADING_STATE_FILE):
+        try:
+            with open(PAPER_TRADING_STATE_FILE) as f:
+                return json.load(f)
+        except Exception as e:
+            log.warning("Could not load paper_trading_state: %s", e)
+    return {
+        "consecutive_wins": 0, "consecutive_losses": 0,
+        "total_wins": 0, "total_losses": 0,
+        "current_sizing_mode": "normal", "sizing_override": None,
+        "last_updated": "", "recent_trades": [],
+    }
 
-    # Breakeven at +20%
-    if gain_pct >= 20 and not entry.get("breakeven_activated"):
-        be_stop = round(entry_price * 1.005, 2)
-        if be_stop > current_stop:
-            entry["stop_price"] = be_stop
-            current_stop = be_stop
-        entry["breakeven_activated"] = True
-        modified = True
-        alerts.append(
-            ":lock: [PAPER] " + ticker + " +" + str(round(gain_pct, 1))
-            + "% — stop moved to breakeven $" + str(be_stop)
+
+def save_paper_trading_state(state: dict):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(PAPER_TRADING_STATE_FILE, "w") as f:
+        json.dump(state, f, indent=2)
+    log.info("paper_trading_state.json saved (mode=%s, w=%d l=%d).",
+             state.get("current_sizing_mode"),
+             state.get("consecutive_wins", 0),
+             state.get("consecutive_losses", 0))
+
+
+# ----------------------------
+# Recent SELL fills — for close-detection result recording
+# ----------------------------
+def fetch_recent_sell_fill(ticker: str, lookback_days: int = 7) -> float:
+    """Return filled_avg_price of the most recent filled SELL for ticker, or 0.0."""
+    try:
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=lookback_days)
+        resp = requests.get(
+            f"{ALPACA_BASE_URL}/orders",
+            headers=alpaca_headers(),
+            params={
+                "status":    "closed",
+                "limit":     100,
+                "direction": "desc",
+                "symbols":   ticker,
+                "after":     cutoff.isoformat(),
+            },
+            timeout=10,
         )
+        if not resp.ok:
+            log.warning("Could not fetch closed orders for %s: %s", ticker, resp.status_code)
+            return 0.0
+        for o in resp.json():
+            if o.get("side") == "sell" and o.get("filled_avg_price"):
+                return float(o["filled_avg_price"])
+    except Exception as e:
+        log.warning("fetch_recent_sell_fill(%s) failed: %s", ticker, e)
+    return 0.0
 
-    # +30% trail from highest (10% from high)
-    if gain_pct >= 30:
-        trail_stop = round(prev_high * 0.90, 2)
-        if trail_stop > current_stop:
-            entry["stop_price"] = trail_stop
-            current_stop = trail_stop
-            modified = True
-            alerts.append(
-                ":chart_with_upwards_trend: [PAPER] " + ticker + " +"
-                + str(round(gain_pct, 1)) + "% — trailing stop raised to $"
-                + str(trail_stop)
-            )
 
-    # Targets
-    t1 = entry.get("target1", 0) or 0
-    if t1 > 0 and current_price >= t1 and not entry.get("target1_hit"):
-        entry["target1_hit"] = True
-        modified = True
-        alerts.append(
-            ":dart: [PAPER] " + ticker + " HIT TARGET 1 $" + str(t1)
-            + " — consider selling half, move stop to breakeven"
+# ----------------------------
+# MA trail (post-close alert layer — Layer 1b)
+# ----------------------------
+def fetch_daily_closes(ticker: str, limit: int = 30) -> list:
+    """Last N completed daily closes from Alpaca, oldest first."""
+    try:
+        resp = requests.get(
+            "https://data.alpaca.markets/v2/stocks/" + ticker + "/bars",
+            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            headers=alpaca_headers(),
+            timeout=8,
         )
+        if not resp.ok:
+            return []
+        bars = resp.json().get("bars", []) or []
+        return [float(b["c"]) for b in bars if b.get("c") is not None]
+    except Exception as e:
+        log.warning("fetch_daily_closes(%s) failed: %s", ticker, e)
+        return []
 
-    t2 = entry.get("target2", 0) or 0
-    if t2 > 0 and current_price >= t2:
-        alerts.append(
-            ":dart::dart: [PAPER] " + ticker + " HIT TARGET 2 $" + str(t2)
-            + " — trail remaining position tightly"
-        )
 
-    # 1×ATR fade alert (peak >= +20% AND price dropped 1 ATR below high)
-    peak_gain = entry.get("peak_gain_pct", 0.0)
-    if atr_dollar > 0 and peak_gain >= 20 and current_price < (prev_high - atr_dollar):
-        last_fade = entry.get("last_fade_alert_gain_pct")
-        if last_fade is None or (last_fade - gain_pct) >= 5:
-            given_back = peak_gain - gain_pct
-            alerts.append(
-                ":warning: [PAPER] " + ticker + " fading — peak +"
-                + str(round(peak_gain, 1)) + "%, now +"
-                + str(round(gain_pct, 1)) + "% (gave back "
-                + str(round(given_back, 1)) + "pp)"
-            )
-            entry["last_fade_alert_gain_pct"] = round(gain_pct, 2)
-            modified = True
-    elif "last_fade_alert_gain_pct" in entry:
-        entry.pop("last_fade_alert_gain_pct", None)
-        modified = True
-
-    return alerts, modified
+def is_post_close_run() -> bool:
+    """True once per weekday after 21:00 UTC (matches the 22:00 UTC monitor tick)."""
+    now = datetime.datetime.now(datetime.timezone.utc)
+    return now.weekday() < 5 and now.hour >= 21
 
 
 def fetch_day_high_atr(ticker: str) -> tuple:
@@ -291,16 +301,60 @@ if __name__ == "__main__":
         slack_send(":x: *Alpaca monitor failed* — missing API credentials")
         raise SystemExit(1)
 
-    positions = get_positions()
+    positions     = get_positions()
+    market_state  = load_market_state()
+    stops         = load_stops()
+    paper_state   = load_paper_trading_state()
+    open_symbols  = {p.get("symbol", "") for p in positions}
+
+    # Close-detection: tickers in stops but no longer in Alpaca positions.
+    # Record win/loss/breakeven into paper_trading_state and pop from stops.
+    closed_records = []
+    for ticker in list(stops.keys()):
+        if ticker in open_symbols:
+            continue
+        info       = stops[ticker]
+        entry_px   = float(info.get("entry_price") or 0)
+        if entry_px <= 0:
+            stops.pop(ticker, None)
+            continue
+        exit_px = fetch_recent_sell_fill(ticker)
+        source  = "fill"
+        if exit_px <= 0:
+            exit_px = float(info.get("highest_price_seen") or entry_px)
+            source  = "peak_fallback"
+        result_pct = (exit_px - entry_px) / entry_px * 100
+        rules.record_trade_result(paper_state, ticker, result_pct, today, "SELL", source)
+        closed_records.append((ticker, entry_px, exit_px, result_pct, source))
+        stops.pop(ticker, None)
+
+    for ticker, entry_px, exit_px, result_pct, src in closed_records:
+        sign = "+" if result_pct >= 0 else ""
+        slack_send(
+            ":checkered_flag: *[PAPER] CLOSED* " + ticker
+            + " entry $" + str(round(entry_px, 2))
+            + " → exit $" + str(round(exit_px, 2))
+            + " (" + sign + str(round(result_pct, 1)) + "%, " + src + ")"
+        )
+
+    sizing_alerts = rules.update_sizing_mode(paper_state, market_state)
+    for a in sizing_alerts:
+        slack_send("[PAPER] " + a)
 
     if not positions:
         log.info("No open paper positions to monitor.")
-        slack_send(":bar_chart: *Alpaca Monitor " + today + "* — No open positions.")
+        slack_send(
+            ":bar_chart: *Alpaca Monitor " + today + "* — No open positions. "
+            "Mode: " + paper_state.get("current_sizing_mode", "normal")
+        )
+        save_paper_trading_state(paper_state)
+        save_stops(stops)
         raise SystemExit(0)
 
-    log.info("Monitoring %d position(s)", len(positions))
-    stops        = load_stops()
+    log.info("Monitoring %d position(s) — market %s, mode %s",
+             len(positions), market_state, paper_state.get("current_sizing_mode"))
     sells_placed = 0
+    post_close   = is_post_close_run()
 
     for pos in positions:
         ticker      = pos.get("symbol", "")
@@ -325,6 +379,23 @@ if __name__ == "__main__":
         for msg in rule_alerts:
             slack_send(msg)
 
+        # Layer 1b — post-close MA trail alert (alert-only, human decides)
+        if post_close:
+            closes = fetch_daily_closes(ticker, limit=60)
+            ma_alert = rules.check_ma_trail_alert(
+                closes, market_state,
+                atr_pct=stop_info.get("atr_pct", atr_pct),
+                highest_price_seen=stop_info.get("highest_price_seen", 0.0),
+            )
+            if ma_alert:
+                slack_send(
+                    ":warning: *[PAPER] MA TRAIL* " + ticker
+                    + " — close $" + str(ma_alert["last_close"])
+                    + " < " + ma_alert["ma_type"] + " $" + str(ma_alert["last_ema"])
+                    + " (" + ma_alert["tier"] + ", " + str(ma_alert["consecutive"])
+                    + "x consec) — your call"
+                )
+
         stop_price = stop_info.get("stop_price")
         sell_reason = None
 
@@ -347,7 +418,9 @@ if __name__ == "__main__":
             result = place_sell(ticker, qty)
             if result:
                 sells_placed += 1
-                stops.pop(ticker, None)
+                # Mark for close-detection on next run; entry kept so we can
+                # compute result_pct from the actual fill price (not pop now).
+                stop_info["pending_close"] = True
 
                 pl_sign  = "+" if pl_dollar >= 0 else ""
                 pct_sign = "+" if pl_pct    >= 0 else ""
@@ -387,9 +460,14 @@ if __name__ == "__main__":
             )
 
     save_stops(stops)
+    save_paper_trading_state(paper_state)
 
     slack_send(
         ":bar_chart: *Alpaca Monitor Summary — " + today + "*\n"
+        "Market: " + market_state + " | Mode: "
+        + paper_state.get("current_sizing_mode", "normal")
+        + " (W:" + str(paper_state.get("consecutive_wins", 0))
+        + " L:" + str(paper_state.get("consecutive_losses", 0)) + ")\n"
         "Positions monitored: " + str(len(positions)) + "\n"
         "Sells placed: " + str(sells_placed)
     )
