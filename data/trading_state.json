@@ -5,7 +5,7 @@
   "total_losses": 1,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-04-27",
+  "last_updated": "2026-04-29",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -44,6 +44,15 @@
       "result": "loss",
       "result_pct": -14.01,
       "date": "2026-04-27",
+      "side": "SELL",
+      "source": "auto_detected"
+    },
+    {
+      "ticker": "MU",
+      "result": "neutral",
+      "result_pct": 0.64,
+      "profit_loss_usd": 64.8,
+      "date": "2026-04-29",
       "side": "SELL",
       "source": "auto_detected"
     }
