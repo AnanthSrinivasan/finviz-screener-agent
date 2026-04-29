@@ -12,15 +12,35 @@
     "target1_hit": false
   },
   "SNDK": {
-    "stop_price": 946.86,
+    "stop_price": 962.69,
     "entry_price": 1069.93,
     "atr_pct": 5.751261446458606,
     "entry_date": "2026-04-27",
-    "highest_price_seen": 1069.93,
-    "peak_gain_pct": 0.0,
+    "highest_price_seen": 1102.25,
+    "peak_gain_pct": 3.02,
     "breakeven_activated": false,
     "target1": 1283.92,
     "target2": 1497.9,
     "target1_hit": false
+  },
+  "CECO": {
+    "entry_price": 73.705631,
+    "highest_price_seen": 74.53,
+    "peak_gain_pct": 1.12,
+    "breakeven_activated": false,
+    "target1": 88.45,
+    "target2": 103.19,
+    "target1_hit": false,
+    "atr_pct": 4.89
+  },
+  "GEV": {
+    "entry_price": 1089.01,
+    "highest_price_seen": 1107.0,
+    "peak_gain_pct": 1.65,
+    "breakeven_activated": false,
+    "target1": 1306.81,
+    "target2": 1524.61,
+    "target1_hit": false,
+    "atr_pct": 4.51
   }
 }

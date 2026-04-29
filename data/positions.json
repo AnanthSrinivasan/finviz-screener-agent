@@ -14,7 +14,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 172.75,
-      "current_gain_pct": 18.33,
+      "current_gain_pct": 26.3,
       "peak_gain_pct": 51.07,
       "last_fade_alert_gain_pct": 18.34
     },
@@ -32,7 +32,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "stop_hit",
       "highest_price_seen": 178.99,
-      "current_gain_pct": -8.64,
+      "current_gain_pct": -10.43,
       "peak_gain_pct": 7.12
     },
     {
@@ -49,7 +49,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 531.32,
-      "current_gain_pct": -0.36,
+      "current_gain_pct": 3.1,
       "peak_gain_pct": 7.92,
       "first_entry_price": 492.33
     },
@@ -65,9 +65,9 @@
       "target1_hit": false,
       "target2": 23.31,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "stop_hit",
+      "status": "active",
       "highest_price_seen": 17.43,
-      "current_gain_pct": -9.79,
+      "current_gain_pct": -8.29,
       "peak_gain_pct": 6.54
     },
     {
@@ -75,8 +75,8 @@
       "shares": 250,
       "entry_price": 34.15,
       "entry_date": "2026-04-27",
-      "stop": 31.88,
-      "stop_type": "auto_50ma",
+      "stop": 31.99,
+      "stop_type": "atr_trail",
       "breakeven_stop_activated": false,
       "target1": 40.98,
       "target1_hit": false,
@@ -84,7 +84,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 35.33,
-      "current_gain_pct": 0.82,
+      "current_gain_pct": 1.05,
       "first_entry_price": 34.2,
       "peak_gain_pct": 3.46
     },
@@ -102,9 +102,27 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 214.72,
-      "current_gain_pct": -0.37,
+      "current_gain_pct": -1.38,
       "first_entry_price": 213.97,
       "peak_gain_pct": 0.35
+    },
+    {
+      "ticker": "CRWV",
+      "shares": 50,
+      "entry_price": 112.73,
+      "entry_date": "2026-04-29",
+      "stop": 91.81,
+      "stop_type": "auto_50ma",
+      "breakeven_stop_activated": false,
+      "target1": 135.28,
+      "target1_hit": false,
+      "target2": 157.82,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 115.04,
+      "current_gain_pct": -0.55,
+      "first_entry_price": 112.73,
+      "peak_gain_pct": 2.05
     }
   ],
   "closed_positions": [
