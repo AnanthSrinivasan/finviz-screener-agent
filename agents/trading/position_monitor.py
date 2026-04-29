@@ -1039,6 +1039,15 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
     )
     if eng_modified:
         modified = True
+
+    # Denormalised cache the dashboard reads (positions.json has no live quote
+    # of its own). Refresh after engine updates so the published HTML shows
+    # current gain%.
+    new_gain = round((current_price - entry) / entry * 100, 2) if entry else 0
+    if new_gain != position.get("current_gain_pct"):
+        position["current_gain_pct"] = new_gain
+        modified = True
+
     for ev in events:
         alerts.append(ev["message"])
         kind = ev.get("kind")
