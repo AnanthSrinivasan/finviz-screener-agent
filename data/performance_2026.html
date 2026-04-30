@@ -42,16 +42,16 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
 <body>
 <div class="page-wrap">
   <h1>Performance Overview — 2026 YTD</h1>
-  <div class="subtitle">Robinhood account · realized trades · system fills bridge broker lag (blue badge) · generated 2026-04-30 21:10</div>
+  <div class="subtitle">Robinhood account · realized trades · system fills bridge broker lag (blue badge) · generated 2026-04-30 21:38</div>
 
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-label">Realized P&amp;L</div>
-      <div class="stat-val neg">$-36,442</div>
+      <div class="stat-val neg">$-37,077</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Win Rate</div>
-      <div class="stat-val">38.6%</div>
+      <div class="stat-val">37.8%</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Win</div>
@@ -59,7 +59,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Loss</div>
-      <div class="stat-val neg">$-1,627</div>
+      <div class="stat-val neg">$-1,591</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Profit Factor</div>
@@ -67,7 +67,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
     </div>
     <div class="stat-card">
       <div class="stat-label">Trades</div>
-      <div class="stat-val">17W / 27L</div>
+      <div class="stat-val">17W / 28L</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Best Trade</div>
@@ -107,6 +107,16 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td>Apr 30, 2026</td>
+          <td class="ticker-col">NVDA <span class="sys-badge">pending broker</span></td>
+          <td>50</td>
+          <td>$10,063.50</td>
+          <td>$10,698.50</td>
+          <td class="neg pnl-col">$-635</td>
+          <td class="neg">-5.9%</td>
+          <td>Apr 28</td>
+        </tr>
         <tr>
           <td>Apr 29, 2026</td>
           <td class="ticker-col">MU <span class="sys-badge">pending broker</span></td>
@@ -596,8 +606,8 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
 
 <script>
 const eqCtx = document.getElementById('eqChart').getContext('2d');
-const eqLabels = ["Jan 02", "Jan 02", "Jan 02", "Jan 02", "Jan 05", "Jan 08", "Jan 13", "Jan 15", "Jan 20", "Jan 20", "Jan 21", "Jan 29", "Jan 29", "Jan 30", "Feb 02", "Feb 03", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 05", "Feb 05", "Feb 05", "Feb 06", "Feb 11", "Feb 11", "Feb 11", "Feb 11", "Mar 05", "Mar 19", "Mar 19", "Mar 19", "Mar 20", "Mar 20", "Mar 23", "Mar 23", "Mar 23", "Mar 27", "Mar 27", "Apr 22", "Apr 22", "Apr 22", "Apr 24", "Apr 24", "Apr 27", "Apr 27", "Apr 29"];
-const eqData   = [-0.42, -0.01, 2.39, 2.47, 324.75, 52.36, 573.84, -2141.44, -2171.96, -2535.98, -2403.5, -2217.82, -1630.35, -1076.41, -995.45, -1602.99, -3572.51, -4425.5, -5748.91, -5872.26, -7090.78, -12566.03, -13589.05, -14612.07, -19153.17, -21062.32, -21271.34, -22893.88, -22908.4, -20853.42, -21780.44, -22797.6, -22872.5, -26606.58, -38094.7, -37975.81, -37841.74, -37714.26, -38029.36, -38417.38, -37910.45, -37408.37, -36626.27, -36506.9, -36508.04, -36004.04, -36686.84, -36439.44];
+const eqLabels = ["Jan 02", "Jan 02", "Jan 02", "Jan 02", "Jan 05", "Jan 08", "Jan 13", "Jan 15", "Jan 20", "Jan 20", "Jan 21", "Jan 29", "Jan 29", "Jan 30", "Feb 02", "Feb 03", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 05", "Feb 05", "Feb 05", "Feb 06", "Feb 11", "Feb 11", "Feb 11", "Feb 11", "Mar 05", "Mar 19", "Mar 19", "Mar 19", "Mar 20", "Mar 20", "Mar 23", "Mar 23", "Mar 23", "Mar 27", "Mar 27", "Apr 22", "Apr 22", "Apr 22", "Apr 24", "Apr 24", "Apr 27", "Apr 27", "Apr 29", "Apr 30"];
+const eqData   = [-0.42, -0.01, 2.39, 2.47, 324.75, 52.36, 573.84, -2141.44, -2171.96, -2535.98, -2403.5, -2217.82, -1630.35, -1076.41, -995.45, -1602.99, -3572.51, -4425.5, -5748.91, -5872.26, -7090.78, -12566.03, -13589.05, -14612.07, -19153.17, -21062.32, -21271.34, -22893.88, -22908.4, -20853.42, -21780.44, -22797.6, -22872.5, -26606.58, -38094.7, -37975.81, -37841.74, -37714.26, -38029.36, -38417.38, -37910.45, -37408.37, -36626.27, -36506.9, -36508.04, -36004.04, -36686.84, -36439.44, -37074.44];
 const eqColors = eqData.map(v => v >= 0 ? '#16a34a' : '#dc2626');
 new Chart(eqCtx, {
   type: 'line',
@@ -625,7 +635,7 @@ new Chart(eqCtx, {
 
 const moCtx = document.getElementById('moChart').getContext('2d');
 const moLabels = ["Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026"];
-const moData   = [-1076.41, -21831.99, -15508.98, 1977.94];
+const moData   = [-1076.41, -21831.99, -15508.98, 1342.94];
 const moColors = ["#dc2626", "#dc2626", "#dc2626", "#16a34a"];
 new Chart(moCtx, {
   type: 'bar',
