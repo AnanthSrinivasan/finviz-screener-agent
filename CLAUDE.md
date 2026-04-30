@@ -45,7 +45,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
 **Shared rules engine — `agents/trading/rules.py`** (used by BOTH paper monitor and live position_monitor):
-- `apply_position_rules()` — per-tick trail/breakeven/targets/fade. **Breakeven trigger keys off `peak_gain_pct`** (one-way lock once peak hits +20%, even if price has already faded). ATR incremental trail (silent, pre-breakeven). 10% trail at peak +30%. Target1/T2 alerts. 1×ATR fade alert. **Returns structured events** (`{kind, ticker, message, ...}`) — caller forwards `message` to Slack and may key side effects off `kind` (e.g. live wraps with `log.info` per kind).
+- `apply_position_rules()` — per-tick continuous ATR-tiered trail. **Trail ratchets off `highest_price_seen`** (intraday-aware, immune to hourly-snapshot peak gaps — the VIK Apr-2026 regression). Tier ladder by `peak_gain_pct`: `<10%` → 2.0×ATR · `≥10%` → 1.5×ATR · `≥20%` → 1.0×ATR. **Loss-cap floor** at peak ≥ +5%: `stop ≥ max(entry × 0.97, entry − 0.5×ATR$)` — hybrid α/β, vol-aware for low-vol names with -3% ceiling for high-vol. **Breakeven crossover** at peak ≥ +20% sets `breakeven_activated` flag (drives Slack/dashboard `BE` indicator) and floors stop at `entry × 1.005` as a fallback when ATR data missing — no longer gates the trail. **+30% floor** = `max(1.0×ATR trail, peak × 0.90)` — the 10%-from-peak guard kicks in only for >10% ATR names where ATR trail goes looser. T1/T2 alerts. 1×ATR fade alert. **Returns structured events** (`{kind, ticker, message, ...}`) — caller forwards `message` to Slack and may key side effects off `kind`.
 - `check_ma_trail_alert()` — Layer 1b ATR%-tiered MA trail (alert-only): low-vol (≤5%) regime EMA close-below (21 EMA GREEN/THRUST/CAUTION, 8 EMA COOLING); mid-vol (5-8%) 8 EMA close-below; high-vol (>8%) 10% pct trail from peak. RED/DANGER/BLACKOUT skipped. Caller passes daily closes.
 - `update_sizing_mode()` / `record_trade_result()` — streak → mode transitions and recent_trades append. Neutral band `|result_pct| < 1.0%` does not bump streaks. `record_trade_result` accepts optional `profit_loss_usd` and returns the result label. `recent_trades` capped at 30 entries (shared constant `RECENT_TRADES_CAP`).
 
@@ -116,7 +116,7 @@ The position monitor has two layers:
 **Layer 2 — Minervini 6-rules engine (via `positions.json` state):**
 - Rule 1: Stop loss check (`positions.json` `stop_price`) — alert only; `status` stays "active".
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
-- Rule 5: Gain protection — ATR trail (price − 2×ATR) from entry, silent; breakeven stop at **peak +20%** (keys off `peak_gain_pct`, locks forever after first touch — fixes prior bug where a brief intraday touch missed by hourly snap left no breakeven); trailing stop at **peak +30%** (10% trail from `highest_price_seen`, intraday-aware)
+- Rule 5: Gain protection — continuous ATR-tiered trail off `highest_price_seen` (2.0/1.5/1.0× ATR by peak +0/+10/+20). Hybrid +5% loss-cap floor `max(entry × 0.97, entry − 0.5×ATR$)`. Breakeven crossover flag at peak +20% (with `entry × 1.005` fallback floor when ATR missing). +30% floor `max(1.0×ATR trail, peak × 0.90)`. Trail ratchets off recorded peak so hourly-snapshot gaps don't lose intraday peaks (VIK Apr-2026 regression)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
 - Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight. T1/T2 status (✅/⏳) shown in every daily summary; daily reminder while T1 locked and T2 pending
 - Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
@@ -224,9 +224,11 @@ data/
 | Paper market-state gate | `alpaca_executor.py` reads `market_state` from `market_monitor_history.json` (single source of truth — replaced the old SPY/SMA200 check). RED/DANGER/BLACKOUT → no buys, but still posts a Slack alert listing top-5 would-have candidates ("your call"). CAUTION/COOLING → half size. GREEN/THRUST → full. Sizing mode overlays: `suspended` blocks entirely, `reduced` clamps size_mul ≤ 0.25, `aggressive` boosts to 1.25× in GREEN/THRUST. |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
-| ATR incremental trail | From entry onwards: stop = max(stop, price − 2×ATR). Silent. Disabled at +20% (breakeven takes over) |
-| Breakeven stop | At +20% gain, stop moves to entry + 0.5% |
-| Trailing stop | At +30% gain, 10% trail from highest price seen |
+| Initial stop (paper) | `alpaca_executor.py` sets stop = `entry − 2×ATR$` at buy time |
+| Loss-cap floor | At peak ≥ +5%: stop ≥ `max(entry × 0.97, entry − 0.5×ATR$)` — hybrid α/β. Caps fade-back-to-loss after any meaningful win |
+| ATR-tiered trail | Continuous, ratchets off `highest_price_seen`. Tiers by `peak_gain_pct`: <10% → 2.0×ATR, ≥10% → 1.5×ATR, ≥20% → 1.0×ATR. No freeze, no dead zone |
+| Breakeven crossover | At peak ≥ +20%: `breakeven_activated` flag set (Slack/dashboard `BE` indicator). Floor `entry × 1.005` applies when ATR data missing — otherwise the 1.0×ATR trail is already above entry |
+| Trailing stop floor | At peak ≥ +30%: stop ≥ `max(1.0×ATR trail, peak × 0.90)`. The 10%-from-peak guard kicks in only for >10% ATR names where ATR trail is looser than 10% |
 | Sizing suspension | 3 consecutive losses → paper trade only |
 
 ## Quality Score (0-100+)
@@ -262,7 +264,7 @@ via `eps_yy_strong`; spin-off/IPO distortion is captured implicitly via the
 
 **🚀 Fresh Breakout** — top 5 by Quality Score. Catches ANET-Apr8 / ARWR-today class (breakout-from-base with volume expansion; complementary to Ready-to-Enter which is pullback-based). Criteria: Stage 2 (not requiring perfect) · SMA20% > 0 · SMA50% in (0, 25%] · SMA200% > 0 · RVol ≥1.2 · ATR% ≤8% · Q ≥70 · dist from 52w high 0% to -12% · peel-warn safe (SMA50%/ATR% ≤ per-ticker calibrated) · not held. Auto-adds to watchlist with `source=breakout_auto` (third entry path alongside technical + Hidden Growth).
 
-**⭐ Textbook VCP marker** — overlay badge, not a separate list. Promotes VCP confidence ≥85 · appearances ≥3 · ATR% ≤5 · Stage 2 perfect · dist -3% to -8% · Q ≥80 setups with a ⭐ badge on Slack Top Picks / Ready-to-Enter lines and watchlist.html ticker cells. Flag written to `daily_quality.json` as `textbook_vcp: true/false`.
+**⭐ Textbook VCP marker** — overlay badge, not a separate list. Promotes VCP confidence ≥85 · appearances ≥3 · ATR% ≤5 · Stage 2 perfect · dist -3% to -15% · Q ≥80 setups with a ⭐ badge on Slack Top Picks / Ready-to-Enter lines and watchlist.html ticker cells. Flag written to `daily_quality.json` as `textbook_vcp: true/false`. **Dist band widened from -8% to -15% (Apr 30 2026)** after INDV — a textbook setup at -13% — was missed by the prior tighter band.
 
 **💎 Power Play / High Tight Flag** — rare Minervini/O'Neil monster pattern. Criteria: Perf Month ≥50% OR Perf Quarter ≥100% (rocket) · ATR% ≤5 (tight flag) · RVol <1.0 (volume drying) · Stage 2 · peel-warn safe. Uses new Finviz snapshot fields `Perf Month` / `Perf Quarter` — `get_snapshot_metrics` now returns 14-tuple instead of 12.
 

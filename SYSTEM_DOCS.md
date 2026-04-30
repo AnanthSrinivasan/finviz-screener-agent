@@ -497,14 +497,15 @@ Why ATR%-tiered: high-ATR runners can give back 30%+ before MA catches up. FLY (
 
 Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_alerted_date` on position entry for dedup, human decides. EMA computed client-side (iterative formula). Implemented as `rules.check_ma_trail_alert(closes, market_state, atr_pct, highest_price_seen)` in the shared engine `agents/trading/rules.py` — caller (`position_monitor.py` for live, `alpaca_monitor.py` for paper) fetches bars via `fetch_alpaca_daily_bars` and passes the close list. Tier picker `_ma_trail_signal_for_atr` is pure and unit-tested.
 
-**Gain-protection stops (Rule 5 — shared `rules.apply_position_rules`):** All triggers key off `peak_gain_pct`, not current `gain_pct`. A brief intraday touch locks the floor forever, even if hourly snap missed the moment current ≥ threshold. Persisted state: `stop_price` (renamed from `stop` in Apr 29 2026 port) and `breakeven_activated` (renamed from `breakeven_stop_activated`).
+**Gain-protection stops (Rule 5 — shared `rules.apply_position_rules`):** Continuous ATR-tiered trail, ratchets off `highest_price_seen` (intraday-aware — fixes the VIK Apr-2026 regression where hourly snapshots missed the intraday peak even though `peak_gain_pct` recorded it). All triggers key off `peak_gain_pct`. Persisted state: `stop_price` (renamed from `stop` in Apr 29 2026 port) and `breakeven_activated` (renamed from `breakeven_stop_activated`; from Apr 30 2026 it is informational only — drives the Slack/dashboard `BE` indicator and acts as alert dedup; no longer gates the trail).
 
-| Stop | Trigger | Action |
-|---|---|---|
-| ATR trail (silent) | `gain_pct > 0` AND `peak_gain_pct < 20` | `stop_price = max(stop_price, price − 2×ATR)` |
-| Breakeven | `peak_gain_pct ≥ 20` (one-shot) | `stop_price = max(stop_price, entry × 1.005)`, sets `breakeven_activated=True` |
-| Trailing | `peak_gain_pct ≥ 30` | `stop_price = max(stop_price, highest_price_seen × 0.90)` |
-| Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) |
+| Layer | Trigger | Action | Notes |
+|---|---|---|---|
+| Loss-cap floor | `peak_gain_pct ≥ 5` | `stop_price ≥ max(entry × 0.97, entry − 0.5×ATR$)` | Hybrid α/β. β tighter for low-vol (e.g. 3% ATR → -1.5% floor); α (-3%) caps high-vol (10% ATR → -3% not -5%). Plugs the "+8% peak fades to -5%" hole |
+| ATR-tiered trail (silent) | `peak_gain_pct > 0` | `stop_price ≥ highest_price_seen − mult × ATR$` where mult = 2.0 if peak <10%, 1.5 if peak ≥10%, 1.0 if peak ≥20% | Continuous, no freeze. Multiplier shrinks as gain grows. Replaces old "ATR trail freezes once breakeven_activated" dead zone |
+| Breakeven crossover | `peak_gain_pct ≥ 20` (one-shot) | Sets `breakeven_activated=True`, fires `:lock:` Slack. Floor `stop_price ≥ entry × 1.005` applies as fallback when ATR data is missing | Informational. The 1.0×ATR trail is normally already above this floor by the time peak hits +20% |
+| +30% floor | `peak_gain_pct ≥ 30` | `stop_price ≥ max(1.0×ATR trail, highest_price_seen × 0.90)` | The 10%-from-peak guard only wins for >10% ATR names where 1×ATR is wider than 10%. Caps high-vol post-+30% give-back at 10% from peak |
+| Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) | Unchanged |
 
 **Stop hit (Rule 1) — alert-only, no status mutation.** When `current_price <= stop_price`, the live caller fires a 🚨 STOP HIT Slack alert and a WARNING log line. Position `status` stays `"active"`. The user often holds through the alert (the FIGS pattern); the system only signals — the human decides. (The Apr 29 2026 port removed prior `status="stop_hit"` mutation and the now-dead `sync_snaptrade_with_rules` reset block. `data/positions.json` migrated once via `utils/migrate_positions_keys.py`.)
 
@@ -707,7 +708,7 @@ Not needed yet. Revisit if automated execution is added.
 **New snapshot signals surfaced alongside Ready-to-Enter** (all use Finviz snapshot only, no Alpaca):
 
 - **🚀 Fresh Breakout** (`_is_fresh_breakout`): Stage 2 · SMA20>0 · SMA50 in (0,25] · SMA200>0 · RVol≥1.2 · ATR%≤8 · Q≥70 · dist 0 to -12% · peel-warn safe (reuses `data/peel_calibration.json`). Top 5 by Q in dedicated Slack block.
-- **⭐ Textbook VCP marker** (`_is_textbook_vcp`): overlay badge — VCP conf≥85 · appearances≥3 · ATR%≤5 · Stage 2 perfect · dist -3 to -8% · Q≥80. Renders as :star: next to ticker in Slack Top Picks + Ready-to-Enter. Flag written to `daily_quality.json` as `textbook_vcp: true/false` so watchlist.html can render ⭐ badge without re-computing.
+- **⭐ Textbook VCP marker** (`_is_textbook_vcp`): overlay badge — VCP conf≥85 · appearances≥3 · ATR%≤5 · Stage 2 perfect · dist -3 to -15% · Q≥80. Renders as :star: next to ticker in Slack Top Picks + Ready-to-Enter. Flag written to `daily_quality.json` as `textbook_vcp: true/false` so watchlist.html can render ⭐ badge without re-computing. Dist band widened from -8% → -15% on Apr 30 2026 after INDV (textbook at -13%) was missed by the tighter band.
 - **💎 Power Play / High Tight Flag** (`_is_power_play`): Perf Month≥50% OR Perf Quarter≥100% · ATR%≤5 (tight flag) · RVol<1.0 (dry) · Stage 2 · peel-warn safe. Requires new Finviz columns `Perf Month` + `Perf Quarter` — `get_snapshot_metrics` extended from 12-tuple to 14-tuple.
 
 **Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
@@ -817,9 +818,15 @@ After the monitor loop finishes, calls `utils/generators/generate_portfolio.py` 
 
 Run: `python utils/generate_performance.py`
 
-**Input:** `data/RH-2026.csv` — Robinhood 2026 YTD export. Only `Buy`/`Sell` rows processed; fees, dividends, margin interest skipped.
+**Inputs (dual source):**
+- `data/RH-2026.csv` — Robinhood 2026 YTD export (broker truth). Only `Buy`/`Sell` rows processed; fees, dividends, margin interest skipped. Optional — works without it.
+- `data/positions.json` `closed_positions[]` — system truth, auto-updated by `position_monitor.py` on every close.
 
-**FIFO matching:** Per-ticker buy queues. Same-day: Buys before Sells. Sells with no matching buy flagged `prior_period=True` (2025 basis); P&L zeroed, shown in table with badge.
+**Merge rule:** broker wins. System trades are only added when no broker trade for the same ticker exists within ±5 days. System-only rows render with a blue **`pending broker`** badge in the trade table — they bridge the 24–48h Robinhood export lag so the page stays live.
+
+**FIFO matching (broker side):** Per-ticker buy queues. Same-day: Buys before Sells. Sells with no matching buy flagged `prior_period=True` (2025 basis); P&L zeroed, shown in table with badge.
+
+**Auto-regenerate:** wired into `position-monitor.yml` after every monitor tick — `data/performance_2026.html` is committed alongside `positions.json` so closes appear on the page within the next monitor cycle.
 
 **Output:** `data/performance_2026.html` (light theme, Chart.js). Sections: KPI stat cards, monthly P&L bar, cumulative equity curve, per-trade table. Links back to `performance_charts.html`.
 

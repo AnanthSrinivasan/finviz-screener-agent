@@ -92,12 +92,18 @@ jobs:
           DATA_DIR: data
         run: python utils/generators/generate_watchlist.py
 
+      - name: Regenerate performance page
+        if: success()
+        env:
+          DATA_DIR: data
+        run: python utils/generate_performance.py
+
       - name: Commit state changes
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json data/claude_portfolio.html dashboard.html watchlist.html || true
+          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json data/claude_portfolio.html data/performance_2026.html dashboard.html watchlist.html || true
           git diff --cached --quiet || git commit -m "Update positions/trading state [skip ci]"
           git push || true
 

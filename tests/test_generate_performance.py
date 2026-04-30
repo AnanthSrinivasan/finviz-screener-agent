@@ -2,13 +2,14 @@
 import datetime
 import io
 import csv
+import json
 import os
 import tempfile
 import unittest
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.generate_performance import compute_trades, compute_stats
+from utils.generate_performance import compute_trades, compute_stats, load_system_closed, merge_trades
 
 
 def _rows(*entries):
@@ -122,6 +123,68 @@ class StatsTests(unittest.TestCase):
         self.assertEqual(stats["n_trades"], 1)
         self.assertAlmostEqual(stats["total_pnl"], 200, places=0)
         self.assertAlmostEqual(stats["prior_pnl"], 100, places=0)
+
+
+class SystemClosedSourceTests(unittest.TestCase):
+    def _write_positions(self, closed):
+        tf = tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w")
+        json.dump({"positions": [], "closed_positions": closed}, tf)
+        tf.close()
+        self.addCleanup(os.unlink, tf.name)
+        return tf.name
+
+    def test_load_system_closed_basic(self):
+        path = self._write_positions([{
+            "ticker": "INDV", "shares": 250,
+            "entry_price": 34.0, "entry_date": "2026-04-22",
+            "close_price": 36.0, "close_date": "2026-04-29",
+            "result_pct": 5.88, "close_source": "snaptrade_fill",
+        }])
+        trades = load_system_closed(path)
+        self.assertEqual(len(trades), 1)
+        t = trades[0]
+        self.assertEqual(t["ticker"], "INDV")
+        self.assertTrue(t["system_only"])
+        self.assertAlmostEqual(t["pnl"], 500.0, places=1)
+        self.assertEqual(t["sell_date"], datetime.date(2026, 4, 29))
+
+    def test_load_system_closed_skips_incomplete(self):
+        path = self._write_positions([
+            {"ticker": "X", "shares": 10, "entry_price": 1.0, "entry_date": "2026-01-01"},  # no close
+        ])
+        self.assertEqual(load_system_closed(path), [])
+
+    def test_load_system_closed_missing_file(self):
+        self.assertEqual(load_system_closed("/tmp/__nope__.json"), [])
+
+    def test_merge_broker_wins_over_system_match(self):
+        broker = [{
+            "ticker": "AMD", "sell_date": datetime.date(2026, 4, 22),
+            "first_buy": datetime.date(2026, 4, 13), "qty": 25.0,
+            "proceeds": 7327.25, "cost": 6151.50, "pnl": 1175.75,
+            "pnl_pct": 19.11, "prior_period": False,
+        }]
+        system = [{
+            "ticker": "AMD", "sell_date": datetime.date(2026, 4, 23),  # 1d off → match
+            "first_buy": datetime.date(2026, 4, 13), "qty": 25.0,
+            "proceeds": 7327.0, "cost": 6151.0, "pnl": 1176.0,
+            "pnl_pct": 19.1, "prior_period": False, "system_only": True,
+        }]
+        merged = merge_trades(broker, system)
+        self.assertEqual(len(merged), 1)
+        self.assertFalse(merged[0]["system_only"])
+
+    def test_merge_appends_system_only_when_no_broker_match(self):
+        broker = []
+        system = [{
+            "ticker": "INDV", "sell_date": datetime.date(2026, 4, 29),
+            "first_buy": datetime.date(2026, 4, 22), "qty": 250.0,
+            "proceeds": 9000.0, "cost": 8500.0, "pnl": 500.0,
+            "pnl_pct": 5.88, "prior_period": False, "system_only": True,
+        }]
+        merged = merge_trades(broker, system)
+        self.assertEqual(len(merged), 1)
+        self.assertTrue(merged[0]["system_only"])
 
 
 if __name__ == "__main__":

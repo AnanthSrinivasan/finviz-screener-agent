@@ -248,7 +248,10 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
 
     # All active tickers for CSV (entry-ready first, then focus, then watching)
     active_all = entry_ready + focus_list + watching
-    all_tickers_csv = ",".join(e.get("ticker", "") for e in active_all)
+    all_tickers_csv         = ",".join(e.get("ticker", "") for e in active_all)
+    entry_ready_tickers_csv = ",".join(e.get("ticker", "") for e in entry_ready)
+    focus_tickers_csv       = ",".join(e.get("ticker", "") for e in focus_list)
+    hg_tickers_csv          = ",".join(c.get("ticker", "") for c in hg_candidates)
 
     n_entry_ready = len(entry_ready)
     n_focus       = len(focus_list)
@@ -399,6 +402,9 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   <div class="section-header">
     <h2>🎯 Ready to Enter</h2>
     <span class="section-count">{n_entry_ready} ticker{"s" if n_entry_ready != 1 else ""} — Stage 2 + VCP tight pullback, act now</span>
+    <button class="csv-btn" onclick="downloadAllActive('{entry_ready_tickers_csv}', 'entry_ready_tv_{today}.txt')">
+      ⬇ TradingView
+    </button>
     <button class="csv-btn" onclick="downloadCSV('tbl-entry-ready', 'entry_ready_{today}.csv')">
       ⬇ Download CSV
     </button>
@@ -411,6 +417,9 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   <div class="section-header">
     <h2>📌 Focus List</h2>
     <span class="section-count">{n_focus} ticker{"s" if n_focus != 1 else ""} — actionable this week</span>
+    <button class="csv-btn" onclick="downloadAllActive('{focus_tickers_csv}', 'focus_list_tv_{today}.txt')">
+      ⬇ TradingView
+    </button>
     <button class="csv-btn" onclick="downloadCSV('tbl-focus', 'focus_list_{today}.csv')">
       ⬇ Download CSV
     </button>
@@ -423,6 +432,9 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   <div class="section-header">
     <h2>🔬 Hidden Growth — {hg_date}</h2>
     <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} (4+/6 criteria) — fundamental accumulation, overlaps with any tier</span>
+    <button class="csv-btn" onclick="downloadAllActive('{hg_tickers_csv}', 'hidden_growth_tv_{today}.txt')">
+      ⬇ TradingView
+    </button>
   </div>
   {hg_table}
 </div>

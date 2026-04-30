@@ -21,9 +21,10 @@ import json
 import os
 import re
 
-DATA_DIR    = os.environ.get("DATA_DIR", "data")
-CSV_PATH    = os.path.join(DATA_DIR, "RH-2026.csv")
-OUTPUT_PATH = os.path.join(DATA_DIR, "performance_2026.html")
+DATA_DIR       = os.environ.get("DATA_DIR", "data")
+CSV_PATH       = os.path.join(DATA_DIR, "RH-2026.csv")
+POSITIONS_PATH = os.path.join(DATA_DIR, "positions.json")
+OUTPUT_PATH    = os.path.join(DATA_DIR, "performance_2026.html")
 
 TRADE_CODES = {"Buy", "Sell"}
 
@@ -83,6 +84,73 @@ def load_csv(path: str) -> list[dict]:
     # Sort chronologically; within same day, Buys before Sells
     rows.sort(key=lambda r: (r["date"], 0 if r["side"] == "Buy" else 1))
     return rows
+
+
+def load_system_closed(path: str) -> list[dict]:
+    """Read positions.json closed_positions[] → list of trade dicts.
+
+    System-only trades come from the rules engine (auto-close + retro-patch).
+    Broker CSV is the canonical source once Robinhood has settled the fill;
+    until then, system truth fills the gap so the dashboard stays live.
+    """
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path) as f:
+            state = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    trades: list[dict] = []
+    for p in state.get("closed_positions", []) or []:
+        close_date = p.get("close_date")
+        ticker     = p.get("ticker")
+        shares     = p.get("shares")
+        entry      = p.get("entry_price")
+        close_px   = p.get("close_price")
+        if not (close_date and ticker and shares and entry and close_px):
+            continue
+        try:
+            sell_dt   = datetime.date.fromisoformat(close_date)
+            entry_dt  = datetime.date.fromisoformat(p.get("entry_date", close_date))
+        except ValueError:
+            continue
+        cost     = float(entry) * float(shares)
+        proceeds = float(close_px) * float(shares)
+        pnl      = proceeds - cost
+        trades.append({
+            "ticker":       ticker,
+            "sell_date":    sell_dt,
+            "first_buy":    entry_dt,
+            "qty":          float(shares),
+            "proceeds":     round(proceeds, 2),
+            "cost":         round(cost, 2),
+            "pnl":          round(pnl, 2),
+            "pnl_pct":      round(p.get("result_pct", pnl / cost * 100 if cost else 0), 2),
+            "prior_period": False,
+            "system_only":  True,
+            "close_source": p.get("close_source", ""),
+        })
+    return trades
+
+
+def merge_trades(broker: list[dict], system: list[dict]) -> list[dict]:
+    """Broker truth wins. Add system trades that don't have a matching broker
+    trade within ±5 days for the same ticker."""
+    out = list(broker)
+    for s in broker:
+        s["system_only"] = False
+    for sys_t in system:
+        match = False
+        for br_t in broker:
+            if br_t["ticker"] != sys_t["ticker"]:
+                continue
+            if abs((br_t["sell_date"] - sys_t["sell_date"]).days) <= 5:
+                match = True
+                break
+        if not match:
+            out.append(sys_t)
+    return sorted(out, key=lambda t: t["sell_date"])
 
 
 def compute_trades(rows: list[dict]) -> list[dict]:
@@ -221,6 +289,8 @@ def _trade_rows(trades: list[dict]) -> str:
     rows = ""
     for t in sorted(trades, key=lambda x: x["sell_date"], reverse=True):
         pp_badge = ' <span class="pp-badge">prior period</span>' if t["prior_period"] else ""
+        if t.get("system_only"):
+            pp_badge += ' <span class="sys-badge">pending broker</span>'
         buy_str  = t["first_buy"].strftime("%b %d") if t["first_buy"] else "—"
         cls      = _pnl_class(t["pnl"])
         rows += f"""
@@ -296,6 +366,7 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 .pnl-col{{font-weight:600}}
 .ticker-col{{font-weight:600;color:#2563eb}}
 .pp-badge{{font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}}
+.sys-badge{{font-size:10px;background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}}
 .prior-note{{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e}}
 .footer{{color:#9ca3af;font-size:12px;text-align:center;margin-top:16px}}
 </style>
@@ -303,7 +374,7 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 <body>
 <div class="page-wrap">
   <h1>Performance Overview — 2026 YTD</h1>
-  <div class="subtitle">Robinhood account · realized trades · generated {now}</div>
+  <div class="subtitle">Robinhood account · realized trades · system fills bridge broker lag (blue badge) · generated {now}</div>
 
   <div class="stat-grid">
     <div class="stat-card">
@@ -428,8 +499,13 @@ new Chart(moCtx, {{
 
 
 def main():
-    rows   = load_csv(CSV_PATH)
-    trades = compute_trades(rows)
+    if os.path.exists(CSV_PATH):
+        rows   = load_csv(CSV_PATH)
+        broker = compute_trades(rows)
+    else:
+        broker = []
+    system = load_system_closed(POSITIONS_PATH)
+    trades = merge_trades(broker, system)
     stats  = compute_stats(trades)
     html   = generate_html(trades, stats)
     os.makedirs(DATA_DIR, exist_ok=True)

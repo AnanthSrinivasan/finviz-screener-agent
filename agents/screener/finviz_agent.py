@@ -1574,7 +1574,11 @@ def _is_textbook_vcp(row) -> bool:
     pullback setups where everything lines up.
 
     All must hold: VCP conf ≥85 · Appearances ≥3 · ATR% ≤5 · Stage 2 perfect ·
-    dist from high -3% to -8% · Q ≥80.
+    dist from high -3% to -15% · Q ≥80.
+
+    Dist band widened from -8% to -15% (Apr 30 2026) after INDV — a textbook
+    setup at -13% — was missed by the prior tighter band. Deep-base VCP is
+    Minervini/Qullamaggie-canonical when the rest of the criteria hold.
     """
     vcp = row.get("VCP") or {}
     if not isinstance(vcp, dict) or float(vcp.get("confidence", 0) or 0) < 85:
@@ -1598,7 +1602,7 @@ def _is_textbook_vcp(row) -> bool:
     if dist is None or pd.isna(dist):
         return False
     dist = float(dist)
-    if dist > -3.0 or dist < -8.0:
+    if dist > -3.0 or dist < -15.0:
         return False
 
     qs = row.get("Quality Score")

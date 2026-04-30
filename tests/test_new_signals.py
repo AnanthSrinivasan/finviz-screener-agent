@@ -118,7 +118,11 @@ class TestTextbookVCP(unittest.TestCase):
         self.assertFalse(_is_textbook_vcp(_tb_row(**{"Dist From High%": -2.0})))
 
     def test_rejects_pullback_too_deep(self):
-        self.assertFalse(_is_textbook_vcp(_tb_row(**{"Dist From High%": -10.0})))
+        self.assertFalse(_is_textbook_vcp(_tb_row(**{"Dist From High%": -16.0})))
+
+    def test_accepts_deep_base_indv_class(self):
+        # INDV (Apr 2026) was at -13% — Apr 30 widened band to -15%
+        self.assertTrue(_is_textbook_vcp(_tb_row(**{"Dist From High%": -13.0})))
 
     def test_rejects_q_below_80(self):
         self.assertFalse(_is_textbook_vcp(_tb_row(**{"Quality Score": 75.0})))
