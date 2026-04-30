@@ -369,6 +369,9 @@ def generate_html(results: list, market_ctx: dict) -> str:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Stock Research — {TODAY}</title>
 <style>
   body {{ font-family:system-ui,sans-serif; background:#f9fafb; color:#111827; margin:0; padding:24px; }}

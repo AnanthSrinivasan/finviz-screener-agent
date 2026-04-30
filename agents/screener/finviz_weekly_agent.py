@@ -1347,6 +1347,9 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
     html = (
         "<!DOCTYPE html><html lang='en'><head>"
         "<meta charset='utf-8'>"
+        "<meta http-equiv='Cache-Control' content='no-cache, no-store, must-revalidate'>"
+        "<meta http-equiv='Pragma' content='no-cache'>"
+        "<meta http-equiv='Expires' content='0'>"
         f"<title>Finviz Weekly — {today}</title>"
         f"<style>{css}</style>"
         "</head><body>"

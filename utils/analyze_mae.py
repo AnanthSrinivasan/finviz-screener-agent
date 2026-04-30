@@ -350,6 +350,9 @@ def generate_html(results, skipped, out_path):
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>MAE/MFE Analysis — 2024–2025</title>
 <style>
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
