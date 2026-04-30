@@ -822,7 +822,11 @@ Run: `python utils/generate_performance.py`
 - `data/RH-2026.csv` — Robinhood 2026 YTD export (broker truth). Only `Buy`/`Sell` rows processed; fees, dividends, margin interest skipped. Optional — works without it.
 - `data/positions.json` `closed_positions[]` — system truth, auto-updated by `position_monitor.py` on every close.
 
-**Merge rule:** broker wins. System trades are only added when no broker trade for the same ticker exists within ±5 days. System-only rows render with a blue **`pending broker`** badge in the trade table — they bridge the 24–48h Robinhood export lag so the page stays live.
+**Merge rule:** broker (RH CSV) wins on overlap. System trades are added when no CSV trade for the same ticker exists within ±5 days. System-only rows are tagged by `close_source`:
+- Green **`snaptrade fill`** — real broker fill confirmed via SnapTrade activities API; RH CSV simply hasn't been re-uploaded yet (manual export).
+- Amber **`estimated fill`** — no broker fill landed; close was synthesized from peak high or user-reported breakeven.
+
+This makes the data freshness honest: a SnapTrade fill is broker truth, not a placeholder.
 
 **FIFO matching (broker side):** Per-ticker buy queues. Same-day: Buys before Sells. Sells with no matching buy flagged `prior_period=True` (2025 basis); P&L zeroed, shown in table with badge.
 

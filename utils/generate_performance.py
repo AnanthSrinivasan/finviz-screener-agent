@@ -290,7 +290,15 @@ def _trade_rows(trades: list[dict]) -> str:
     for t in sorted(trades, key=lambda x: x["sell_date"], reverse=True):
         pp_badge = ' <span class="pp-badge">prior period</span>' if t["prior_period"] else ""
         if t.get("system_only"):
-            pp_badge += ' <span class="sys-badge">pending broker</span>'
+            src = (t.get("close_source") or "").lower()
+            if src.startswith("snaptrade"):
+                # Real broker fill confirmed via SnapTrade — RH CSV just not re-uploaded yet
+                pp_badge += ' <span class="sys-badge sys-confirmed" title="SnapTrade fill confirmed — awaiting Robinhood CSV reconciliation">snaptrade fill</span>'
+            else:
+                # No broker fill landed — closed via fallback (peak high or user-reported)
+                label    = "estimated fill" if src else "system close"
+                src_disp = src or "unknown"
+                pp_badge += f' <span class="sys-badge sys-estimated" title="No broker fill detected — close_source={src_disp}">{label}</span>'
         buy_str  = t["first_buy"].strftime("%b %d") if t["first_buy"] else "—"
         cls      = _pnl_class(t["pnl"])
         rows += f"""
@@ -366,7 +374,9 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 .pnl-col{{font-weight:600}}
 .ticker-col{{font-weight:600;color:#2563eb}}
 .pp-badge{{font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}}
-.sys-badge{{font-size:10px;background:#dbeafe;color:#1e40af;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}}
+.sys-badge{{font-size:10px;border-radius:4px;padding:1px 5px;margin-left:4px;font-weight:500}}
+.sys-confirmed{{background:#dcfce7;color:#166534}}
+.sys-estimated{{background:#fef3c7;color:#92400e}}
 .prior-note{{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e}}
 .footer{{color:#9ca3af;font-size:12px;text-align:center;margin-top:16px}}
 </style>
@@ -374,7 +384,7 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 <body>
 <div class="page-wrap">
   <h1>Performance Overview — 2026 YTD</h1>
-  <div class="subtitle">Robinhood account · realized trades · system fills bridge broker lag (blue badge) · generated {now}</div>
+  <div class="subtitle">Robinhood realized trades · <span class="sys-badge sys-confirmed">snaptrade fill</span> = real broker fill (RH CSV not yet re-uploaded) · <span class="sys-badge sys-estimated">estimated fill</span> = no broker fill yet · generated {now}</div>
 
   <div class="stat-grid">
     <div class="stat-card">
