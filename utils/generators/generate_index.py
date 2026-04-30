@@ -17,6 +17,21 @@ log = logging.getLogger(__name__)
 
 DATA_DIR        = os.environ.get("DATA_DIR", "data")
 GITHUB_PAGES_BASE = os.environ.get("GITHUB_PAGES_BASE", "")
+
+# See generate_dashboard.py — auto cache-bust query for internal nav links.
+def _cache_q() -> str:
+    sha = os.environ.get("GITHUB_SHA") or os.environ.get("CACHE_BUST_SHA") or ""
+    if not sha:
+        try:
+            import subprocess
+            sha = subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"], text=True
+            ).strip()
+        except Exception:
+            sha = ""
+    return f"?v={sha[:7]}" if sha else ""
+
+CACHE_Q = _cache_q()
 OUTPUT_PATH     = "index.html"
 
 
@@ -88,7 +103,8 @@ def generate_index(reports: dict, base_url: str) -> str:
     latest_gallery = reports["daily_gallery"][0] if reports["daily_gallery"] else None
 
     def report_url(report):
-        return f"{base_url}/data/{report['file']}" if base_url else f"data/{report['file']}"
+        path = f"{base_url}/data/{report['file']}" if base_url else f"data/{report['file']}"
+        return f"{path}{CACHE_Q}"
 
     # Build weekly cards
     weekly_cards = ""
@@ -111,13 +127,13 @@ def generate_index(reports: dict, base_url: str) -> str:
         </a>"""
 
     # Latest links for hero section
-    dashboard_url = f"{base_url}/dashboard.html" if base_url else "dashboard.html"
+    dashboard_url = f"{base_url}/dashboard.html{CACHE_Q}" if base_url else f"dashboard.html{CACHE_Q}"
 
-    perf_url      = f"{base_url}/data/performance_charts.html" if base_url else "data/performance_charts.html"
-    perf_2026_url = f"{base_url}/data/performance_2026.html" if base_url else "data/performance_2026.html"
-    mae_url       = f"{base_url}/data/mae_analysis.html" if base_url else "data/mae_analysis.html"
-    watchlist_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
-    portfolio_url = f"{base_url}/data/claude_portfolio.html" if base_url else "data/claude_portfolio.html"
+    perf_url      = f"{base_url}/data/performance_charts.html{CACHE_Q}" if base_url else f"data/performance_charts.html{CACHE_Q}"
+    perf_2026_url = f"{base_url}/data/performance_2026.html{CACHE_Q}"  if base_url else f"data/performance_2026.html{CACHE_Q}"
+    mae_url       = f"{base_url}/data/mae_analysis.html{CACHE_Q}"      if base_url else f"data/mae_analysis.html{CACHE_Q}"
+    watchlist_url = f"{base_url}/watchlist.html{CACHE_Q}"              if base_url else f"watchlist.html{CACHE_Q}"
+    portfolio_url = f"{base_url}/data/claude_portfolio.html{CACHE_Q}"  if base_url else f"data/claude_portfolio.html{CACHE_Q}"
 
     hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
     hero_links += f'<a href="{portfolio_url}" class="hero-btn btn-portfolio">Claude Portfolio</a>'

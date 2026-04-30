@@ -18,6 +18,21 @@ log = logging.getLogger(__name__)
 
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 GITHUB_PAGES_BASE = os.environ.get("GITHUB_PAGES_BASE", "")
+
+# See generate_dashboard.py — auto cache-bust query for internal nav links.
+def _cache_q() -> str:
+    sha = os.environ.get("GITHUB_SHA") or os.environ.get("CACHE_BUST_SHA") or ""
+    if not sha:
+        try:
+            import subprocess
+            sha = subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"], text=True
+            ).strip()
+        except Exception:
+            sha = ""
+    return f"?v={sha[:7]}" if sha else ""
+
+CACHE_Q = _cache_q()
 OUTPUT_PATH       = "watchlist.html"
 
 FINVIZ_CHART      = "https://finviz.com/chart.ashx?t={ticker}&ty=c&ta=1&p=d"
@@ -215,8 +230,8 @@ def _table(entries: list[dict], quality: dict, table_id: str, include_priority_b
 def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = None) -> str:
     today       = datetime.date.today().isoformat()
     generated   = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
-    index_url   = f"{GITHUB_PAGES_BASE}/index.html" if GITHUB_PAGES_BASE else "index.html"
-    dash_url    = f"{GITHUB_PAGES_BASE}/dashboard.html" if GITHUB_PAGES_BASE else "dashboard.html"
+    index_url   = f"{GITHUB_PAGES_BASE}/index.html{CACHE_Q}" if GITHUB_PAGES_BASE else f"index.html{CACHE_Q}"
+    dash_url    = f"{GITHUB_PAGES_BASE}/dashboard.html{CACHE_Q}" if GITHUB_PAGES_BASE else f"dashboard.html{CACHE_Q}"
 
     # Split watchlist into 4 tiers — entry-ready and focus are actionable, watching is radar.
     entry_ready = [e for e in watchlist if e.get("priority") == "entry-ready" and e.get("status") != "archived"]

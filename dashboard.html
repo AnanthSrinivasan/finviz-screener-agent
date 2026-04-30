@@ -152,10 +152,14 @@
 
   .streak-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .streak-dots { display: flex; gap: 4px; }
-  .streak-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .streak-dot { width: 12px; height: 12px; border-radius: 50%;
+                 -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .dot-win { background: #16a34a; }
   .dot-loss { background: #dc2626; }
   .dot-flat { background: #9ca3af; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
   .ts-updated { font-size: 0.68rem; color: #9ca3af; margin-left: auto; }
 
   .empty-state { font-size: 0.82rem; color: #9ca3af; padding: 16px 0; }
@@ -223,8 +227,8 @@
 
 <div class="dash-header">
   <h1>Dashboard</h1>
-  <a href="index.html" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 30 Apr 2026 22:24 UTC</div>
+  <a href="index.html?v=10f5aa2" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 30 Apr 2026 22:32 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -893,7 +897,7 @@
     </div>
   <div class="idx-row"><div class="idx-tile">
           <div class="idx-name">SPY</div>
-          <div class="idx-price">$718.53 <span class="idx-chg pos">+1.0%</span></div>
+          <div class="idx-price">$718.66 <span class="idx-chg pos">+1.0%</span></div>
           <div class="idx-sub"><span class="idx-week pos">Wk +1.4%</span> <span class="idx-ma pos">+5.8% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">QQQ</div>
@@ -901,7 +905,7 @@
           <div class="idx-sub"><span class="idx-week pos">Wk +2.5%</span> <span class="idx-ma pos">+9.2% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">IWM</div>
-          <div class="idx-price">$277.96 <span class="idx-chg pos">+2.2%</span></div>
+          <div class="idx-price">$277.97 <span class="idx-chg pos">+2.2%</span></div>
           <div class="idx-sub"><span class="idx-week pos">Wk +0.9%</span> <span class="idx-ma pos">+7.1% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">TNA</div>
@@ -920,7 +924,7 @@
         <div><span style="font-size:1.4rem;font-weight:700;color:#111827">39</span><br>
           <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Watching</span></div>
       </div>
-      <a href="watchlist.html" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
+      <a href="watchlist.html?v=10f5aa2" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
          border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
         Open Watchlist →
       </a>
@@ -993,7 +997,7 @@
 </div>
 
 <div class="footer">
-  Generated 30 Apr 2026 22:24 UTC &middot;
+  Generated 30 Apr 2026 22:32 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>

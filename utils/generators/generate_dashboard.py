@@ -22,6 +22,24 @@ DATA_DIR = os.environ.get("DATA_DIR", "data")
 GITHUB_PAGES_BASE = os.environ.get("GITHUB_PAGES_BASE", "")
 OUTPUT_PATH = "dashboard.html"
 
+# Cache-bust query string for internal nav links. Reads short git SHA from
+# GH Actions env (or local) — every commit yields a different value, so each
+# bot push automatically invalidates Fastly's cached copy of the *linked* HTML.
+# User bookmarks plain URL once, then every nav click stays fresh.
+def _cache_q() -> str:
+    sha = os.environ.get("GITHUB_SHA") or os.environ.get("CACHE_BUST_SHA") or ""
+    if not sha:
+        try:
+            import subprocess
+            sha = subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"], text=True
+            ).strip()
+        except Exception:
+            sha = ""
+    return f"?v={sha[:7]}" if sha else ""
+
+CACHE_Q = _cache_q()
+
 
 def _load_json(path, default=None):
     try:
@@ -784,7 +802,7 @@ def generate_dashboard(data, base_url):
     wl_items = data["watchlist"].get("watchlist", [])
     wl_focus   = sum(1 for w in wl_items if w.get("priority") == "focus" and w.get("status") != "archived")
     wl_watching = sum(1 for w in wl_items if w.get("priority") != "focus" and w.get("status") not in ("archived",))
-    wl_url = f"{base_url}/watchlist.html" if base_url else "watchlist.html"
+    wl_url = f"{base_url}/watchlist.html{CACHE_Q}" if base_url else f"watchlist.html{CACHE_Q}"
     watchlist_link_html = f"""
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="display:flex;gap:20px;">
@@ -799,7 +817,7 @@ def generate_dashboard(data, base_url):
       </a>
     </div>"""
 
-    index_url = f"{base_url}/index.html" if base_url else "index.html"
+    index_url = f"{base_url}/index.html{CACHE_Q}" if base_url else f"index.html{CACHE_Q}"
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -955,10 +973,14 @@ def generate_dashboard(data, base_url):
 
   .streak-row {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }}
   .streak-dots {{ display: flex; gap: 4px; }}
-  .streak-dot {{ width: 12px; height: 12px; border-radius: 50%; }}
+  .streak-dot {{ width: 12px; height: 12px; border-radius: 50%;
+                 -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
   .dot-win {{ background: #16a34a; }}
   .dot-loss {{ background: #dc2626; }}
   .dot-flat {{ background: #9ca3af; }}
+  @media print {{
+    * {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+  }}
   .ts-updated {{ font-size: 0.68rem; color: #9ca3af; margin-left: auto; }}
 
   .empty-state {{ font-size: 0.82rem; color: #9ca3af; padding: 16px 0; }}
