@@ -378,11 +378,13 @@
       "stop": null,
       "thesis": "Basic Materials | Q=99 | VCP | ATR 5.5%",
       "added": "2026-04-08",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "reactivated_date": "2026-04-30",
+      "focus_promoted_date": "2026-04-30"
     },
     {
       "ticker": "ADI",
@@ -1231,11 +1233,12 @@
       "stop": null,
       "thesis": "Communication Services | Q=99 | ATR 6.2%",
       "added": "2026-04-14",
-      "status": "archived",
+      "status": "watching",
       "priority": "watching",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-04-30"
     },
     {
       "ticker": "AMKR",
@@ -1356,9 +1359,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=99 | ATR 5.7%",
       "added": "2026-04-15",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-30"
     },
     {
       "ticker": "AGI",
@@ -1367,9 +1372,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=94 | VCP | ATR 4.5%",
       "added": "2026-04-15",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-30"
     },
     {
       "ticker": "NUAI",
@@ -1378,9 +1385,11 @@
       "stop": null,
       "thesis": "Technology | Q=93 | ATR 10.8%",
       "added": "2026-04-15",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-04-30"
     },
     {
       "ticker": "SLDE",
@@ -1530,8 +1539,9 @@
       "thesis": "Basic Materials | Q=95 | ATR 7.8%",
       "added": "2026-04-20",
       "status": "watching",
-      "priority": "watching",
-      "source": "screener_auto"
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-04-30"
     },
     {
       "ticker": "GFS",
@@ -1752,6 +1762,30 @@
       "priority": "focus",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-04-29"
+    },
+    {
+      "ticker": "VISN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-04-30",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-04-30"
+    },
+    {
+      "ticker": "NVDA",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-04-30",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-04-30"
     }
   ],
   "tickers": [
