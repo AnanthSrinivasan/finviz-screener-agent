@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 1,
+  "consecutive_losses": 2,
   "total_wins": 3,
-  "total_losses": 1,
-  "current_sizing_mode": "normal",
+  "total_losses": 2,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-04-29",
+  "last_updated": "2026-04-30",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -55,6 +55,15 @@
       "date": "2026-04-29",
       "side": "SELL",
       "source": "auto_detected"
+    },
+    {
+      "ticker": "NVDA",
+      "result": "loss",
+      "result_pct": -5.94,
+      "date": "2026-04-30",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -635.0
     }
   ],
   "market_state": "RED",
