@@ -132,7 +132,7 @@ The position monitor has two layers:
 
 **Position history cache (`data/position_history.json`):** every run pulls 90d of BUY+SELL activities grouped by ticker. Dashboard renders expandable per-row transaction timeline (chevron click) showing avg-up / partial sell / full close with running cost basis.
 
-**Retro-patch lagged fills:** every run, closed positions in last 14 days with `close_source ∈ {fallback_high, user_reported_breakeven}` get re-checked against SnapTrade activities. Real fill → patched in (close_price/result_pct/source). Adjusts total_wins/losses on result-type flip. Solves 24-48h broker sync lag.
+**Retro-patch lagged fills:** every run, closed positions in last 14 days with `close_source ∈ {fallback_high, user_reported_breakeven, live_quote}` get re-checked against SnapTrade activities. Real fill → patched in (close_price/result_pct/source). Adjusts total_wins/losses on result-type flip. Solves 24-48h broker sync lag. `live_quote` added Apr 30 2026 after NVDA/MU/CORZ/NBIS got stuck on Finviz quote estimates because the SnapTrade activities API didn't return the SELL at close-detection time.
 
 **Auto-close (positions in positions.json gone from SnapTrade):**
 - Real exit price priority: SnapTrade SELL fill (via `/accounts/{id}/activities`) > live Finviz quote > `highest_price_seen` (last-resort fallback)

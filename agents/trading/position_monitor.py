@@ -754,7 +754,11 @@ def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
     today = datetime.date.today()
     cutoff = today - datetime.timedelta(days=lookback_days)
     alerts: list = []
-    PATCHABLE_SOURCES = {"fallback_high", "user_reported_breakeven", None, ""}
+    # live_quote added Apr 30 2026 — when SnapTrade activities API doesn't return
+    # the SELL fill at close-detection time, we fall back to the live Finviz quote.
+    # That estimate is good enough for the alert but should be upgraded to the real
+    # SnapTrade fill once it lands (24–48h later for after-hours / weekend closes).
+    PATCHABLE_SOURCES = {"fallback_high", "user_reported_breakeven", "live_quote", None, ""}
 
     def _result_type(pct: float) -> str:
         if abs(pct) < 1.0:
