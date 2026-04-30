@@ -14,7 +14,7 @@
       "peak_gain_pct": 51.07,
       "stop_price": 155.47,
       "breakeven_activated": true,
-      "current_gain_pct": 30.12,
+      "current_gain_pct": 31.75,
       "first_entry_price": 116.0
     },
     {
@@ -31,7 +31,7 @@
       "peak_gain_pct": 7.12,
       "stop_price": 159.95,
       "breakeven_activated": false,
-      "current_gain_pct": -2.01
+      "current_gain_pct": -1.96
     },
     {
       "ticker": "FIGS",
@@ -47,7 +47,7 @@
       "peak_gain_pct": 6.54,
       "stop_price": 15.2,
       "breakeven_activated": false,
-      "current_gain_pct": -9.79
+      "current_gain_pct": -10.15
     },
     {
       "ticker": "INDV",
@@ -64,7 +64,7 @@
       "peak_gain_pct": 14.7,
       "stop_price": 34.95,
       "breakeven_activated": false,
-      "current_gain_pct": 11.36
+      "current_gain_pct": 7.7
     },
     {
       "ticker": "CRWV",
@@ -81,7 +81,7 @@
       "highest_price_seen": 118.2,
       "first_entry_price": 112.73,
       "peak_gain_pct": 3.58,
-      "current_gain_pct": -0.14
+      "current_gain_pct": -2.21
     }
   ],
   "closed_positions": [
@@ -157,9 +157,9 @@
       "highest_price_seen": 21.72,
       "peak_gain_pct": 12.6,
       "close_date": "2026-04-27",
-      "close_price": 20.73,
-      "close_source": "live_quote",
-      "result_pct": 7.47,
+      "close_price": 20.68,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 7.21,
       "stop_price": 19.33,
       "breakeven_activated": false
     },
@@ -176,9 +176,9 @@
       "highest_price_seen": 165.66,
       "peak_gain_pct": 1.94,
       "close_date": "2026-04-27",
-      "close_price": 139.75,
-      "close_source": "live_quote",
-      "result_pct": -14.01,
+      "close_price": 139.86,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -13.94,
       "stop_price": 116.08,
       "breakeven_activated": false
     },
@@ -198,9 +198,9 @@
       "stop_price": 472.07,
       "breakeven_activated": false,
       "close_date": "2026-04-29",
-      "close_price": 518.46,
-      "close_source": "live_quote",
-      "result_pct": 2.44
+      "close_price": 511.93,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 1.15
     },
     {
       "ticker": "NVDA",
