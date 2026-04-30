@@ -1,26 +1,5 @@
 [
   {
-    "date": "2026-03-27",
-    "up_4_today": 20,
-    "down_4_today": 20,
-    "ratio_today": 1.0,
-    "ratio_5day": 1.0,
-    "ratio_10day": 1.0,
-    "up_25_quarter": 20,
-    "down_25_quarter": 20,
-    "above_40ma_count": 20,
-    "total_universe": 20,
-    "t2108_equiv": 100.0,
-    "thrust_detected": false,
-    "fg": 10.2,
-    "spy_price": 634.09,
-    "spy_sma200_pct": -4.16,
-    "spy_above_200d": false,
-    "market_state": "RED",
-    "state_message": "No new trades",
-    "blackout": false
-  },
-  {
     "date": "2026-03-31",
     "up_4_today": 20,
     "down_4_today": 20,
@@ -651,6 +630,28 @@
     "spy_above_200d": true,
     "market_state": "RED",
     "state_message": "Bearish \u2014 no new trades",
+    "blackout": false
+  },
+  {
+    "date": "2026-04-30",
+    "up_4_today": 534,
+    "down_4_today": 98,
+    "breadth_source": "alpaca_4pct",
+    "universe_size": 2972,
+    "adv_total": null,
+    "dec_total": null,
+    "ratio_today": 5.45,
+    "ratio_5day": 1.24,
+    "ratio_10day": 1.2,
+    "up_25_quarter": 280,
+    "down_25_quarter": 165,
+    "thrust_detected": true,
+    "fg": 66.6,
+    "spy_price": 718.66,
+    "spy_sma200_pct": 7.19,
+    "spy_above_200d": true,
+    "market_state": "THRUST",
+    "state_message": "Breadth thrust \u2014 534 stocks up 4%",
     "blackout": false
   }
 ]
