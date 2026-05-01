@@ -10,11 +10,11 @@
       "target2": 174.65,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 178.81,
-      "peak_gain_pct": 51.07,
-      "stop_price": 160.93,
+      "highest_price_seen": 191.63,
+      "peak_gain_pct": 53.61,
+      "stop_price": 172.47,
       "breakeven_activated": true,
-      "current_gain_pct": 42.04,
+      "current_gain_pct": 49.74,
       "first_entry_price": 116.0
     },
     {
@@ -31,7 +31,7 @@
       "peak_gain_pct": 7.89,
       "stop_price": 159.95,
       "breakeven_activated": false,
-      "current_gain_pct": -3.66,
+      "current_gain_pct": -3.73,
       "first_entry_price": 167.52
     },
     {
@@ -48,7 +48,7 @@
       "peak_gain_pct": 6.54,
       "stop_price": 15.2,
       "breakeven_activated": false,
-      "current_gain_pct": -9.91
+      "current_gain_pct": -8.59
     },
     {
       "ticker": "INDV",
@@ -65,7 +65,7 @@
       "peak_gain_pct": 16.93,
       "stop_price": 34.95,
       "breakeven_activated": false,
-      "current_gain_pct": 11.04
+      "current_gain_pct": 9.84
     },
     {
       "ticker": "CRWV",
@@ -82,7 +82,7 @@
       "highest_price_seen": 121.8,
       "first_entry_price": 112.73,
       "peak_gain_pct": 5.26,
-      "current_gain_pct": 3.91
+      "current_gain_pct": 3.19
     }
   ],
   "closed_positions": [
@@ -220,9 +220,9 @@
       "breakeven_activated": false,
       "current_gain_pct": -2.21,
       "close_date": "2026-04-30",
-      "close_price": 201.27,
-      "close_source": "live_quote",
-      "result_pct": -5.94
+      "close_price": 204.89,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -4.24
     }
   ]
 }
