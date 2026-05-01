@@ -1,6 +1,22 @@
 {
-  "date": "2026-04-30",
+  "date": "2026-05-01",
   "candidates": [
+    {
+      "ticker": "AAOI",
+      "signal_score": 5,
+      "eps_yy_ttm": 84.71,
+      "eps_qq": 98.89,
+      "inst_trans": 4.46,
+      "appearances": 4,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
     {
       "ticker": "CORZ",
       "signal_score": 5,
@@ -18,47 +34,15 @@
       }
     },
     {
-      "ticker": "AAOI",
+      "ticker": "AXTI",
       "signal_score": 4,
-      "eps_yy_ttm": 84.71,
-      "eps_qq": 98.89,
-      "inst_trans": 4.46,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "ALGM",
-      "signal_score": 4,
-      "eps_yy_ttm": 79.04,
-      "eps_qq": 219.57,
-      "inst_trans": -0.49,
+      "eps_yy_ttm": -79.13,
+      "eps_qq": 32.04,
+      "inst_trans": 44.98,
       "appearances": 3,
       "criteria": {
         "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "ALHC",
-      "signal_score": 4,
-      "eps_yy_ttm": 99.39,
-      "eps_qq": 66.17,
-      "inst_trans": 8.94,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
+        "eps_yy_strong": false,
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
@@ -82,12 +66,28 @@
       }
     },
     {
+      "ticker": "BEN",
+      "signal_score": 4,
+      "eps_yy_ttm": 89.49,
+      "eps_qq": 84.34,
+      "inst_trans": 3.28,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "BTSG",
       "signal_score": 4,
       "eps_yy_ttm": 893.58,
       "eps_qq": 369.91,
       "inst_trans": 0.96,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -98,28 +98,12 @@
       }
     },
     {
-      "ticker": "CIEN",
-      "signal_score": 4,
-      "eps_yy_ttm": 193.36,
-      "eps_qq": 1618.0,
-      "inst_trans": -2.85,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "CLS",
       "signal_score": 4,
       "eps_yy_ttm": 131.23,
       "eps_qq": 148.83,
       "inst_trans": 4.65,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -127,6 +111,22 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "GEV",
+      "signal_score": 4,
+      "eps_yy_ttm": 395.14,
+      "eps_qq": 1816.17,
+      "inst_trans": -1.18,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
       }
     },
     {
@@ -149,9 +149,9 @@
       "ticker": "INDV",
       "signal_score": 4,
       "eps_yy_ttm": 751.75,
-      "eps_qq": 410.0,
+      "eps_qq": 83.51,
       "inst_trans": 4.02,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -178,43 +178,43 @@
       }
     },
     {
-      "ticker": "SN",
+      "ticker": "LIF",
       "signal_score": 4,
-      "eps_yy_ttm": 58.67,
-      "eps_qq": 97.43,
-      "inst_trans": 0.5,
+      "eps_yy_ttm": 2484.37,
+      "eps_qq": 1376.49,
+      "inst_trans": 218.02,
       "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
         "ipo_lifecycle": true
       }
     },
     {
-      "ticker": "SNDK",
+      "ticker": "MRAM",
       "signal_score": 4,
-      "eps_yy_ttm": -327.99,
-      "eps_qq": 617.71,
-      "inst_trans": -9.08,
-      "appearances": 3,
+      "eps_yy_ttm": 230.43,
+      "eps_qq": 75.67,
+      "inst_trans": 5.8,
+      "appearances": 2,
       "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
+        "persistence": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": true
+        "ipo_lifecycle": false
       }
     },
     {
-      "ticker": "TTMI",
+      "ticker": "NVT",
       "signal_score": 4,
-      "eps_yy_ttm": 211.82,
-      "eps_qq": 52.7,
-      "inst_trans": -3.35,
+      "eps_yy_ttm": 116.24,
+      "eps_qq": 1005.01,
+      "inst_trans": -2.78,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -223,6 +223,54 @@
         "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "RNG",
+      "signal_score": 4,
+      "eps_yy_ttm": 178.37,
+      "eps_qq": 429.26,
+      "inst_trans": 3.94,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "SATL",
+      "signal_score": 4,
+      "eps_yy_ttm": 89.07,
+      "eps_qq": 153.27,
+      "inst_trans": 7.77,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "SNDK",
+      "signal_score": 4,
+      "eps_yy_ttm": -327.99,
+      "eps_qq": 617.71,
+      "inst_trans": -9.08,
+      "appearances": 4,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
       }
     },
     {
@@ -239,22 +287,6 @@
         "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "VISN",
-      "signal_score": 4,
-      "eps_yy_ttm": 421.24,
-      "eps_qq": 12917.8,
-      "inst_trans": -5.61,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     }
   ]

@@ -837,9 +837,10 @@
       "thesis": "Technology | Q=91 | VCP | ATR 3.8%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-05-01"
     },
     {
       "ticker": "SYRE",
@@ -1080,11 +1081,13 @@
       "stop": null,
       "thesis": "Technology | Q=82 | VCP | ATR 13.1%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-01",
+      "focus_promoted_date": "2026-05-01"
     },
     {
       "ticker": "ADEA",
@@ -1118,11 +1121,13 @@
       "stop": null,
       "thesis": "Technology | Q=81 | VCP | ATR 6.2%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-01",
+      "focus_promoted_date": "2026-05-01"
     },
     {
       "ticker": "CAT",
@@ -1237,8 +1242,8 @@
       "priority": "watching",
       "source": "screener_auto",
       "archive_reason": null,
-      "archived_date": "2026-04-29",
-      "reactivated_date": "2026-04-30"
+      "archived_date": "2026-05-01",
+      "reactivated_date": "2026-05-01"
     },
     {
       "ticker": "AMKR",
@@ -1422,9 +1427,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=103 | VCP | ATR 6.0%",
       "added": "2026-04-16",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-01"
     },
     {
       "ticker": "ALB",
@@ -1433,9 +1440,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=95 | ATR 4.9%",
       "added": "2026-04-16",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-01"
     },
     {
       "ticker": "VSH",
@@ -1444,9 +1453,11 @@
       "stop": null,
       "thesis": "Technology | Q=95 | ATR 4.3%",
       "added": "2026-04-16",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-01"
     },
     {
       "ticker": "NN",
@@ -1455,9 +1466,11 @@
       "stop": null,
       "thesis": "Technology | Q=94 | ATR 6.7%",
       "added": "2026-04-16",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-01"
     },
     {
       "ticker": "RELY",
@@ -1467,9 +1480,10 @@
       "thesis": "Technology | Q=104 | VCP | ATR 3.6%",
       "added": "2026-04-17",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-18"
+      "focus_promoted_date": "2026-04-18",
+      "entry_ready_date": "2026-05-01"
     },
     {
       "ticker": "OII",
@@ -1783,9 +1797,45 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-04-30",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-04-30"
+      "focus_promoted_date": "2026-04-30",
+      "entry_ready_date": "2026-05-01"
+    },
+    {
+      "ticker": "TWLO",
+      "entry_note": "Perfect Stage 2 alignment \u2014 21 EMA pullback entry",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=107 | ATR 4.7%",
+      "added": "2026-05-01",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-05-01"
+    },
+    {
+      "ticker": "MRAM",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-01",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-01"
+    },
+    {
+      "ticker": "SATL",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-01",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
     }
   ],
   "tickers": [
