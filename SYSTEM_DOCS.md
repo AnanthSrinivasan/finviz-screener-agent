@@ -602,6 +602,11 @@ Top of `finviz_chart_grid_YYYY-MM-DD.html`:
 
 Each sector card is click-filterable: clicking hides all chart cards from other sectors in the same page (vanilla JS, in-place toggle via `data-sector` slugs). Click again or use the "Show all sectors" button to clear. Empty category sections (Power Move / Stage 2 / etc.) auto-hide when the filter leaves them empty.
 
+**Additional collapsed sections in chart gallery (May 2026):**
+
+- **🏗 Base Building** — `<details>` collapsed by default. Chart cards for tickers matching `_is_base_building` (Stage 2 · Q≥75 · dist -12% to -25% · ATR%≤7 · not in other callout lists). Passed as `base_building_tickers` to `generate_finviz_gallery`. Watch-only, no watchlist auto-add.
+- **📋 Watchlist** — `<details>` collapsed by default. Three sub-sections: 🎯 Entry-Ready · 🔭 Focus · 👀 Watch, each rendered as chart cards. Reads `data/watchlist.json` at gallery-generation time. Tickers found in `filter_df` or `all_df` (summary_df) get full chart cards; absent tickers get a minimal stub card with Finviz chart. Lets the human see "which of my watchlist names showed up in today's screener" without leaving the gallery page.
+
 **S3 Archival (added 2026-04-09):**
 
 Dated files older than 70 days are automatically archived to `s3://screener-data-repository` (`eu-central-1`) by `archive_data.py`, which runs in `daily-finviz.yml` before the git commit step. Upload → verify (`head_object`) → delete local. State files are never archived.
@@ -701,15 +706,19 @@ Not needed yet. Revisit if automated execution is added.
 **Two entry paths — technical and fundamental:**
 
 *Technical path* (`source=screener_auto`): add Stage 2 + Q≥60, top 5 by Q.
-*Fundamental path* (`source=hidden_growth_auto`): any Hidden Growth 4+/6 hit that isn't already in the watchlist enters at `priority=watching` with entry note `"Hidden Growth 4+/6 — research prompt"`. No Stage 2 or Q-score gate (so NVTS-Apr16-type deep-base names aren't locked out). From here, the same focus/entry-ready promotion logic applies — Hidden Growth gets you *onto* the radar; climbing tiers still requires technical setup maturation.
+*Fundamental path* (`source=hidden_growth_auto`): any Hidden Growth 3+/6 hit (see threshold logic below) that isn't already in the watchlist enters at `priority=watching` with entry note `"Hidden Growth 4+/6 — research prompt"`. No Stage 2 or Q-score gate (so NVTS-Apr16-type deep-base names aren't locked out). From here, the same focus/entry-ready promotion logic applies — Hidden Growth gets you *onto* the radar; climbing tiers still requires technical setup maturation.
 
 *Breakout path* (`source=breakout_auto`): any Fresh Breakout hit from today (see signal section below) not already on the list enters at `priority=watching` with entry note `"Fresh Breakout — breakout from base, watch follow-through"`. Closes the ANET-Apr8 gap where the pullback-based path misses breakout-from-base setups.
+
+**`_update_watchlist` return value:** returns a dict with keys `added`, `hg_added`, `br_added`, `reactivated`, `promoted_to_focus`, `promoted_to_entry_ready` (changed from 2-tuple in May 2026).
 
 **New snapshot signals surfaced alongside Ready-to-Enter** (all use Finviz snapshot only, no Alpaca):
 
 - **🚀 Fresh Breakout** (`_is_fresh_breakout`): Stage 2 · SMA20>0 · SMA50 in (0,25] · SMA200>0 · RVol≥1.2 · ATR%≤8 · Q≥70 · dist 0 to -12% · peel-warn safe (reuses `data/peel_calibration.json`). Top 5 by Q in dedicated Slack block.
 - **⭐ Textbook VCP marker** (`_is_textbook_vcp`): overlay badge — VCP conf≥85 · appearances≥3 · ATR%≤5 · Stage 2 perfect · dist -3 to -15% · Q≥80. Renders as :star: next to ticker in Slack Top Picks + Ready-to-Enter. Flag written to `daily_quality.json` as `textbook_vcp: true/false` so watchlist.html can render ⭐ badge without re-computing. Dist band widened from -8% → -15% on Apr 30 2026 after INDV (textbook at -13%) was missed by the tighter band.
 - **💎 Power Play / High Tight Flag** (`_is_power_play`): Perf Month≥50% OR Perf Quarter≥100% · ATR%≤5 (tight flag) · RVol<1.0 (dry) · Stage 2 · peel-warn safe. Requires new Finviz columns `Perf Month` + `Perf Quarter` — `get_snapshot_metrics` extended from 12-tuple to 14-tuple.
+- **🏗 Base Building** (`_is_base_building`): Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7.0 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth lists. Top 5 by Q (top 3 shown in Slack). **Watch-only — does NOT auto-add to watchlist.** Slack block: "🏗 Base Building (Stage 2 quality — wider base, watch only)". HTML gallery: collapsed `<details>` section with chart cards. Catches FSLY-class names forming a wider base that the -10% dist gate excludes from Ready-to-Enter.
+- **⚠ High-vol annotation** (`badge-warn` CSS): when ATR%>7 AND Q≥80, a "⚠ High-vol — size 50%" badge is added to the chart card stage-row. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) gates already exclude these, so the badge surfaces only on Top Picks cards.
 
 **Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
 - Brand-new ticker → add as `status=watching`, `priority=watching`, `source=screener_auto`
@@ -741,7 +750,7 @@ Regenerated in `daily-finviz.yml` after the watchlist mutation. Reads `data/watc
 
 1. **🎯 Ready to Enter** (green) — `priority=entry-ready`, sorted by `entry_ready_date`
 2. **📌 Focus List** (amber) — `priority=focus`, sorted by `focus_promoted_date`
-3. **🔬 Hidden Growth Today** (purple) — today's 4+/6 candidates from `hidden_growth.json`. Each row shows: score (`5/6`), lit/unlit criteria pills (`persistence`, `TTM+`, `Q/Q+`, `Inst+`, `S2`, `IPO`), EPS TTM/Q/Q with ⚠ distortion flag, Inst Trans, appearances. When the ticker is also on the watchlist, a tier badge (`ENTRY-READY` / `FOCUS` / `WATCH`) overlays the ticker cell — makes the two-axis overlap visible (e.g. a ticker that is both `entry-ready` AND Hidden Growth = highest conviction).
+3. **🔬 Hidden Growth Today** (purple) — today's 3+/6 or 4+/6 candidates from `hidden_growth.json`. Each row shows: score (`5/6`), lit/unlit criteria pills (`persistence`, `TTM+`, `Q/Q+`, `Inst+`, `S2`, `IPO`), EPS TTM/Q/Q with ⚠ distortion flag, Inst Trans, appearances. When the ticker is also on the watchlist, a tier badge (`ENTRY-READY` / `FOCUS` / `WATCH`) overlays the ticker cell — makes the two-axis overlap visible (e.g. a ticker that is both `entry-ready` AND Hidden Growth = highest conviction). **Distorted-TTM path (May 2026):** threshold lowers to 3/6 when `eps_qq_strong=True` AND `eps_yy_strong=False`.
 4. **👁 Watching** — everything else, sorted by `added` desc
 5. **🗃 Archived** (collapsed by default)
 

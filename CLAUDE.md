@@ -203,7 +203,7 @@ data/
   daily_quality_YYYY-MM-DD.json           # Q-rank, stage, section per ticker
   finviz_screeners_YYYY-MM-DD.csv         # Enriched daily screener data
   finviz_screeners_YYYY-MM-DD.html        # HTML table
-  finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery (sector rotation panel + click-to-filter)
+  finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery (sector rotation panel + click-to-filter + Base Building + Watchlist tiers)
   finviz_weekly_YYYY-MM-DD.html           # Weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # Weekly signal scores
   positions_YYYY-MM-DD.json               # Position snapshots
@@ -252,7 +252,7 @@ ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions. Each line s
 metrics + `/stock-research <ticker>`. Also drives the `focus → entry-ready`
 watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate).
 
-**🔬 Hidden Growth (4+/6 criteria)** — research prompt, **no cap** (score is the
+**🔬 Hidden Growth (3+/6 or 4+/6 criteria)** — research prompt, **no cap** (score is the
 filter; count signals regime health). Scans `summary_df` (pre-10%-gate) so
 deep-base breakouts aren't filtered out. Criteria: persistence (3+ screens),
 EPS Y/Y TTM >50, EPS Q/Q >50 (or Q/Q>20 when TTM<0), Inst Trans ≥3, Stage 2
@@ -260,13 +260,21 @@ perfect, IPO-lifecycle tag. Excludes slow-growth sectors (utilities, energy,
 real estate, basic materials, consumer defensive) and commodity/construction
 industries. **Distorted TTM is NOT a criterion** — clean TTM earns a point
 via `eps_yy_strong`; spin-off/IPO distortion is captured implicitly via the
-`eps_qq_strong` clause.
+`eps_qq_strong` clause. **Distorted-TTM threshold (May 2026):** when `eps_qq_strong=True`
+AND `eps_yy_strong=False` (Q/Q strong but TTM negative — prior-loss company in character
+change), threshold lowers to 3/6. `eps_qq_strong + inst_buying + stage2_perfect = 3` is
+enough to surface without the persistence gate. FSLY (Q86, Q/Q +55%, Inst +7.91%,
+Stage 2 perfect, 1 appearance) is the reference case.
 
 **🚀 Fresh Breakout** — top 5 by Quality Score. Catches ANET-Apr8 / ARWR-today class (breakout-from-base with volume expansion; complementary to Ready-to-Enter which is pullback-based). Criteria: Stage 2 (not requiring perfect) · SMA20% > 0 · SMA50% in (0, 25%] · SMA200% > 0 · RVol ≥1.2 · ATR% ≤8% · Q ≥70 · dist from 52w high 0% to -12% · peel-warn safe (SMA50%/ATR% ≤ per-ticker calibrated) · not held. Auto-adds to watchlist with `source=breakout_auto` (third entry path alongside technical + Hidden Growth).
 
 **⭐ Textbook VCP marker** — overlay badge, not a separate list. Promotes VCP confidence ≥85 · appearances ≥3 · ATR% ≤5 · Stage 2 perfect · dist -3% to -15% · Q ≥80 setups with a ⭐ badge on Slack Top Picks / Ready-to-Enter lines and watchlist.html ticker cells. Flag written to `daily_quality.json` as `textbook_vcp: true/false`. **Dist band widened from -8% to -15% (Apr 30 2026)** after INDV — a textbook setup at -13% — was missed by the prior tighter band.
 
 **💎 Power Play / High Tight Flag** — rare Minervini/O'Neil monster pattern. Criteria: Perf Month ≥50% OR Perf Quarter ≥100% (rocket) · ATR% ≤5 (tight flag) · RVol <1.0 (volume drying) · Stage 2 · peel-warn safe. Uses new Finviz snapshot fields `Perf Month` / `Perf Quarter` — `get_snapshot_metrics` now returns 14-tuple instead of 12.
+
+**🏗 Base Building** — watch-only research tag (no watchlist auto-add). Criteria: Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth. Top 5 by Q, top 3 in Slack block "🏗 Base Building". HTML gallery: collapsed `<details>` section with chart cards. Catches names in wider bases that the -10% Ready-to-Enter dist gate excludes.
+
+**⚠ High-vol card annotation** — when ATR%>7 AND Q≥80, `_build_card` adds a `badge-warn` "⚠ High-vol — size 50%" tag to the chart card. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) already hard-block these; the badge is the only signal for human to right-size on Top Picks cards.
 
 **Hidden Growth vs watchlist tiers — two independent axes.** Hidden Growth is a
 fundamental/accumulation flag (EPS + institutional + IPO lifecycle); tiers
