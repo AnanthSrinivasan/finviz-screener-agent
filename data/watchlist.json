@@ -1882,7 +1882,17 @@
     "CADL",
     "BB",
     "OUST",
-    "INV"
+    "INV",
+    "ALGM",
+    "RSI",
+    "NVT",
+    "STX",
+    "INTC",
+    "CIEN",
+    "COCO",
+    "OGN",
+    "CNC",
+    "PWR"
   ],
   "auto_promoted": [
     {
@@ -2146,6 +2156,66 @@
     {
       "ticker": "INV",
       "added": "2026-04-25",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "ALGM",
+      "added": "2026-05-02",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "RSI",
+      "added": "2026-05-02",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "NVT",
+      "added": "2026-05-02",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "STX",
+      "added": "2026-05-02",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "INTC",
+      "added": "2026-05-02",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "CIEN",
+      "added": "2026-05-02",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "COCO",
+      "added": "2026-05-02",
+      "days_seen": 3,
+      "screens": 4
+    },
+    {
+      "ticker": "OGN",
+      "added": "2026-05-02",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "CNC",
+      "added": "2026-05-02",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "PWR",
+      "added": "2026-05-02",
       "days_seen": 3,
       "screens": 3
     }
