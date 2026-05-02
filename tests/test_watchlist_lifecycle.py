@@ -220,9 +220,9 @@ class TestUpdateWatchlist(unittest.TestCase):
             _row(Ticker=f"T{i}", **{"Quality Score": 100 - i})
             for i in range(7)
         ]
-        promoted_focus, _ = _update_watchlist(_df(rows), "2026-04-23")
-        self.assertEqual(len(promoted_focus), 5, "cap should be 5")
-        self.assertEqual(promoted_focus[:5], ["T0", "T1", "T2", "T3", "T4"])  # top Q wins
+        r = _update_watchlist(_df(rows), "2026-04-23")
+        self.assertEqual(len(r["promoted_to_focus"]), 5, "cap should be 5")
+        self.assertEqual(r["promoted_to_focus"][:5], ["T0", "T1", "T2", "T3", "T4"])  # top Q wins
 
     def test_entry_ready_promotion_from_focus(self):
         self._write_watchlist([
@@ -232,8 +232,8 @@ class TestUpdateWatchlist(unittest.TestCase):
                 "focus_promoted_date": "2026-04-15",
             }
         ])
-        _, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
-        self.assertEqual(promoted_er, ["MU"])
+        r = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
+        self.assertEqual(r["promoted_to_entry_ready"], ["MU"])
         e = self._read_watchlist()[0]
         self.assertEqual(e["priority"], "entry-ready")
         self.assertEqual(e["entry_ready_date"], "2026-04-23")
@@ -251,8 +251,8 @@ class TestUpdateWatchlist(unittest.TestCase):
                 {"open_positions": [{"ticker": "MU", "status": "active"}], "closed_positions": []},
                 f,
             )
-        _, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
-        self.assertEqual(promoted_er, [])
+        r = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
+        self.assertEqual(r["promoted_to_entry_ready"], [])
         # Held-position auto-archive trumps the focus priority
         e = self._read_watchlist()[0]
         self.assertEqual(e["status"], "archived")
@@ -323,9 +323,9 @@ class TestUpdateWatchlist(unittest.TestCase):
         with open("data/positions.json", "w") as f:
             json.dump({"open_positions": [{"ticker": "MU", "status": "active"}],
                        "closed_positions": []}, f)
-        _, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-24")
+        r = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-24")
         # Ticker got archived (held) before promotion could occur
-        self.assertEqual(promoted_er, [])
+        self.assertEqual(r["promoted_to_entry_ready"], [])
         e = self._read_watchlist()[0]
         self.assertEqual(e["status"], "archived")
 
@@ -387,9 +387,9 @@ class TestUpdateWatchlist(unittest.TestCase):
                 "added": "2026-04-09", "source": "screener_auto",
             }
         ])
-        promoted_focus, promoted_er = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
-        self.assertIn("MU", promoted_focus)
-        self.assertIn("MU", promoted_er)
+        r = _update_watchlist(_df([_row(Ticker="MU")]), "2026-04-23")
+        self.assertIn("MU", r["promoted_to_focus"])
+        self.assertIn("MU", r["promoted_to_entry_ready"])
         e = self._read_watchlist()[0]
         self.assertEqual(e["priority"], "entry-ready")
 

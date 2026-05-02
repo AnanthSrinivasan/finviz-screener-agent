@@ -17,6 +17,8 @@ from agents.screener.finviz_agent import (
     send_slack_notification,
     _build_card,
     _classify_ticker,
+    _score_hidden_growth,
+    _is_base_building,
 )
 from agents.alerts.earnings_alert import find_upcoming_earnings
 from agents.screener.finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
@@ -871,6 +873,198 @@ class TestSynthesisedBrief(unittest.TestCase):
             self._make_persistence_df(), {}, ["2026-03-15", "2026-03-21"],
         )
         self.assertEqual(result, "Weekly brief without catalysts.")
+
+
+class TestScoreHiddenGrowthDistortedTTM(unittest.TestCase):
+    """Tests for the distorted-TTM 3/6 path in _score_hidden_growth and its threshold logic."""
+
+    def _row(self, eps_yy=0, eps_qq=0, inst_trans=0, appearances=0,
+             stage_num=2, stage_perfect=True, screeners=""):
+        return {
+            "EPS Y/Y TTM": eps_yy,
+            "EPS Q/Q":     eps_qq,
+            "Inst Trans":  inst_trans,
+            "Appearances": appearances,
+            "Screeners":   screeners,
+            "Stage":       {"stage": stage_num, "perfect": stage_perfect},
+        }
+
+    # ── _score_hidden_growth criteria ──────────────────────────────────────────
+
+    def test_eps_qq_strong_fires_when_qq_above_50(self):
+        c = _score_hidden_growth(self._row(eps_yy=10, eps_qq=60))
+        self.assertTrue(c["eps_qq_strong"])
+
+    def test_eps_qq_strong_fires_when_ttm_negative_and_qq_above_20(self):
+        """FSLY-like: TTM -80%, Q/Q +55% → eps_qq_strong = True, eps_yy_strong = False."""
+        c = _score_hidden_growth(self._row(eps_yy=-80, eps_qq=55))
+        self.assertTrue(c["eps_qq_strong"])
+        self.assertFalse(c["eps_yy_strong"])
+
+    def test_eps_qq_strong_false_when_qq_below_20_and_ttm_negative(self):
+        c = _score_hidden_growth(self._row(eps_yy=-50, eps_qq=10))
+        self.assertFalse(c["eps_qq_strong"])
+
+    def test_stage2_perfect_criterion(self):
+        c = _score_hidden_growth(self._row(stage_num=2, stage_perfect=True))
+        self.assertTrue(c["stage2_perfect"])
+
+    def test_inst_buying_criterion(self):
+        c = _score_hidden_growth(self._row(inst_trans=5))
+        self.assertTrue(c["inst_buying"])
+
+    # ── Distorted-TTM 3/6 threshold: the FSLY case ────────────────────────────
+
+    def test_fsly_profile_qualifies_at_3_of_6(self):
+        """
+        FSLY: eps_qq=+55 (strong), eps_yy=-50 (negative, distorted), inst_trans=+7.91,
+        stage2_perfect=True, appearances=1 → eps_qq_strong + inst_buying + stage2_perfect = 3
+        criteria, all with confirmed TTM distortion → should flag as HG.
+        """
+        criteria = _score_hidden_growth(self._row(
+            eps_yy=-50, eps_qq=55.77,
+            inst_trans=7.91,
+            appearances=1,
+            stage_num=2, stage_perfect=True,
+        ))
+        score = sum(criteria.values())
+        ttm_distorted = criteria["eps_qq_strong"] and not criteria["eps_yy_strong"]
+        threshold = 3 if ttm_distorted else 4
+        self.assertTrue(ttm_distorted, "TTM should be flagged as distorted")
+        self.assertGreaterEqual(score, threshold, f"Score {score} should meet threshold {threshold}")
+
+    def test_normal_path_requires_4_of_6(self):
+        """Without TTM distortion (eps_yy > 0), threshold stays 4."""
+        criteria = _score_hidden_growth(self._row(
+            eps_yy=60, eps_qq=70,
+            inst_trans=5,
+            appearances=1,
+            stage_num=2, stage_perfect=True,
+        ))
+        score = sum(criteria.values())
+        ttm_distorted = criteria["eps_qq_strong"] and not criteria["eps_yy_strong"]
+        threshold = 3 if ttm_distorted else 4
+        self.assertFalse(ttm_distorted)
+        self.assertEqual(threshold, 4)
+        # score here is eps_qq_strong + eps_yy_strong + inst_buying + stage2_perfect = 4
+        self.assertGreaterEqual(score, threshold)
+
+    def test_distorted_ttm_with_only_2_criteria_does_not_qualify(self):
+        """TTM distorted but only 2 criteria met (no inst_buying, no stage2_perfect)."""
+        criteria = _score_hidden_growth(self._row(
+            eps_yy=-50, eps_qq=55,
+            inst_trans=1,    # below inst_buying threshold (3)
+            appearances=0,
+            stage_num=1, stage_perfect=False,
+        ))
+        score = sum(criteria.values())
+        ttm_distorted = criteria["eps_qq_strong"] and not criteria["eps_yy_strong"]
+        threshold = 3 if ttm_distorted else 4
+        self.assertTrue(ttm_distorted)
+        self.assertLess(score, threshold, f"Score {score} should be below threshold {threshold}")
+
+    def test_high_vol_badge_on_build_card(self):
+        """ATR > 7 + Q >= 80 → badge-warn should appear in card HTML."""
+        row = {
+            "Ticker": "TSLA", "ATR%": 8.5, "Quality Score": 85,
+            "EPS Y/Y TTM": 20.0, "Appearances": 3, "Screeners": "Stage 2",
+            "Dist From High%": -5.0, "Rel Volume": 1.5,
+            "SMA20%": 3.0, "SMA50%": 5.0, "SMA200%": 12.0,
+            "Market Cap": "Large", "Company": "Tesla", "Sector": "Technology",
+            "Industry": "Auto", "Stage": {"stage": 2, "perfect": True, "badge": "S2"},
+            "VCP": {"vcp_possible": False, "confidence": 0},
+        }
+        html = _build_card("TSLA", row, "https://finviz.com")
+        self.assertIn("badge-warn", html)
+        self.assertIn("High-vol", html)
+
+    def test_no_high_vol_badge_when_atr_below_threshold(self):
+        """ATR <= 7 → no badge-warn even with high Q."""
+        row = {
+            "Ticker": "AAPL", "ATR%": 3.0, "Quality Score": 90,
+            "EPS Y/Y TTM": 30.0, "Appearances": 5, "Screeners": "Stage 2",
+            "Dist From High%": -3.0, "Rel Volume": 1.0,
+            "SMA20%": 2.0, "SMA50%": 4.0, "SMA200%": 10.0,
+            "Market Cap": "Large", "Company": "Apple", "Sector": "Technology",
+            "Industry": "Consumer Electronics",
+            "Stage": {"stage": 2, "perfect": True, "badge": "S2"},
+            "VCP": {"vcp_possible": False, "confidence": 0},
+        }
+        html = _build_card("AAPL", row, "https://finviz.com")
+        self.assertNotIn("badge-warn", html)
+
+    def test_no_high_vol_badge_when_quality_below_80(self):
+        """ATR > 7 but Q < 80 → no badge-warn."""
+        row = {
+            "Ticker": "XYZ", "ATR%": 9.0, "Quality Score": 75,
+            "EPS Y/Y TTM": 10.0, "Appearances": 2, "Screeners": "Momentum",
+            "Dist From High%": -8.0, "Rel Volume": 1.2,
+            "SMA20%": 1.0, "SMA50%": 3.0, "SMA200%": 8.0,
+            "Market Cap": "Small", "Company": "XYZ Corp", "Sector": "Industrials",
+            "Industry": "Manufacturing",
+            "Stage": {"stage": 2, "perfect": False, "badge": "S2"},
+            "VCP": {"vcp_possible": False, "confidence": 0},
+        }
+        html = _build_card("XYZ", row, "https://finviz.com")
+        self.assertNotIn("badge-warn", html)
+
+
+class TestIsBaseBuilding(unittest.TestCase):
+    """Tests for the _is_base_building predicate."""
+
+    def _row(self, ticker="TEST", stage_num=2, stage_perfect=True, qs=80,
+             dist=-18.0, atr=4.0):
+        return {
+            "Ticker": ticker,
+            "Stage": {"stage": stage_num, "perfect": stage_perfect},
+            "Quality Score": qs,
+            "Dist From High%": dist,
+            "ATR%": atr,
+        }
+
+    def test_qualifies_with_all_criteria_met(self):
+        self.assertTrue(_is_base_building(self._row(), set(), set()))
+
+    def test_fails_when_held(self):
+        self.assertFalse(_is_base_building(self._row(), {"TEST"}, set()))
+
+    def test_fails_when_in_exclude_tickers(self):
+        self.assertFalse(_is_base_building(self._row(), set(), {"TEST"}))
+
+    def test_fails_when_stage_not_2(self):
+        self.assertFalse(_is_base_building(self._row(stage_num=1), set(), set()))
+        self.assertFalse(_is_base_building(self._row(stage_num=3), set(), set()))
+
+    def test_fails_when_quality_score_below_75(self):
+        self.assertFalse(_is_base_building(self._row(qs=74), set(), set()))
+
+    def test_passes_at_exactly_qs_75(self):
+        self.assertTrue(_is_base_building(self._row(qs=75), set(), set()))
+
+    def test_fails_when_dist_too_shallow(self):
+        """dist > -12 → too close to high (Ready-to-Enter/Breakout territory)."""
+        self.assertFalse(_is_base_building(self._row(dist=-11.0), set(), set()))
+
+    def test_fails_when_dist_too_deep(self):
+        """dist < -25 → too deep, likely broken base."""
+        self.assertFalse(_is_base_building(self._row(dist=-26.0), set(), set()))
+
+    def test_passes_at_dist_boundary_minus_12(self):
+        self.assertTrue(_is_base_building(self._row(dist=-12.0), set(), set()))
+
+    def test_passes_at_dist_boundary_minus_25(self):
+        self.assertTrue(_is_base_building(self._row(dist=-25.0), set(), set()))
+
+    def test_fails_when_atr_above_7(self):
+        self.assertFalse(_is_base_building(self._row(atr=7.1), set(), set()))
+
+    def test_passes_at_exactly_atr_7(self):
+        self.assertTrue(_is_base_building(self._row(atr=7.0), set(), set()))
+
+    def test_fails_when_dist_missing(self):
+        row = self._row()
+        del row["Dist From High%"]
+        self.assertFalse(_is_base_building(row, set(), set()))
 
 
 if __name__ == "__main__":

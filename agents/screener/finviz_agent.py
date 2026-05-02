@@ -747,6 +747,13 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
                and (stage_num == 2 or (rvol_val >= 2.5 and atr_pct >= 4.0)))
     cc_hint_badge = '<span class="tag-cc-hint">⚡ CC?</span>' if cc_hint else ''
 
+    # High-vol warning: ATR>7 + Q>=80 means quality name but needs half-size discipline.
+    # Ready-to-Enter/Fresh Breakout gates block these, so they surface only in Top Picks.
+    high_vol_badge = (
+        '<span class="badge-warn">⚠ High-vol — size 50%</span>'
+        if atr_pct > 7.0 and qs_int >= 80 else ''
+    )
+
     sma_html = (
         f'<div class="sma-row">'
         f'<span title="vs 20-day MA">20d {sma20}</span>'
@@ -768,7 +775,7 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
     </div>
   </div>
   <div class="stage-row">
-    <span class="stage-badge">{stage_badge}</span>{power_move_badge}{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}{overhead_badge}
+    <span class="stage-badge">{stage_badge}</span>{power_move_badge}{vcp_badge}{perfect_badge}{sector_lead_badge}{cc_hint_badge}{overhead_badge}{high_vol_badge}
   </div>
   {sector_html}
   {sma_html}
@@ -787,7 +794,9 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
 
 
 def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
-                            excluded_df: pd.DataFrame | None = None) -> str:
+                            excluded_df: pd.DataFrame | None = None,
+                            base_building_tickers: list | None = None,
+                            all_df: pd.DataFrame | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -838,7 +847,96 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
   <div class="chart-grid">{"".join(sec['cards'])}</div>
 </div>"""
 
+    # Base Building — collapsed secondary section (wider-base quality names, human reviews)
+    base_building_html = ""
+    if base_building_tickers:
+        bb_cards = []
+        for bt in base_building_tickers:
+            rows = filter_df[filter_df['Ticker'] == bt]
+            if rows.empty:
+                continue
+            bb_cards.append(_build_card(bt, rows.iloc[0], FINVIZ_BASE, top_sectors))
+        if bb_cards:
+            base_building_html = f"""
+<details class="section-collapsible">
+  <summary>
+    🏗 Base Building <span class="section-count">{len(bb_cards)}</span>
+    <span class="section-sub-inline">Stage 2 quality names in wider bases (-12% to -25%) — watch for tightening, no auto-add</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(bb_cards)}</div>
+</details>"""
+
     total = sum(len(s['cards']) for s in sections.values())
+
+    # Watchlist section — Entry-Ready / Focus / Watch as chart cards (read from watchlist.json)
+    watchlist_html = ""
+    try:
+        import json as _wl_json
+        _wl_path = os.path.join("data", "watchlist.json")
+        with open(_wl_path) as _f:
+            _wl_data = _wl_json.load(_f)
+        _wl_entries = _wl_data.get("watchlist", [])
+        # Build a lookup from ticker→row using filter_df first, then all_df as fallback
+        _row_lookup: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup:
+                    _row_lookup[_t] = _r
+
+        def _wl_card(ticker: str) -> str:
+            if ticker in _row_lookup:
+                return _build_card(ticker, _row_lookup[ticker], FINVIZ_BASE, top_sectors)
+            # Minimal stub for tickers not in today's screener
+            chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={ticker}&ty=c&ta=1&p=d&s=m"
+            finviz_url = f"{FINVIZ_BASE}/quote.ashx?t={ticker}"
+            return f"""
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="{finviz_url}" target="_blank" class="ticker-link">{ticker}</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="{finviz_url}" target="_blank">
+    <img src="{chart_url}" alt="{ticker}" loading="lazy" class="chart-img">
+  </a>
+</div>"""
+
+        _tiers = [
+            ("entry-ready", "🎯 Entry-Ready", "#16a34a"),
+            ("focus",       "🔭 Focus",       "#2563eb"),
+            ("watching",    "👀 Watch",        "#6b7280"),
+        ]
+        _wl_subsections = ""
+        _wl_total = 0
+        for _priority, _label, _color in _tiers:
+            _tier_tickers = [
+                e["ticker"] for e in _wl_entries
+                if e.get("priority") == _priority and e.get("status") != "archived"
+            ]
+            if not _tier_tickers:
+                continue
+            _tier_cards = "".join(_wl_card(t) for t in _tier_tickers)
+            _wl_total += len(_tier_tickers)
+            _wl_subsections += f"""
+<div class="wl-tier">
+  <div class="wl-tier-header" style="border-left:4px solid {_color}">
+    <span class="wl-tier-label">{_label}</span>
+    <span class="section-count">{len(_tier_tickers)}</span>
+  </div>
+  <div class="chart-grid" style="margin-top:8px">{_tier_cards}</div>
+</div>"""
+
+        if _wl_subsections:
+            watchlist_html = f"""
+<details class="section-collapsible">
+  <summary>
+    📋 Watchlist <span class="section-count">{_wl_total}</span>
+    <span class="section-sub-inline">Entry-Ready · Focus · Watch — tickers on your radar</span>
+  </summary>
+  <div style="margin-top:16px">{_wl_subsections}</div>
+</details>"""
+    except Exception as _e:
+        log.warning("Watchlist section skipped (non-fatal): %s", _e)
 
     # Build sector rotation panel
     sector_data = compute_sector_rotation(filter_df)
@@ -935,6 +1033,8 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 .tag-overhead {{ font-size: 9px; background: #fff7ed; color: #c2410c;
                  padding: 1px 5px; border-radius: 3px; font-weight: 700;
                  border: 1px solid #fdba74; }}
+.badge-warn {{ font-size: 9px; background: #fef3c7; color: #92400e;
+               padding: 2px 6px; border-radius: 4px; font-weight: 700; }}
 .sector-tag {{ font-size: 0.7rem; color: #2563eb; background: #eff6ff;
                border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }}
 .sma-row {{ display: flex; gap: 8px; font-size: 0.68rem; color: #6b7280; margin-bottom: 6px; flex-wrap: wrap; }}
@@ -977,6 +1077,21 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
             cursor: pointer; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,.2);
             display: flex; align-items: center; justify-content: center; }}
 .pdf-btn:hover {{ background: #1d4ed8; }}
+/* Base Building collapsible section */
+.section-collapsible {{ margin-bottom: 32px; border: 1px dashed #d1d5db;
+                         border-radius: 10px; padding: 12px 16px; background: #fafafa; }}
+.section-collapsible > summary {{ cursor: pointer; font-size: 1.1rem; font-weight: 700;
+                                   color: #111827; display: flex; align-items: center; gap: 10px;
+                                   list-style: none; user-select: none; }}
+.section-collapsible > summary::-webkit-details-marker {{ display: none; }}
+.section-collapsible > summary::before {{ content: "▶"; font-size: 0.7rem; color: #6b7280; transition: transform .2s; }}
+.section-collapsible[open] > summary::before {{ transform: rotate(90deg); }}
+.section-sub-inline {{ font-size: 0.78rem; font-weight: 400; color: #6b7280; }}
+/* Watchlist tiers */
+.wl-tier {{ margin-bottom: 20px; }}
+.wl-tier-header {{ display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+                    background: #f9fafb; border-radius: 6px; margin-bottom: 8px; }}
+.wl-tier-label {{ font-size: 0.9rem; font-weight: 700; color: #111827; }}
 @media print {{
   .pdf-btn {{ display: none; }}
   body {{ padding: 0; background: #fff; }}
@@ -991,6 +1106,8 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
 {sector_rotation_html}
 {sections_html}
+{base_building_html}
+{watchlist_html}
 <script>
 (function() {{
   var activeSector = null;
@@ -1119,7 +1236,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              hidden_growth_candidates: list | None = None,
                              ready_to_enter: list | None = None,
                              fresh_breakouts: list | None = None,
-                             power_plays: list | None = None):
+                             power_plays: list | None = None,
+                             base_building: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1226,6 +1344,29 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         })
         blocks.append({"type": "divider"})
 
+    # Base Building — quality names in wider bases. Watch-only, no auto-add.
+    # base_building is list of dicts: {ticker, q, dist, atr, stage_perfect, vcp_conf}
+    if base_building:
+        lines = []
+        for r in base_building[:3]:
+            reason_parts = ["Stage 2 perfect" if r.get("stage_perfect") else "Stage 2"]
+            if r.get("vcp_conf", 0) >= 50:
+                reason_parts.append(f"VCP {r['vcp_conf']:.0f}%")
+            reason_parts.append("wider base — watch for tightening")
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · dist {r['dist']:+.0f}% · ATR {r['atr']:.1f}%"
+                f" — {' · '.join(reason_parts)}"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":building_construction: *Base Building* (Stage 2 quality — wider base, watch only):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
     blocks.append({
         "type": "section",
         "text": {
@@ -1290,7 +1431,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f":microscope: *Hidden Growth ({len(hidden_growth_candidates)} names, 4+/6 criteria):* {tickers_str}\n"
+                    f":microscope: *Hidden Growth ({len(hidden_growth_candidates)} names, 3+/6 criteria):* {tickers_str}\n"
                     f"Research first 10{more_note}: {research_cmd}"
                 )
             }
@@ -1327,13 +1468,15 @@ _HIDDEN_GROWTH_EXCLUDED_INDUSTRIES = {
 
 def _score_hidden_growth(row) -> dict:
     """
-    Pure 6-criteria Hidden Growth scorer. Need 4+ to flag for research.
+    Pure 6-criteria Hidden Growth scorer. Normally need 4+ to flag for research.
+
+    Distorted-TTM path: when eps_qq_strong=True and eps_yy_strong=False (Q/Q
+    strong but TTM negative — prior-loss company in character change), the caller
+    lowers the threshold to 3/6. eps_qq_strong + inst_buying + stage2_perfect is
+    enough to surface it as a research candidate without the persistence gate.
 
     Criteria reward accumulating evidence — persistence, strong EPS (either TTM
     or Q/Q), institutional buying, Stage 2 perfect alignment, IPO lifecycle.
-    Distorted TTM is NOT penalized or rewarded on its own; IPO cases are
-    handled via the eps_qq_strong clause (eps_yy<0 and eps_qq>20) and the
-    ipo_lifecycle flag.
     """
     eps_yy      = float(row.get('EPS Y/Y TTM', 0) or 0)
     eps_qq      = float(row.get('EPS Q/Q', 0) or 0)
@@ -1570,6 +1713,40 @@ def _is_power_play(row, open_positions_tickers: set) -> bool:
     return True
 
 
+def _is_base_building(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
+    """
+    Pure predicate for '🏗 Base Building' — quality names in wider bases.
+    Complement to Ready-to-Enter (-1% to -10%) and Fresh Breakout (0% to -12%).
+
+    All must hold: Stage 2 · Q ≥ 75 · dist -12% to -25% from 52w high ·
+    ATR% ≤ 7.0 · not held · not already in another callout category.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 75:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist > -12.0 or dist < -25.0:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) > 7.0:
+        return False
+
+    return True
+
+
 def _is_textbook_vcp(row) -> bool:
     """
     Pure predicate for the ⭐ Textbook VCP overlay marker. Stricter bar than
@@ -1632,7 +1809,7 @@ def _update_watchlist(
 
     Invariant: one row per ticker. No duplicates created by this function.
 
-    Returns: (promoted_to_focus, promoted_to_entry_ready).
+    Returns: dict with keys added, hg_added, br_added, reactivated, promoted_to_focus, promoted_to_entry_ready.
     """
     import json
     from datetime import date, timedelta
@@ -1865,7 +2042,14 @@ def _update_watchlist(
         len(added), len(hg_added), len(br_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
-    return promoted_to_focus, promoted_to_entry_ready
+    return {
+        "added":                  added,
+        "hg_added":               hg_added,
+        "br_added":               br_added,
+        "reactivated":            reactivated,
+        "promoted_to_focus":      promoted_to_focus,
+        "promoted_to_entry_ready": promoted_to_entry_ready,
+    }
 
 
 # ----------------------------
@@ -1978,16 +2162,21 @@ if __name__ == "__main__":
 
             criteria = _score_hidden_growth(row)
             signal_score = sum(criteria.values())
-            if signal_score >= 4:
+            # Distorted-TTM path: Q/Q strong + TTM negative = prior-loss company.
+            # eps_qq_strong already confirms TTM<0 via its (eps_yy<0 and eps_qq>20) clause.
+            ttm_distorted = criteria["eps_qq_strong"] and not criteria["eps_yy_strong"]
+            threshold = 3 if ttm_distorted else 4
+            if signal_score >= threshold:
                 eps_yy = float(row.get('EPS Y/Y TTM', 0) or 0)
                 eps_qq = float(row.get('EPS Q/Q', 0) or 0)
                 inst_trans = float(row.get('Inst Trans', 0) or 0)
                 appearances = int(row.get('Appearances', 0) or 0)
                 hg_scored.append((signal_score, row['Ticker'], eps_yy, eps_qq, inst_trans, appearances, criteria))
                 log.info(
-                    f"Hidden Growth candidate: {row['Ticker']} signal={signal_score}/6 "
+                    f"Hidden Growth candidate: {row['Ticker']} signal={signal_score}/{threshold} "
                     f"[{', '.join(k for k, v in criteria.items() if v)}] "
                     f"EPS TTM={eps_yy:.0f}% Q/Q={eps_qq:.0f}% InstTrans={inst_trans:.1f}% {appearances}d"
+                    + (" [distorted-TTM 3/6]" if ttm_distorted else "")
                 )
 
         # Sort by (score desc, ticker asc). No cap — score is the filter.
@@ -2016,7 +2205,7 @@ if __name__ == "__main__":
                 [t for t, _, _ in hidden_growth_candidates],
             )
         else:
-            log.info("No Hidden Growth candidates today (need 4/6 criteria).")
+            log.info("No Hidden Growth candidates today (need 4/6, or 3/6 when TTM distorted).")
     except Exception as e:
         log.error(f"Hidden Growth detection failed (non-fatal): {e}")
 
@@ -2049,15 +2238,10 @@ if __name__ == "__main__":
         top3 = filter_df.head(3)[['Ticker','Quality Score','Market Cap','Appearances']].to_string(index=False)
         log.info(f"Top 3 by quality score:\n{top3}")
 
-    # Step 4: Gallery
-    gallery_path = generate_finviz_gallery(filter_df['Ticker'].tolist(), filter_df, excluded_df)
-    log.info(f"Chart gallery: {gallery_path}")
-
-    # Step 5: AI summary
+    # Step 4: AI summary (gallery moved to after signal lists are built)
     ai_summary = generate_ai_summary(filter_df, today)
 
-    # Step 6a: Build Ready-to-Enter list (Stage 2 + VCP≥70 + Q≥80 + pullback + tight ATR + dry RVol,
-    #          excludes open positions). Top 5 by Quality Score.
+    # Step 5: Build all signal lists (Ready-to-Enter, Fresh Breakout, Power Play, Base Building)
     open_positions_tickers = _load_open_positions()
     ready_to_enter: list[dict] = []
     fresh_breakouts: list[dict] = []
@@ -2106,23 +2290,60 @@ if __name__ == "__main__":
     if power_plays:
         log.info("Power Play: %s", [r["ticker"] for r in power_plays])
 
-    # Step 6b: Slack
+    # Base Building: Stage 2 + Q≥75 + dist -12% to -25% + ATR≤7% + not in other callout lists
+    exclude_from_bb = (
+        {r["ticker"] for r in ready_to_enter}
+        | {r["ticker"] for r in fresh_breakouts}
+        | {r["ticker"] for r in power_plays}
+        | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+    )
+    base_building: list[dict] = []
+    if not filter_df.empty:
+        for _, row in filter_df.iterrows():
+            if _is_base_building(row, open_positions_tickers, exclude_from_bb):
+                stage_d = row.get("Stage") or {}
+                vcp_d   = row.get("VCP") or {}
+                base_building.append({
+                    "ticker":        row["Ticker"],
+                    "q":             float(row.get("Quality Score", 0) or 0),
+                    "dist":          float(row.get("Dist From High%", 0) or 0),
+                    "atr":           float(row.get("ATR%", 0) or 0),
+                    "stage_perfect": stage_d.get("perfect", False) if isinstance(stage_d, dict) else False,
+                    "vcp_conf":      float((vcp_d.get("confidence", 0) or 0)) if isinstance(vcp_d, dict) else 0.0,
+                })
+        base_building.sort(key=lambda r: r["q"], reverse=True)
+        base_building = base_building[:5]
+    if base_building:
+        log.info("Base Building: %s", [r["ticker"] for r in base_building])
+
+    # Step 6: Gallery (generated after signal lists so base_building tickers can be included)
+    gallery_path = generate_finviz_gallery(
+        filter_df['Ticker'].tolist(), filter_df, excluded_df,
+        base_building_tickers=[r["ticker"] for r in base_building],
+        all_df=summary_df,
+    )
+    log.info(f"Chart gallery: {gallery_path}")
+
+    # Step 7: Slack
     send_slack_notification(
         summary_df, filter_df, gallery_path, today, ai_summary,
         hidden_growth_candidates=hidden_growth_candidates if 'hidden_growth_candidates' in dir() else None,
         ready_to_enter=ready_to_enter,
         fresh_breakouts=fresh_breakouts,
         power_plays=power_plays,
+        base_building=base_building,
     )
 
-    # Step 7: Auto-populate watchlist + auto-promote watching→focus→entry-ready
+    # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
     hg_tickers_today = [t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() else [])]
     br_tickers_today = [r["ticker"] for r in fresh_breakouts]
-    promoted_to_focus, promoted_to_entry_ready = _update_watchlist(
+    wl_changes = _update_watchlist(
         filter_df, today,
         hidden_growth_tickers=hg_tickers_today,
         breakout_tickers=br_tickers_today,
     )
+    promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
+    promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])
     if promoted_to_focus:
         log.info("Auto-promoted to Focus List: %s", promoted_to_focus)
     if promoted_to_entry_ready:
