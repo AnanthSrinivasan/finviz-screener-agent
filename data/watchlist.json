@@ -1149,11 +1149,12 @@
       "stop": null,
       "thesis": "Industrials | Q=80 | VCP | ATR 5.5%",
       "added": "2026-04-14",
-      "status": "archived",
+      "status": "watching",
       "priority": "watching",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-02"
     },
     {
       "ticker": "JBL",
@@ -1242,8 +1243,8 @@
       "priority": "watching",
       "source": "screener_auto",
       "archive_reason": null,
-      "archived_date": "2026-05-01",
-      "reactivated_date": "2026-05-01"
+      "archived_date": "2026-05-02",
+      "reactivated_date": "2026-05-02"
     },
     {
       "ticker": "AMKR",
@@ -1836,6 +1837,76 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "BAND",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-02"
+    },
+    {
+      "ticker": "CERS",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "FSLY",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-02"
+    },
+    {
+      "ticker": "KVYO",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "NOK",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-02"
+    },
+    {
+      "ticker": "XNDU",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-02",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-02"
     }
   ],
   "tickers": [
