@@ -98,8 +98,7 @@ flowchart TB
         S2["<b>#weekly-alerts</b><br/>top 5 + catalyst brief"]
         S3["<b>#general-alerts</b><br/>earnings · hard stops · breadth"]
         S4["<b>#positions</b><br/>ATR exits + P&amp;L"]
-        S5["<b>#market-alerts</b><br/>state changes only"]
-        S6["<b>#market-daily</b><br/>daily breadth summary"]
+        S5["<b>#market-alerts</b><br/>state changes + THRUST"]
     end
 
     A1 ==> S1
@@ -340,7 +339,7 @@ F&G extremes, NYSE/Nasdaq breadth, ATR compression, commodity breakouts. State p
 ### 3.6 Market Monitor — `finviz_market_monitor.py` ✅ NEW
 
 **Schedule:** 22:00 UTC Mon-Fri
-**Slack:** `#market-alerts` via `SLACK_WEBHOOK_MARKET_ALERTS` (state changes only), `#market-daily` via `SLACK_WEBHOOK_MARKET_DAILY` (every day)
+**Slack:** `#market-alerts` via `SLACK_WEBHOOK_MARKET_ALERTS` (state changes + THRUST only)
 
 Standalone daily agent that classifies overall market conditions using Alpaca breadth data.
 
@@ -558,8 +557,7 @@ Per-position transaction timeline is filtered to events at or after the position
 | `SLACK_WEBHOOK_WEEKLY` | `#weekly-alerts` | Weekly review + winners watchlist | `#general-alerts` |
 | `SLACK_WEBHOOK_ALERTS` | `#general-alerts` | Earnings alerts + hard stop fires + breadth alerts | `#general-alerts` |
 | `SLACK_WEBHOOK_POSITIONS` | `#positions` | Live P&L, ATR exits, peel levels | `#general-alerts` |
-| `SLACK_WEBHOOK_MARKET_ALERTS` | `#market-alerts` | Market state changes + confirmation alerts | `#market-alerts` |
-| `SLACK_WEBHOOK_MARKET_DAILY` | `#market-daily` | Daily breadth summary (every trading day) | `#market-alerts` |
+| `SLACK_WEBHOOK_MARKET_ALERTS` | `#market-alerts` | Market state changes + THRUST + confirmation alerts | `#market-alerts` |
 
 `#general-alerts` also receives all workflow failure notifications — single place to check if anything is broken.
 `#market-alerts` stays quiet when market grinds in RED — only pings on meaningful state changes.
@@ -651,7 +649,6 @@ Not needed yet. Revisit if automated execution is added.
 | `SLACK_WEBHOOK_ALERTS` | earnings-alert.yml, alerts-finviz.yml, all failure hooks |
 | `SLACK_WEBHOOK_POSITIONS` | position-monitor.yml |
 | `SLACK_WEBHOOK_MARKET_ALERTS` | market_monitor.yml |
-| `SLACK_WEBHOOK_MARKET_DAILY` | market_monitor.yml |
 | `ANTHROPIC_API_KEY` | finviz_agent.py, finviz_weekly_agent.py, finviz_position_monitor.py |
 | `PAGES_BASE_URL` | all agents (gallery links in Slack) |
 | `SNAPTRADE_CLIENT_ID` | finviz_position_monitor.py |
@@ -784,7 +781,7 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 3. Load today's enriched CSV + merge watchlist tickers from `daily_quality_YYYY-MM-DD.json` — ensures high-Q watchlist names get evaluated even if not in today's raw screener
 4. Pre-filter: Q≥60 + Stage 2, cap at top 10 candidates by Q score
 5. Fetch open positions + account equity from Alpaca
-6. Gate: max 5 concurrent positions
+6. Gate: `effective_max_positions(market_state)` — GREEN/THRUST: 10, CAUTION: 7, default (COOLING/RED/DANGER): 5. Weekend guard: executor exits immediately on Sat/Sun with a Slack notice.
 7. For each candidate not already held:
    - Compute allocation by Q score tier (see below)
    - **Extended-entry gate:** if `SMA50% / ATR%` > peel warn, skip. Warn is per-ticker from `peel_calibration.json` when calibrated; else ATR% tier fallback (low ≤4%: 3.0x · mid ≤7%: 5.0x · high ≤10%: 6.5x · extreme: 8.5x). Replaces the older hardcoded 6.0x cap — lets high-vol names (e.g. AAOI calibrated warn 11.8x) enter on their own scale. Skip Slack message shows source (`calibrated` or `tier`).
@@ -816,10 +813,11 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 **For each open Alpaca paper position:**
 1. Migrate `paper_stops.json` entry to full schema (idempotent).
 2. Fetch today's intraday high (Finviz "Range") and ATR%.
-3. Apply trailing rules via shared `rules.apply_position_rules` (now used by paper; live port pending):
-   - **Breakeven trigger keys off `peak_gain_pct`**, not live `gain_pct` — once peak hits +20%, lock to `entry × 1.005` even if price has already faded (fixes the GEV-class miss).
-   - ATR incremental trail (silent, pre-breakeven): `stop = max(stop, price − 2×ATR)`.
-   - Peak +30%: `stop = max(stop, highest_price_seen × 0.90)`.
+3. Apply trailing rules via shared `rules.apply_position_rules`:
+   - **Loss-cap floor** at peak ≥+5%: `stop ≥ max(entry × 0.97, entry − 0.5×ATR$)` — hybrid α/β, prevents a winner fading to a full loss.
+   - **ATR-tiered trail** (continuous, ratchets off `highest_price_seen`): peak <10% → 2.0×ATR, ≥10% → 1.5×ATR, ≥20% → 1.0×ATR.
+   - **Breakeven flag** (`breakeven_activated`) set at peak ≥+20% — informational only, drives Slack/dashboard `BE` indicator. `entry × 1.005` fallback floor applies only when ATR data missing.
+   - **+30% floor**: `stop ≥ max(1.0×ATR trail, highest_price_seen × 0.90)` — 10%-from-peak guard for high-vol names.
    - Target 1 / T2 alerts; 1×ATR fade alert (5pp dedup).
 4. **Post-close run only (≥21:00 UTC weekday)** — call `rules.check_ma_trail_alert` with last 60 daily Alpaca closes. Tier rules:
    - ATR% ≤ 5% → regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION, 8 EMA in COOLING; GREEN/THRUST need 2 consecutive)
