@@ -1429,7 +1429,7 @@ class TestClassifyMarketState(unittest.TestCase):
         """Blackout should override even thrust signals."""
         metrics = self._make_metrics(thrust=True)
         today = {"up_4_today": 600, "down_4_today": 10}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=80.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 9, 15)
         )
@@ -1441,7 +1441,7 @@ class TestClassifyMarketState(unittest.TestCase):
             thrust=True, ratio_5day=3.0, ratio_10day=2.0
         )
         today = {"up_4_today": 600, "down_4_today": 10}
-        state, msg = classify_market_state(
+        state, msg, _ = classify_market_state(
             metrics, fg=50.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1454,7 +1454,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=2.5, ratio_10day=2.0
         )
         today = {"up_4_today": 100, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=45.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1466,7 +1466,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=2.5, ratio_10day=2.0, spy_above_200d=False
         )
         today = {"up_4_today": 100, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=45.0, spy_price=500.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1478,7 +1478,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=2.5, ratio_10day=2.0
         )
         today = {"up_4_today": 100, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=20.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1490,7 +1490,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=1.6, ratio_10day=1.0
         )
         today = {"up_4_today": 60, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1502,7 +1502,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=1.6, spy_above_200d=False
         )
         today = {"up_4_today": 60, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=500.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1514,7 +1514,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=0.3, spy_above_200d=False
         )
         today = {"up_4_today": 500, "down_4_today": DANGER_DOWN_THRESHOLD}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=10.0, spy_price=450.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1526,7 +1526,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=0.3, spy_above_200d=False
         )
         today = {"up_4_today": 10, "down_4_today": DANGER_DOWN_THRESHOLD - 1}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=10.0, spy_price=450.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1538,7 +1538,7 @@ class TestClassifyMarketState(unittest.TestCase):
             ratio_5day=0.8, ratio_10day=0.6, spy_above_200d=False
         )
         today = {"up_4_today": 30, "down_4_today": 80}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=20.0, spy_price=500.0, spy_above_200d=False,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1548,7 +1548,7 @@ class TestClassifyMarketState(unittest.TestCase):
         """COOLING fires when previous state was GREEN and conditions no longer met."""
         metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
         today = {"up_4_today": 80, "down_4_today": 50}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15),
             prev_state="GREEN"
@@ -1559,7 +1559,7 @@ class TestClassifyMarketState(unittest.TestCase):
         """COOLING only fires when coming DOWN from GREEN, not from other states."""
         metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
         today = {"up_4_today": 80, "down_4_today": 50}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15),
             prev_state="CAUTION"
@@ -1570,7 +1570,7 @@ class TestClassifyMarketState(unittest.TestCase):
         """COOLING does not fire if GREEN conditions are still satisfied."""
         metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=1.8)
         today = {"up_4_today": 150, "down_4_today": 50}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=40.0, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15),
             prev_state="GREEN"
@@ -1581,7 +1581,7 @@ class TestClassifyMarketState(unittest.TestCase):
         """None F&G should not crash — treated as 0."""
         metrics = self._make_metrics(ratio_5day=2.5, ratio_10day=2.0)
         today = {"up_4_today": 100, "down_4_today": 40}
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=None, spy_price=600.0, spy_above_200d=True,
             today_data=today, date=datetime.date(2026, 4, 15)
         )
@@ -1746,7 +1746,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         """Market should go from RED to THRUST on massive up day."""
         # Day 1: RED
         m1 = self._make_metrics(ratio_5day=0.4, spy_above_200d=False)
-        s1, _ = classify_market_state(
+        s1, _, _ = classify_market_state(
             m1, fg=15.0, spy_price=450.0, spy_above_200d=False,
             today_data={"up_4_today": 20, "down_4_today": 150},
             date=datetime.date(2026, 4, 8)
@@ -1755,7 +1755,7 @@ class TestMarketStateTransitions(unittest.TestCase):
 
         # Day 2: THRUST (500+ stocks up 4%)
         m2 = self._make_metrics(thrust=True, ratio_5day=0.6)
-        s2, _ = classify_market_state(
+        s2, _, _ = classify_market_state(
             m2, fg=12.0, spy_price=455.0, spy_above_200d=False,
             today_data={"up_4_today": 520, "down_4_today": 30},
             date=datetime.date(2026, 4, 9)
@@ -1767,7 +1767,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         metrics = self._make_metrics(
             ratio_5day=2.5, ratio_10day=1.8
         )
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=35.0, spy_price=580.0, spy_above_200d=True,
             today_data={"up_4_today": 120, "down_4_today": 50},
             date=datetime.date(2026, 4, 24)
@@ -1777,7 +1777,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_green_to_cooling_when_ratios_fade(self):
         """GREEN transitions to COOLING when conditions weaken."""
         metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=580.0, spy_above_200d=True,
             today_data={"up_4_today": 80, "down_4_today": 50},
             date=datetime.date(2026, 5, 10),
@@ -1788,7 +1788,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_cooling_to_caution_when_prev_not_green(self):
         """After COOLING, further weakening goes to CAUTION (not COOLING again)."""
         metrics = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=30.0, spy_price=570.0, spy_above_200d=True,
             today_data={"up_4_today": 70, "down_4_today": 45},
             date=datetime.date(2026, 5, 11),
@@ -1801,7 +1801,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         metrics = self._make_metrics(
             ratio_5day=0.3, spy_above_200d=False
         )
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=18.0, spy_price=480.0, spy_above_200d=False,
             today_data={"up_4_today": 500, "down_4_today": DANGER_DOWN_THRESHOLD},
             date=datetime.date(2026, 5, 10),
@@ -1813,7 +1813,7 @@ class TestMarketStateTransitions(unittest.TestCase):
         """CAUTION upgrades to GREEN when all conditions are met."""
         # CAUTION state
         m1 = self._make_metrics(ratio_5day=1.6, ratio_10day=1.2)
-        s1, _ = classify_market_state(
+        s1, _, _ = classify_market_state(
             m1, fg=30.0, spy_price=560.0, spy_above_200d=True,
             today_data={"up_4_today": 70, "down_4_today": 45},
             date=datetime.date(2026, 4, 20)
@@ -1822,7 +1822,7 @@ class TestMarketStateTransitions(unittest.TestCase):
 
         # GREEN state — ratios improved
         m2 = self._make_metrics(ratio_5day=2.2, ratio_10day=1.6)
-        s2, _ = classify_market_state(
+        s2, _, _ = classify_market_state(
             m2, fg=40.0, spy_price=575.0, spy_above_200d=True,
             today_data={"up_4_today": 90, "down_4_today": 40},
             date=datetime.date(2026, 4, 24)
@@ -1832,7 +1832,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_entering_blackout_period(self):
         """State should switch to BLACKOUT regardless of breadth."""
         metrics = self._make_metrics(ratio_5day=3.0, ratio_10day=2.5)
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=55.0, spy_price=600.0, spy_above_200d=True,
             today_data={"up_4_today": 150, "down_4_today": 30},
             date=datetime.date(2026, 9, 1)
@@ -1842,7 +1842,7 @@ class TestMarketStateTransitions(unittest.TestCase):
     def test_exiting_blackout_period(self):
         """After blackout ends, normal classification resumes."""
         metrics = self._make_metrics(ratio_5day=0.7, spy_above_200d=False)
-        state, _ = classify_market_state(
+        state, _, _ = classify_market_state(
             metrics, fg=25.0, spy_price=530.0, spy_above_200d=False,
             today_data={"up_4_today": 40, "down_4_today": 90},
             date=datetime.date(2026, 10, 16)

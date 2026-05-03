@@ -85,7 +85,7 @@ def save_daily(record: dict):
     log.info(f"Daily record saved: {path}")
 
 
-def update_trading_state(record: dict):
+def update_trading_state(record: dict, new_consecutive_weak_days: int = 0):
     """Save market state and metrics to data/trading_state.json."""
     os.makedirs(DATA_DIR, exist_ok=True)
     existing = {}
@@ -104,18 +104,25 @@ def update_trading_state(record: dict):
         spy_200ma = round(spy_price / (1 + sma200_pct / 100), 2)
 
     existing.update({
-        "market_state": record["market_state"],
-        "up_4pct_count": record["up_4_today"],
-        "down_4pct_count": record["down_4_today"],
-        "5d_ratio": record["ratio_5day"],
-        "10d_ratio": record["ratio_10day"],
-        "spy_price": spy_price,
-        "spy_200ma": spy_200ma,
-        "fng": record.get("fg"),
+        "market_state":          record["market_state"],
+        "up_4pct_count":         record["up_4_today"],
+        "down_4pct_count":       record["down_4_today"],
+        "5d_ratio":              record["ratio_5day"],
+        "10d_ratio":             record["ratio_10day"],
+        "spy_price":             spy_price,
+        "spy_200ma":             spy_200ma,
+        "fng":                   record.get("fg"),
+        "consecutive_weak_days": new_consecutive_weak_days,
     })
 
     if record["market_state"] == "THRUST":
         existing["last_thrust_date"] = record["date"]
+
+    fg_val = record.get("fg") or 0
+    if fg_val > 74:
+        existing["last_extreme_greed_date"] = record["date"]
+    if fg_val < 25:
+        existing["last_extreme_fear_date"] = record["date"]
 
     with open(TRADING_STATE_FILE, "w") as f:
         json.dump(existing, f, indent=2)
@@ -518,91 +525,156 @@ def classify_market_state(metrics: dict, fg: float | None,
                           spy_above_200d: bool,
                           today_data: dict,
                           date: datetime.date,
-                          prev_state: str | None = None) -> tuple[str, str]:
+                          prev_state: str | None = None,
+                          last_thrust_date: str | None = None,
+                          consecutive_weak_days: int = 0) -> tuple[str, str, dict]:
     """
     Classify market into one of 7 states, checked in priority order:
       BLACKOUT → DANGER → COOLING → THRUST → GREEN → CAUTION → RED
 
-    The cycle flows:
-      RED → THRUST (signal) → CAUTION (building) → GREEN (full throttle)
-          → COOLING (fading from GREEN) → CAUTION/RED → DANGER → RED
-          → BLACKOUT → RED ...
+    Returns (state, message, context) where context = {
+        post_thrust_floor_active: bool,
+        confidence_context: "high_confidence_recovery" | "extreme_greed_caution" | None,
+    }
 
-    COOLING is directional — only fires when coming DOWN from GREEN.
-    CAUTION is directional — only fires when coming UP toward GREEN.
-    RED is explicit — SPY below 200d MA or 5d ratio < 1.0, not a catch-all.
+    Two confidence layers sit on top of the base classification:
+      Layer 1 — Post-THRUST floor: RED → CAUTION for 3 days after any THRUST day.
+                DANGER still fires immediately (bypasses floor).
+      Layer 2a — Extreme greed (F&G > 74): skip 2-day COOLING sustain buffer;
+                from COOLING prev-state → RED in 1 day instead of 2.
+      Layer 2b — Extreme fear (F&G < 25) + THRUST + prev in RED/DANGER:
+                override to CAUTION + high_confidence_recovery tag.
     """
     fg_val = fg if fg is not None else 0
+    ctx: dict = {"post_thrust_floor_active": False, "confidence_context": None}
 
     # 1. Seasonal blackout — always overrides
     if is_blackout(date):
-        return "BLACKOUT", "Seasonal no-trade period active"
+        return "BLACKOUT", "Seasonal no-trade period active", ctx
 
-    # 2. DANGER — hard deterioration (checked before THRUST so a collapse day
-    #    with 500+ down doesn't accidentally fire THRUST)
+    # 2. DANGER — bypasses all floors/overrides (checked before THRUST so a
+    #    collapse day with 500+ down doesn't accidentally fire THRUST)
     if (today_data["down_4_today"] >= DANGER_DOWN_THRESHOLD
             and metrics["ratio_5day"] < 0.5):
-        return "DANGER", "Major breadth deterioration"
+        return "DANGER", "Major breadth deterioration", ctx
 
-    # 3. COOLING — market fading FROM GREEN (sell-off phase, tighten stops)
-    #    Only fires when previous state was GREEN and conditions have weakened.
-    #    Keeps you from misreading a deteriorating GREEN day as CAUTION (buy mode).
-    if (prev_state == "GREEN"
-            and not (metrics["ratio_5day"] >= 2.0
-                     and metrics["ratio_10day"] >= 1.5
-                     and fg_val >= 35
-                     and spy_above_200d)):
-        return "COOLING", "Market cooling from GREEN — trim and tighten"
+    extreme_greed = fg_val > 74
+    extreme_fear  = fg_val < 25
+
+    # Layer 2b — Extreme fear + THRUST from RED/DANGER: high-confidence recovery.
+    # Override THRUST → CAUTION so executor can size in immediately; tag the event.
+    if (extreme_fear
+            and prev_state in ("RED", "DANGER")
+            and metrics["thrust"]):
+        ctx["confidence_context"] = "high_confidence_recovery"
+        msg = (
+            f"⚡ High-confidence recovery — THRUST during Extreme Fear "
+            f"(F&G {fg_val:.0f}). Reversal signal. "
+            f"Watch for 2nd THRUST to confirm GREEN."
+        )
+        return "CAUTION", msg, ctx
+
+    # Reusable GREEN condition check
+    green_conditions = (
+        metrics["ratio_5day"] >= 2.0
+        and metrics["ratio_10day"] >= 1.5
+        and fg_val >= 35
+        and spy_above_200d
+    )
+
+    # 3. COOLING — market fading FROM GREEN (sell-off phase, tighten stops).
+    #    Fires on every deterioration from GREEN regardless of F&G regime.
+    if prev_state == "GREEN" and not green_conditions:
+        if extreme_greed:
+            ctx["confidence_context"] = "extreme_greed_caution"
+        return "COOLING", "Market cooling from GREEN — trim and tighten", ctx
+
+    # 3b. Sustain COOLING for a 2nd consecutive weak day (normal F&G range only).
+    #     Adds a 1-day buffer before allowing RED from COOLING.
+    #     Only applies when conditions are RED-level (not CAUTION) — CAUTION recovery
+    #     is always allowed immediately. Extreme greed bypasses the buffer.
+    caution_conditions = (
+        metrics["ratio_5day"] >= 1.5
+        and fg_val >= 25
+        and spy_above_200d
+    )
+    if (prev_state == "COOLING"
+            and not green_conditions
+            and not caution_conditions
+            and not extreme_greed
+            and consecutive_weak_days < 2):
+        return "COOLING", "Market still cooling — 2-day confirmation buffer", ctx
 
     # 4. THRUST — single-day breadth explosion (Bonde signal)
     if metrics["thrust"]:
-        return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%"
+        return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%", ctx
 
     # 5. GREEN — full bull, all conditions met
-    if (metrics["ratio_5day"] >= 2.0
-            and metrics["ratio_10day"] >= 1.5
-            and fg_val >= 35
-            and spy_above_200d):
-        return "GREEN", "Full conditions met"
+    if green_conditions:
+        return "GREEN", "Full conditions met", ctx
 
     # 6. CAUTION — recovering/building phase (going UP toward GREEN)
-    #    Half size, get watchlist ready.
     if (metrics["ratio_5day"] >= 1.5
             and fg_val >= 25
             and spy_above_200d):
-        return "CAUTION", "Recovering — build watchlist, half size"
+        return "CAUTION", "Recovering — build watchlist, half size", ctx
 
-    # 7. RED — explicitly bearish: SPY below 200d MA or 5d ratio < 1.0
-    return "RED", "Bearish — no new trades"
+    # 7. RED — check Layer 1 post-THRUST floor before returning RED.
+    #    After any THRUST, enforce minimum state = CAUTION for 3 trading days.
+    #    DANGER already escaped above; floor only overrides RED.
+    if last_thrust_date:
+        try:
+            thrust_dt = datetime.date.fromisoformat(last_thrust_date)
+            days_since = (date - thrust_dt).days
+            if 0 < days_since <= 3:
+                ctx["post_thrust_floor_active"] = True
+                return "CAUTION", (
+                    f"Post-THRUST floor — {days_since}d since THRUST "
+                    f"({last_thrust_date}). Minimum CAUTION for 3 days."
+                ), ctx
+        except Exception:
+            pass
+
+    return "RED", "Bearish — no new trades", ctx
 
 
 # ----------------------------
 # Record Builder
 # ----------------------------
 def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
-                       state: str, message: str) -> dict:
+                       state: str, message: str,
+                       classify_ctx: dict | None = None) -> dict:
     """Build the complete daily record for storage."""
+    fg_val = today_data.get("fg") or 0
+    fg_regime = (
+        "extreme_greed" if fg_val > 74
+        else ("extreme_fear" if fg_val < 25 else "normal")
+    )
+    ctx = classify_ctx or {}
     return {
-        "date":             date.isoformat(),
-        "up_4_today":       today_data["up_4_today"],
-        "down_4_today":     today_data["down_4_today"],
-        "breadth_source":   today_data.get("breadth_source", "unknown"),
-        "universe_size":    today_data.get("universe_size", 0),
-        "adv_total":        today_data.get("adv_total"),
-        "dec_total":        today_data.get("dec_total"),
-        "ratio_today":      metrics["ratio_today"],
-        "ratio_5day":       metrics["ratio_5day"],
-        "ratio_10day":      metrics["ratio_10day"],
-        "up_25_quarter":    today_data.get("up_25_quarter", 0),
-        "down_25_quarter":  today_data.get("down_25_quarter", 0),
-        "thrust_detected":  metrics["thrust"],
-        "fg":               today_data.get("fg"),
-        "spy_price":        today_data.get("spy_price"),
-        "spy_sma200_pct":   today_data.get("spy_sma200_pct"),
-        "spy_above_200d":   metrics["spy_above_200d"],
-        "market_state":     state,
-        "state_message":    message,
-        "blackout":         is_blackout(date),
+        "date":                   date.isoformat(),
+        "up_4_today":             today_data["up_4_today"],
+        "down_4_today":           today_data["down_4_today"],
+        "breadth_source":         today_data.get("breadth_source", "unknown"),
+        "universe_size":          today_data.get("universe_size", 0),
+        "adv_total":              today_data.get("adv_total"),
+        "dec_total":              today_data.get("dec_total"),
+        "ratio_today":            metrics["ratio_today"],
+        "ratio_5day":             metrics["ratio_5day"],
+        "ratio_10day":            metrics["ratio_10day"],
+        "up_25_quarter":          today_data.get("up_25_quarter", 0),
+        "down_25_quarter":        today_data.get("down_25_quarter", 0),
+        "thrust_detected":        metrics["thrust"],
+        "fg":                     today_data.get("fg"),
+        "spy_price":              today_data.get("spy_price"),
+        "spy_sma200_pct":         today_data.get("spy_sma200_pct"),
+        "spy_above_200d":         metrics["spy_above_200d"],
+        "market_state":           state,
+        "state_message":          message,
+        "blackout":               is_blackout(date),
+        "fg_regime":              fg_regime,
+        "post_thrust_floor_active": ctx.get("post_thrust_floor_active", False),
+        "confidence_context":     ctx.get("confidence_context"),
     }
 
 
@@ -732,11 +804,30 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
 
     cycle_line = _build_cycle_chain(history) if history else ""
 
+    # Confidence context annotation
+    confidence_context = record.get("confidence_context")
+    post_thrust_floor = record.get("post_thrust_floor_active", False)
+    fg_raw = record.get("fg") or 0
+    context_line = ""
+    if confidence_context == "high_confidence_recovery":
+        context_line = (
+            f"\n⚡ HIGH-CONFIDENCE THRUST — F&G at {fg_raw:.0f} (Extreme Fear). "
+            f"Reversal signal. Watch for 2nd THRUST to confirm GREEN."
+        )
+    elif confidence_context == "extreme_greed_caution":
+        context_line = (
+            f"\n⚠️ EXTREME GREED ({fg_raw:.0f}) + breadth deteriorating — "
+            f"downgrade confirmed without 2-day wait. Risk is asymmetric."
+        )
+    elif post_thrust_floor:
+        context_line = "\n⚡ Post-THRUST floor applied — minimum CAUTION maintained."
+
     text = (
         f"{emoji} *MARKET MONITOR — STATE CHANGE*\n"
         f"{record['date']}\n\n"
         f"Previous: {prev_str} → Now: *{state}*\n"
         + (f"{cycle_line}\n" if cycle_line else "")
+        + (f"{context_line}\n" if context_line else "")
         + f"\nStocks up 4%+ today: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
         f"Adv / Dec (all movers): {ad_str}\n"
         f"5-day ratio: {record['ratio_5day']}\n"
@@ -821,6 +912,9 @@ def send_daily_summary(record: dict, last_thrust_date: str | None = None):
             days_ago = (today_dt - thrust_dt).days
             if days_ago <= 30:
                 thrust_line = f"\n⚡ THRUST fired {days_ago}d ago ({last_thrust_date})"
+                if record.get("post_thrust_floor_active"):
+                    days_remaining = 3 - days_ago
+                    thrust_line += f" — floor active, {days_remaining}d remaining"
         except Exception:
             pass
 
@@ -865,13 +959,15 @@ def run_market_monitor(date: datetime.date | None = None):
     prev_state = history[-1]["market_state"] if history else None
     log.info(f"Previous market state: {prev_state or 'UNKNOWN'}")
 
-    # Load last_thrust_date from trading_state.json
+    # Load last_thrust_date and consecutive_weak_days from trading_state.json
     last_thrust_date = None
+    consecutive_weak_days = 0
     if os.path.exists(TRADING_STATE_FILE):
         try:
             with open(TRADING_STATE_FILE) as f:
                 ts = json.load(f)
             last_thrust_date = ts.get("last_thrust_date")
+            consecutive_weak_days = ts.get("consecutive_weak_days", 0)
         except Exception:
             pass
 
@@ -893,14 +989,22 @@ def run_market_monitor(date: datetime.date | None = None):
     log.info(f"Thrust: {metrics['thrust']} | SPY above 200d: {metrics['spy_above_200d']}")
 
     # Classify market state
-    state, message = classify_market_state(
+    state, message, classify_ctx = classify_market_state(
         metrics, today_data.get("fg"), today_data.get("spy_price"),
-        metrics["spy_above_200d"], today_data, date, prev_state
+        metrics["spy_above_200d"], today_data, date, prev_state,
+        last_thrust_date=last_thrust_date,
+        consecutive_weak_days=consecutive_weak_days,
     )
     log.info(f"Market state: {state} — {message}")
 
+    # Compute updated consecutive_weak_days: reset on GREEN/THRUST/BLACKOUT, else increment
+    new_consecutive_weak_days = (
+        0 if state in ("GREEN", "THRUST", "BLACKOUT")
+        else consecutive_weak_days + 1
+    )
+
     # Build and save daily record
-    record = build_daily_record(date, today_data, metrics, state, message)
+    record = build_daily_record(date, today_data, metrics, state, message, classify_ctx)
     save_daily(record)
 
     # Update rolling history (keep last 30 trading days)
@@ -911,7 +1015,7 @@ def run_market_monitor(date: datetime.date | None = None):
     # Update trading_state.json (track last_thrust_date before saving)
     if state == "THRUST":
         last_thrust_date = record["date"]
-    update_trading_state(record)
+    update_trading_state(record, new_consecutive_weak_days=new_consecutive_weak_days)
 
     # Send Slack alerts
     state_changed = prev_state is not None and state != prev_state

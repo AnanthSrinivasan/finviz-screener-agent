@@ -87,10 +87,10 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def _metrics(self, ratio_5=2.5, ratio_10=1.8, thrust=False, spy_above=True):
         return {
-            "ratio_today":   ratio_5,
-            "ratio_5day":    ratio_5,
-            "ratio_10day":   ratio_10,
-            "thrust":        thrust,
+            "ratio_today":    ratio_5,
+            "ratio_5day":     ratio_5,
+            "ratio_10day":    ratio_10,
+            "thrust":         thrust,
             "spy_above_200d": spy_above,
         }
 
@@ -99,7 +99,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def test_blackout_overrides_everything(self):
         # Even with THRUST conditions, Sep = BLACKOUT
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(thrust=True), fg=80,
             spy_price=500, spy_above_200d=True,
             today_data=self._today(up=600), date=self._date(m=9, d=15),
@@ -108,7 +108,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def test_danger_fires_on_heavy_down_day(self):
         # 500+ down + 5d ratio < 0.5 → DANGER
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=0.4, thrust=False),
             fg=30, spy_price=500, spy_above_200d=True,
             today_data=self._today(up=10, down=600),
@@ -118,7 +118,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def test_danger_beats_thrust_on_collapse_day(self):
         # A single day can show both — DANGER must win (checked first)
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=0.4, thrust=True),
             fg=30, spy_price=500, spy_above_200d=True,
             today_data=self._today(up=600, down=600),
@@ -128,7 +128,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def test_cooling_from_green(self):
         # Previous state was GREEN, conditions deteriorated → COOLING
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=1.5, ratio_10=1.2),  # below GREEN thresholds
             fg=40, spy_price=500, spy_above_200d=True,
             today_data=self._today(),
@@ -139,7 +139,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
 
     def test_cooling_does_not_fire_if_prev_not_green(self):
         # Same weakened conditions but coming from RED — should not be COOLING
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=1.5, ratio_10=1.2),
             fg=40, spy_price=500, spy_above_200d=True,
             today_data=self._today(),
@@ -149,16 +149,16 @@ class ClassifyMarketStateTests(unittest.TestCase):
         self.assertNotEqual(state, "COOLING")
 
     def test_thrust_single_day_500(self):
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=1.0, ratio_10=1.0, thrust=True),
-            fg=20, spy_price=500, spy_above_200d=False,
+            fg=30, spy_price=500, spy_above_200d=False,
             today_data=self._today(up=550),
             date=self._date(),
         )
         self.assertEqual(state, "THRUST")
 
     def test_green_full_conditions(self):
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=2.5, ratio_10=1.8),
             fg=50, spy_price=500, spy_above_200d=True,
             today_data=self._today(),
@@ -167,7 +167,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
         self.assertEqual(state, "GREEN")
 
     def test_caution_half_size_building(self):
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=1.6, ratio_10=1.0),  # below GREEN 5d=2.0 but above CAUTION 1.5
             fg=30, spy_price=500, spy_above_200d=True,
             today_data=self._today(),
@@ -176,7 +176,7 @@ class ClassifyMarketStateTests(unittest.TestCase):
         self.assertEqual(state, "CAUTION")
 
     def test_red_default_when_below_200d(self):
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=2.5, ratio_10=1.8),  # strong breadth
             fg=70, spy_price=400, spy_above_200d=False,  # but SPY below 200d
             today_data=self._today(),
@@ -185,13 +185,202 @@ class ClassifyMarketStateTests(unittest.TestCase):
         self.assertEqual(state, "RED")
 
     def test_red_when_ratios_weak(self):
-        state, _ = mm.classify_market_state(
+        state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=0.9, ratio_10=0.9),
-            fg=15, spy_price=500, spy_above_200d=True,
+            fg=30, spy_price=500, spy_above_200d=True,
             today_data=self._today(),
             date=self._date(),
         )
         self.assertEqual(state, "RED")
+
+
+class ConfidenceLayerTests(unittest.TestCase):
+    """Layer 1 (post-THRUST floor), Layer 2a (extreme greed), Layer 2b (extreme fear)."""
+
+    def _date(self, y=2026, m=4, d=15):
+        return datetime.date(y, m, d)
+
+    def _metrics(self, ratio_5=0.9, ratio_10=0.9, thrust=False, spy_above=True):
+        return {
+            "ratio_today":    ratio_5,
+            "ratio_5day":     ratio_5,
+            "ratio_10day":    ratio_10,
+            "thrust":         thrust,
+            "spy_above_200d": spy_above,
+        }
+
+    def _today(self, up=10, down=10):
+        return {"up_4_today": up, "down_4_today": down}
+
+    # ------------------------------------------------------------------ Layer 1
+    def test_layer1_thrust_floor_overrides_red_day1(self):
+        # THRUST on Apr 30, RED conditions on May 1 (1 calendar day) → CAUTION
+        thrust_date = "2026-04-30"
+        state, msg, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.8),
+            fg=40, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(m=5, d=1),
+            prev_state="THRUST",
+            last_thrust_date=thrust_date,
+        )
+        self.assertEqual(state, "CAUTION")
+        self.assertTrue(ctx["post_thrust_floor_active"])
+        self.assertIn("Post-THRUST floor", msg)
+
+    def test_layer1_thrust_floor_day2(self):
+        # THRUST on Apr 30, RED conditions on May 2 (2 days) → still CAUTION
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.8),
+            fg=40, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(m=5, d=2),
+            prev_state="RED",
+            last_thrust_date="2026-04-30",
+        )
+        self.assertEqual(state, "CAUTION")
+        self.assertTrue(ctx["post_thrust_floor_active"])
+
+    def test_layer1_thrust_floor_day3(self):
+        # 3 calendar days after THRUST — floor still active
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.8),
+            fg=40, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(m=5, d=3),
+            prev_state="CAUTION",
+            last_thrust_date="2026-04-30",
+        )
+        self.assertEqual(state, "CAUTION")
+        self.assertTrue(ctx["post_thrust_floor_active"])
+
+    def test_layer1_thrust_floor_expired_day4(self):
+        # 4 calendar days after THRUST — floor expired → RED
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.8),
+            fg=40, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(m=5, d=4),
+            prev_state="CAUTION",
+            last_thrust_date="2026-04-30",
+        )
+        self.assertEqual(state, "RED")
+        self.assertFalse(ctx["post_thrust_floor_active"])
+
+    def test_layer1_danger_bypasses_floor(self):
+        # DANGER overrides the post-THRUST floor — emergency signal always wins
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.4),
+            fg=40, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=10, down=600),
+            date=self._date(m=5, d=1),
+            prev_state="THRUST",
+            last_thrust_date="2026-04-30",
+        )
+        self.assertEqual(state, "DANGER")
+        self.assertFalse(ctx["post_thrust_floor_active"])
+
+    # ------------------------------------------------------------------ Layer 2a
+    def test_layer2a_extreme_greed_green_to_cooling_day1(self):
+        # GREEN + F&G=80, 1 bad breadth day → COOLING fires (same as normal, no skip on day 1)
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.5, ratio_10=1.2),  # below GREEN
+            fg=80, spy_price=500, spy_above_200d=True,
+            today_data=self._today(),
+            date=self._date(),
+            prev_state="GREEN",
+        )
+        self.assertEqual(state, "COOLING")
+        self.assertEqual(ctx["confidence_context"], "extreme_greed_caution")
+
+    def test_layer2a_extreme_greed_skips_cooling_buffer(self):
+        # COOLING prev + extreme greed: 3b buffer does NOT apply → falls to RED
+        # (normal F&G would sustain COOLING for 2nd day; extreme greed skips that)
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.8, spy_above=True),
+            fg=80, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(),
+            prev_state="COOLING",
+            consecutive_weak_days=1,
+        )
+        # With extreme greed and cwd=1, rule 3b is skipped → RED
+        self.assertEqual(state, "RED")
+
+    def test_layer2a_normal_fg_sustains_cooling_buffer(self):
+        # Same scenario but F&G=50 (normal range) → 3b buffer fires → COOLING sustained
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.8, spy_above=True),
+            fg=50, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(),
+            prev_state="COOLING",
+            consecutive_weak_days=1,
+        )
+        self.assertEqual(state, "COOLING")
+
+    def test_layer2a_cooling_buffer_expires_at_2(self):
+        # Normal F&G but consecutive_weak_days=2 → buffer exhausted → RED
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.8, spy_above=True),
+            fg=50, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=50, down=200),
+            date=self._date(),
+            prev_state="COOLING",
+            consecutive_weak_days=2,
+        )
+        self.assertEqual(state, "RED")
+
+    # ------------------------------------------------------------------ Layer 2b
+    def test_layer2b_extreme_fear_thrust_from_red(self):
+        # RED + F&G=20, THRUST day → CAUTION + high_confidence_recovery tag
+        state, msg, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, thrust=True),
+            fg=20, spy_price=500, spy_above_200d=False,
+            today_data=self._today(up=550),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "CAUTION")
+        self.assertEqual(ctx["confidence_context"], "high_confidence_recovery")
+        self.assertIn("High-confidence recovery", msg)
+        self.assertIn("Extreme Fear", msg)
+
+    def test_layer2b_extreme_fear_thrust_from_danger(self):
+        # DANGER + F&G=18, THRUST day → CAUTION (same high-confidence path)
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, thrust=True),
+            fg=18, spy_price=500, spy_above_200d=False,
+            today_data=self._today(up=550),
+            date=self._date(),
+            prev_state="DANGER",
+        )
+        self.assertEqual(state, "CAUTION")
+        self.assertEqual(ctx["confidence_context"], "high_confidence_recovery")
+
+    def test_layer2b_normal_fg_thrust_stays_thrust(self):
+        # Normal F&G + THRUST from RED — no override, state stays THRUST
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, thrust=True),
+            fg=40, spy_price=500, spy_above_200d=False,
+            today_data=self._today(up=550),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "THRUST")
+        self.assertIsNone(ctx["confidence_context"])
+
+    def test_layer2b_extreme_fear_no_thrust_stays_red(self):
+        # Extreme fear but NO THRUST — no Layer 2b upgrade, falls to RED
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.8),
+            fg=20, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=100, down=200),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "RED")
+        self.assertIsNone(ctx["confidence_context"])
 
 
 if __name__ == "__main__":
