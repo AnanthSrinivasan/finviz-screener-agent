@@ -1,0 +1,143 @@
+{
+  "date": "2026-04-29",
+  "positions": [
+    {
+      "ticker": "NVDA",
+      "shares": 50.0,
+      "avg_cost": 213.97,
+      "current_price": 209.35,
+      "market_value": 10467.5,
+      "pnl": -235.5,
+      "pnl_pct": -2.2,
+      "metrics": {
+        "price": 209.26,
+        "atr": 5.9,
+        "atr_pct": 2.82,
+        "pct_from_ma": 12.08,
+        "atr_multiple_ma": 4.28,
+        "dist_from_high": -3.49,
+        "rel_vol": 0.68,
+        "day_high": 212.7,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 4.4,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    },
+    {
+      "ticker": "FIGS",
+      "shares": 300.0,
+      "avg_cost": 16.65,
+      "current_price": 15.04,
+      "market_value": 4512.0,
+      "pnl": -486.0,
+      "pnl_pct": -9.73,
+      "metrics": {
+        "price": 15.03,
+        "atr": 0.97,
+        "atr_pct": 6.45,
+        "pct_from_ma": 2.28,
+        "atr_multiple_ma": 0.35,
+        "dist_from_high": -14.02,
+        "rel_vol": 0.64,
+        "day_high": 15.525,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 6.2,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    },
+    {
+      "ticker": "AAOI",
+      "shares": 80.0,
+      "avg_cost": 116.0,
+      "current_price": 152.76,
+      "market_value": 12220.8,
+      "pnl": 2946.4,
+      "pnl_pct": 31.75,
+      "metrics": {
+        "price": 152.83,
+        "atr": 16.35,
+        "atr_pct": 10.7,
+        "pct_from_ma": 40.32,
+        "atr_multiple_ma": 3.77,
+        "dist_from_high": -11.87,
+        "rel_vol": 0.88,
+        "day_high": 153.94,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 8.3,
+      "peel_warn_mult": 11.8,
+      "peel_signal_mult": 15.8
+    },
+    {
+      "ticker": "GLW",
+      "shares": 50.0,
+      "avg_cost": 167.52,
+      "current_price": 151.905,
+      "market_value": 7595.25,
+      "pnl": -781.0,
+      "pnl_pct": -9.32,
+      "metrics": {
+        "price": 151.9,
+        "atr": 9.39,
+        "atr_pct": 6.18,
+        "pct_from_ma": 2.84,
+        "atr_multiple_ma": 0.46,
+        "dist_from_high": -15.18,
+        "rel_vol": 1.1,
+        "day_high": 155.39,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 6.1,
+      "peel_warn_mult": 7.9,
+      "peel_signal_mult": 10.5
+    },
+    {
+      "ticker": "INDV",
+      "shares": 250.0,
+      "avg_cost": 34.15,
+      "current_price": 34.15,
+      "market_value": 8537.5,
+      "pnl": 0.0,
+      "pnl_pct": 0.0,
+      "metrics": {
+        "price": 34.15,
+        "atr": 1.26,
+        "atr_pct": 3.69,
+        "pct_from_ma": 7.16,
+        "atr_multiple_ma": 1.94,
+        "dist_from_high": -10.13,
+        "rel_vol": 0.69,
+        "day_high": 34.645,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 4.8,
+      "peel_warn_mult": 7.8,
+      "peel_signal_mult": 10.3
+    },
+    {
+      "ticker": "CRWV",
+      "shares": 50.0,
+      "avg_cost": 112.73,
+      "current_price": 114.21,
+      "market_value": 5710.5,
+      "pnl": 74.0,
+      "pnl_pct": 1.31,
+      "metrics": {
+        "price": 114.21,
+        "atr": 8.28,
+        "atr_pct": 7.25,
+        "pct_from_ma": 24.34,
+        "atr_multiple_ma": 3.36,
+        "dist_from_high": -38.93,
+        "rel_vol": 1.0,
+        "day_high": 115.44,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 6.6,
+      "peel_warn_mult": 6.5,
+      "peel_signal_mult": 8.0
+    }
+  ]
+}

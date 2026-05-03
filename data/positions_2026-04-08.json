@@ -1,0 +1,47 @@
+{
+  "date": "2026-04-08",
+  "positions": [
+    {
+      "ticker": "FLY",
+      "shares": 200.0,
+      "avg_cost": 34.44,
+      "current_price": 35.58,
+      "market_value": 7116.0,
+      "pnl": 226.0,
+      "pnl_pct": 3.28,
+      "metrics": {
+        "price": 35.57,
+        "atr": 3.03,
+        "atr_pct": 8.52,
+        "pct_from_ma": 49.95,
+        "atr_multiple_ma": 5.86,
+        "dist_from_high": -51.8,
+        "rel_vol": 1.96
+      },
+      "stop_loss_pct": 7.3,
+      "peel_warn_mult": 6.5,
+      "peel_signal_mult": 8.0
+    },
+    {
+      "ticker": "AAOI",
+      "shares": 75.0,
+      "avg_cost": 114.35,
+      "current_price": 117.67,
+      "market_value": 8825.25,
+      "pnl": 246.75,
+      "pnl_pct": 2.88,
+      "metrics": {
+        "price": 117.64,
+        "atr": 13.14,
+        "atr_pct": 11.17,
+        "pct_from_ma": 56.37,
+        "atr_multiple_ma": 5.05,
+        "dist_from_high": -8.78,
+        "rel_vol": 1.29
+      },
+      "stop_loss_pct": 8.6,
+      "peel_warn_mult": 8.5,
+      "peel_signal_mult": 10.0
+    }
+  ]
+}

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Stock Research — CORZ · ARWR · FSLY + Gap Audit — 2026-05-02</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; font-size: 14px; line-height: 1.5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
+  h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #374151; }
+  .subtitle { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .state-banner { display: inline-block; padding: 4px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; margin-right: 8px; }
+  .state-RED { background: #fee2e2; color: #dc2626; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-watch { background: #fef9c3; color: #92400e; }
+  .badge-new { background: #f0fdf4; color: #166534; }
+  .alert-tag { display: inline-block; padding: 2px 8px; background: #fee2e2; color: #dc2626; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+
+  .summary-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 32px; }
+  .summary-table th { background: #f3f4f6; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+  .summary-table td { padding: 10px 14px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+
+  .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .card-ticker { font-size: 22px; font-weight: 800; color: #2563eb; }
+  .card-name { font-size: 14px; color: #6b7280; }
+  .card-price { font-size: 18px; font-weight: 700; }
+  .card-body { padding: 20px; }
+  .card-section { margin-bottom: 20px; }
+
+  .context-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; }
+  .context-box.warn { background: #fffbeb; border-color: #fde68a; }
+  .context-box.gap { background: #eff6ff; border-color: #bfdbfe; }
+  .context-box-title { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+
+  .chart-grade { display: inline-block; padding: 3px 10px; border-radius: 5px; font-weight: 700; font-size: 12px; }
+  .grade-B { background: #fef9c3; color: #92400e; }
+  .grade-C { background: #fee2e2; color: #dc2626; }
+
+  table.data { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  table.data th { background: #f9fafb; padding: 8px 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.data td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; }
+  table.data tr:last-child td { border-bottom: none; }
+  .pos { color: #16a34a; font-weight: 600; }
+  .neg { color: #dc2626; font-weight: 600; }
+  .neutral { color: #6b7280; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .score-item { background: #f9fafb; border-radius: 8px; padding: 10px 12px; border: 1px solid #e5e7eb; }
+  .score-item.high { border-color: #bbf7d0; background: #f0fdf4; }
+  .score-item.mod { border-color: #fde68a; background: #fffbeb; }
+  .score-item.low { border-color: #fecdd3; background: #fff1f2; }
+  .score-dim { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+  .score-val { font-weight: 600; font-size: 12px; }
+  .score-total { font-size: 20px; font-weight: 800; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } .score-grid { grid-template-columns: 1fr 1fr; } }
+
+  .verdict-box { border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+  .verdict-WATCH { background: #fffbeb; border: 1px solid #fde68a; }
+  .verdict-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #f3f4f6; }
+  .divider { border: none; border-top: 1px solid #f3f4f6; margin: 16px 0; }
+
+  .flip-list { list-style: none; padding: 0; }
+  .flip-list li { padding: 5px 0 5px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13px; position: relative; }
+  .flip-list li:before { content: "▸"; position: absolute; left: 0; color: #dc2626; }
+  .flip-list li:last-child { border-bottom: none; }
+
+  .gap-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; overflow: hidden; border-top: 4px solid #2563eb; }
+  .gap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .gap-table th { background: #eff6ff; padding: 8px 10px; text-align: left; font-weight: 600; color: #1e40af; font-size: 11px; text-transform: uppercase; }
+  .gap-table td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; }
+  .gap-table tr:last-child td { border-bottom: none; }
+  .gap-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+  .gap-cc { background: #f3e8ff; color: #7e22ce; }
+  .gap-atr { background: #fef3c7; color: #92400e; }
+  .gap-deep { background: #fee2e2; color: #b91c1c; }
+
+  .footer { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Stock Research + Signal Gap Audit</h1>
+  <div class="subtitle">
+    2026-05-02 &nbsp;·&nbsp; CORZ · ARWR · FSLY + May 1 screener gap analysis &nbsp;·&nbsp;
+    <span class="state-banner state-RED">RED — No New Entries</span>
+    <span class="state-banner" style="background:#fef3c7;color:#92400e;">Sizing: REDUCED (0W/2L)</span>
+  </div>
+
+  <!-- Summary Table -->
+  <table class="summary-table">
+    <thead>
+      <tr><th>Ticker</th><th>Held?</th><th>Score /27</th><th>Chart</th><th>Bull</th><th>Bear</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:#2563eb;">CORZ</strong></td>
+        <td><span class="badge badge-new">No</span></td>
+        <td><strong>18/27</strong> MODERATE</td>
+        <td><span class="chart-grade grade-C">C</span></td>
+        <td style="font-size:12px;">HPC $8.7B backlog; AI buildout 500 MW</td>
+        <td style="font-size:12px;color:#dc2626;">20% short; rev -16% Q/Q; $3.3B debt; earnings May 6</td>
+        <td><span class="badge badge-watch">WATCH post-earnings</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#2563eb;">ARWR</strong></td>
+        <td><span class="badge badge-new">No</span></td>
+        <td><strong>22/27</strong> HIGH</td>
+        <td><span class="chart-grade grade-B">B</span></td>
+        <td style="font-size:12px;">REDEMPLO 5-country approvals; SHASTA Phase 3 Q3</td>
+        <td style="font-size:12px;color:#dc2626;">Multiple Top $76–80; CFO+CMO selling; earnings May 7 binary</td>
+        <td><span class="badge badge-watch">WATCH post-May 7</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#2563eb;">FSLY</strong> <span class="gap-tag gap-cc">CC GAP</span></td>
+        <td><span class="badge badge-new">No</span></td>
+        <td><strong>21/27</strong> HIGH</td>
+        <td><span class="chart-grade grade-B">B</span></td>
+        <td style="font-size:12px;">First profitable year; rev +23% YoY; edge AI traffic inflection</td>
+        <td style="font-size:12px;color:#dc2626;">Analyst targets $13–16 vs price $28; CEO -17% holdings; Anthropic edge threat</td>
+        <td><span class="badge badge-watch">WATCH post-May 6 earnings</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══ FSLY CARD ═══ -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-ticker">FSLY</span>
+      <span class="card-name">Fastly Inc — Edge Cloud / CDN / Security</span>
+      <span class="card-price">$28.07</span>
+      <span class="gap-tag gap-cc" style="font-size:12px;padding:3px 10px;">HG Miss by 1 — CC Gap</span>
+      <span class="alert-tag">⚡ EARNINGS MAY 6 TOMORROW</span>
+    </div>
+    <div class="card-body">
+
+      <div class="context-box gap">
+        <div class="context-box-title" style="color:#1e40af;">🔍 Why FSLY Gets No HG / CC Flag</div>
+        <div style="font-size:13px;margin-bottom:8px;">FSLY hits 3/6 HG criteria but needs 4. The 3 it nails are the core character-change combo: <strong>eps_qq_strong</strong> (Q/Q +55.77% with TTM distorted negative) + <strong>inst_buying</strong> (+7.91%) + <strong>stage2_perfect</strong>. Persistence fails (1 appearance, needs 3+) and ipo_lifecycle is N/A (FSLY IPO'd 2019).</div>
+        <table class="gap-table">
+          <tr><th>Criterion</th><th>FSLY Value</th><th>Threshold</th><th>Pass?</th></tr>
+          <tr><td>persistence (3+ screens)</td><td>1 appearance</td><td>≥3</td><td class="neg">❌</td></tr>
+          <tr><td>eps_yy_strong (Y/Y TTM)</td><td>TTM = -$0.83 GAAP (distorted)</td><td>&gt;50%</td><td class="neg">❌</td></tr>
+          <tr><td>eps_qq_strong (Q/Q)</td><td class="pos">+55.77% (TTM&lt;0 distortion branch)</td><td>&gt;50% or &gt;20% w/ TTM&lt;0</td><td class="pos">✓</td></tr>
+          <tr><td>inst_buying</td><td class="pos">+7.91%</td><td>≥3%</td><td class="pos">✓</td></tr>
+          <tr><td>stage2_perfect</td><td class="pos">✓</td><td>—</td><td class="pos">✓</td></tr>
+          <tr><td>ipo_lifecycle</td><td>IPO 2019 — not applicable</td><td>—</td><td class="neg">❌</td></tr>
+        </table>
+        <div style="font-size:12px;margin-top:8px;color:#1e40af;"><strong>Fix:</strong> When <code>eps_qq_strong=true AND eps_yy_strong=false</code> (confirmed TTM distortion), lower HG threshold to 3/6. FSLY and CORZ both fire immediately.</div>
+      </div>
+
+      <div class="context-box warn">
+        <div class="context-box-title" style="color:#92400e;">⚠ Binary Event: Q1 2026 Earnings — May 6 after close (same day as CORZ)</div>
+        <div style="font-size:13px;">Stock dropped -18% on Apr 10 when Anthropic launched Claude Managed Agents. Shows how fast edge-compute competition hits the narrative. Q1 consensus: EPS $0.01, rev ~$171.8M. Watch for: revenue vs $700-720M full-year guide and any commentary on AI traffic competition.</div>
+      </div>
+
+      <div class="card-section">
+        <div class="section-label">Chart Assessment</div>
+        <p><span class="chart-grade grade-B">B</span> &nbsp; Parabolic run $8→$35 (Nov–Feb), sharp -20% correction, now recovering to $28. Stage 2 perfect — SMA200 $13, SMA50 $24, SMA20 $26 all steeply below. VCP noted but base still volatile; ATR 9.6% gates out of Ready and Breakout callouts automatically.</p>
+        <div style="font-size:12px;color:#6b7280;margin-top:8px;">SMA20: $26.13 · SMA50: $24.79 · SMA200: $13.09 · Price above all ✓ &nbsp;|&nbsp; ATR: $2.70 (9.61%) · Dist 52wH: -19.4% · Short: 13.72% declining</div>
+      </div>
+      <hr class="divider">
+
+      <div class="card-section">
+        <div class="section-label">9-Dimension Entry Score</div>
+        <div class="score-grid">
+          <div class="score-item mod">
+            <div class="score-dim">EPS Beat Trend</div>
+            <div class="score-val">2 — Q4 2025: $0.12 vs -$0.03 est (500% beat). First beat after years of misses. One quarter.</div>
+          </div>
+          <div class="score-item mod">
+            <div class="score-dim">Estimate Revisions</div>
+            <div class="score-val">2 — Q1 est $0.01; mgmt guided $0.07–0.10 non-GAAP. Improving but not materially revised up yet.</div>
+          </div>
+          <div class="score-item high">
+            <div class="score-dim">Revenue Acceleration</div>
+            <div class="score-val">3 — Q4 +23% YoY (fastest in 3 years). Sales Q/Q +22.79%. Full-year guide $700–720M. Accelerating.</div>
+          </div>
+          <div class="score-item high">
+            <div class="score-dim">Inst Adoption Phase</div>
+            <div class="score-val">3 — Inst trans +7.91%, 76.25% ownership. Strong accumulation. Phase 3.</div>
+          </div>
+          <div class="score-item low">
+            <div class="score-dim">IPO / Character Change</div>
+            <div class="score-val">1 — IPO 2019, not lifecycle. First profitable year is a real character change but system doesn't score this axis for older IPOs.</div>
+          </div>
+          <div class="score-item mod">
+            <div class="score-dim">TAM Position</div>
+            <div class="score-val">2 — Edge cloud + security $25B+ TAM. Mid S-curve. Cloudflare has more share. Edge AI workloads = new vector.</div>
+          </div>
+          <div class="score-item mod">
+            <div class="score-dim">Short Interest</div>
+            <div class="score-val">2 — 13.72% float, actively declining (14.55M→13.90M). Shorts covering = constructive.</div>
+          </div>
+          <div class="score-item high">
+            <div class="score-dim">Stage 2</div>
+            <div class="score-val">3 — Perfect. SMA200 $13 &lt; SMA50 $24 &lt; SMA20 $26 &lt; Price $28. All MAs rising steeply.</div>
+          </div>
+          <div class="score-item high">
+            <div class="score-dim">SNDK Distortion</div>
+            <div class="score-val">3 — EPS TTM -$0.83 GAAP (prior losses) but Q/Q +55.77% AND non-GAAP profitable. System underselling profitability inflection.</div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:8px;">
+          <span class="score-total" style="color:#16a34a;">21 / 27</span> &nbsp; <span style="color:#6b7280;">HIGH — gated by RED state, analyst targets below current price, and earnings tomorrow</span>
+        </div>
+      </div>
+      <hr class="divider">
+
+      <div class="verdict-box verdict-WATCH">
+        <div class="verdict-title" style="color:#92400e;">⏳ VERDICT: WATCH — High conviction story; price is $28 vs analyst median $13–16. Either upgrades are coming post-earnings or the stock has run too far. Entry only after: (1) clean Q1 May 6, (2) analyst targets revised up, (3) first 21 EMA pullback ($26) on light volume, (4) market state improves from RED.</div>
+      </div>
+      <hr class="divider">
+
+      <div class="two-col">
+        <div>
+          <div class="section-label">Earnings Panel</div>
+          <table class="data">
+            <thead><tr><th>Period</th><th>EPS</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Q4 2025 (Feb 11)</td><td class="pos">$0.12 vs -$0.03</td><td>500% beat; Rev $172.6M (+23% YoY, fastest in 3yr)</td></tr>
+              <tr><td>Q1 2026 (May 6 ⚡)</td><td>$0.01 est</td><td>Mgmt guided $168–174M rev; non-GAAP EPS $0.07–0.10</td></tr>
+              <tr><td>FY2026 guide</td><td>$0.23–0.29 non-GAAP</td><td>Rev $700–720M (+14% YoY)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="section-label">Analyst Targets — ⚠ STALE / BELOW MARKET</div>
+          <table class="data">
+            <thead><tr><th>Target</th><th>Price</th><th>vs $28.07</th></tr></thead>
+            <tbody>
+              <tr><td>Low</td><td>$5–7</td><td class="neg">-75 to -80%</td></tr>
+              <tr><td>Median</td><td class="neg">$13–16</td><td class="neg">-43 to -54%</td></tr>
+              <tr><td>High</td><td>$30</td><td class="pos">+7%</td></tr>
+              <tr><td>Rating</td><td colspan="2">Hold consensus — 6 analysts; targets set at lower prices, not yet updated post-run</td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#dc2626;margin-top:4px;">⚠ Stock trading well above consensus. Watch for post-earnings target upgrades — they'd be the real catalyst.</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-label">Insider Activity (Last 90 Days)</div>
+          <table class="data">
+            <thead><tr><th>Who</th><th>Action</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>CEO Lacey Compton III</td><td class="neg">Sell ×3+</td><td>29,533 sh at $23.69–25.40 (Apr 16–17); prior 49,350 sh; -17.67% holdings since Jan</td></tr>
+              <tr><td>Scott Lovett (Pres GTM)</td><td class="neg">Sell</td><td>73,715 sh at $21.06 (RSU tax)</td></tr>
+              <tr><td>Net 90d</td><td class="neg">-$40M+</td><td>Heavy consistent selling across execs at $21–25</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="section-label">Catalyst Calendar</div>
+          <table class="data">
+            <thead><tr><th>Date</th><th>Event</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td class="neg"><strong>May 6</strong></td><td>Q1 2026 Earnings (after close)</td><td>HIGH binary</td></tr>
+              <tr><td>Post-earnings</td><td>Analyst target revisions</td><td>HIGH — upgrades close the $13→$28 gap</td></tr>
+              <tr><td>Apr 10</td><td>Anthropic Managed Agents launch</td><td>Caused -18% drop; risk ongoing</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-label">Bear Case — Specifics</div>
+      <ul class="flip-list">
+        <li><strong>Analyst median $13–16 vs price $28</strong> — 6 analysts with Hold ratings haven't updated targets post-run. If Q1 disappoints, downgrades to $15 = -46% from current.</li>
+        <li><strong>CEO sold $40M+ in 90 days, -17.67% of direct holdings since Jan 2026</strong> — selling at $21–25, well below current $28. Volume is large, not just routine.</li>
+        <li><strong>Anthropic Claude Managed Agents (Apr 10) → -18% in one day</strong> — with Cloudflare -11%, Akamai -13%. Hyperscalers deploying edge AI compute can bypass CDN infrastructure entirely. This is not a one-time event; it's a structural threat.</li>
+        <li><strong>Cloudflare (NET) has deeper enterprise penetration and security stack</strong> — same TAM, better brand with developers. Enterprise consolidation to one edge vendor favors NET over FSLY.</li>
+        <li><strong>GAAP TTM still -$0.83</strong> — "first profitable year" is non-GAAP. GAAP profitability years away. At forward P/E 75.98×, any growth miss re-rates severely.</li>
+      </ul>
+
+      <div class="section-label">What Flips to Entry</div>
+      <ul class="flip-list">
+        <li>Q1 earnings (May 6) beats revenue AND raises FY guide above $720M</li>
+        <li>Analyst upgrades post-earnings — need to see at least 2 analysts revise targets to $25+</li>
+        <li>Market state moves RED → CAUTION or better</li>
+        <li>First pullback to 21 EMA ($26) on light volume — clean Qullamaggie entry</li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- ═══ GAP AUDIT ═══ -->
+  <div class="gap-card">
+    <div class="card-header" style="border-bottom:1px solid #bfdbfe;">
+      <span style="font-size:18px;font-weight:800;color:#2563eb;">🔬 Signal Gap Audit — May 1 Screener</span>
+      <span style="font-size:13px;color:#6b7280;">High-quality stocks falling through every callout net</span>
+    </div>
+    <div class="card-body">
+
+      <div class="context-box gap" style="margin-bottom:20px;">
+        <div class="context-box-title" style="color:#1e40af;">Three Structural Blind Spots</div>
+        <p style="font-size:13px;">These stocks ARE in the report and scored correctly — they just receive no specific action badge, so they get no directed attention in Slack or the daily summary.</p>
+      </div>
+
+      <div class="card-section">
+        <h3 style="color:#7e22ce;margin-bottom:10px;">Gap 1 — Character Change / SNDK Distortion</h3>
+        <p style="font-size:13px;margin-bottom:10px;"><strong>Pattern:</strong> eps_qq_strong=true AND eps_yy_strong=false (TTM distorted by prior losses) + inst_buying + stage2_perfect = 3/6 HG. System misses it because persistence=1. <br><strong>Fix:</strong> Lower HG threshold to 3/6 when TTM distortion is confirmed (eps_qq_strong=true AND eps_yy_strong=false). One-line change.</p>
+        <table class="gap-table">
+          <thead><tr><th>Ticker</th><th>Q</th><th>EPS Q/Q</th><th>Inst Trans</th><th>ATR%</th><th>Why Missed</th></tr></thead>
+          <tbody>
+            <tr><td><strong>FSLY</strong> <span class="gap-tag gap-cc">CC</span></td><td>86</td><td class="pos">+55.77%</td><td class="pos">+7.91%</td><td class="neg">9.6%</td><td>persistence=1; ipo_lifecycle N/A → 3/6 HG</td></tr>
+            <tr><td><strong>CORZ</strong> <span class="gap-tag gap-cc">CC</span></td><td>90</td><td class="pos">+167.94%</td><td class="pos">+15.58%</td><td>5.4%</td><td>HG 5/6 (persistence fails only); gets IPO flag but no CC badge</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-section">
+        <h3 style="color:#92400e;margin-bottom:10px;">Gap 2 — High-ATR Stage 2 (ATR &gt;7%, Q≥80)</h3>
+        <p style="font-size:13px;margin-bottom:10px;"><strong>Pattern:</strong> Ready gate blocks ATR&gt;7%; Breakout gate blocks ATR&gt;8%. These show in Top Picks with no action annotation. They're tradeable — just need wider stops and smaller size. <br><strong>Fix:</strong> Add "⚠ High-vol — size 50%" note to Top Picks card when ATR&gt;7% and Q≥80. No new signal, just annotation.</p>
+        <table class="gap-table">
+          <thead><tr><th>Ticker</th><th>Q</th><th>ATR%</th><th>Dist High</th><th>Stage</th><th>Blocking Gate</th></tr></thead>
+          <tbody>
+            <tr><td><strong>FSLY</strong> <span class="gap-tag gap-atr">HIGH-ATR</span></td><td>86</td><td class="neg">9.6%</td><td>-19%</td><td>2 perfect</td><td>ATR&gt;7 blocks Ready; ATR&gt;8 blocks Breakout</td></tr>
+            <tr><td><strong>SEI</strong> <span class="gap-tag gap-atr">HIGH-ATR</span></td><td>90</td><td class="neg">7.0%</td><td>-11%</td><td>2 perfect</td><td>ATR=7.0 = exactly the Ready threshold</td></tr>
+            <tr><td><strong>LASR</strong> <span class="gap-tag gap-atr">HIGH-ATR</span></td><td>83</td><td class="neg">7.1%</td><td>-12%</td><td>2 perfect</td><td>ATR&gt;7 blocks Ready; dist -12 is at Breakout limit</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-section">
+        <h3 style="color:#b91c1c;margin-bottom:10px;">Gap 3 — Deep Base Stage 2 (dist -12% to -25%, ATR normal)</h3>
+        <p style="font-size:13px;margin-bottom:10px;"><strong>Pattern:</strong> Quality stocks in a wider base — past Ready (-10% max) and Breakout (-12% max) thresholds. They're building bases but get zero attention until they tighten. <br><strong>Fix:</strong> Consider a "🏗 Base Building" annotation for Q≥75 + Stage 2 + dist -12% to -25% + ATR≤7% with no other action badge — shows up in Slack as a watch mention, not an entry call.</p>
+        <table class="gap-table">
+          <thead><tr><th>Ticker</th><th>Q</th><th>ATR%</th><th>Dist High</th><th>Why Interesting</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BEAM</strong> <span class="gap-tag gap-deep">DEEP BASE</span></td><td>94</td><td>6.2%</td><td class="neg">-16%</td><td>Q94 gene editing; likely HG candidate once persistence builds</td></tr>
+            <tr><td><strong>ARDX</strong> <span class="gap-tag gap-deep">DEEP BASE</span></td><td>82</td><td>4.7%</td><td class="neg">-18%</td><td>Biotech, 1 appearance (10% Change), no other signal</td></tr>
+            <tr><td><strong>FSLY</strong></td><td>86</td><td class="neg">9.6%</td><td class="neg">-19%</td><td>Hits all three gaps simultaneously — the perfect example</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-label">Fix Priority</div>
+      <table class="data" style="font-size:13px;">
+        <thead><tr><th>#</th><th>Fix</th><th>Impact</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1</strong></td><td><strong>CC Early badge</strong> — HG threshold 3/6 when eps_qq_strong=true AND eps_yy_strong=false</td><td>Catches FSLY+CORZ-type on day 1</td><td class="pos">Low — 1 condition change in _compute_hidden_growth_criteria()</td></tr>
+          <tr><td><strong>2</strong></td><td><strong>High-ATR annotation</strong> — "⚠ High-vol" on Top Picks cards where ATR&gt;7% and Q≥80</td><td>Prevents high-quality names from being invisible</td><td class="pos">Low — HTML card only</td></tr>
+          <tr><td><strong>3</strong></td><td><strong>Base Building tag</strong> — Q≥75 + Stage 2 + dist -12 to -25% + ATR≤7% + no action badge</td><td>Surfaces deep-base quality stocks proactively</td><td class="neutral">Med — new predicate + Slack section</td></tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- CORZ / ARWR brief recap -->
+  <div class="card">
+    <div class="card-header">
+      <span style="font-size:16px;font-weight:700;">CORZ &amp; ARWR — Quick Reference</span>
+      <span class="alert-tag">CORZ earnings May 6 · ARWR earnings May 7</span>
+    </div>
+    <div class="card-body">
+      <div class="two-col">
+        <div>
+          <div class="section-label">CORZ — 18/27 MODERATE</div>
+          <table class="data">
+            <tbody>
+              <tr><td>Price</td><td>$20.35 · Stage 2 perfect · SMA200 $16</td></tr>
+              <tr><td>HG</td><td>5/6 — EPS Q/Q +167%, Inst +15.58%, Stage2✓, IPO✓, eps_yy✓</td></tr>
+              <tr><td>Key risk</td><td class="neg">20% short float · rev -16% Q/Q · $3.3B debt</td></tr>
+              <tr><td>Entry gate</td><td>Clean earnings + break above $21.50 trendline + market &gt; RED</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="section-label">ARWR — 22/27 HIGH</div>
+          <table class="data">
+            <tbody>
+              <tr><td>Price</td><td>$74.81 · Stage 2 perfect · -2.5% from 52w high</td></tr>
+              <tr><td>Catalyst</td><td class="pos">JP Morgan Overweight $88 (May 1) · REDEMPLO 5-country · SHASTA Q3</td></tr>
+              <tr><td>Key risk</td><td class="neg">Multiple Top $76–80 · CFO+CMO selling · earnings May 7 binary</td></tr>
+              <tr><td>Entry gate</td><td>Post-May 7 clean · break $77 on volume · or $69 21EMA PB</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Git push guide -->
+  <div class="card">
+    <div class="card-header"><span style="font-size:16px;font-weight:700;">📋 What to Push</span></div>
+    <div class="card-body">
+      <table class="data">
+        <thead><tr><th>File</th><th>Change</th><th>Push?</th></tr></thead>
+        <tbody>
+          <tr><td>.claude/commands/stock-research.md</td><td>Empty-args guard + output path to data/stock_research/</td><td class="pos">✓ Yes</td></tr>
+          <tr><td>agents/trading/rules.py</td><td>Modified (prior session)</td><td class="pos">✓ Yes — run tests first</td></tr>
+          <tr><td>tests/test_rules.py · test_alpaca_monitor.py · test_position_monitor.py</td><td>Updated tests</td><td class="pos">✓ Yes</td></tr>
+          <tr><td>data/position_history.json · data/recent_events.json</td><td>Agent-updated data files</td><td class="pos">✓ Yes</td></tr>
+          <tr><td>data/stock_research/ (new folder)</td><td>All research HTML files moved here</td><td class="pos">✓ Yes</td></tr>
+          <tr><td>utils/retro_ratchet_stops.py</td><td>Untracked utility</td><td class="pos">✓ Yes if ready</td></tr>
+          <tr><td>data/paper_trading_state.json · dated snapshots</td><td>State/snapshot files</td><td class="neutral">Optional</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:12px;color:#6b7280;margin-top:8px;">Run <code>python -m unittest discover -s tests -t .</code> before pushing — rules.py was modified.</div>
+    </div>
+  </div>
+
+  <div class="footer">Generated by /stock-research skill &nbsp;·&nbsp; 2026-05-02 &nbsp;·&nbsp; Market: <strong style="color:#dc2626;">RED</strong></div>
+</div>
+</body>
+</html>

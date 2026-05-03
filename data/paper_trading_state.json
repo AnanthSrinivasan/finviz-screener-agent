@@ -1,0 +1,35 @@
+{
+  "consecutive_wins": 0,
+  "consecutive_losses": 1,
+  "total_wins": 0,
+  "total_losses": 1,
+  "current_sizing_mode": "normal",
+  "sizing_override": null,
+  "last_updated": "2026-04-29",
+  "recent_trades": [
+    {
+      "ticker": "MRVL",
+      "result": "neutral",
+      "result_pct": 0.0,
+      "date": "2026-04-29",
+      "side": "SELL",
+      "source": "peak_fallback"
+    },
+    {
+      "ticker": "BEAM",
+      "result": "loss",
+      "result_pct": -1.39,
+      "date": "2026-04-29",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "MU",
+      "result": "neutral",
+      "result_pct": 0.0,
+      "date": "2026-04-29",
+      "side": "SELL",
+      "source": "peak_fallback"
+    }
+  ]
+}
