@@ -41,7 +41,13 @@ PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
 PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
 MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
-MAX_POSITIONS     = 5
+def effective_max_positions(market_state: str) -> int:
+    if market_state in ("GREEN", "THRUST"):
+        return 10
+    if market_state == "CAUTION":
+        return 7
+    return 5  # COOLING, DANGER, RED, BLACKOUT
+
 
 # Market state → (block_entries, size_multiplier)
 # Mirrors the live position_monitor's Rule 6 / regime-conditioning policy.
@@ -563,11 +569,19 @@ if __name__ == "__main__":
         log.info("Cancelled %d order(s) for %s", n, cancel_ticker)
         sys.exit(0)
 
+    # Weekend guard — executor must never trade on non-market days
+    if datetime.date.today().weekday() >= 5:
+        msg = f":information_source: Alpaca executor skipped — weekend ({today}). No trades."
+        log.info(msg)
+        slack_send(msg)
+        raise SystemExit(0)
+
     log.info("=== Alpaca executor starting — %s ===", today)
 
     # Step 1: Market state gate (breadth-based — single source of truth)
     market_state    = load_market_state()
     block, size_mul = _MARKET_GATE.get(market_state, (True, 0.0))
+    max_pos         = effective_max_positions(market_state)
     paper_state     = load_paper_trading_state()
     sizing_mode     = paper_state.get("current_sizing_mode", "normal")
 
@@ -603,15 +617,15 @@ if __name__ == "__main__":
 
     log.info(
         "Open positions: %d/%d | Equity: $%.2f | BP: $%.2f",
-        len(open_positions), MAX_POSITIONS, portfolio_equity, buying_power,
+        len(open_positions), max_pos, portfolio_equity, buying_power,
     )
 
-    if len(open_positions) >= MAX_POSITIONS:
+    if len(open_positions) >= max_pos:
         msg = (
             ":no_entry: *MAX POSITIONS REACHED* — "
             + str(len(open_positions))
             + "/"
-            + str(MAX_POSITIONS)
+            + str(max_pos)
             + " open. No new buys today."
         )
         log.info(msg)
@@ -628,7 +642,7 @@ if __name__ == "__main__":
     # Sort by Quality Score descending, cap at top 10 candidates for Claude evaluation
     sorted_rows = sorted(rows, key=lambda r: r.get("Quality Score", 0), reverse=True)
     MAX_CANDIDATES = 10
-    slots_needed = MAX_POSITIONS - len(open_positions)
+    slots_needed = max_pos - len(open_positions)
     # Pre-filter to Q≥60 + Stage 2 before capping, so we cap meaningful candidates only
     pre_filtered = [
         r for r in sorted_rows
@@ -673,7 +687,7 @@ if __name__ == "__main__":
             log.info("Skipping %s — already held", ticker)
             continue
 
-        if len(pending_positions) >= MAX_POSITIONS:
+        if len(pending_positions) >= max_pos:
             log.info("Max positions reached — stopping evaluation")
             break
 

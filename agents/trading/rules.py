@@ -40,14 +40,22 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
 
     Trail order:
       1. Update highest_price_seen / peak_gain_pct (intraday-aware via day_high).
-      2. ATR incremental trail (silent, pre-breakeven only): stop = max(stop, price − 2×ATR$).
-      3. Breakeven at peak +20%: stop locks to entry × 1.005, breakeven_activated = True (one-way).
-      4. +30% peak: 10% trail from highest_price_seen.
-      5. Target 1 / Target 2 alerts.
-      6. Fade alert when peak ≥ +20% AND price < peak − 1×ATR$.
+      2. Loss-cap floor (peak ≥ +5%): stop ≥ max(entry × 0.97, entry − 0.5×ATR$).
+         Hybrid — vol-aware (β) for low-vol names, fixed -3% (α) cap for high-vol.
+      3. ATR-tiered trail (continuous, ratchets off highest_price_seen):
+            peak < 10%   → 2.0 × ATR$  (room to breathe)
+            peak ≥ 10%   → 1.5 × ATR$  (start locking)
+            peak ≥ 20%   → 1.0 × ATR$  (lock — supersedes old breakeven)
+      4. Breakeven flag — informational. Set when peak ≥ +20% to drive the
+         dashboard / Slack `BE` indicator. No longer gates trail logic.
+      5. +30% floor: stop ≥ max(1.0×ATR trail, peak × 0.90). Caps post-+30%
+         give-back at 10% from peak even on very high-vol names.
+      6. Target 1 / Target 2 alerts.
+      7. Fade alert when peak ≥ +20% AND price < peak − 1×ATR$.
 
-    Breakeven trigger keys off `peak_gain_pct` (not live `gain_pct`) — once peak hit +20%,
-    the lock arms even if price has already pulled back.
+    Trail ratchets off `highest_price_seen` (not `current_price`) so hourly
+    snapshots cannot miss intraday peaks for the lock — fixes the VIK 2026‑04
+    case where peak $86.75 only registered $76.35 on the stop.
     """
     prefix = ("[" + label_prefix + "] ") if label_prefix else ""
     events: list = []
@@ -74,51 +82,72 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
         modified = True
 
     current_stop = float(entry.get("stop_price") or 0)
-    breakeven_active = bool(entry.get("breakeven_activated"))
+    was_breakeven = bool(entry.get("breakeven_activated"))
 
-    # 2. ATR incremental trail (silent, pre-breakeven)
-    if atr_dollar > 0 and gain_pct > 0 and not breakeven_active:
-        atr_trail = round(current_price - 2 * atr_dollar, 2)
+    # 2. Loss-cap floor at peak ≥ +5% (hybrid: max of -3% fixed cap and -0.5×ATR%)
+    if peak_gain_pct >= 5 and entry_price > 0:
+        floor_pct  = round(entry_price * 0.97, 2)
+        floor_atr  = round(entry_price - 0.5 * atr_dollar, 2) if atr_dollar > 0 else floor_pct
+        loss_floor = max(floor_pct, floor_atr)
+        if loss_floor > current_stop:
+            entry["stop_price"] = loss_floor
+            current_stop = loss_floor
+            modified = True
+
+    # 3. ATR-tiered trail (continuous, ratchets off highest_price_seen)
+    if atr_dollar > 0 and peak_gain_pct > 0:
+        if peak_gain_pct >= 20:
+            mult = 1.0
+        elif peak_gain_pct >= 10:
+            mult = 1.5
+        else:
+            mult = 2.0
+        atr_trail = round(prev_high - mult * atr_dollar, 2)
         if atr_trail > current_stop:
             entry["stop_price"] = atr_trail
             current_stop = atr_trail
             modified = True
 
-    # 3. Breakeven trigger — keys off peak_gain_pct (once-and-locked)
-    if peak_gain_pct >= 20 and not breakeven_active:
-        be_stop = round(entry_price * 1.005, 2)
-        if be_stop > current_stop:
-            entry["stop_price"] = be_stop
-            current_stop = be_stop
-        entry["breakeven_activated"] = True
-        modified = True
-        events.append({
-            "kind": "breakeven",
-            "ticker": ticker,
-            "stop_price": be_stop,
-            "peak_gain_pct": round(peak_gain_pct, 1),
-            "message": (
-                ":lock: " + prefix + ticker + " peak +" + str(round(peak_gain_pct, 1))
-                + "% — stop moved to breakeven $" + str(be_stop)
-            ),
-        })
+    # 4. Breakeven crossover — drives Slack/dashboard BE indicator. Also a
+    #    fallback floor for the atr=0 edge case where the ATR trail couldn't
+    #    compute: at peak ≥ +20%, stop must be at least entry × 1.005.
+    if peak_gain_pct >= 20:
+        be_floor = round(entry_price * 1.005, 2)
+        if be_floor > current_stop:
+            entry["stop_price"] = be_floor
+            current_stop = be_floor
+            modified = True
+        if not was_breakeven:
+            entry["breakeven_activated"] = True
+            modified = True
+            events.append({
+                "kind": "breakeven",
+                "ticker": ticker,
+                "stop_price": current_stop,
+                "peak_gain_pct": round(peak_gain_pct, 1),
+                "message": (
+                    ":lock: " + prefix + ticker + " peak +" + str(round(peak_gain_pct, 1))
+                    + "% — stop moved to breakeven, now locked at $" + str(current_stop)
+                ),
+            })
 
-    # 4. +30% trail (10% from highest)
+    # 5. +30% floor — max of ATR trail and 10%-from-peak (the 10% guard is the
+    #    real protection on high-vol names where 1×ATR is wider than 10%)
     if peak_gain_pct >= 30:
-        trail_stop = round(prev_high * 0.90, 2)
-        if trail_stop > current_stop:
-            entry["stop_price"] = trail_stop
-            current_stop = trail_stop
+        floor30 = round(prev_high * 0.90, 2)
+        if floor30 > current_stop:
+            entry["stop_price"] = floor30
+            current_stop = floor30
             modified = True
             events.append({
                 "kind": "trailing_stop",
                 "ticker": ticker,
-                "stop_price": trail_stop,
+                "stop_price": floor30,
                 "peak_gain_pct": round(peak_gain_pct, 1),
                 "message": (
                     ":chart_with_upwards_trend: " + prefix + ticker + " peak +"
                     + str(round(peak_gain_pct, 1)) + "% — trailing stop raised to $"
-                    + str(trail_stop)
+                    + str(floor30)
                 ),
             })
 

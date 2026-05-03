@@ -55,9 +55,9 @@ class ApplyPaperRulesTests(unittest.TestCase):
 
     def test_atr_trail_raises_silently_before_breakeven(self):
         entry = self._entry()
-        # price=110, atr_pct=4% → atr$=4 (on entry price), trail = 110 - 8 = 102
+        # peak 110 (+10%) → 1.5× tier. trail = 110 - 1.5×4 = 104. Silent.
         events, _ = am.apply_paper_rules("FOO", entry, 110.0, day_high=110.0, atr_pct=4.0)
-        self.assertEqual(entry["stop_price"], 102.0)
+        self.assertEqual(entry["stop_price"], 104.0)
         self.assertFalse(any("trailing" in e["message"].lower() for e in events))
         self.assertFalse(any("breakeven" in e["message"].lower() for e in events))
 
@@ -79,12 +79,14 @@ class ApplyPaperRulesTests(unittest.TestCase):
         self.assertFalse(any("TARGET 1" in e["message"] for e in events2))
 
     def test_trail_30pct_fires_and_raises_stop(self):
+        # High-vol case where 10% floor wins over 1×ATR trail.
+        # ATR 15%, peak 130. 1×ATR trail = 130 - 15 = 115. 10% floor = 117 → wins.
         entry = self._entry(
+            atr_pct=15.0,
             highest_price_seen=130.0, peak_gain_pct=30.0,
-            breakeven_activated=True, target1_hit=True, stop_price=100.5,
+            breakeven_activated=True, target1_hit=True, stop_price=100.0,
         )
-        events, _ = am.apply_paper_rules("FOO", entry, 130.0, day_high=130.0, atr_pct=4.0)
-        # 10% trail = 117
+        events, _ = am.apply_paper_rules("FOO", entry, 130.0, day_high=130.0, atr_pct=15.0)
         self.assertAlmostEqual(entry["stop_price"], 117.0, places=2)
         self.assertTrue(any("trailing stop raised" in e["message"] for e in events))
 

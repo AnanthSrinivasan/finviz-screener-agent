@@ -33,7 +33,6 @@ HISTORY_FILE       = os.path.join(DATA_DIR, "market_monitor_history.json")
 TRADING_STATE_FILE = os.path.join(DATA_DIR, "trading_state.json")
 from utils.events import _append_recent_event
 SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
-SLACK_WEBHOOK_DAILY  = os.environ.get("SLACK_WEBHOOK_MARKET_DAILY", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
 
 # Bonde calibration: 500+ stocks up/down 4%+ = "Very High" pressure zone.
@@ -879,67 +878,6 @@ def send_confirmation_alert(record: dict):
         log.error(f"Confirmation alert failed: {e}")
 
 
-def send_daily_summary(record: dict, last_thrust_date: str | None = None):
-    """Send daily summary to #market-daily."""
-    if not SLACK_WEBHOOK_DAILY:
-        log.info("SLACK_WEBHOOK_MARKET_DAILY not set — skipping daily summary.")
-        return
-
-    state = record["market_state"]
-    state_emoji = {
-        "THRUST": "🚨", "GREEN": "✅", "CAUTION": "🟡",
-        "COOLING": "🧊", "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
-    }
-    emoji = state_emoji.get(state, "📊")
-
-    fg_str = f"{record['fg']:.1f}" if record["fg"] is not None else "n/a"
-    spy_str = f"${record['spy_price']:.0f}" if record["spy_price"] is not None else "n/a"
-
-    sma_str = ""
-    if record.get("spy_above_200d"):
-        sma_str = " (above 200d MA)"
-    elif record.get("spy_sma200_pct") is not None:
-        sma_str = " (below 200d MA)"
-
-    # THRUST badge: show if active today, or days-since if fired recently
-    thrust_line = ""
-    if state == "THRUST":
-        thrust_line = "\n⚡ THRUST — breadth explosion signal firing today"
-    elif last_thrust_date:
-        try:
-            thrust_dt = datetime.date.fromisoformat(last_thrust_date)
-            today_dt = datetime.date.fromisoformat(record["date"])
-            days_ago = (today_dt - thrust_dt).days
-            if days_ago <= 30:
-                thrust_line = f"\n⚡ THRUST fired {days_ago}d ago ({last_thrust_date})"
-                if record.get("post_thrust_floor_active"):
-                    days_remaining = 3 - days_ago
-                    thrust_line += f" — floor active, {days_remaining}d remaining"
-        except Exception:
-            pass
-
-    adv = record.get("adv_total")
-    dec = record.get("dec_total")
-    ad_str = f"{adv:,} / {dec:,}" if adv is not None and dec is not None else "n/a"
-
-    text = (
-        f"📊 Market Monitor — {record['date']}\n"
-        f"State: {emoji} {state}{thrust_line}\n"
-        f"Up 4%+: {record['up_4_today']} | Down 4%+: {record['down_4_today']}\n"
-        f"Adv / Dec (all): {ad_str}\n"
-        f"5d ratio: {record['ratio_5day']} | 10d ratio: {record['ratio_10day']}\n"
-        f"F&G: {fg_str}\n"
-        f"SPY: {spy_str}{sma_str}"
-    )
-
-    try:
-        resp = requests.post(SLACK_WEBHOOK_DAILY, json={"text": text}, timeout=10)
-        resp.raise_for_status()
-        log.info("Daily summary sent.")
-    except Exception as e:
-        log.error(f"Daily summary failed: {e}")
-
-
 # ----------------------------
 # Main
 # ----------------------------
@@ -1040,9 +978,6 @@ def run_market_monitor(date: datetime.date | None = None):
         # Send confirmation alert when moving to GREEN from THRUST, CAUTION, or COOLING
         if state == "GREEN" and prev_state in ("THRUST", "CAUTION", "COOLING"):
             send_confirmation_alert(record)
-
-    # Always send daily summary
-    send_daily_summary(record, last_thrust_date)
 
     # ── EventBridge: MarketDailySummary ──────────────────────────────────
     # Fires end-of-day market state to finviz-events bus.

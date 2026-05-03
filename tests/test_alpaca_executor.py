@@ -76,5 +76,28 @@ class EntryPeelWarnTests(unittest.TestCase):
         self.assertFalse(atr_multiple > warn)
 
 
+class EffectiveMaxPositionsTests(unittest.TestCase):
+    def test_green_returns_10(self):
+        self.assertEqual(ae.effective_max_positions("GREEN"), 10)
+
+    def test_thrust_returns_10(self):
+        self.assertEqual(ae.effective_max_positions("THRUST"), 10)
+
+    def test_caution_returns_7(self):
+        self.assertEqual(ae.effective_max_positions("CAUTION"), 7)
+
+    def test_cooling_returns_5(self):
+        self.assertEqual(ae.effective_max_positions("COOLING"), 5)
+
+    def test_red_returns_5(self):
+        self.assertEqual(ae.effective_max_positions("RED"), 5)
+
+    def test_danger_returns_5(self):
+        self.assertEqual(ae.effective_max_positions("DANGER"), 5)
+
+    def test_blackout_returns_5(self):
+        self.assertEqual(ae.effective_max_positions("BLACKOUT"), 5)
+
+
 if __name__ == "__main__":
     unittest.main()

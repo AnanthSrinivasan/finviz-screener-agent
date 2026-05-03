@@ -33,7 +33,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 |-------|------|----------|---------------|
 | Daily Screener | `finviz_agent.py` | 20:30 UTC Mon-Fri | `#daily-alerts` |
 | Weekly Review | `finviz_weekly_agent.py` | 10:00 UTC Saturday | `#weekly-alerts` |
-| Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes), `#market-daily` (daily) |
+| Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes + THRUST) |
 | Position Monitor | `position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
 | Alerts | `alerts_agent.py` | 21:00 UTC Mon-Fri | `#general-alerts` |
 | Earnings Alert | `earnings_alert.py` | 21:30 UTC Mon-Fri | `#general-alerts` |
@@ -163,7 +163,6 @@ The position monitor has two layers:
 | `SLACK_WEBHOOK_ALERTS` | secret | Alerts agent, earnings, failure notifications |
 | `SLACK_WEBHOOK_POSITIONS` | secret | Position monitor |
 | `SLACK_WEBHOOK_MARKET_ALERTS` | secret | Market monitor (state changes) |
-| `SLACK_WEBHOOK_MARKET_DAILY` | secret | Market monitor (daily summary) |
 | `ANTHROPIC_API_KEY` | secret | Daily agent, weekly agent, position monitor |
 | `PAGES_BASE_URL` | secret | All agents (gallery links in Slack) |
 | `SNAPTRADE_CLIENT_ID` | secret | Position monitor |

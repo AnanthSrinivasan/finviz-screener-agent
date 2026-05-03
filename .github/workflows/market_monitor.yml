@@ -11,7 +11,6 @@ jobs:
     env:
       TZ: Europe/Luxembourg
       SLACK_WEBHOOK_MARKET_ALERTS: ${{ secrets.SLACK_WEBHOOK_MARKET_ALERTS }}
-      SLACK_WEBHOOK_MARKET_DAILY: ${{ secrets.SLACK_WEBHOOK_MARKET_DAILY }}
       DATA_DIR: "data"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PYTHONPATH: .

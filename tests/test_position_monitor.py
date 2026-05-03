@@ -86,28 +86,30 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0)  # lift targets out of range
         alerts, modified = pm.apply_minervini_rules(pos, current_price=120.0, atr=2.0)
         self.assertTrue(pos.get("breakeven_activated"))
-        # Stop must be at or above breakeven (100.50). ATR trail may already have
-        # raised it higher (price − 2×ATR = 116) — that's fine; breakeven is a floor.
+        # 1.0× ATR trail at peak +20%: 120 - 2 = 118. BE floor (entry × 1.005 = 100.5)
+        # is much lower; trail wins. Either way stop ≥ 100.5.
         self.assertGreaterEqual(pos["stop_price"], 100.5)
-        self.assertTrue(any("stop moved to breakeven" in a for a in alerts))
+        self.assertTrue(any("breakeven" in a.lower() for a in alerts))
         self.assertTrue(modified)
 
     def test_breakeven_floor_applies_when_no_atr(self):
-        # atr=0 skips ATR trail entirely → breakeven floor of 100.5 applies
+        # atr=0 → ATR trail can't compute. BE floor (entry × 1.005 = 100.5) applies.
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)
         alerts, _ = pm.apply_minervini_rules(pos, current_price=120.0, atr=0)
         self.assertTrue(pos.get("breakeven_activated"))
         self.assertAlmostEqual(pos["stop_price"], 100.5, places=2)
-        self.assertTrue(any("stop moved to breakeven" in a for a in alerts))
+        self.assertTrue(any("breakeven" in a.lower() for a in alerts))
 
     def test_trailing_stop_raises_at_30_pct_gain(self):
+        # High-vol case where 10%-from-peak floor wins over 1×ATR trail.
+        # ATR$ 15 (15% on entry 100), peak 130. 1×ATR trail = 130 - 15 = 115.
+        # 10% floor = 117 → wins.
         pos = self._pos(entry_price=100.0, stop=100.5,
                         highest_price_seen=130.0,
                         target1=200.0, target2=300.0,
                         breakeven_activated=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=130.0, atr=2.0)
-        # 10% trail from 130 = 117
+        alerts, _ = pm.apply_minervini_rules(pos, current_price=130.0, atr=15.0)
         self.assertAlmostEqual(pos["stop_price"], 117.0, places=2)
         self.assertTrue(any("trailing stop raised" in a for a in alerts))
 
@@ -115,8 +117,8 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)
         alerts, modified = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
-        # price - 2*ATR = 110 - 4 = 106 → stop raised silently (no alert text for ATR trail)
-        self.assertAlmostEqual(pos["stop_price"], 106.0, places=2)
+        # peak 110 (+10%) → 1.5× tier. trail = 110 - 1.5×2 = 107. Silent.
+        self.assertAlmostEqual(pos["stop_price"], 107.0, places=2)
         self.assertTrue(modified)
         self.assertFalse(any("ATR trail" in a for a in alerts))
 
@@ -298,11 +300,12 @@ class PeakGainBreakevenTests(unittest.TestCase):
         self.assertFalse(pos.get("breakeven_activated", False))
 
     def test_trailing_stop_locks_from_peak_30(self):
-        # Peak +35% (high=135), current back at 110. 10% trail = 121.5.
+        # Peak +35% (high=135), current back at 110, ATR$ 2. 1×ATR trail off peak:
+        # 135 - 2 = 133. 10% floor = 121.5. ATR wins (tighter). Stop = 133.
         pos = self._pos(highest_price_seen=135.0, peak_gain_pct=35.0,
                         breakeven_activated=True, stop=100.5)
         pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
-        self.assertAlmostEqual(pos["stop_price"], 121.5, places=1)
+        self.assertAlmostEqual(pos["stop_price"], 133.0, places=1)
 
 
 
@@ -492,6 +495,25 @@ class RetroPatchClosedTests(unittest.TestCase):
         self.assertEqual(closed["close_source"], "snaptrade_fill_retro")
         self.assertEqual(ts["total_wins"], 1)  # neutral → win flip
         self.assertEqual(ts["recent_trades"][0]["result"], "win")
+        self.assertTrue(any("RETRO-PATCHED" in a for a in alerts))
+
+    def test_live_quote_close_upgrades_to_real_snaptrade_fill(self):
+        # NVDA-class regression: SnapTrade activities API didn't return the SELL
+        # at close-detection time → fell back to live_quote estimate. Retro pass
+        # should rewrite once the real fill lands 24-48h later.
+        cd = self._today()
+        closed = {"ticker": "NVDA", "entry_price": 213.97, "shares": 50,
+                  "close_price": 201.27, "result_pct": -5.94, "close_date": cd,
+                  "close_source": "live_quote"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        ts = self._ts(total_losses=1)
+        ts["recent_trades"] = [{"ticker": "NVDA", "result": "loss",
+                                "result_pct": -5.94, "date": cd, "side": "SELL"}]
+        sell_fills = {"NVDA": {"price": 205.50, "date": cd, "units": 50}}
+        alerts = pm.retro_patch_closed_positions(pd, ts, sell_fills)
+        self.assertEqual(closed["close_price"], 205.50)
+        self.assertAlmostEqual(closed["result_pct"], -3.96, places=1)
+        self.assertEqual(closed["close_source"], "snaptrade_fill_retro")
         self.assertTrue(any("RETRO-PATCHED" in a for a in alerts))
 
     def test_no_patch_when_already_real_source(self):
