@@ -1,244 +1,369 @@
-# Autonomous Trading Intelligence System — Feature Overview
+# Autonomous Trading Intelligence System
 
 > A fully automated, rules-based equity screening and position management platform built on proven institutional methodologies. Zero infrastructure cost. Zero discretionary emotion. Runs 24/7 on GitHub Actions.
 
 ---
 
-## Performance (Verified from 1099 Tax Records)
+## Verified Performance (from 1099 Tax Records)
 
-| Year | Total Notional Traded | Net Realized P&L | Return on Deployed Capital | Account |
-|------|-----------------------|------------------|---------------------------|---------|
-| 2024 | **$418,892** | **+$47,636** | **~100%** *(gains exceeded net new capital deployed)* | Robinhood (live) |
-| 2025 | **$1,608,125** | **+$42,481** | **~45%** *(on ~$90–100K starting balance; no external capital needed)* | Robinhood (live) |
-| **Combined** | **~$2.03M** | **+$90,117** | | |
+| Year | Notional Traded | Net Realized P&L | Notes |
+|------|----------------|-----------------|-------|
+| 2024 | $418,892 | +$47,636 | Account rebuilt from near-zero Jan 2024. Net new capital injected: $44,792 — gains exceeded capital deployed. |
+| 2025 | $1,608,125 | +$42,481 | No external capital needed. Operator net-withdrew $4,200 while system generated $42,481. Fully self-sustaining. |
+| **Combined** | **~$2.03M** | **+$90,117** | Two years of live trading. No backtests. |
 
-**Year 1 context:** Account was rebuilt from near-zero in January 2024. Net new capital injected throughout 2024: ~$44,792. Net realized gains: $47,636 — gains exceeded capital deployed, equivalent to 100%+ return on net new capital in the first active year.
+| Risk Metric | Value |
+|-------------|-------|
+| Max loss per position | $4,500 hard cap (absolute dollar, not %) |
+| Max portfolio drawdown 2024 | −4.9% from peak |
+| Max portfolio drawdown 2025 | −23.5% (Jul peak ~$115K → Dec ~$88K; driven by concentrated volatile positions Aug–Sep) |
+| Execution | Limit orders at closing price; fills at next open |
+| Mode | Rules-only. No human intervention on entries or exits. |
 
-**Year 2 context:** Account required no meaningful external capital in 2025. The operator net-withdrew $4,200 while the system generated $42,481 in realized gains — fully self-sustaining.
+**Year 1 context:** Account rebuilt from near-zero in January 2024. Gains exceeded net new capital deployed — equivalent to 100%+ return on capital in the first active year.
 
-| Metric | Value |
-|--------|-------|
-| Max Drawdown Per Position | $4,500 (hard-coded rule) |
-| Max Portfolio Drawdown (2024) | −4.9% from peak. Gains were concentrated in Nov–Dec 2024; limited exposure window. |
-| Max Portfolio Drawdown (2025) | −23.5% from peak. July 2025 account peak ~$115K → Dec 2025 ~$88K. Driven by concentrated volatile positions Aug–Sep 2025. |
-| Portfolio Drawdown & Recovery | Operator experienced significant portfolio drawdown during 2022 bear market — this system was built as the rules-based response to that experience. Every risk rule exists because it was tested against real losses. |
-| Trading Mode | Rules-only; no human intervention on entries/exits |
-| Execution | Limit orders at close price; fills at next open |
+**Year 2 context:** Fully self-sustaining. The operator net-withdrew capital while the system generated gains to replace it.
 
 ---
 
 ## 1. Intelligent Stock Screening
 
-**What it does:** Scans the entire US equity universe daily using a multi-source market data pipeline, scores every ticker through a proprietary Quality Score, and surfaces only the highest-conviction setups.
+**What:** Scans the entire US equity universe every trading day and surfaces only the highest-conviction setups — so you never have to manually sort through thousands of tickers.
 
-**Daily output — 5 curated sections (115 tickers on a typical day):**
-- **Stage 2 Leaders** — Weinstein Stage 2 confirmed names only. The primary trade universe.
-- **IPO Lifecycle** — Recent IPOs evaluated on lifecycle metrics, not SMA rules (SMA is unreliable on young charts)
-- **Momentum/Catalyst** — High relative volume + significant intraday move. 2–4 week plays.
-- **Watch List** — Transitional or lower-conviction setups. Monitor, do not chase.
-- **Excluded** — Tickers that triggered a filter but failed the momentum quality gate (shown for transparency)
+**Why:** The US market has 8,000+ listed equities on any given day. Without a systematic filter, even experienced traders miss the best setups or get distracted by noise. The system does the full universe scan automatically, every night, before you wake up. The output isn't just a list — it's a ranked, categorised, actionable report.
 
-**Key capabilities:**
-- **Multi-signal fusion** — aggregates signals across 6+ independent screening criteria (breakouts, high momentum, VCP, strong fundamentals, strong technicals). Tickers appearing in 3+ signals score maximum breadth points
-- **Quality Score (0–100)** — proprietary composite scoring system:
-  - Market cap weight (institutional-grade names)
-  - Relative volume (confirms institutional participation)
-  - EPS year-over-year growth (fundamental quality gate)
-  - Stage analysis alignment (Weinstein method)
-  - VCP pattern detection (Minervini method)
-  - Distance from 52-week high (runway check)
-- **Weinstein Stage 2 gate** — automatically filters out Stage 3/4 stocks (distribution/decline). Only stocks in confirmed Stage 2 uptrends qualify for entry
-- **VCP pattern bonus** — Volatility Contraction Pattern detection (+15 points) identifies institutional accumulation before breakout
-- **Runs Monday–Friday**, output published to GitHub Pages as a browsable HTML report with chart gallery
+**How:**
+
+Every ticker is scored through a proprietary **Quality Score (0–100+)**:
+
+| Component | Max Points | What it measures |
+|-----------|-----------|-----------------|
+| Market Cap | 30 | Institutional-grade names — funds can actually move in and out |
+| Relative Volume | 25 | Confirms real participation — institutions are moving, not just retail noise |
+| EPS Growth | 20 | Uses best of Y/Y TTM or Q/Q — rescues spin-offs and IPOs with distorted trailing EPS |
+| Institutional Transactions | 8 | % change in institutional ownership — flags accumulation before the move |
+| Multi-screener appearances | 15 | Ticker in 3+ independent signals = maximum breadth points |
+| Stage 2 alignment | +25 / +10 | Weinstein Stage 2 confirmed / perfect alignment bonus |
+| VCP pattern | +15 | Volatility Contraction Pattern — institutional accumulation before breakout |
+| Distance from 52w high | 10 | Runway check — not already extended |
+
+Daily output — curated across 5 sections:
+
+| Section | What it contains |
+|---------|----------------|
+| Stage 2 Leaders | Weinstein Stage 2 confirmed. The primary trade universe. |
+| IPO Lifecycle | Recent IPOs scored on lifecycle metrics — SMA rules are unreliable on young charts |
+| Momentum / Catalyst | High relative volume + significant intraday move. 2–4 week plays. |
+| Watch List | Transitional or lower-conviction setups. Monitor, not chase. |
+| Excluded | Triggered a filter but failed the quality gate — shown for full transparency |
+
+Top setups are further refined into 6 actionable callouts:
+
+| Callout | Criteria summary | Action |
+|---------|-----------------|--------|
+| 🎯 Ready to Enter | Stage 2 perfect, VCP ≥70, Q≥80, dist −1% to −10%, ATR%≤7, RVol≤1.2 | Highest-priority buy candidates |
+| 🔬 Hidden Growth | EPS Q/Q or TTM >50%, institutional accumulation ≥3%, Stage 2 perfect | Research prompt — fundamental + accumulation driven |
+| 🚀 Fresh Breakout | Stage 2, SMA50% in (0,25%], RVol≥1.2, ATR%≤8, Q≥70, dist 0% to −12% | Breakout-from-base — complementary to pullback-based Ready to Enter |
+| ⭐ Textbook VCP | VCP≥85, appearances≥3, ATR%≤5, Stage 2 perfect, dist −3% to −15%, Q≥80 | Badge overlay — highest-confidence pattern setup |
+| 💎 Power Play | Perf Month≥50% or Perf Quarter≥100%, ATR%≤5, volume drying, Stage 2 | Rare Minervini/O'Neil high tight flag pattern |
+| 🏗 Base Building | Stage 2, Q≥75, dist −12% to −25%, ATR%≤7 | Watch-only — wider bases not yet ready |
 
 ---
 
 ## 2. Market Regime Classification
 
-**What it does:** Before any trade is placed, the system classifies the current market regime across 7 states and gates all activity accordingly. No trades in bear markets, ever.
+**What:** Before any trade is placed, the system reads the market environment and either opens the door, sizes it down, or shuts it completely. You never buy into a falling market.
 
-**7-State Market Model:**
+**Why:** The single biggest mistake retail traders make is trading against the market — buying a good-looking stock in a bad market. 70–80% of stocks follow the broader market direction. A great setup in a bear market is still a losing trade. This layer is the system's answer to that problem — it knows when to act and, more importantly, when to do nothing.
 
-| State | Condition | Trading Action |
-|-------|-----------|---------------|
-| BLACKOUT | Sep 1–Sep 30 | No new trades (September is historically the worst month for equities — confirmed in live data) |
-| DANGER | 500+ stocks down 4%+ in a day | No entries, raise stops immediately |
-| COOLING | Was GREEN, conditions fading | Trim, tighten, no new entries |
-| THRUST | 500+ stocks up 4%+ in a day (Bonde "Very High" buying pressure) | Start building watchlist NOW |
-| GREEN | 5d ratio ≥2.0, F&G ≥35, SPY above 200d MA | Full-size entries |
-| CAUTION | 5d ratio ≥1.5, F&G ≥25, SPY above 200d MA | Half-size, watchlist building |
+**How:**
+
+A **7-state market model** computed nightly from three inputs: breadth (how many NYSE+NASDAQ stocks moved >4% up or down), Fear & Greed Index, and SPY vs its 200-day MA:
+
+| State | Condition | What the system does |
+|-------|-----------|---------------------|
+| BLACKOUT | September | No new trades — confirmed worst month from live 2024–2025 data (−$5,478 Sep 2025) |
+| DANGER | 500+ stocks down 4%+ today | No entries. Raise stops immediately. |
+| COOLING | Was GREEN, conditions fading | Trim positions, tighten stops, no new entries |
+| THRUST | 500+ stocks up 4%+ today | Start building watchlist. Breadth explosion signal. |
+| GREEN | 5d breadth ratio ≥2.0, F&G ≥35, SPY above 200d MA | Full-size entries |
+| CAUTION | 5d ratio ≥1.5, F&G ≥25, SPY above 200d MA | Half-size entries, watchlist building |
 | RED | Everything else | No new trades |
 
-- **Breadth universe:** NYSE + NASDAQ active equities, filtered to price > $3 and dollar volume > $250K or volume > 100K (Pradeep Bonde's institutional dollar-volume filter). THRUST and DANGER thresholds calibrated at 500 stocks — Bonde's "Very High pressure" level.
-- Breadth data sourced from Alpaca snapshots — computed at close, not delayed exchange feeds
-- State changes trigger Slack alerts within minutes of market close
-- **Sizes down automatically in CAUTION; blocks all entries in RED, DANGER, BLACKOUT**
-- *Blackout note: Original model included Feb 1–Mar 15. Live trade data (2024–2025) showed Feb and Mar were profitable in both years — that seasonal window has been removed. September blackout confirmed by Sep 2025 data (−$5,478 realized). October was profitable in both years and is no longer blocked.*
+A **confidence layer** handles edge cases that a pure rules model would get wrong:
+
+| Scenario | Behaviour | Why |
+|----------|-----------|-----|
+| After any THRUST day | Min state = CAUTION for 3 calendar days | Prevents whipsaw THRUST → RED-next-day flips |
+| Extreme greed (F&G >74) + conditions fading | Skips COOLING buffer, RED fires immediately | No soft landing when market is at peak greed |
+| Extreme fear (F&G <25) + breadth explosion from RED/DANGER | Overrides THRUST → CAUTION with `high_confidence_recovery` | Capitulation + breadth surge = high-confidence bottom |
+| Normal deterioration | 2 consecutive weak days required before RED | Recovery to CAUTION always immediate — avoids false exits |
+
+*Blackout note: February and March blackouts were removed after live 2024–2025 data showed both were profitable in both years. September blackout confirmed by Sep 2025 data. October was profitable in both years and is not blocked.*
 
 ---
 
 ## 3. Dynamic Risk Management
 
-**What it does:** Every position is monitored against a multi-layer rules engine. No trade is left unmanaged.
+**What:** Every position has a pre-defined exit before the trade is placed. The system manages the stop automatically as the position gains — locking in profits as the stock moves in your favour.
 
-**Layer 1 — ATR-Based Position Rules:**
-- **Hard stop:** $4,500 maximum loss per position (absolute dollar cap)
-- **Dynamic stop loss:** `5% base + (ATR% × 0.5)` — widens for volatile stocks, tightens in bear markets (3% base in RED/DANGER)
-- **ATR exit signal:** Structural breakdown when price falls >1.5× ATR from 50-day MA — distinguishes breakdown from normal pullback
-- **ATR incremental trail:** From entry, stop continuously ratchets up as price rises (`price − 2×ATR`)
+**Why:** Most traders know their entry. Almost none have a real exit plan. They sell too early (small wins) or hold too long (winners become losers). The system encodes two things most traders never have: a hard rule for when you are wrong, and a mechanical process for protecting gains as you are right. Every rule here came from a real loss — the $4,500 hard cap exists because of an SLV position in February 2026.
 
-**Layer 2 — Minervini-Based Rules Engine:**
-- **Hard stop at entry-defined price** — every trade enters with a pre-set stop, no exceptions
-- **No averaging down** — adding to a losing position is blocked. Averaging up is allowed: merges shares and recomputes weighted cost basis automatically
-- **Gain protection ladder:**
-  - +20% gain → stop moves to breakeven (+0.5%)
-  - +30% gain → 10% trailing stop from highest price seen
-- **Market state gate** — no new entries in RED or BLACKOUT regime, regardless of signal quality
+**How:**
 
-**Sizing mode engine:**
-- 3 consecutive losses → model portfolio only (suspension mode)
-- 2 consecutive losses → max 5% position size (reduced mode)
-- 2+ consecutive wins + GREEN/THRUST → aggressive mode
-- Default → normal mode
+**Layer 1 — ATR-based rules (runs on every position, every tick):**
+
+| Rule | Mechanism |
+|------|-----------|
+| Hard position cap | $4,500 maximum loss per position — absolute dollar floor, no exceptions |
+| Dynamic stop loss | `5% base + (ATR% × 0.5)` — widens for volatile names, tightens to 3% base in RED/DANGER |
+| ATR structural exit | Price falls >1.5× ATR from 50-day MA — distinguishes real breakdown from a normal pullback |
+| Loss-cap floor | At peak ≥+5%: stop ≥ `max(entry × 0.97, entry − 0.5×ATR$)` — a meaningful winner can never fade back to a full loss |
+
+**Layer 2 — Minervini trail (continuous, ratchets off highest price seen):**
+
+| Peak Gain | Trail Distance | Additional Floor |
+|-----------|---------------|-----------------|
+| < +10% | 2.0 × ATR from peak | — |
+| ≥ +10% | 1.5 × ATR from peak | — |
+| ≥ +20% | 1.0 × ATR from peak | Breakeven floor activated (`entry × 1.005`). `BE` indicator on dashboard. |
+| ≥ +30% | 1.0 × ATR from peak | Additional floor: `max(1.0×ATR trail, peak × 0.90)` — 10%-from-peak guard |
+
+The trail ratchets off the **highest price seen intraday** — not hourly snapshots — so a spike between monitoring ticks doesn't lose the peak.
+
+**Sizing mode engine** — adjusts position size based on recent performance:
+
+| Mode | Trigger | Position sizing |
+|------|---------|----------------|
+| Suspended | 3 consecutive losses | Paper trades only — no live capital at risk |
+| Reduced | 2 consecutive losses | Max 5% position size |
+| Normal | Default | Standard sizing |
+| Aggressive | 2+ consecutive wins + GREEN/THRUST | 1.25× size |
+
+*Neutral band: ±1% result does not count as a win or loss — streak unaffected.*
 
 ---
 
 ## 4. Per-Ticker Sell Signal Calibration
 
-**What it does:** One of the hardest problems in active trading — knowing *when to sell into strength* rather than holding until the stock rolls over. Most traders fail here. The system solves it with per-ticker calibrated sell signals rather than fixed rules.
+**What:** Knowing when to sell into strength — before the stock rolls over — is one of the hardest problems in trading. The system solves it with sell thresholds calibrated to each stock's own historical behaviour, not generic rules.
 
-**How it works:**
-- For each held position and watchlist name, pulls 4+ years of daily OHLCV from Alpaca
-- Computes **ATR% Multiple From MA** = `(price − SMA50) / (SMA50 × ATR14%)` — matches the TradingView "ATR% Multiple From MA" indicator exactly
-- Detects **historical run peaks**: continuous periods where the stock trades above its 50-day MA for ≥10 consecutive days
-- Calibrates **sell signal threshold** at p75 of observed peaks (floor: 10×), **early warning threshold** at 75% of signal (floor: 7.5×)
-- Falls back to a global ATR tier table for stocks with insufficient history
+**Why:** A fixed "sell at 10× ATR from the MA" rule treats a slow-moving consumer staple the same as a high-momentum biotech. They are completely different. A stock that historically runs to 18× before peaking shouldn't have a 10× sell signal — you'll exit too early on every trade. This layer is the system's answer to the "selling too soon vs too late" problem that most traders never solve.
 
-**Result:** A stock like AAOI that historically runs to 15–18× before peaking gets a 15.8× sell signal threshold — not a generic 10×. A low-momentum stock gets tighter thresholds. The system scales out into strength, not weakness.
+**How:**
 
-**Why this matters:** Most traders either sell too early (leaving money on the table) or hold too long and give back gains. This layer is the system's answer to that problem — sell signals calibrated to each stock's own historical behavior.
+For each held position and watchlist name, the system:
 
-Calibration runs automatically: positions after daily screener, watchlist after weekly review.
+1. Pulls 4+ years of daily OHLCV from Alpaca
+2. Computes **ATR% Multiple from MA** = `(price − SMA50) / (SMA50 × ATR14%)` — matches the TradingView "ATR% Multiple from MA" indicator exactly
+3. Detects **historical run peaks** — continuous periods trading above the 50-day MA for ≥10 consecutive days
+4. Calibrates signal and warning thresholds from observed peak history:
+
+| Threshold | Calculation | Floor |
+|-----------|-------------|-------|
+| Sell signal | p75 of observed historical peaks | 10× |
+| Early warning | 75% of sell signal | 7.5× |
+
+If a ticker has insufficient history, it falls back to a global ATR tier table:
+
+| ATR% Tier | Early Warning | Sell Signal |
+|-----------|-------------|-------------|
+| Low (≤4%) | 3× | 4× |
+| Mid (≤7%) | 5× | 6× |
+| High (≤10%) | 6.5× | 8× |
+| Extreme (>10%) | 8.5× | 10× |
+
+Calibration runs automatically: positions after the daily screener, watchlist after the weekly review.
 
 ---
 
-## 5. Algo Model Validation Layer (Alpaca Integration)
+## 5. Algo Model Validation (Paper Trading Layer)
 
-**What it does:** The top-ranked candidates from the daily screening run are automatically submitted as model portfolio positions via Alpaca's broker API. This layer validates the algorithm's signal quality with real-time execution — no human decision required.
+**What:** The top-ranked daily screening candidates are automatically submitted as paper portfolio positions via Alpaca. This validates signal quality with real execution — no human decision required.
 
-**Execution logic:**
-- Evaluates top 10 tickers by Quality Score (Q≥60, Stage 2 only)
-- Merges watchlist names so high-quality tracked tickers are always evaluated
-- Checks market regime (no entries in RED/BLACKOUT/DANGER)
-- Checks sizing mode (suspended = skip; reduced = smaller size)
-- Checks averaging-down rule (no entry if price below existing position cost)
-- Places **GTC limit orders at closing price** — fills at open next day
-- Cancels stale GTC orders older than 2 days (prevents stale fills)
-- Tracks all model positions with entry price, stop, and ATR% reference
+**Why:** A signal is only useful if it can be acted on reliably. The paper trading layer proves that the screening signals translate to executable entries — at real market prices, with real slippage. It also stress-tests the rules engine (stops, sizing mode, averaging-up logic) continuously without risking live capital.
+
+**How:**
+
+| Step | Mechanism |
+|------|-----------|
+| Candidate selection | Top 10 tickers by Quality Score (Q≥60, Stage 2 only) + watchlist names merged in |
+| Market state check | No entries in RED/DANGER/BLACKOUT. CAUTION = half size. GREEN/THRUST = full. |
+| Sizing mode check | Suspended → skip entirely. Reduced → clamp to 25% size. Aggressive → 1.25× in GREEN/THRUST. |
+| Averaging-down block | No entry if price < existing position entry price (Rule 4) |
+| Order type | GTC limit order at closing price — fills at open next day |
+| Stale order cleanup | GTC orders older than 2 days auto-cancelled — prevents stale fills |
+| Initial stop | Set at `entry − 2×ATR$` at buy time |
+| Extended entry gate | Blocked when ATR multiple from 50MA > per-ticker peel_warn threshold |
+
+Paper positions share the same rules engine as live positions — ATR trail, breakeven crossover, T1/T2 targets, sizing mode streaks. Paper and live streak counters are independent.
 
 ---
 
 ## 6. Real-Time Position Monitoring
 
-**What it does:** Monitors live brokerage positions (via SnapTrade) and model portfolio positions (via Alpaca) hourly during market hours and at open/close.
+**What:** Monitors live brokerage positions and paper portfolio positions every hour during market hours — surfacing alerts the moment a position needs attention.
 
-**Monitoring schedule:** Hourly 14:00–21:00 UTC + special runs at 12:00 and 22:00 UTC, Monday–Friday.
+**Why:** A stop loss that nobody checks isn't a stop loss. The system watches every position continuously so you don't have to. Alerts fire the moment a position hits a stop, reaches a target, or shows a gain fading — you get the signal in Slack and decide.
 
-**Per-position output (Slack):**
-- Current price vs. entry price and stop
-- ATR multiple from 50-day MA (current reading)
-- Early warning / sell signal levels (per-ticker calibrated)
-- Target 1 (+20%) / Target 2 (+40%) status
-- Rule violations (gain fading, approaching stop)
-- AI-generated commentary (Claude API) synthesizing technicals + fundamentals
+**How:**
 
-**Alert types:**
-- Stop hit → EXIT alert
-- Early warning / sell signal → scale-out into strength recommendation
-- Gain fading → warning (was +20%, now <+5%)
-- Target 1 / Target 2 hit → take profit recommendation
+Monitoring runs hourly 14:00–21:00 UTC + dedicated open (12:00) and post-close (22:00) UTC runs, Monday–Friday.
+
+Per-position output on every run:
+
+| Output | Detail |
+|--------|--------|
+| Price vs entry / stop | Current reading against all levels |
+| ATR multiple from 50-day MA | Current structural position — how far extended or contracted |
+| Peel warn / signal | Per-ticker calibrated early warning and sell signal levels |
+| T1 / T2 status | Target 1 (+20%) and Target 2 (+40%) — ✅ hit or ⏳ pending |
+| AI commentary | Claude API synthesis of technicals + fundamentals. Non-fatal — fails silently if unavailable. |
+
+Alert types fired to Slack:
+
+| Alert | Trigger |
+|-------|---------|
+| 🚨 STOP HIT | `current_price ≤ stop_price` — position status stays active; human decides |
+| 📉 Gain fading | Peak ≥+20% and price now < `highest_price_seen − 1×ATR`. 5pp dedup. |
+| 🎯 T1 hit | Price reaches +20% — recommendation: sell half |
+| 🎯 T2 hit | Price reaches +40% — recommendation: trail tight |
+| 📊 Peel warn / signal | Per-ticker calibrated early warning or sell signal level reached |
+| 🟡 Shares increased | SnapTrade reports more shares than rules engine — avg-up detected, T1/T2 recalculated |
+| 🟡 Partial sell | SnapTrade reports fewer shares — sync applied, flags preserved |
+
+**Post-close MA trail layer (22:00 UTC only):**
+
+| ATR% Tier | Trail mechanism | Regime sensitivity |
+|-----------|----------------|-------------------|
+| Low (≤5%) | 21 EMA close-below (GREEN/THRUST) · 1 close below 21 EMA (CAUTION) · 8 EMA (COOLING) | Adapts to market state |
+| Mid (5–8%) | 1 close below 8 EMA | — |
+| High (>8%) | Close below 10% trail from `highest_price_seen` | MA can't keep up with volatile names |
+
+Alert-only — human decides. RED/DANGER/BLACKOUT skipped (ATR stops are already tighter).
 
 ---
 
 ## 7. Weekly Deep-Dive Research
 
-**What it does:** Every Sunday, runs a full weekly review with AI-powered catalyst research on every signal that surfaced during the week.
+**What:** Every Sunday, a full weekly review with AI-powered catalyst research on every signal that surfaced during the week — so Monday morning you already know what to watch.
 
-**Process:**
-- Pulls all tickers that appeared in daily screening during the week
-- Computes persistence score (how many days each ticker appeared)
-- Runs Claude AI with web search tool to research earnings catalysts, news, sector context
-- Scores and ranks by Quality Score + persistence
-- Generates HTML report published to GitHub Pages
-- Sends curated top picks to Slack `#weekly-alerts`
+**Why:** Daily screening surfaces the setup. The weekly review adds the fundamental context: why is this stock moving, is there a real catalyst, is the sector rotating in its favour. Without this layer, you're trading price action without understanding what's driving it. That's how you get caught on the wrong side of an earnings miss or a sector reversal.
+
+**How:**
+
+| Step | Detail |
+|------|--------|
+| Signal aggregation | All tickers that appeared in daily screening during the week |
+| Persistence scoring | How many days each ticker appeared — higher persistence = more conviction |
+| AI catalyst research | Claude API with web search: earnings catalysts, news, sector context per ticker |
+| Ranking | Quality Score + persistence combined |
+| Output | HTML report (GitHub Pages) + curated top picks to Slack `#weekly-alerts` |
+
+Additional weekly sections:
+
+| Section | What it contains |
+|---------|----------------|
+| 🔭 Next on the Radar | Predictive emerging candidates: Stage 2 + Q≥70 + fresh catalyst. Excludes current Top 5 and held positions. |
+| 📊 Macro context | Lifted above AI brief — environment first, then setups |
+| 🏆 Top 5 | Highest-conviction names with full metrics and AI commentary |
+| 📋 Full ranked table | All screened names for the week, sortable by score |
 
 ---
 
 ## 8. Pre-Market Intelligence
 
-**What it does:** At 8:00 AM ET (before market open), delivers a pre-market briefing covering gap movers and gap risk on watched positions.
+**What:** At 9:00 AM ET — before market open — delivers a briefing covering the top setup of the day and gap risk on watched positions.
 
-**Coverage:**
-- Overnight gap analysis for all watchlist and held positions
-- Volume and news context via Alpaca data API
-- Formatted Slack message delivered before open
+**Why:** The first 30 minutes of trading are the most volatile and most dangerous. A position that gapped down overnight needs a different plan than one that opened flat. Having this brief before the open means decisions are made on information, not reaction.
+
+**How:**
+
+| Output | Detail |
+|--------|--------|
+| Setup of the Day | Top Quality Score ticker from previous day's screener — Finviz chart attached. Published to X/Twitter via EventBridge + Lambda pipeline. |
+| Watchlist gap scan | Overnight gap analysis for all watchlist and held positions |
+| Volume context | Pre-market volume vs 20-day average from Alpaca data API |
+| Slack delivery | Formatted message to `#daily-alerts` before market open |
 
 ---
 
 ## 9. Market Pulse (Intraday)
 
-**What it does:** 4× daily intraday breadth pulse (10am, 12:10pm, 2:20pm, 4:00pm ET) tracking momentum shifts in real time.
+**What:** 4× daily breadth pulse — 10am, 12:10pm, 2:20pm, 4pm ET — tracking momentum shifts in real time throughout the trading day.
 
-**Output:**
-- Advancing vs. declining breadth
-- Relative volume vs. 20-day average
-- Market state inference (intraday)
-- Watchlist ticker status
+**Why:** The market state computed at close tells you the regime. But intraday, the picture changes. A day that starts CAUTION can turn into a THRUST day by 2pm. The pulse catches that shift and gives you the signal to act — or to hold back — while the session is still live.
+
+**How:**
+
+| Output | Detail |
+|--------|--------|
+| Breadth | Advancing vs declining count, up/down 4%+ stocks vs 20d average |
+| Relative volume | Market-wide RVol — confirms or denies the move |
+| Intraday state inference | Current reading mapped to market state model |
+| Watchlist ticker status | Price vs key levels for all tracked names |
 
 ---
 
 ## 10. Earnings Alert System
 
-**What it does:** Scans for earnings events on held and watched positions and alerts before reports to allow position sizing decisions.
+**What:** Scans for upcoming earnings events on held and watched positions — so you can size down or exit before a binary event, not after.
 
-**Coverage:**
-- Earnings date detection
-- Pre-earnings alert 1–5 days before
-- Post-earnings gap alert (if major move detected)
+**Why:** Earnings are the single biggest source of overnight gap risk. A position that looks perfect on technicals can open down 20% on a miss. The system flags upcoming reports far enough in advance to make a conscious decision — hold through, reduce size, or step aside.
+
+**How:**
+
+| Alert type | Timing |
+|------------|--------|
+| Pre-earnings alert | 1–5 days before the report date |
+| Post-earnings gap alert | Next morning if a major gap move is detected |
+
+Coverage: all held positions (live + paper) and all watchlist tickers.
 
 ---
 
 ## 11. Infrastructure & Reliability
 
-**What it does:** Cloud-native, fully automated infrastructure requiring zero manual intervention. Scales without adding headcount or servers.
+**What:** Cloud-native, fully automated infrastructure. No servers to maintain, no manual runs, no single point of failure. Runs 24/7 on GitHub Actions with S3 cold archival and AWS EventBridge for publishing.
+
+**Why:** Most algorithmic trading systems require dedicated servers, scheduled jobs, and manual intervention when something breaks. This system runs entirely on managed cloud infrastructure — GitHub Actions handles scheduling, S3 handles storage, AWS Lambda handles publishing. If a run fails, a Slack alert fires with a direct link to the failed run log.
+
+**How:**
 
 | Capability | Detail |
 |------------|--------|
-| **Scalability** | Horizontally scalable — adding new accounts, strategies, or clients requires configuration, not re-architecture |
-| **Data storage** | Hot storage for recent data + S3 archival (cold, eu-central-1) for historical data older than 70 days |
-| **Observability** | Real-time alerts for every agent run; failure notifications with direct link to the failed run |
-| **Infrastructure as Code** | AWS infrastructure defined in Python CDK — reproducible, version-controlled, deployable in minutes |
-| **Test coverage** | 227 unit tests, full mock coverage of all agents — changes can be validated without live API access |
-| **Live reports** | Browsable HTML screener output, chart gallery, and weekly review published automatically |
-| **Reliability** | Managed cloud SLA; no self-managed servers to maintain or patch |
+| Scheduling | 10 agents on GitHub Actions cron. Zero self-managed servers. |
+| Data storage | Hot: `data/` directory in the repo. Cold: S3 (`screener-data-repository`, `eu-central-1`). Files older than 70 days archived automatically — upload → verify → delete local. |
+| Publishing | AWS EventBridge + Lambda pipeline. SetupOfDay and PersistencePick tweets with Finviz chart. Non-fatal — a failed publish never blocks the screener. |
+| Infrastructure as Code | AWS infra defined in Python CDK — S3 bucket, IAM user, EventBridge bus, Lambda publisher. Reproducible and version-controlled. |
+| Test coverage | 227+ unit tests. Full mock coverage — no API keys needed to run. Executes on every push to main. |
+| Live reports | Screener HTML, chart gallery, weekly review, performance charts published to GitHub Pages automatically. |
+| Failure alerting | Every agent run reports to Slack. Failures include a direct link to the GH Actions run log. |
+| Scalability | Adding new accounts, strategies, or clients requires configuration — not re-architecture. |
 
 ---
 
 ## 12. Roadmap
 
-| Item | Status |
-|------|--------|
-| Weinstein Stage 2 screening | Live |
-| Multi-screener signal fusion | Live |
-| 7-state market regime model | Live |
-| Dynamic ATR stop engine | Live |
-| Algo model validation layer (Alpaca) | Live |
-| SnapTrade live position monitoring | Live |
-| AI weekly research (Claude + web search) | Live |
-| Per-ticker peel calibration | Live |
-| S3 cold archival | Live |
-| Power-move scan (9M+ vol + 10%+ move, Bonde method) | Live |
-| Sector rotation layer | Live |
+| Feature | Status |
+|---------|--------|
+| Weinstein Stage 2 screening | ✅ Live |
+| Multi-screener signal fusion | ✅ Live |
+| 7-state market regime model | ✅ Live |
+| Confidence layer (post-THRUST floor + F&G extremes) | ✅ Live |
+| Dynamic ATR stop engine (tiered trail + loss-cap floor) | ✅ Live |
+| Per-ticker peel calibration | ✅ Live |
+| Algo model validation layer (Alpaca paper trading) | ✅ Live |
+| SnapTrade live position monitoring | ✅ Live |
+| ATR%-tiered MA trail (post-close, regime-adaptive) | ✅ Live |
+| AI weekly research (Claude + web search) | ✅ Live |
+| Performance charts (FIFO, equity curve, monthly P&L) | ✅ Live |
+| S3 cold archival | ✅ Live |
+| X/Twitter publishing (EventBridge + Lambda) | ✅ Live |
+| Hidden Growth detection (character-change EPS filter) | ✅ Live |
+| Fresh Breakout, Power Play, Base Building callouts | ✅ Live |
+| Position transaction timeline (expandable dashboard) | ✅ Live |
+| TradingView MCP integration (chart pattern recognition) | Planned — Mac Mini |
 | Interactive web dashboard (client self-config) | Planned |
 | Multi-account support (fund-level) | Planned |
 
@@ -248,12 +373,12 @@ Calibration runs automatically: positions after daily screener, watchlist after 
 
 | Model | Description |
 |-------|-------------|
-| **Turnkey system setup** | Deploy a configured instance of this system for a client — personalized risk limits, account size, stop rules, Slack channel. One-time setup + ongoing support ($5K–$25K per client) |
-| **White-label license** | License the screening + risk engine to prop shops, family offices, or RIAs. Client runs it under their brand on their infrastructure |
-| **Managed signal service** | Signal feed licensed to active traders or fund managers. Daily alerts, weekly research, position monitoring ($500–$2,000/mo per seat) |
-| **SaaS signals tier** | Screening signals + alerts delivered via Slack/email for self-directed traders ($99–$299/mo per subscriber) |
-| **Fund vehicle** | Operate as a systematic fund using the signal feed as the core strategy |
+| Turnkey system setup | Deploy a configured instance for a client — personalized risk limits, account size, stop rules, Slack channel. One-time setup + ongoing support ($5K–$25K per client) |
+| White-label license | License the screening + risk engine to prop shops, family offices, or RIAs. Client runs it under their brand on their infrastructure. |
+| Managed signal service | Signal feed licensed to active traders or fund managers. Daily alerts, weekly research, position monitoring ($500–$2,000/mo per seat) |
+| SaaS signals tier | Screening signals + alerts delivered via Slack/email for self-directed traders ($99–$299/mo per subscriber) |
+| Fund vehicle | Operate as a systematic fund using the signal feed as the core strategy |
 
 ---
 
-*System designed and operated by Anantha Srinivasan Manoharan. Performance figures sourced from 2024–2025 Robinhood 1099 tax statements. Past performance is not indicative of future results.*
+*Designed and operated by Anantha Srinivasan Manoharan. Performance figures sourced from 2024–2025 Robinhood 1099 tax statements. Past performance is not indicative of future results.*
