@@ -299,6 +299,14 @@ The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING 
 | CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 6 | ↑ recovering | Half size, build watchlist, get ready |
 | RED | Everything else (SPY below 200d MA or 5d ratio < 1.0) | 7 | ↓ bear | No new trades |
 
+**Confidence Layer (two overlays — May 2026):**
+- **Layer 1 — Post-THRUST floor:** After any THRUST day, minimum state = CAUTION for 3 calendar days. Fixes THRUST→RED-next-day flips. DANGER still bypasses immediately. `post_thrust_floor_active` written to daily record + `trading_state.json`.
+- **Layer 2a — Extreme greed (F&G > 74):** When prev ∈ {GREEN, THRUST} and conditions deteriorate, the 2-day COOLING buffer is skipped → RED fires immediately. Tagged `extreme_greed_caution` in record. Slack: `⚠️ EXTREME GREED`.
+- **Layer 2b — Extreme fear (F&G < 25) + THRUST from RED/DANGER:** Override THRUST → CAUTION with `high_confidence_recovery` tag. Capitulation + breadth explosion = bottom signal. Slack: `⚡ HIGH-CONFIDENCE THRUST`.
+- **2-day COOLING buffer (normal F&G 25–74):** From COOLING, RED-level conditions require 2 consecutive weak days before allowing RED. Recovery to CAUTION always immediate. Tracked via `consecutive_weak_days` in `trading_state.json`.
+- **New `trading_state.json` fields:** `consecutive_weak_days`, `last_extreme_greed_date`, `last_extreme_fear_date`.
+- **New daily record fields:** `fg_regime`, `post_thrust_floor_active`, `confidence_context`.
+
 ## Trading Philosophy — The Rules Behind the Rules
 
 > "Market is the ultimate master. We are not bigger than the market."

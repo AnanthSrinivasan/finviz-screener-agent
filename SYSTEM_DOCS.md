@@ -380,6 +380,20 @@ COOLING and CAUTION are intentionally different states — same breadth readings
 | CAUTION | 5d ratio ≥ 1.5, F&G ≥ 25, SPY above 200d MA | ↑ recovering | Half size, build watchlist |
 | RED | Everything else (SPY below 200d or weak breadth) | ↓ bear | No new trades |
 
+**Confidence Layer (two overlays on top of base classification — May 2026):**
+
+*Layer 1 — Post-THRUST floor:* After any THRUST day, minimum state = CAUTION for 3 calendar days. Prevents THRUST→RED the next day (Apr 30→May 1 regression). DANGER still bypasses the floor immediately. `post_thrust_floor_active: true` written to daily record and `trading_state.json`.
+
+*Layer 2a — Extreme greed (F&G > 74):* When prev_state ∈ {GREEN, THRUST} and conditions deteriorate, the 2-day COOLING buffer (see below) is skipped — downgrade to RED fires immediately. `confidence_context: "extreme_greed_caution"` written to record. Slack appends `⚠️ EXTREME GREED ({fg})` to the state-change alert.
+
+*Layer 2b — Extreme fear (F&G < 25) + THRUST:* When prev_state ∈ {RED, DANGER} and a THRUST day fires during extreme fear, override to CAUTION (not THRUST) with `confidence_context: "high_confidence_recovery"`. Capitulation + breadth explosion = bottom signal. Slack tags `⚡ HIGH-CONFIDENCE THRUST`.
+
+*2-day COOLING buffer (normal F&G 25–74):* When prev_state==COOLING and conditions are RED-level (below CAUTION threshold), state stays COOLING for 1 extra day before allowing RED. Recovery to CAUTION is always immediate. Tracked via `consecutive_weak_days` in `trading_state.json` (reset to 0 on GREEN/THRUST/BLACKOUT).
+
+**New fields in daily record:** `fg_regime` ("extreme_greed" | "extreme_fear" | "normal"), `post_thrust_floor_active` (bool), `confidence_context` (string | null).
+
+**New fields in `trading_state.json`:** `consecutive_weak_days`, `last_extreme_greed_date`, `last_extreme_fear_date`.
+
 **Data storage:**
 - `data/market_monitor_YYYY-MM-DD.json` — daily snapshot
 - `data/market_monitor_history.json` — rolling 30-day history (weekly agent reads this)
