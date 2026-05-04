@@ -480,11 +480,12 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-24",
       "reactivated_date": "2026-04-29",
-      "focus_promoted_date": "2026-04-29"
+      "focus_promoted_date": "2026-04-29",
+      "entry_ready_date": "2026-05-04"
     },
     {
       "ticker": "HBM",
@@ -693,11 +694,13 @@
       "stop": null,
       "thesis": "Technology | Q=82 | ATR 6.8%",
       "added": "2026-04-09",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-24"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-05-04",
+      "focus_promoted_date": "2026-05-04"
     },
     {
       "ticker": "APH",
@@ -1153,8 +1156,8 @@
       "priority": "watching",
       "source": "screener_auto",
       "archive_reason": null,
-      "archived_date": "2026-04-29",
-      "reactivated_date": "2026-05-02"
+      "archived_date": "2026-05-04",
+      "reactivated_date": "2026-05-04"
     },
     {
       "ticker": "JBL",
@@ -1239,11 +1242,11 @@
       "stop": null,
       "thesis": "Communication Services | Q=99 | ATR 6.2%",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
       "source": "screener_auto",
-      "archive_reason": null,
-      "archived_date": "2026-05-02",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-04",
       "reactivated_date": "2026-05-02"
     },
     {
@@ -1505,9 +1508,11 @@
       "stop": null,
       "thesis": "Basic Materials | Q=103 | ATR 9.2%",
       "added": "2026-04-18",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-04"
     },
     {
       "ticker": "AVGO",
@@ -1907,6 +1912,18 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-05-02"
+    },
+    {
+      "ticker": "MIRM",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-04",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-04"
     }
   ],
   "tickers": [
