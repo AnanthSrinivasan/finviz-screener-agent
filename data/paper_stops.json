@@ -1,47 +1,47 @@
 {
   "SNDK": {
-    "stop_price": 1190.64,
+    "stop_price": 1335.73,
     "entry_price": 1069.93,
     "atr_pct": 5.751261446458606,
     "entry_date": "2026-04-27",
-    "highest_price_seen": 1282.94,
-    "peak_gain_pct": 19.91,
-    "breakeven_activated": false,
+    "highest_price_seen": 1397.26,
+    "peak_gain_pct": 30.59,
+    "breakeven_activated": true,
     "target1": 1283.92,
     "target2": 1497.9,
-    "target1_hit": false
+    "target1_hit": true
   },
   "CECO": {
     "entry_price": 73.705631,
-    "highest_price_seen": 78.73,
-    "peak_gain_pct": 6.82,
+    "highest_price_seen": 86.99,
+    "peak_gain_pct": 18.02,
     "breakeven_activated": false,
     "target1": 88.45,
     "target2": 103.19,
     "target1_hit": false,
     "atr_pct": 4.89,
-    "stop_price": 71.9
+    "stop_price": 81.58
   },
   "GEV": {
     "entry_price": 1089.01,
-    "highest_price_seen": 1107.0,
-    "peak_gain_pct": 1.65,
+    "highest_price_seen": 1108.66,
+    "peak_gain_pct": 1.8,
     "breakeven_activated": false,
     "target1": 1306.81,
     "target2": 1524.61,
     "target1_hit": false,
     "atr_pct": 4.51,
-    "stop_price": 1008.77
+    "stop_price": 1010.43
   },
   "MU": {
     "entry_price": 504.188298,
-    "highest_price_seen": 605.41,
-    "peak_gain_pct": 20.08,
+    "highest_price_seen": 651.47,
+    "peak_gain_pct": 29.21,
     "breakeven_activated": true,
     "target1": 605.03,
     "target2": 705.86,
     "target1_hit": true,
     "atr_pct": 5.37,
-    "stop_price": 578.34
+    "stop_price": 624.4
   }
 }

@@ -12,11 +12,10 @@
       "status": "active",
       "highest_price_seen": 191.63,
       "peak_gain_pct": 53.61,
-      "stop_price": 174.15,
+      "stop_price": 174.36,
       "breakeven_activated": true,
-      "current_gain_pct": 38.66,
-      "first_entry_price": 116.0,
-      "last_fade_alert_gain_pct": 39.46
+      "current_gain_pct": 49.69,
+      "first_entry_price": 116.0
     },
     {
       "ticker": "GLW",
@@ -32,7 +31,7 @@
       "peak_gain_pct": 8.42,
       "stop_price": 161.09,
       "breakeven_activated": false,
-      "current_gain_pct": -3.11,
+      "current_gain_pct": 0.28,
       "first_entry_price": 167.52
     },
     {
@@ -49,7 +48,7 @@
       "peak_gain_pct": 6.54,
       "stop_price": 15.53,
       "breakeven_activated": false,
-      "current_gain_pct": -16.1
+      "current_gain_pct": -13.21
     },
     {
       "ticker": "INDV",
@@ -64,16 +63,16 @@
       "highest_price_seen": 39.93,
       "first_entry_price": 34.2,
       "peak_gain_pct": 16.93,
-      "stop_price": 37.44,
+      "stop_price": 37.45,
       "breakeven_activated": false,
-      "current_gain_pct": 14.14
+      "current_gain_pct": 15.99
     },
     {
       "ticker": "CRWV",
       "shares": 100,
       "entry_price": 115.71,
       "entry_date": "2026-04-29",
-      "stop_price": 117.15,
+      "stop_price": 117.5,
       "breakeven_activated": false,
       "target1": 138.85,
       "target1_hit": false,
@@ -83,31 +82,31 @@
       "highest_price_seen": 129.95,
       "first_entry_price": 112.73,
       "peak_gain_pct": 12.31,
-      "current_gain_pct": 8.4
+      "current_gain_pct": 10.26
     },
     {
       "ticker": "TNA",
       "shares": 100,
       "entry_price": 63.04,
       "entry_date": "2026-05-04",
-      "stop_price": 57.52,
+      "stop_price": 58.32,
       "breakeven_activated": false,
       "target1": 75.65,
       "target1_hit": false,
       "target2": 88.26,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 63.06,
-      "current_gain_pct": -3.0,
+      "highest_price_seen": 64.02,
+      "current_gain_pct": 1.13,
       "first_entry_price": 63.04,
-      "peak_gain_pct": 0.03
+      "peak_gain_pct": 1.55
     },
     {
       "ticker": "PL",
       "shares": 200,
       "entry_price": 38.16,
       "entry_date": "2026-05-04",
-      "stop_price": 33.03,
+      "stop_price": 33.09,
       "breakeven_activated": false,
       "target1": 45.79,
       "target1_hit": false,
@@ -115,7 +114,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 39.25,
-      "current_gain_pct": 1.0,
+      "current_gain_pct": -2.31,
       "first_entry_price": 38.16,
       "peak_gain_pct": 2.86
     }
