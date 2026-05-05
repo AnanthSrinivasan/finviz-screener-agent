@@ -16,7 +16,7 @@
     "runs": 8,
     "atr_pct_avg": 8.64,
     "calibrated": true,
-    "updated": "2026-05-04"
+    "updated": "2026-05-05"
   },
   "CRCL": {
     "calibrated": false,
@@ -49,7 +49,7 @@
     "runs": 7,
     "atr_pct_avg": 5.59,
     "calibrated": true,
-    "updated": "2026-05-04"
+    "updated": "2026-05-05"
   },
   "SEDG": {
     "signal": 10.0,
@@ -212,7 +212,7 @@
     "runs": 7,
     "atr_pct_avg": 2.56,
     "calibrated": true,
-    "updated": "2026-05-04"
+    "updated": "2026-05-05"
   },
   "STX": {
     "signal": 10.3,
@@ -302,8 +302,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 2,
-    "atr_pct_avg": 9.25,
-    "updated": "2026-05-04"
+    "atr_pct_avg": 9.24,
+    "updated": "2026-05-05"
   },
   "ALHC": {
     "signal": 10.0,
@@ -1554,7 +1554,7 @@
     "runs": 5,
     "atr_pct_avg": 3.24,
     "calibrated": true,
-    "updated": "2026-05-04"
+    "updated": "2026-05-05"
   },
   "FLG": {
     "signal": 10.0,
@@ -1715,13 +1715,13 @@
   "TNA": {
     "signal": 10.0,
     "warn": 7.5,
-    "p50": 6.3,
-    "p75": 7.6,
-    "p90": 8.3,
+    "p50": 6.0,
+    "p75": 7.4,
+    "p90": 8.1,
     "max_seen": 10.0,
-    "runs": 9,
+    "runs": 10,
     "atr_pct_avg": 5.81,
     "calibrated": true,
-    "updated": "2026-05-04"
+    "updated": "2026-05-05"
   }
 }
