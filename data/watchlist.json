@@ -393,11 +393,13 @@
       "stop": null,
       "thesis": "Technology | Q=94 | VCP | ATR 3.0%",
       "added": "2026-04-08",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-23"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-23",
+      "focus_promoted_date": "2026-05-06",
+      "reactivated_date": "2026-05-06"
     },
     {
       "ticker": "CLS",
@@ -1139,11 +1141,13 @@
       "stop": null,
       "thesis": "Industrials | Q=80 | VCP | ATR 3.2%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "focus_promoted_date": "2026-05-06",
+      "reactivated_date": "2026-05-06"
     },
     {
       "ticker": "CODI",
@@ -1156,8 +1160,8 @@
       "priority": "watching",
       "source": "screener_auto",
       "archive_reason": null,
-      "archived_date": "2026-05-05",
-      "reactivated_date": "2026-05-05"
+      "archived_date": "2026-05-06",
+      "reactivated_date": "2026-05-06"
     },
     {
       "ticker": "JBL",
@@ -1582,9 +1586,11 @@
       "stop": null,
       "thesis": "Industrials | Q=99 | ATR 3.1%",
       "added": "2026-04-21",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "RCUS",
@@ -1593,9 +1599,11 @@
       "stop": null,
       "thesis": "Healthcare | Q=98 | VCP | ATR 5.8%",
       "added": "2026-04-21",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "VICR",
@@ -1604,9 +1612,11 @@
       "stop": null,
       "thesis": "Technology | Q=97 | ATR 6.9%",
       "added": "2026-04-21",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "FIVE",
@@ -1615,9 +1625,11 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=95 | VCP | ATR 4.1%",
       "added": "2026-04-21",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
-      "source": "screener_auto"
+      "source": "screener_auto",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "TXN",
@@ -1980,8 +1992,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-05",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "GNRC",
@@ -1991,8 +2004,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-05",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "ICHR",
@@ -2050,6 +2064,30 @@
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
+    },
+    {
+      "ticker": "SMTC",
+      "entry_note": "RS Leader \u2014 rising MA stack, peel-safe, Stage 2 perfect",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Relative strength leader \u2014 stock-level signal",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-06",
+      "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "JCI",
+      "entry_note": "RS Leader \u2014 rising MA stack, peel-safe, Stage 2 perfect",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Relative strength leader \u2014 stock-level signal",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-06",
+      "source": "rs_leader_auto"
     }
   ],
   "tickers": [
