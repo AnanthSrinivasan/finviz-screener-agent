@@ -1,7 +1,10 @@
 """
-Unit tests for Hidden Growth scoring and Ready-to-Enter Slack block.
+Unit tests for Hidden Growth scoring, Ready-to-Enter Slack block, and RS Leader signal.
 """
 
+import json
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -10,6 +13,9 @@ import pandas as pd
 from agents.screener.finviz_agent import (
     _score_hidden_growth,
     _HIDDEN_GROWTH_EXCLUDED_SECTORS,
+    _is_rs_leader_candidate,
+    _load_rs_leaders_state,
+    _update_rs_leaders_state,
     send_slack_notification,
 )
 
@@ -23,6 +29,24 @@ def _row(**over):
         "Inst Trans": 0.0,
         "Screeners": "",
         "Stage": {"stage": 0, "perfect": False},
+    }
+    base.update(over)
+    return pd.Series(base)
+
+
+def _rs_row(**over):
+    """Build a passing RS Leader row (DOCN Apr 6 values by default)."""
+    base = {
+        "Ticker":         "DOCN",
+        "Quality Score":  84.0,
+        "Stage":          {"stage": 2, "perfect": True},
+        "Dist From High%": -4.9,
+        "SMA20%":         10.4,
+        "SMA50%":         29.0,
+        "SMA200%":        35.0,
+        "ATR%":           7.1,
+        "Rel Volume":     0.78,
+        "Sector":         "Technology",
     }
     base.update(over)
     return pd.Series(base)
@@ -212,6 +236,124 @@ class TestReadyToEnterSlackBlock(unittest.TestCase):
         self.assertIn("Hidden Growth", joined)
         self.assertNotIn("SNDK pattern", joined)
         self.assertIn("distorted", joined)  # SNDK has TTM<-50 and Q/Q>0 → distorted flag
+
+
+# --------------------------------------------------------------------------
+# RS Leader signal — _is_rs_leader_candidate predicate (11 test cases)
+# --------------------------------------------------------------------------
+
+class TestRSLeaderPredicate(unittest.TestCase):
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_docn_apr6_triggers(self):
+        """DOCN Apr 6 reference case must trigger. Q=84, dist -4.9%, ATR 7.1, mult 4.1x."""
+        self.assertTrue(_is_rs_leader_candidate(_rs_row(), set()))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_held_ticker_skipped(self):
+        """Ticker already held as open position must return False."""
+        self.assertFalse(_is_rs_leader_candidate(_rs_row(Ticker="DOCN"), {"DOCN"}))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_peel_extended_skipped(self):
+        """SMA50%/ATR% above peel_warn threshold returns False.
+        ATR=5.0 → mid tier warn=5.0. SMA50%=30 → mult=6.0 > 5.0 → blocked."""
+        self.assertFalse(_is_rs_leader_candidate(
+            _rs_row(**{"SMA50%": 30.0, "ATR%": 5.0}), set()
+        ))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_sector_blacklist_utility(self):
+        self.assertFalse(_is_rs_leader_candidate(_rs_row(Sector="Utilities"), set()))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_sector_blacklist_reit(self):
+        self.assertFalse(_is_rs_leader_candidate(_rs_row(Sector="Real Estate"), set()))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_sector_blacklist_energy(self):
+        self.assertFalse(_is_rs_leader_candidate(_rs_row(Sector="Energy"), set()))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_dist_above_2pct_skipped(self):
+        """dist > +2% is already extended — skip."""
+        self.assertFalse(_is_rs_leader_candidate(
+            _rs_row(**{"Dist From High%": 2.1}), set()
+        ))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_dist_below_neg10_skipped(self):
+        """dist < -10% is in deeper base — not RS Leader territory."""
+        self.assertFalse(_is_rs_leader_candidate(
+            _rs_row(**{"Dist From High%": -10.5}), set()
+        ))
+
+    @patch("agents.screener.finviz_agent._PEEL_CAL_CACHE", {})
+    def test_market_state_not_gated(self):
+        """Trigger fires regardless of market state — market_state is logged only."""
+        # We test that the predicate itself has no market state dependency by
+        # confirming DOCN triggers with no market state argument at all.
+        self.assertTrue(_is_rs_leader_candidate(_rs_row(), set()))
+
+
+class TestRSLeaderStateLifecycle(unittest.TestCase):
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self._data_dir = os.path.join(self._tmp.name, "data")
+        os.makedirs(self._data_dir)
+        self._orig_cwd = os.getcwd()
+        os.chdir(self._tmp.name)
+
+    def tearDown(self):
+        os.chdir(self._orig_cwd)
+        self._tmp.cleanup()
+
+    def _triggered(self, ticker="DOCN", q=84.0, dist=-4.9):
+        return [{"ticker": ticker, "q": q, "dist": dist, "atr_mult": 4.1, "rvol": 0.78}]
+
+    def test_state_new_to_active(self):
+        """First-day trigger creates an 'active' entry; action='new'."""
+        actions = _update_rs_leaders_state(self._triggered(), "2026-04-06")
+        self.assertEqual(actions.get("DOCN"), "new")
+        state = _load_rs_leaders_state()
+        self.assertEqual(state["DOCN"]["current_status"], "active")
+        self.assertEqual(state["DOCN"]["first_triggered"], "2026-04-06")
+
+    def test_state_active_to_pulling_back(self):
+        """Ticker active yesterday, not in screener today → pulling_back."""
+        _update_rs_leaders_state(self._triggered(), "2026-04-06")
+        actions = _update_rs_leaders_state([], "2026-04-07")
+        self.assertEqual(actions.get("DOCN"), "pulling_back")
+        state = _load_rs_leaders_state()
+        self.assertEqual(state["DOCN"]["current_status"], "pulling_back")
+
+    def test_state_reacquired(self):
+        """pulling_back → re-trigger → reacquired."""
+        _update_rs_leaders_state(self._triggered(), "2026-04-06")
+        _update_rs_leaders_state([], "2026-04-09")
+        actions = _update_rs_leaders_state(self._triggered(), "2026-04-21")
+        self.assertEqual(actions.get("DOCN"), "reacquired")
+        state = _load_rs_leaders_state()
+        self.assertEqual(state["DOCN"]["current_status"], "reacquired")
+        self.assertIn("2026-04-21", state["DOCN"]["reacquired_dates"])
+
+    def test_aged_out_after_14_days(self):
+        """Pullback > 14 days → entry dropped from state."""
+        _update_rs_leaders_state(self._triggered(), "2026-04-06")
+        _update_rs_leaders_state([], "2026-04-07")  # → pulling_back
+        # Simulate day 15 of pullback — beyond 14-day grace
+        actions = _update_rs_leaders_state([], "2026-04-22")
+        self.assertEqual(actions.get("DOCN"), "aged_out")
+        state = _load_rs_leaders_state()
+        self.assertNotIn("DOCN", state)
+
+    def test_market_state_logged_not_gated(self):
+        """trigger_state is recorded for analytics; signal fires in RED."""
+        actions = _update_rs_leaders_state(self._triggered(), "2026-04-06", market_state="RED")
+        self.assertEqual(actions.get("DOCN"), "new")
+        state = _load_rs_leaders_state()
+        self.assertEqual(state["DOCN"]["trigger_state"], "RED")
 
 
 if __name__ == "__main__":

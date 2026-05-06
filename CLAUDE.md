@@ -196,6 +196,7 @@ data/
   paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit, pending_close}}
   paper_trading_state.json                # Paper streaks/sizing — independent from live trading_state.json. Same schema (consecutive_wins/losses, current_sizing_mode, recent_trades). Drives executor's size_mul + suspended block.
   hidden_growth.json                      # Today's Hidden Growth candidates (overwritten daily) — {date, candidates: [{ticker, signal_score, criteria, eps_yy_ttm, eps_qq, inst_trans, appearances}]}
+  rs_leaders.json                         # RS Leader persistent tracker — {ticker: {first_triggered, trigger_state, trigger_q, trigger_dist, trigger_atr_mult, current_status, last_active_date, pullback_started, reacquired_dates, days_tracked}}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)
   market_monitor_history.json             # Rolling 30-day breadth history
   market_monitor_YYYY-MM-DD.json          # Daily market breadth snapshot
@@ -274,6 +275,8 @@ Stage 2 perfect, 1 appearance) is the reference case.
 **🏗 Base Building** — watch-only research tag (no watchlist auto-add). Criteria: Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth. Top 5 by Q, top 3 in Slack block "🏗 Base Building". HTML gallery: collapsed `<details>` section with chart cards. Catches names in wider bases that the -10% Ready-to-Enter dist gate excludes.
 
 **⚠ High-vol card annotation** — when ATR%>7 AND Q≥80, `_build_card` adds a `badge-warn` "⚠ High-vol — size 50%" tag to the chart card. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) already hard-block these; the badge is the only signal for human to right-size on Top Picks cards.
+
+**🛡️ RS Leader (Phase 1 — stock-level relative strength tracker, May 2026)** — catches DOCN-class setups (single-screener, never hits persistence gate, VCP low) by detecting stock-level relative strength independent of market_state. Predicate (`_is_rs_leader_candidate`): Stage 2 perfect · Q ≥ 75 · dist [-10%, +2%] from 52w high · rising MA stack (SMA20/50/200 all > 0) · ATR% ≤ 8 · peel-safe (SMA50%/ATR% ≤ peel_warn) · RVol ≤ 1.5 · not in {Utilities, Energy, Real Estate, Basic Materials, Consumer Defensive} · not held. **No market_state gate** — trigger_state is logged for analytics only. Scans `summary_df` (pre-10%-gate) like Hidden Growth. Persistent tracker in `data/rs_leaders.json` with 14-day pullback grace. Lifecycle: active → pulling_back → reacquired (or aged_out). Slack: 🛡️ NEW / REACQUIRED / 📉 pulling back. Watchlist: first-trigger `new` and `reacquired` auto-enter at `priority=focus` (`source=rs_leader_auto`). Gallery: `🛡️ Relative Strength Leaders` collapsible section with NEW/REACQUIRED badges. DOCN Apr 6 2026 is the reference case (Q=84, dist -4.9%, mult 4.1x, RVol 0.78).
 
 **Hidden Growth vs watchlist tiers — two independent axes.** Hidden Growth is a
 fundamental/accumulation flag (EPS + institutional + IPO lifecycle); tiers

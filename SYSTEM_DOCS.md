@@ -616,6 +616,7 @@ Each sector card is click-filterable: clicking hides all chart cards from other 
 
 **Additional collapsed sections in chart gallery (May 2026):**
 
+- **🛡️ Relative Strength Leaders** — `<details open>` expanded by default. Chart cards for RS Leader tickers with `action ∈ {new, reacquired, noop}` (pulling-back names omitted). Each card gets a color-coded NEW (green) / REACQUIRED (blue) / ACTIVE (gray) badge injected into the header. Passed as `rs_leader_tickers` + `rs_leaders_actions` to `generate_finviz_gallery`. Tickers not in today's screener get a minimal stub card. Appears above Base Building.
 - **🏗 Base Building** — `<details>` collapsed by default. Chart cards for tickers matching `_is_base_building` (Stage 2 · Q≥75 · dist -12% to -25% · ATR%≤7 · not in other callout lists). Passed as `base_building_tickers` to `generate_finviz_gallery`. Watch-only, no watchlist auto-add.
 - **📋 Watchlist** — `<details>` collapsed by default. Three sub-sections: 🎯 Entry-Ready · 🔭 Focus · 👀 Watch, each rendered as chart cards. Reads `data/watchlist.json` at gallery-generation time. Tickers found in `filter_df` or `all_df` (summary_df) get full chart cards; absent tickers get a minimal stub card with Finviz chart. Lets the human see "which of my watchlist names showed up in today's screener" without leaving the gallery page.
 
@@ -721,7 +722,9 @@ Not needed yet. Revisit if automated execution is added.
 
 *Breakout path* (`source=breakout_auto`): any Fresh Breakout hit from today (see signal section below) not already on the list enters at `priority=watching` with entry note `"Fresh Breakout — breakout from base, watch follow-through"`. Closes the ANET-Apr8 gap where the pullback-based path misses breakout-from-base setups.
 
-**`_update_watchlist` return value:** returns a dict with keys `added`, `hg_added`, `br_added`, `reactivated`, `promoted_to_focus`, `promoted_to_entry_ready` (changed from 2-tuple in May 2026).
+*RS Leader path* (`source=rs_leader_auto`): new (`action=new`) or reacquired (`action=reacquired`) RS Leader hits enter at `priority=focus` with entry note `"RS Leader — rising MA stack, peel-safe, Stage 2 perfect"`. Starts one tier above other auto-adds because the stock has already proved institutional intent via sustained relative strength.
+
+**`_update_watchlist` return value:** returns a dict with keys `added`, `hg_added`, `br_added`, `rsl_added`, `reactivated`, `promoted_to_focus`, `promoted_to_entry_ready` (changed from 2-tuple in May 2026).
 
 **New snapshot signals surfaced alongside Ready-to-Enter** (all use Finviz snapshot only, no Alpaca):
 
@@ -730,6 +733,7 @@ Not needed yet. Revisit if automated execution is added.
 - **💎 Power Play / High Tight Flag** (`_is_power_play`): Perf Month≥50% OR Perf Quarter≥100% · ATR%≤5 (tight flag) · RVol<1.0 (dry) · Stage 2 · peel-warn safe. Requires new Finviz columns `Perf Month` + `Perf Quarter` — `get_snapshot_metrics` extended from 12-tuple to 14-tuple.
 - **🏗 Base Building** (`_is_base_building`): Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7.0 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth lists. Top 5 by Q (top 3 shown in Slack). **Watch-only — does NOT auto-add to watchlist.** Slack block: "🏗 Base Building (Stage 2 quality — wider base, watch only)". HTML gallery: collapsed `<details>` section with chart cards. Catches FSLY-class names forming a wider base that the -10% dist gate excludes from Ready-to-Enter.
 - **⚠ High-vol annotation** (`badge-warn` CSS): when ATR%>7 AND Q≥80, a "⚠ High-vol — size 50%" badge is added to the chart card stage-row. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) gates already exclude these, so the badge surfaces only on Top Picks cards.
+- **🛡️ RS Leader** (`_is_rs_leader_candidate`, Phase 1, May 2026): stock-level relative strength signal — catches DOCN Apr 6 class (Q=84, single-screener, never hit persistence gate). Scans `summary_df` pre-10%-gate. Criteria: Stage 2 perfect · Q≥75 · dist [-10%, +2%] · SMA20/50/200 all > 0 · ATR%≤8 · peel-safe · RVol≤1.5 · not in excluded sectors · not held. **No market_state gate** — `trigger_state` logged to `data/rs_leaders.json` for analytics only. Persistent tracker: active → pulling_back (≤14d grace) → reacquired | aged_out. Slack: 🛡️ NEW / REACQUIRED (top 5 by Q) / 📉 pulling back (all). Gallery: `🛡️ Relative Strength Leaders` collapsible section with NEW/REACQUIRED/ACTIVE badges. Watchlist: `new` and `reacquired` actions auto-add at `priority=focus` (`source=rs_leader_auto`).
 
 **Add-or-reactivate pass** (Stage 2 + Q≥60, top 5 by Q):
 - Brand-new ticker → add as `status=watching`, `priority=watching`, `source=screener_auto`

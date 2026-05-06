@@ -796,7 +796,9 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
 def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             excluded_df: pd.DataFrame | None = None,
                             base_building_tickers: list | None = None,
-                            all_df: pd.DataFrame | None = None) -> str:
+                            all_df: pd.DataFrame | None = None,
+                            rs_leader_tickers: list | None = None,
+                            rs_leaders_actions: dict | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -867,6 +869,56 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
 </details>"""
 
     total = sum(len(s['cards']) for s in sections.values())
+
+    # RS Leaders — collapsible section (active + reacquired tickers; pulling-back omitted).
+    rs_leaders_html = ""
+    if rs_leader_tickers:
+        _rs_actions = rs_leaders_actions or {}
+        _row_lookup_all: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_all:
+                    _row_lookup_all[_t] = _r
+        rsl_cards = []
+        for rt in rs_leader_tickers:
+            action = _rs_actions.get(rt, "active")
+            badge_label = "NEW" if action == "new" else ("REACQUIRED" if action == "reacquired" else "ACTIVE")
+            badge_color = "#16a34a" if action == "new" else ("#2563eb" if action == "reacquired" else "#6b7280")
+            if rt in _row_lookup_all:
+                _rc = _build_card(rt, _row_lookup_all[rt], FINVIZ_BASE, top_sectors)
+                # Inject RS Leader status badge into card header
+                _rc = _rc.replace(
+                    f'class="ticker-link">{rt}</a>',
+                    f'class="ticker-link">{rt}</a>'
+                    f'<span style="font-size:9px;background:{badge_color};color:#fff;'
+                    f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
+                    f'{badge_label}</span>',
+                )
+            else:
+                chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={rt}&ty=c&ta=1&p=d&s=m"
+                finviz_url = f"{FINVIZ_BASE}/quote.ashx?t={rt}"
+                _rc = (
+                    f'<div class="chart-item" style="border-color:{badge_color}">'
+                    f'<div class="chart-header">'
+                    f'<div><a href="{finviz_url}" target="_blank" class="ticker-link">{rt}</a>'
+                    f'<span style="font-size:9px;background:{badge_color};color:#fff;'
+                    f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">{badge_label}</span>'
+                    f'</div></div>'
+                    f'<a href="{finviz_url}" target="_blank">'
+                    f'<img src="{chart_url}" alt="{rt}" loading="lazy" class="chart-img"></a>'
+                    f'</div>'
+                )
+            rsl_cards.append(_rc)
+        if rsl_cards:
+            rs_leaders_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    🛡️ Relative Strength Leaders <span class="section-count">{len(rsl_cards)}</span>
+    <span class="section-sub-inline">Stage 2 perfect · rising MA stack · peel-safe — stock-level RS signal</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(rsl_cards)}</div>
+</details>"""
 
     # Watchlist section — Entry-Ready / Focus / Watch as chart cards (read from watchlist.json)
     watchlist_html = ""
@@ -1106,6 +1158,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
 {sector_rotation_html}
 {sections_html}
+{rs_leaders_html}
 {base_building_html}
 {watchlist_html}
 <script>
@@ -1237,7 +1290,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              ready_to_enter: list | None = None,
                              fresh_breakouts: list | None = None,
                              power_plays: list | None = None,
-                             base_building: list | None = None):
+                             base_building: list | None = None,
+                             rs_leaders_actions: dict | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1437,6 +1491,73 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             }
         })
 
+    # RS Leader signal — three sub-blocks: NEW / REACQUIRED / pulling back.
+    # rs_leaders_actions: {ticker: action, ...} where action in
+    # {'new', 'reacquired', 'pulling_back', 'noop', 'aged_out'}
+    # rs_leaders_meta: {ticker: {q, dist, atr_mult, rvol}, ...} passed via summary_df lookup
+    if rs_leaders_actions:
+        new_leaders     = [t for t, a in rs_leaders_actions.items() if a == "new"]
+        reacquired      = [t for t, a in rs_leaders_actions.items() if a == "reacquired"]
+        pulling_back    = [t for t, a in rs_leaders_actions.items() if a == "pulling_back"]
+
+        # Build metadata lookup from summary_df for metric display
+        _rs_meta: dict = {}
+        if not summary_df.empty:
+            for _, _row in summary_df.iterrows():
+                t = _row.get("Ticker", "")
+                if t and (t in new_leaders or t in reacquired):
+                    atr_v = float(_row.get("ATR%") or 0) or 0
+                    sma50_v = float(_row.get("SMA50%") or 0) or 0
+                    atr_mult = round(sma50_v / atr_v, 1) if atr_v > 0 else 0.0
+                    _rs_meta[t] = {
+                        "q":        float(_row.get("Quality Score") or 0),
+                        "dist":     float(_row.get("Dist From High%") or 0),
+                        "atr_mult": atr_mult,
+                        "rvol":     float(_row.get("Rel Volume") or 0),
+                    }
+
+        if new_leaders:
+            lines = []
+            for t in new_leaders[:5]:
+                m = _rs_meta.get(t, {})
+                lines.append(
+                    f"`{t}` Q{m.get('q', 0):.0f} · dist {m.get('dist', 0):+.1f}%"
+                    f" · mult {m.get('atr_mult', 0):.1f}x · RVol {m.get('rvol', 0):.2f}x"
+                    f" · `/stock-research {t}`"
+                )
+            blocks.append({
+                "type": "section",
+                "text": {"type": "mrkdwn",
+                         "text": ":shield: *NEW RS Leader* (Stage 2 perfect · rising MA stack · peel-safe):\n"
+                                 + "\n".join(lines)}
+            })
+            blocks.append({"type": "divider"})
+
+        if reacquired:
+            lines = []
+            for t in reacquired:
+                m = _rs_meta.get(t, {})
+                lines.append(
+                    f"`{t}` Q{m.get('q', 0):.0f} · dist {m.get('dist', 0):+.1f}%"
+                    f" · `/stock-research {t}`"
+                )
+            blocks.append({
+                "type": "section",
+                "text": {"type": "mrkdwn",
+                         "text": ":shield: *RS Leader REACQUIRED* — clean re-entry after pullback:\n"
+                                 + "\n".join(lines)}
+            })
+            blocks.append({"type": "divider"})
+
+        if pulling_back:
+            pb_str = "  ·  ".join(f"`{t}`" for t in pulling_back)
+            blocks.append({
+                "type": "section",
+                "text": {"type": "mrkdwn",
+                         "text": f":chart_with_downwards_trend: *RS Leader pulling back:* {pb_str}"
+                                 " (14-day grace — will reacquire or drop)"}
+            })
+
     blocks.append({"type": "divider"})
 
     try:
@@ -1454,6 +1575,10 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
 # ── Hidden Growth detection (pure scoring, unit-tested) ───────────────────────
 
 _HIDDEN_GROWTH_EXCLUDED_SECTORS = {
+    'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
+}
+
+_RS_LEADER_EXCLUDED_SECTORS = {
     'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
 }
 _HIDDEN_GROWTH_EXCLUDED_INDUSTRIES = {
@@ -1792,20 +1917,182 @@ def _is_textbook_vcp(row) -> bool:
     return True
 
 
+# ── RS Leader signal (Phase 1 — stock-level relative strength tracker) ────────
+
+def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
+    """
+    Pure predicate for RS Leader detection. Stock-level only — no market state
+    gate. Catches DOCN Apr 6 class (Q=84, dist -4.9%, peel-safe, rising MA stack).
+
+    All must hold: Stage 2 perfect · Q ≥ 75 · dist [-10%, +2%] · rising MA stack
+    (SMA20/50/200 all > 0) · ATR% ≤ 8 · peel-safe · RVol ≤ 1.5 · not in excluded
+    sectors · not held (real or paper).
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers:
+        return False
+
+    sector = row.get("Sector") or ""
+    if sector in _RS_LEADER_EXCLUDED_SECTORS:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    if stage_d.get("stage") != 2 or not stage_d.get("perfect", False):
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 75:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist > 2.0 or dist < -10.0:
+        return False
+
+    sma20 = row.get("SMA20%")
+    if sma20 is None or pd.isna(sma20) or float(sma20) <= 0:
+        return False
+
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50) or float(sma50) <= 0:
+        return False
+    sma50 = float(sma50)
+
+    sma200 = row.get("SMA200%")
+    if sma200 is None or pd.isna(sma200) or float(sma200) <= 0:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 8.0:
+        return False
+    atr = float(atr)
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) > 1.5:
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
+def _load_rs_leaders_state() -> dict:
+    """Load data/rs_leaders.json. Returns empty dict on missing file."""
+    import json
+    path = os.path.join("data", "rs_leaders.json")
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _update_rs_leaders_state(
+    triggered_today: list[dict],
+    today: str,
+    market_state: str = "UNKNOWN",
+) -> dict[str, str]:
+    """
+    Apply RS Leader lifecycle transitions. Reads + writes data/rs_leaders.json.
+
+    triggered_today: list of dicts with keys: ticker, q, dist, atr_mult, rvol.
+
+    Returns per-ticker action map: ticker → 'new' | 'reacquired' | 'pulling_back' |
+    'aged_out' | 'noop'.
+    """
+    import json
+    from datetime import date, timedelta
+
+    state = _load_rs_leaders_state()
+    triggered_set = {d["ticker"] for d in triggered_today}
+    triggered_meta = {d["ticker"]: d for d in triggered_today}
+
+    actions: dict[str, str] = {}
+
+    # Process newly triggered tickers
+    for d in triggered_today:
+        t = d["ticker"]
+        if t not in state:
+            state[t] = {
+                "first_triggered":  today,
+                "trigger_state":    market_state,
+                "trigger_q":        d["q"],
+                "trigger_dist":     d["dist"],
+                "trigger_atr_mult": d["atr_mult"],
+                "current_status":   "active",
+                "last_active_date": today,
+                "pullback_started": None,
+                "reacquired_dates": [],
+                "days_tracked":     1,
+            }
+            actions[t] = "new"
+        else:
+            entry = state[t]
+            status = entry.get("current_status", "active")
+            if status == "active":
+                entry["last_active_date"] = today
+                entry["days_tracked"] = entry.get("days_tracked", 0) + 1
+                actions[t] = "noop"
+            elif status == "pulling_back":
+                entry["current_status"] = "reacquired"
+                entry["last_active_date"] = today
+                entry["pullback_started"] = None
+                entry.setdefault("reacquired_dates", []).append(today)
+                entry["days_tracked"] = entry.get("days_tracked", 0) + 1
+                actions[t] = "reacquired"
+
+    # Process tickers in state that did NOT trigger today
+    for t, entry in list(state.items()):
+        if t in triggered_set:
+            continue
+        status = entry.get("current_status", "active")
+        if status == "active":
+            entry["current_status"] = "pulling_back"
+            entry["pullback_started"] = today
+            actions[t] = "pulling_back"
+        elif status == "pulling_back":
+            pb_start = entry.get("pullback_started") or today
+            days_out = (date.fromisoformat(today) - date.fromisoformat(pb_start)).days
+            if days_out > 14:
+                del state[t]
+                actions[t] = "aged_out"
+        elif status == "reacquired":
+            # After 1+ day in reacquired, promote back to active (silent)
+            entry["current_status"] = "active"
+            entry["last_active_date"] = today
+            entry["days_tracked"] = entry.get("days_tracked", 0) + 1
+
+    path = os.path.join("data", "rs_leaders.json")
+    import json
+    with open(path, "w") as f:
+        json.dump(state, f, indent=2)
+
+    return actions
+
+
 def _update_watchlist(
     filter_df: pd.DataFrame,
     today: str,
     hidden_growth_tickers: list | None = None,
     breakout_tickers: list | None = None,
+    rs_leader_tickers: list | None = None,
 ):
     """
-    Maintain data/watchlist.json. Three entry paths (parallel, one row per ticker):
+    Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
       1. Technical pullback — Stage 2 + Q≥60 tickers (source=screener_auto)
       2. Fundamental — Hidden Growth 4+/6 hits (source=hidden_growth_auto)
       3. Breakout — Fresh Breakout hits (source=breakout_auto)
-    All land at priority=watching. Then age-out stale watching entries,
-    reactivate previously-aged-out tickers that re-qualify, promote
-    watching→focus (top 5 by Q) and focus→entry-ready (Ready-to-Enter criteria).
+      4. RS Leader — first-trigger NEW entries at focus tier (source=rs_leader_auto)
+    All paths land at priority=watching except RS Leader which starts at focus.
+    Then age-out stale watching entries, reactivate previously-aged-out tickers
+    that re-qualify, promote watching→focus (top 5 by Q) and focus→entry-ready
+    (Ready-to-Enter criteria).
 
     Invariant: one row per ticker. No duplicates created by this function.
 
@@ -1985,6 +2272,40 @@ def _update_watchlist(
         br_added.append(br_ticker)
         log.info("Watchlist: added %s via Fresh Breakout (source=breakout_auto)", br_ticker)
 
+    # ── RS Leader entry path: new first-trigger RS Leaders enter at priority=focus. ──
+    # Reacquired RS Leaders re-promote to focus if previously aged out. Does not
+    # demote focus→watching for tickers already at a higher priority.
+    rsl_added: list[str] = []
+    for rsl_ticker in (rs_leader_tickers or []):
+        if rsl_ticker in by_ticker:
+            existing_entry = by_ticker[rsl_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "focus"
+                existing_entry["focus_promoted_date"] = today
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(rsl_ticker)
+                log.info("Watchlist: reactivated %s via RS Leader REACQUIRED at focus tier", rsl_ticker)
+            continue
+        rsl_entry = {
+            "ticker":               rsl_ticker,
+            "entry_note":           "RS Leader — rising MA stack, peel-safe, Stage 2 perfect",
+            "entry_price":          None,
+            "stop":                 None,
+            "thesis":               "Relative strength leader — stock-level signal",
+            "added":                today,
+            "status":               "watching",
+            "priority":             "focus",
+            "focus_promoted_date":  today,
+            "source":               "rs_leader_auto",
+        }
+        existing.append(rsl_entry)
+        by_ticker[rsl_ticker] = rsl_entry
+        rsl_added.append(rsl_ticker)
+        log.info("Watchlist: added %s via RS Leader at focus tier (source=rs_leader_auto)", rsl_ticker)
+
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
     promote_candidates = []
@@ -2037,17 +2358,18 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
-        "added":                  added,
-        "hg_added":               hg_added,
-        "br_added":               br_added,
-        "reactivated":            reactivated,
-        "promoted_to_focus":      promoted_to_focus,
+        "added":                   added,
+        "hg_added":                hg_added,
+        "br_added":                br_added,
+        "rsl_added":               rsl_added,
+        "reactivated":             reactivated,
+        "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
     }
 
@@ -2316,11 +2638,57 @@ if __name__ == "__main__":
     if base_building:
         log.info("Base Building: %s", [r["ticker"] for r in base_building])
 
-    # Step 6: Gallery (generated after signal lists so base_building tickers can be included)
+    # RS Leader detection — scans summary_df (pre-10%-gate) like Hidden Growth,
+    # so single-screener stocks like DOCN (52w High only) are not excluded.
+    # Market state is logged for analytics only; does NOT gate the signal.
+    rs_leaders_triggered: list[dict] = []
+    rs_leaders_actions: dict[str, str] = {}
+    try:
+        _ts_state: dict = {}
+        if os.path.exists("data/trading_state.json"):
+            import json as _json_ts
+            with open("data/trading_state.json") as _f:
+                _ts_state = _json_ts.load(_f)
+        _trigger_market_state = _ts_state.get("market_state", "UNKNOWN")
+
+        for _, row in summary_df.iterrows():
+            if _is_rs_leader_candidate(row, open_positions_tickers):
+                atr_v = float(row.get("ATR%") or 0) or 0
+                sma50_v = float(row.get("SMA50%") or 0) or 0
+                atr_mult = round(sma50_v / atr_v, 1) if atr_v > 0 else 0.0
+                rs_leaders_triggered.append({
+                    "ticker":   row["Ticker"],
+                    "q":        float(row.get("Quality Score") or 0),
+                    "dist":     float(row.get("Dist From High%") or 0),
+                    "atr_mult": atr_mult,
+                    "rvol":     float(row.get("Rel Volume") or 0),
+                })
+        # Sort by Q descending
+        rs_leaders_triggered.sort(key=lambda d: d["q"], reverse=True)
+        if rs_leaders_triggered:
+            log.info("RS Leaders triggered today: %s", [d["ticker"] for d in rs_leaders_triggered])
+        else:
+            log.info("No RS Leader candidates today.")
+
+        rs_leaders_actions = _update_rs_leaders_state(
+            rs_leaders_triggered, today, market_state=_trigger_market_state
+        )
+        if rs_leaders_actions:
+            log.info("RS Leader state actions: %s", rs_leaders_actions)
+    except Exception as _e:
+        log.error("RS Leader detection failed (non-fatal): %s", _e)
+
+    # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
+    _rsl_gallery_tickers = [
+        d["ticker"] for d in rs_leaders_triggered
+        if rs_leaders_actions.get(d["ticker"]) in {"new", "reacquired", "noop"}
+    ]
     gallery_path = generate_finviz_gallery(
         filter_df['Ticker'].tolist(), filter_df, excluded_df,
         base_building_tickers=[r["ticker"] for r in base_building],
         all_df=summary_df,
+        rs_leader_tickers=_rsl_gallery_tickers,
+        rs_leaders_actions=rs_leaders_actions,
     )
     log.info(f"Chart gallery: {gallery_path}")
 
@@ -2332,15 +2700,18 @@ if __name__ == "__main__":
         fresh_breakouts=fresh_breakouts,
         power_plays=power_plays,
         base_building=base_building,
+        rs_leaders_actions=rs_leaders_actions if rs_leaders_actions else None,
     )
 
     # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
     hg_tickers_today = [t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() else [])]
     br_tickers_today = [r["ticker"] for r in fresh_breakouts]
+    rsl_new_tickers  = [t for t, a in rs_leaders_actions.items() if a in {"new", "reacquired"}]
     wl_changes = _update_watchlist(
         filter_df, today,
         hidden_growth_tickers=hg_tickers_today,
         breakout_tickers=br_tickers_today,
+        rs_leader_tickers=rsl_new_tickers,
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])
