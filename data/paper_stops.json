@@ -13,25 +13,25 @@
   },
   "CECO": {
     "entry_price": 73.705631,
-    "highest_price_seen": 88.19,
-    "peak_gain_pct": 19.65,
-    "breakeven_activated": false,
+    "highest_price_seen": 90.28,
+    "peak_gain_pct": 22.49,
+    "breakeven_activated": true,
     "target1": 88.45,
     "target2": 103.19,
-    "target1_hit": false,
+    "target1_hit": true,
     "atr_pct": 4.89,
-    "stop_price": 82.78
+    "stop_price": 86.68
   },
   "GEV": {
     "entry_price": 1089.01,
-    "highest_price_seen": 1108.66,
-    "peak_gain_pct": 1.8,
+    "highest_price_seen": 1116.82,
+    "peak_gain_pct": 2.55,
     "breakeven_activated": false,
     "target1": 1306.81,
     "target2": 1524.61,
     "target1_hit": false,
     "atr_pct": 4.51,
-    "stop_price": 1010.43
+    "stop_price": 1018.59
   },
   "MU": {
     "entry_price": 504.188298,
@@ -43,23 +43,5 @@
     "target1_hit": true,
     "atr_pct": 5.37,
     "stop_price": 645.05
-  },
-  "AVGO": {
-    "stop_price": 408.5,
-    "entry_price": 435.35,
-    "atr_pct": 3.0840509172594532,
-    "entry_date": "2026-05-06"
-  },
-  "LSCC": {
-    "stop_price": 109.91,
-    "entry_price": 122.23,
-    "atr_pct": 5.038030588042856,
-    "entry_date": "2026-05-06"
-  },
-  "VIK": {
-    "stop_price": 74.99,
-    "entry_price": 81.67,
-    "atr_pct": 4.087626973442663,
-    "entry_date": "2026-05-06"
   }
 }
