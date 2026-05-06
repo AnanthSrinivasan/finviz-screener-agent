@@ -9,7 +9,9 @@
     "breakeven_activated": true,
     "target1": 1283.92,
     "target2": 1497.9,
-    "target1_hit": true
+    "target1_hit": true,
+    "last_fade_alert_gain_pct": 30.91,
+    "pending_close": true
   },
   "CECO": {
     "entry_price": 73.705631,
@@ -20,7 +22,9 @@
     "target2": 103.19,
     "target1_hit": true,
     "atr_pct": 4.89,
-    "stop_price": 86.68
+    "stop_price": 86.68,
+    "last_fade_alert_gain_pct": 17.25,
+    "pending_close": true
   },
   "GEV": {
     "entry_price": 1089.01,
@@ -43,5 +47,27 @@
     "target1_hit": true,
     "atr_pct": 5.37,
     "stop_price": 645.05
+  },
+  "AVGO": {
+    "entry_price": 435.049412,
+    "highest_price_seen": 437.51,
+    "peak_gain_pct": 0.57,
+    "breakeven_activated": false,
+    "target1": 522.06,
+    "target2": 609.07,
+    "target1_hit": false,
+    "atr_pct": 3.23,
+    "stop_price": 409.41
+  },
+  "LSCC": {
+    "entry_price": 122.145447,
+    "highest_price_seen": 127.32,
+    "peak_gain_pct": 4.24,
+    "breakeven_activated": false,
+    "target1": 146.57,
+    "target2": 171.0,
+    "target1_hit": false,
+    "atr_pct": 4.96,
+    "stop_price": 115.2
   }
 }
