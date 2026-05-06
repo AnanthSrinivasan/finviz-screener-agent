@@ -1,41 +1,14 @@
 {
-  "SNDK": {
-    "stop_price": 1413.82,
-    "entry_price": 1069.93,
-    "atr_pct": 5.751261446458606,
-    "entry_date": "2026-04-27",
-    "highest_price_seen": 1475.35,
-    "peak_gain_pct": 37.89,
-    "breakeven_activated": true,
-    "target1": 1283.92,
-    "target2": 1497.9,
-    "target1_hit": true,
-    "last_fade_alert_gain_pct": 30.91,
-    "pending_close": true
-  },
-  "CECO": {
-    "entry_price": 73.705631,
-    "highest_price_seen": 90.28,
-    "peak_gain_pct": 22.49,
-    "breakeven_activated": true,
-    "target1": 88.45,
-    "target2": 103.19,
-    "target1_hit": true,
-    "atr_pct": 4.89,
-    "stop_price": 86.68,
-    "last_fade_alert_gain_pct": 17.25,
-    "pending_close": true
-  },
   "GEV": {
     "entry_price": 1089.01,
-    "highest_price_seen": 1116.82,
-    "peak_gain_pct": 2.55,
+    "highest_price_seen": 1121.73,
+    "peak_gain_pct": 3.0,
     "breakeven_activated": false,
     "target1": 1306.81,
     "target2": 1524.61,
     "target1_hit": false,
     "atr_pct": 4.51,
-    "stop_price": 1018.59
+    "stop_price": 1023.5
   },
   "MU": {
     "entry_price": 504.188298,
@@ -71,21 +44,39 @@
     "stop_price": 115.2
   },
   "GLW": {
-    "stop_price": 157.67,
+    "stop_price": 174.52,
     "entry_price": 179.92,
     "atr_pct": 6.1822427308611765,
-    "entry_date": "2026-05-06"
+    "entry_date": "2026-05-06",
+    "highest_price_seen": 195.71,
+    "peak_gain_pct": 8.78,
+    "breakeven_activated": false,
+    "target1": 215.9,
+    "target2": 251.89,
+    "target1_hit": false
   },
   "IREN": {
-    "stop_price": 52.66,
+    "stop_price": 53.46,
     "entry_price": 60.69,
     "atr_pct": 6.614276358873608,
-    "entry_date": "2026-05-06"
+    "entry_date": "2026-05-06",
+    "highest_price_seen": 61.49,
+    "peak_gain_pct": 1.32,
+    "breakeven_activated": false,
+    "target1": 72.83,
+    "target2": 84.97,
+    "target1_hit": false
   },
   "RSI": {
-    "stop_price": 24.48,
+    "stop_price": 25.06,
     "entry_price": 27.185,
     "atr_pct": 4.9703264094955495,
-    "entry_date": "2026-05-06"
+    "entry_date": "2026-05-06",
+    "highest_price_seen": 27.76,
+    "peak_gain_pct": 2.12,
+    "breakeven_activated": false,
+    "target1": 32.62,
+    "target2": 38.06,
+    "target1_hit": false
   }
 }

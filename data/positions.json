@@ -14,7 +14,7 @@
       "peak_gain_pct": 53.61,
       "stop_price": 174.36,
       "breakeven_activated": true,
-      "current_gain_pct": 40.28,
+      "current_gain_pct": 40.98,
       "first_entry_price": 116.0
     },
     {
@@ -31,7 +31,7 @@
       "peak_gain_pct": 18.55,
       "stop_price": 179.03,
       "breakeven_activated": false,
-      "current_gain_pct": 11.18,
+      "current_gain_pct": 11.42,
       "first_entry_price": 167.52
     },
     {
@@ -48,7 +48,7 @@
       "peak_gain_pct": 6.54,
       "stop_price": 15.57,
       "breakeven_activated": false,
-      "current_gain_pct": -13.39
+      "current_gain_pct": -13.21
     },
     {
       "ticker": "INDV",
@@ -60,29 +60,29 @@
       "target2": 47.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 40.2,
+      "highest_price_seen": 40.6,
       "first_entry_price": 34.2,
-      "peak_gain_pct": 17.72,
-      "stop_price": 37.79,
+      "peak_gain_pct": 18.89,
+      "stop_price": 38.14,
       "breakeven_activated": false,
-      "current_gain_pct": 17.36
+      "current_gain_pct": 18.65
     },
     {
       "ticker": "CRWV",
       "shares": 100,
       "entry_price": 115.71,
       "entry_date": "2026-04-29",
-      "stop_price": 125.3,
+      "stop_price": 125.4,
       "breakeven_activated": false,
       "target1": 138.85,
       "target1_hit": false,
       "target2": 161.99,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 138.12,
+      "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
-      "peak_gain_pct": 19.37,
-      "current_gain_pct": 18.5
+      "peak_gain_pct": 19.46,
+      "current_gain_pct": 19.2
     },
     {
       "ticker": "TNA",
@@ -96,27 +96,44 @@
       "target2": 88.26,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 66.59,
-      "current_gain_pct": 4.65,
+      "highest_price_seen": 66.98,
+      "current_gain_pct": 6.01,
       "first_entry_price": 63.04,
-      "peak_gain_pct": 5.63
+      "peak_gain_pct": 6.25
     },
     {
       "ticker": "NVDA",
       "shares": 50,
       "entry_price": 204.32,
       "entry_date": "2026-05-06",
-      "stop_price": 194.18,
+      "stop_price": 194.93,
       "breakeven_activated": false,
       "target1": 245.18,
       "target1_hit": false,
       "target2": 286.05,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 207.18,
-      "current_gain_pct": 0.56,
+      "highest_price_seen": 208.05,
+      "current_gain_pct": 1.53,
       "first_entry_price": 204.32,
-      "peak_gain_pct": 1.4
+      "peak_gain_pct": 1.83
+    },
+    {
+      "ticker": "REMX",
+      "shares": 100,
+      "entry_price": 109.14,
+      "entry_date": "2026-05-06",
+      "stop_price": 101.76,
+      "breakeven_activated": false,
+      "target1": 130.97,
+      "target1_hit": false,
+      "target2": 152.8,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 109.64,
+      "current_gain_pct": 0.17,
+      "first_entry_price": 109.14,
+      "peak_gain_pct": 0.46
     }
   ],
   "closed_positions": [
