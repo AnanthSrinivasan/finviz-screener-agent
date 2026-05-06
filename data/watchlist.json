@@ -738,11 +738,13 @@
       "stop": null,
       "thesis": "Basic Materials | Q=86 | VCP | ATR 6.6%",
       "added": "2026-04-10",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-27"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-27",
+      "reactivated_date": "2026-05-06",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "CGAU",
@@ -815,11 +817,13 @@
       "stop": null,
       "thesis": "Financial | Q=95 | ATR 7.8%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-06",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "RVMD",
@@ -1525,11 +1529,13 @@
       "stop": null,
       "thesis": "Technology | Q=98 | VCP | ATR 3.0%",
       "added": "2026-04-18",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-04-24",
-      "entry_ready_date": "2026-04-28"
+      "entry_ready_date": "2026-04-28",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "MXL",
@@ -1625,11 +1631,14 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=95 | VCP | ATR 4.1%",
       "added": "2026-04-21",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-05-06"
+      "archive_reason": null,
+      "archived_date": "2026-05-06",
+      "focus_promoted_date": "2026-05-06",
+      "reactivated_date": "2026-05-06",
+      "entry_ready_date": "2026-05-06"
     },
     {
       "ticker": "TXN",
@@ -1815,11 +1824,13 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-04-30",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-04-30",
-      "entry_ready_date": "2026-05-01"
+      "entry_ready_date": "2026-05-01",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "TWLO",
@@ -2049,10 +2060,12 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-05",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-05-05"
+      "focus_promoted_date": "2026-05-05",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "LIND",
@@ -2088,6 +2101,108 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-06",
       "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "FLYW",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "OSS",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "SARO",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "GTX",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "INV",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "KMT",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "VSEC",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "TGTX",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "ESTA",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
     }
   ],
   "tickers": [
