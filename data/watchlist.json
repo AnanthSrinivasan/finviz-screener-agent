@@ -480,11 +480,11 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=94 | VCP | ATR 4.1%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "entry-ready",
-      "archive_reason": null,
-      "archived_date": "2026-04-24",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06",
       "reactivated_date": "2026-04-29",
       "focus_promoted_date": "2026-04-29",
       "entry_ready_date": "2026-05-04"
@@ -604,10 +604,12 @@
       "stop": null,
       "thesis": "Technology | Q=88 | VCP | ATR 4.3%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "focus",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06"
     },
     {
       "ticker": "SN",
@@ -817,11 +819,11 @@
       "stop": null,
       "thesis": "Financial | Q=95 | ATR 7.8%",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": null,
-      "archived_date": "2026-04-29",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-06",
       "reactivated_date": "2026-05-06",
       "focus_promoted_date": "2026-05-06"
     },
@@ -1288,11 +1290,13 @@
       "stop": null,
       "thesis": "Industrials | Q=99 | VCP | ATR 5.4%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-06",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "TVTX",
@@ -1402,11 +1406,13 @@
       "stop": null,
       "thesis": "Technology | Q=93 | ATR 10.8%",
       "added": "2026-04-15",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-30"
+      "archive_reason": null,
+      "archived_date": "2026-04-30",
+      "reactivated_date": "2026-05-06",
+      "focus_promoted_date": "2026-05-06"
     },
     {
       "ticker": "SLDE",
@@ -2201,8 +2207,66 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-06",
       "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "BTDR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
       "priority": "watching",
-      "source": "breakout_auto"
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "GRAL",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "VIR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "ELAN",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "MRCY",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-06",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-06"
     }
   ],
   "tickers": [

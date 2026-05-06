@@ -519,7 +519,7 @@
     "runs": 6,
     "atr_pct_avg": 3.53,
     "calibrated": true,
-    "updated": "2026-05-02"
+    "updated": "2026-05-06"
   },
   "SN": {
     "signal": 10.0,
@@ -1721,6 +1721,18 @@
     "max_seen": 10.0,
     "runs": 10,
     "atr_pct_avg": 5.81,
+    "calibrated": true,
+    "updated": "2026-05-06"
+  },
+  "REMX": {
+    "signal": 10.4,
+    "warn": 7.8,
+    "p50": 9.5,
+    "p75": 10.4,
+    "p90": 12.3,
+    "max_seen": 13.6,
+    "runs": 5,
+    "atr_pct_avg": 2.7,
     "calibrated": true,
     "updated": "2026-05-06"
   }
