@@ -277,7 +277,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             log.error(f"{ticker}: unexpected error — {e}")
             break
 
-    return None, None, None, None, None, None, None, None, None, None, None, None, None, None
+    return None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
 
 
 def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -> dict:

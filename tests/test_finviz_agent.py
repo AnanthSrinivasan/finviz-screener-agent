@@ -203,7 +203,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         with patch("agents.screener.finviz_agent.time.sleep"):  # don't actually sleep in tests
             result = get_snapshot_metrics("AAPL", max_retries=2)
 
-        self.assertEqual(result, (None,) * 14)
+        self.assertEqual(result, (None,) * 16)
 
 
 # ----------------------------
