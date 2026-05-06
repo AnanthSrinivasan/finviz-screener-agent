@@ -401,10 +401,24 @@ if __name__ == "__main__":
 
         # Check stop loss (now reflects any trailing raises applied above)
         if stop_price is not None and current > 0 and current <= float(stop_price):
-            sell_reason = (
-                "stop hit (price $" + str(round(current, 2))
-                + " <= stop $" + str(round(float(stop_price), 2)) + ")"
-            )
+            effective_atr_pct = stop_info.get("atr_pct", atr_pct)
+            if effective_atr_pct <= 5.0:
+                closes = fetch_daily_closes(ticker, limit=5)
+                if rules.price_above_sma5(closes, current):
+                    log.info(
+                        "%s: stop hit but price $%.2f >= SMA5 — skipping sell this run (low-vol, trend intact)",
+                        ticker, current,
+                    )
+                else:
+                    sell_reason = (
+                        "stop hit (price $" + str(round(current, 2))
+                        + " <= stop $" + str(round(float(stop_price), 2)) + ")"
+                    )
+            else:
+                sell_reason = (
+                    "stop hit (price $" + str(round(current, 2))
+                    + " <= stop $" + str(round(float(stop_price), 2)) + ")"
+                )
 
         # Check Stage 3 or 4 deterioration
         if sell_reason is None:

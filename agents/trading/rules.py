@@ -45,7 +45,7 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
       3. ATR-tiered trail (continuous, ratchets off highest_price_seen):
             peak < 10%   → 2.0 × ATR$  (room to breathe)
             peak ≥ 10%   → 1.5 × ATR$  (start locking)
-            peak ≥ 20%   → 1.0 × ATR$  (lock — supersedes old breakeven)
+            peak ≥ 20%   → 1.25 × ATR$ if atr_pct ≤ 5% else 1.0 × ATR$ (lock)
       4. Breakeven flag — informational. Set when peak ≥ +20% to drive the
          dashboard / Slack `BE` indicator. No longer gates trail logic.
       5. +30% floor: stop ≥ max(1.0×ATR trail, peak × 0.90). Caps post-+30%
@@ -97,7 +97,7 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
     # 3. ATR-tiered trail (continuous, ratchets off highest_price_seen)
     if atr_dollar > 0 and peak_gain_pct > 0:
         if peak_gain_pct >= 20:
-            mult = 1.0
+            mult = 1.25 if atr_pct <= 5.0 else 1.0
         elif peak_gain_pct >= 10:
             mult = 1.5
         else:
@@ -380,3 +380,18 @@ def record_trade_result(trading_state: dict, ticker: str, result_pct: float,
 
     trading_state["last_updated"] = date_iso
     return result
+
+
+# --- Stop-filter helpers ---------------------------------------------------
+
+def price_above_sma5(closes: list, current_price: float) -> bool:
+    """True when current_price >= 5-day SMA — short-term trend still intact.
+
+    Used by monitors to skip stop exits on low-ATR names when price hasn't
+    broken below the 5-day average (pullback hasn't turned into a breakdown).
+    Returns False (don't suppress) when fewer than 5 closes are available.
+    """
+    if len(closes) < 5:
+        return False
+    sma5 = sum(closes[-5:]) / 5
+    return current_price >= sma5

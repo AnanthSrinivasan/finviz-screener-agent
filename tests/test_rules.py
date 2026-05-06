@@ -42,11 +42,24 @@ class ApplyPositionRulesTests(unittest.TestCase):
         self.assertEqual(e["stop_price"], 104.0)
 
     def test_atr_trail_1x_when_peak_20_plus(self):
-        # peak 122 (+22%). Tier: 1.0×. Trail = 122 - 4 = 118.
+        # peak 122 (+22%), atr_pct=8 (high-vol). Tier: 1.0×. Trail = 122 - 8 = 114.
+        e = _entry()
+        rules.apply_position_rules("FOO", e, 122.0, 122.0, 8.0)
+        self.assertEqual(e["stop_price"], 114.0)
+        self.assertTrue(e["breakeven_activated"])
+
+    def test_atr_trail_125x_low_vol_at_peak_20(self):
+        # peak 122 (+22%), atr_pct=4 (≤5% low-vol). Tier: 1.25×. Trail = 122 - 1.25*4 = 117.
         e = _entry()
         rules.apply_position_rules("FOO", e, 122.0, 122.0, 4.0)
-        self.assertEqual(e["stop_price"], 118.0)
+        self.assertEqual(e["stop_price"], 117.0)
         self.assertTrue(e["breakeven_activated"])
+
+    def test_atr_trail_1x_high_vol_at_peak_20(self):
+        # peak 122 (+22%), atr_pct=6 (>5% high-vol). Tier: 1.0×. Trail = 122 - 1.0*6 = 116.
+        e = _entry()
+        rules.apply_position_rules("FOO", e, 122.0, 122.0, 6.0)
+        self.assertEqual(e["stop_price"], 116.0)
 
     def test_trail_uses_highest_price_seen_not_current_price(self):
         # VIK regression: peak captured via day_high but current_price is below.
@@ -55,9 +68,8 @@ class ApplyPositionRulesTests(unittest.TestCase):
         e = _entry(highest_price_seen=130.0, peak_gain_pct=30.0,
                    breakeven_activated=True, stop_price=100.5)
         rules.apply_position_rules("FOO", e, 120.0, 125.0, 4.0)
-        # peak stays at 130 (current 120 + day_high 125 < 130). 1.0× trail
-        # off prev_high: 130 - 4 = 126.
-        self.assertGreaterEqual(e["stop_price"], 126.0)
+        # peak stays at 130. atr_pct=4 (≤5% low-vol). 1.25× trail: 130 - 5 = 125.
+        self.assertGreaterEqual(e["stop_price"], 125.0)
 
     def test_trail_only_ratchets_up(self):
         # Existing stop above ATR trail level — must not lower.
@@ -118,8 +130,8 @@ class ApplyPositionRulesTests(unittest.TestCase):
                    breakeven_activated=True, stop_price=100.5)
         rules.apply_position_rules("FOO", e, 130.0, 130.0, 4.0)
         self.assertTrue(e["breakeven_activated"])
-        # peak now 130. 1.0× trail = 130 - 4 = 126.
-        self.assertGreaterEqual(e["stop_price"], 126.0)
+        # peak now 130. atr_pct=4 (≤5% low-vol). 1.25× trail = 130 - 5 = 125.
+        self.assertGreaterEqual(e["stop_price"], 125.0)
 
     # --- +30% floor ------------------------------------------------------
 
@@ -134,13 +146,13 @@ class ApplyPositionRulesTests(unittest.TestCase):
         self.assertTrue(any(ev["kind"] == "trailing_stop" for ev in events))
 
     def test_30pct_floor_redundant_for_low_vol(self):
-        # ATR 4%. peak 130 (+30%). 1.0× trail = 126 > 117 floor → ATR wins.
+        # ATR 4% (≤5% low-vol). peak 130 (+30%). 1.25× trail = 125 > 117 floor → ATR wins.
         # No trailing_stop event since floor doesn't raise stop.
         e = _entry(stop_price=100.0,
                    highest_price_seen=130.0, peak_gain_pct=30.0,
                    breakeven_activated=True, target1_hit=True)
         events, _ = rules.apply_position_rules("FOO", e, 130.0, 130.0, 4.0)
-        self.assertEqual(e["stop_price"], 126.0)
+        self.assertEqual(e["stop_price"], 125.0)
         self.assertFalse(any(ev["kind"] == "trailing_stop" for ev in events))
 
     # --- Targets ---------------------------------------------------------
@@ -279,6 +291,29 @@ class RecordTradeResultTests(unittest.TestCase):
         self.assertEqual(ts["consecutive_wins"], 2)
         self.assertEqual(ts["consecutive_losses"], 0)
         self.assertEqual(ts["recent_trades"][-1]["result"], "neutral")
+
+
+class PriceAboveSma5Tests(unittest.TestCase):
+    def test_price_above_sma5_returns_true(self):
+        closes = [100.0, 101.0, 102.0, 103.0, 104.0]
+        self.assertTrue(rules.price_above_sma5(closes, 102.0))
+
+    def test_price_exactly_at_sma5_returns_true(self):
+        closes = [100.0, 100.0, 100.0, 100.0, 100.0]
+        self.assertTrue(rules.price_above_sma5(closes, 100.0))
+
+    def test_price_below_sma5_returns_false(self):
+        closes = [100.0, 101.0, 102.0, 103.0, 104.0]
+        sma5 = sum(closes) / 5  # 102.0
+        self.assertFalse(rules.price_above_sma5(closes, sma5 - 0.01))
+
+    def test_insufficient_closes_returns_false(self):
+        self.assertFalse(rules.price_above_sma5([100.0, 101.0], 105.0))
+
+    def test_uses_only_last_5_closes(self):
+        # First entries should not matter — only last 5 used
+        closes = [50.0, 50.0, 50.0, 100.0, 101.0, 102.0, 103.0, 104.0]
+        self.assertTrue(rules.price_above_sma5(closes, 102.0))
 
 
 if __name__ == "__main__":

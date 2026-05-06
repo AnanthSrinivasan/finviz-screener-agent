@@ -1007,7 +1007,8 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
 
 
 def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0,
-                          day_high: float | None = None) -> tuple:
+                          day_high: float | None = None,
+                          daily_closes: list | None = None) -> tuple:
     """
     Live caller into the shared rules engine.
 
@@ -1028,11 +1029,23 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
     # Rule 1 — Stop loss check (alert only; no status mutation, no recent_event)
     stop = position.get("stop_price", 0)
     if stop > 0 and current_price <= stop:
-        alerts.append(
-            f"\U0001f6a8 STOP HIT: {ticker} @ ${current_price:.2f} \u2014 "
-            f"exit immediately (stop ${stop:.2f})"
+        atr_pct_live = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
+        suppress = (
+            atr_pct_live <= 5.0
+            and bool(daily_closes)
+            and rules.price_above_sma5(daily_closes, current_price)
         )
-        log.warning(f"{ticker}: STOP HIT signal — ${current_price:.2f} <= ${stop:.2f} (status stays active)")
+        if suppress:
+            log.info(
+                f"{ticker}: stop hit but price ${current_price:.2f} >= SMA5 "
+                f"— suppressing alert this run (low-vol, trend intact)"
+            )
+        else:
+            alerts.append(
+                f"\U0001f6a8 STOP HIT: {ticker} @ ${current_price:.2f} \u2014 "
+                f"exit immediately (stop ${stop:.2f})"
+            )
+            log.warning(f"{ticker}: STOP HIT signal — ${current_price:.2f} <= ${stop:.2f} (status stays active)")
 
     # Trail / breakeven / targets / fade — delegated to shared engine.
     atr_pct = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
@@ -1582,8 +1595,14 @@ if __name__ == "__main__":
             metrics = snap.get("metrics", {}) if snap else {}
             atr = metrics.get("atr", 0.0)
             day_high = metrics.get("day_high") or None
+            atr_pct_live = (atr / cur_price * 100) if cur_price > 0 else 0.0
+            daily_closes_for_stop: list = []
+            if atr_pct_live <= 5.0:
+                _bars = fetch_alpaca_daily_bars(ticker, limit=5)
+                daily_closes_for_stop = [float(b["c"]) for b in _bars if b.get("c") is not None]
             pos_alerts, modified = apply_minervini_rules(
-                rpos, cur_price, atr=atr, day_high=day_high
+                rpos, cur_price, atr=atr, day_high=day_high,
+                daily_closes=daily_closes_for_stop,
             )
             rules_alerts.extend(pos_alerts)
             if modified:

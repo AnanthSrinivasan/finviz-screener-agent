@@ -300,12 +300,12 @@ class PeakGainBreakevenTests(unittest.TestCase):
         self.assertFalse(pos.get("breakeven_activated", False))
 
     def test_trailing_stop_locks_from_peak_30(self):
-        # Peak +35% (high=135), current back at 110, ATR$ 2. 1×ATR trail off peak:
-        # 135 - 2 = 133. 10% floor = 121.5. ATR wins (tighter). Stop = 133.
+        # Peak +35% (high=135), current back at 110, ATR$ 2 (entry 100 → atr_pct=2%, low-vol).
+        # 1.25×ATR trail: 135 - 2.5 = 132.5. 10% floor = 121.5. ATR trail wins.
         pos = self._pos(highest_price_seen=135.0, peak_gain_pct=35.0,
                         breakeven_activated=True, stop=100.5)
         pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
-        self.assertAlmostEqual(pos["stop_price"], 133.0, places=1)
+        self.assertAlmostEqual(pos["stop_price"], 132.5, places=1)
 
 
 
