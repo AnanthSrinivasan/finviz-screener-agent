@@ -515,12 +515,12 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 | Layer | Trigger | Action | Notes |
 |---|---|---|---|
 | Loss-cap floor | `peak_gain_pct ≥ 5` | `stop_price ≥ max(entry × 0.97, entry − 0.5×ATR$)` | Hybrid α/β. β tighter for low-vol (e.g. 3% ATR → -1.5% floor); α (-3%) caps high-vol (10% ATR → -3% not -5%). Plugs the "+8% peak fades to -5%" hole |
-| ATR-tiered trail (silent) | `peak_gain_pct > 0` | `stop_price ≥ highest_price_seen − mult × ATR$` where mult = 2.0 if peak <10%, 1.5 if peak ≥10%, 1.0 if peak ≥20% | Continuous, no freeze. Multiplier shrinks as gain grows. Replaces old "ATR trail freezes once breakeven_activated" dead zone |
-| Breakeven crossover | `peak_gain_pct ≥ 20` (one-shot) | Sets `breakeven_activated=True`, fires `:lock:` Slack. Floor `stop_price ≥ entry × 1.005` applies as fallback when ATR data is missing | Informational. The 1.0×ATR trail is normally already above this floor by the time peak hits +20% |
-| +30% floor | `peak_gain_pct ≥ 30` | `stop_price ≥ max(1.0×ATR trail, highest_price_seen × 0.90)` | The 10%-from-peak guard only wins for >10% ATR names where 1×ATR is wider than 10%. Caps high-vol post-+30% give-back at 10% from peak |
+| ATR-tiered trail (silent) | `peak_gain_pct > 0` | `stop_price ≥ highest_price_seen − mult × ATR$` where mult = 2.0 if peak <10%, 1.5 if peak ≥10%, **1.25 if peak ≥20% AND atr_pct ≤ 5%, else 1.0** | Continuous, no freeze. Low-vol names get extra quarter-ATR breathing room at the lock tier (May 2026). CECO ref: stop $84.96 (1.25×) vs $86.03 (1.0×) |
+| Breakeven crossover | `peak_gain_pct ≥ 20` (one-shot) | Sets `breakeven_activated=True`, fires `:lock:` Slack. Floor `stop_price ≥ entry × 1.005` applies as fallback when ATR data is missing | Informational. The 1.25/1.0×ATR trail is normally already above this floor by the time peak hits +20% |
+| +30% floor | `peak_gain_pct ≥ 30` | `stop_price ≥ max(1.25/1.0×ATR trail, highest_price_seen × 0.90)` | The 10%-from-peak guard only wins for >10% ATR names where ATR trail is wider than 10%. Caps high-vol post-+30% give-back at 10% from peak |
 | Fade alert | `peak_gain_pct ≥ 20` AND `current_price < highest_price_seen − 1×ATR` | Slack alert (5pp dedup) | Unchanged |
 
-**Stop hit (Rule 1) — alert-only, no status mutation.** When `current_price <= stop_price`, the live caller fires a 🚨 STOP HIT Slack alert and a WARNING log line. Position `status` stays `"active"`. The user often holds through the alert (the FIGS pattern); the system only signals — the human decides. (The Apr 29 2026 port removed prior `status="stop_hit"` mutation and the now-dead `sync_snaptrade_with_rules` reset block. `data/positions.json` migrated once via `utils/migrate_positions_keys.py`.)
+**Stop hit (Rule 1) — alert-only, no status mutation.** When `current_price <= stop_price`, the live caller fires a 🚨 STOP HIT Slack alert and a WARNING log line. Position `status` stays `"active"`. The user often holds through the alert; the system only signals — the human decides. **SMA5 filter (May 2026):** for low-ATR names (atr_pct ≤ 5%), if `current_price >= SMA(5 daily closes)`, the alert is suppressed for that run — the pullback hasn't broken the short-term trend. Implemented via `rules.price_above_sma5(closes, price)`. Paper monitor (`alpaca_monitor.py`) suppresses the actual sell order; live monitor (`position_monitor.py`) suppresses the STOP HIT alert. Both recheck next run. (The Apr 29 2026 port removed prior `status="stop_hit"` mutation and the now-dead `sync_snaptrade_with_rules` reset block. `data/positions.json` migrated once via `utils/migrate_positions_keys.py`.)
 
 **Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
 
@@ -819,9 +819,10 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 2. Fetch today's intraday high (Finviz "Range") and ATR%.
 3. Apply trailing rules via shared `rules.apply_position_rules`:
    - **Loss-cap floor** at peak ≥+5%: `stop ≥ max(entry × 0.97, entry − 0.5×ATR$)` — hybrid α/β, prevents a winner fading to a full loss.
-   - **ATR-tiered trail** (continuous, ratchets off `highest_price_seen`): peak <10% → 2.0×ATR, ≥10% → 1.5×ATR, ≥20% → 1.0×ATR.
+   - **ATR-tiered trail** (continuous, ratchets off `highest_price_seen`): peak <10% → 2.0×ATR, ≥10% → 1.5×ATR, ≥20% → **1.25×ATR for atr_pct ≤ 5%, else 1.0×ATR**.
    - **Breakeven flag** (`breakeven_activated`) set at peak ≥+20% — informational only, drives Slack/dashboard `BE` indicator. `entry × 1.005` fallback floor applies only when ATR data missing.
-   - **+30% floor**: `stop ≥ max(1.0×ATR trail, highest_price_seen × 0.90)` — 10%-from-peak guard for high-vol names.
+   - **+30% floor**: `stop ≥ max(1.25/1.0×ATR trail, highest_price_seen × 0.90)` — 10%-from-peak guard for high-vol names.
+   - **SMA5 stop filter**: if atr_pct ≤ 5% and `price >= SMA(5 daily closes)`, the sell is skipped for that run — trend still intact.
    - Target 1 / T2 alerts; 1×ATR fade alert (5pp dedup).
 4. **Post-close run only (≥21:00 UTC weekday)** — call `rules.check_ma_trail_alert` with last 60 daily Alpaca closes. Tier rules:
    - ATR% ≤ 5% → regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION, 8 EMA in COOLING; GREEN/THRUST need 2 consecutive)
