@@ -186,7 +186,7 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             table = soup.find("table", class_="snapshot-table2")
             if not table:
                 log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
-                return None, None, None, None, None, None, None, None, None, None, None, None, None, None
+                return None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
 
             data = {}
             for row in table.find_all("tr"):
@@ -250,15 +250,20 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             sma50_pct  = parse_sma_pct("SMA50")
             sma200_pct = parse_sma_pct("SMA200")
 
-            # Perf Month (~1M) and Perf Quarter (~3M) — for Power Play / High Tight Flag.
+            # Perf Month (~1M), Perf Quarter (~3M), Perf Half Y (~6M), Perf Year (~12M).
+            # Perf Quarter/Half Y/Year used for RS Rating composite. Perf Month/Quarter for Power Play.
             perf_month_str   = data.get("Perf Month", "0").replace("%", "").strip()
             perf_month   = float(perf_month_str) if perf_month_str not in ("-", "") else 0.0
             perf_quarter_str = data.get("Perf Quarter", "0").replace("%", "").strip()
             perf_quarter = float(perf_quarter_str) if perf_quarter_str not in ("-", "") else 0.0
+            perf_half_y_str  = data.get("Perf Half Y", "0").replace("%", "").strip()
+            perf_half_y  = float(perf_half_y_str) if perf_half_y_str not in ("-", "") else 0.0
+            perf_year_str    = data.get("Perf Year", "0").replace("%", "").strip()
+            perf_year    = float(perf_year_str) if perf_year_str not in ("-", "") else 0.0
 
             return (atr_pct, eps, sales, dist_from_high, rel_vol, avg_vol,
                     sma20_pct, sma50_pct, sma200_pct, eps_qq, inst_own, inst_trans,
-                    perf_month, perf_quarter)
+                    perf_month, perf_quarter, perf_half_y, perf_year)
 
         except requests.HTTPError as e:
             if e.response.status_code == 429:
@@ -885,15 +890,23 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
             action = _rs_actions.get(rt, "active")
             badge_label = "NEW" if action == "new" else ("REACQUIRED" if action == "reacquired" else "ACTIVE")
             badge_color = "#16a34a" if action == "new" else ("#2563eb" if action == "reacquired" else "#6b7280")
-            if rt in _row_lookup_all:
-                _rc = _build_card(rt, _row_lookup_all[rt], FINVIZ_BASE, top_sectors)
-                # Inject RS Leader status badge into card header
+            _rsl_row = _row_lookup_all.get(rt)
+            _rs_rating_val = int(_rsl_row.get("RS Rating", 0) if _rsl_row is not None else 0)
+            _rs_rating_badge = (
+                f'<span style="font-size:9px;background:#7c3aed;color:#fff;'
+                f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">'
+                f'RS {_rs_rating_val}</span>'
+            )
+            if _rsl_row is not None:
+                _rc = _build_card(rt, _rsl_row, FINVIZ_BASE, top_sectors)
+                # Inject RS Leader status + RS Rating badges into card header
                 _rc = _rc.replace(
                     f'class="ticker-link">{rt}</a>',
                     f'class="ticker-link">{rt}</a>'
                     f'<span style="font-size:9px;background:{badge_color};color:#fff;'
                     f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
-                    f'{badge_label}</span>',
+                    f'{badge_label}</span>'
+                    + _rs_rating_badge,
                 )
             else:
                 chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={rt}&ty=c&ta=1&p=d&s=m"
@@ -904,6 +917,7 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                     f'<div><a href="{finviz_url}" target="_blank" class="ticker-link">{rt}</a>'
                     f'<span style="font-size:9px;background:{badge_color};color:#fff;'
                     f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">{badge_label}</span>'
+                    + _rs_rating_badge +
                     f'</div></div>'
                     f'<a href="{finviz_url}" target="_blank">'
                     f'<img src="{chart_url}" alt="{rt}" loading="lazy" class="chart-img"></a>'
@@ -1510,10 +1524,11 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                     sma50_v = float(_row.get("SMA50%") or 0) or 0
                     atr_mult = round(sma50_v / atr_v, 1) if atr_v > 0 else 0.0
                     _rs_meta[t] = {
-                        "q":        float(_row.get("Quality Score") or 0),
-                        "dist":     float(_row.get("Dist From High%") or 0),
-                        "atr_mult": atr_mult,
-                        "rvol":     float(_row.get("Rel Volume") or 0),
+                        "q":         float(_row.get("Quality Score") or 0),
+                        "dist":      float(_row.get("Dist From High%") or 0),
+                        "atr_mult":  atr_mult,
+                        "rvol":      float(_row.get("Rel Volume") or 0),
+                        "rs_rating": int(_row.get("RS Rating") or 0),
                     }
 
         if new_leaders:
@@ -1521,7 +1536,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             for t in new_leaders[:5]:
                 m = _rs_meta.get(t, {})
                 lines.append(
-                    f"`{t}` Q{m.get('q', 0):.0f} · dist {m.get('dist', 0):+.1f}%"
+                    f"`{t}` RS {m.get('rs_rating', 0)} · Q{m.get('q', 0):.0f}"
+                    f" · dist {m.get('dist', 0):+.1f}%"
                     f" · mult {m.get('atr_mult', 0):.1f}x · RVol {m.get('rvol', 0):.2f}x"
                     f" · `/stock-research {t}`"
                 )
@@ -1538,7 +1554,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             for t in reacquired:
                 m = _rs_meta.get(t, {})
                 lines.append(
-                    f"`{t}` Q{m.get('q', 0):.0f} · dist {m.get('dist', 0):+.1f}%"
+                    f"`{t}` RS {m.get('rs_rating', 0)} · Q{m.get('q', 0):.0f}"
+                    f" · dist {m.get('dist', 0):+.1f}%"
                     f" · `/stock-research {t}`"
                 )
             blocks.append({
@@ -1917,7 +1934,55 @@ def _is_textbook_vcp(row) -> bool:
     return True
 
 
-# ── RS Leader signal (Phase 1 — stock-level relative strength tracker) ────────
+# ── RS Rating (Phase 2 — numeric relative strength score 0–99) ───────────────
+
+def _compute_rs_ratings(df) -> dict:
+    """
+    Compute IBD-style RS Rating (0–99) for every ticker in the screener universe.
+
+    Formula (weighted composite of cumulative performance windows):
+      composite = (perf_3m × 0.4) + (perf_6m × 0.2) + (perf_9m_approx × 0.2) + (perf_12m × 0.2)
+    where perf_9m_approx = (perf_6m + perf_12m) / 2
+
+    Simplified:
+      composite = (perf_3m × 0.4) + (perf_6m × 0.3) + (perf_12m × 0.3)
+
+    Tickers with missing data get composite = 0.0 and will rank at the bottom.
+    Returns {ticker: int 0-99}.
+    """
+    import math as _math
+
+    def _safe(val):
+        try:
+            v = float(val)
+            return 0.0 if _math.isnan(v) or _math.isinf(v) else v
+        except (TypeError, ValueError):
+            return 0.0
+
+    records = []
+    for _, row in df.iterrows():
+        ticker = row.get("Ticker", "")
+        if not ticker:
+            continue
+        p3  = _safe(row.get("Perf Quarter"))
+        p6  = _safe(row.get("Perf Half Y"))
+        p12 = _safe(row.get("Perf Year"))
+        # 9M approx = (p6 + p12) / 2  →  weights simplify to 0.4 + 0.3 + 0.3
+        composite = p3 * 0.4 + p6 * 0.3 + p12 * 0.3
+        records.append((ticker, composite))
+
+    if not records:
+        return {}
+
+    n = len(records)
+    records.sort(key=lambda x: x[1])
+    ratings: dict[str, int] = {}
+    for rank, (ticker, _) in enumerate(records):
+        ratings[ticker] = int(round(rank / (n - 1) * 99)) if n > 1 else 99
+    return ratings
+
+
+# ── RS Leader signal (Phase 1 + Phase 2 gate) ────────────────────────────────
 
 def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
     """
@@ -1979,6 +2044,11 @@ def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
     if (sma50 / atr) > peel_warn:
         return False
 
+    # Phase 2 gate: RS Rating must be ≥ 60 (documented relative outperformance vs peers).
+    rs_rating = row.get("RS Rating")
+    if rs_rating is not None and not pd.isna(rs_rating) and int(rs_rating) < 60:
+        return False
+
     return True
 
 
@@ -2025,6 +2095,7 @@ def _update_rs_leaders_state(
                 "trigger_q":        d["q"],
                 "trigger_dist":     d["dist"],
                 "trigger_atr_mult": d["atr_mult"],
+                "rs_rating":        d.get("rs_rating", 0),
                 "current_status":   "active",
                 "last_active_date": today,
                 "pullback_started": None,
@@ -2038,6 +2109,7 @@ def _update_rs_leaders_state(
             if status == "active":
                 entry["last_active_date"] = today
                 entry["days_tracked"] = entry.get("days_tracked", 0) + 1
+                entry["rs_rating"] = d.get("rs_rating", entry.get("rs_rating", 0))
                 actions[t] = "noop"
             elif status == "pulling_back":
                 entry["current_status"] = "reacquired"
@@ -2045,6 +2117,7 @@ def _update_rs_leaders_state(
                 entry["pullback_started"] = None
                 entry.setdefault("reacquired_dates", []).append(today)
                 entry["days_tracked"] = entry.get("days_tracked", 0) + 1
+                entry["rs_rating"] = d.get("rs_rating", entry.get("rs_rating", 0))
                 actions[t] = "reacquired"
 
     # Process tickers in state that did NOT trigger today
@@ -2392,20 +2465,22 @@ if __name__ == "__main__":
     # Step 2: Concurrent snapshot metrics
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")
     snapshot_results = fetch_snapshots_concurrent(summary_df['Ticker'].tolist())
-    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[0])
-    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[1])
-    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[2])
-    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[3])
-    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[4])
-    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[5])
-    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[6])
-    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[7])
-    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[8])
-    summary_df['EPS Q/Q']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[9])
-    summary_df['Inst Own']       = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[10])
-    summary_df['Inst Trans']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[11])
-    summary_df['Perf Month']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[12])
-    summary_df['Perf Quarter']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*14)[13])
+    summary_df['ATR%']           = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[0])
+    summary_df['EPS Y/Y TTM']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[1])
+    summary_df['Sales Y/Y TTM']  = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[2])
+    summary_df['Dist From High%']= summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[3])
+    summary_df['Rel Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[4])
+    summary_df['Avg Volume']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[5])
+    summary_df['SMA20%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[6])
+    summary_df['SMA50%']         = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[7])
+    summary_df['SMA200%']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[8])
+    summary_df['EPS Q/Q']        = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[9])
+    summary_df['Inst Own']       = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[10])
+    summary_df['Inst Trans']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[11])
+    summary_df['Perf Month']     = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[12])
+    summary_df['Perf Quarter']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[13])
+    summary_df['Perf Half Y']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[14])
+    summary_df['Perf Year']      = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[15])
 
     # Step 3: Stage, VCP, Quality Score
     log.info("Computing Weinstein Stage analysis...")
@@ -2456,6 +2531,11 @@ if __name__ == "__main__":
         log.info("  10%% Change gate: all passed.")
 
     summary_df['Quality Score'] = summary_df.apply(compute_quality_score, axis=1)
+
+    # ── RS Rating (Phase 2) — computed over full pre-gate universe ──
+    _rs_ratings_map = _compute_rs_ratings(summary_df)
+    summary_df['RS Rating'] = summary_df['Ticker'].map(_rs_ratings_map).fillna(0).astype(int)
+    log.info("RS Ratings computed: %d tickers rated", len(_rs_ratings_map))
 
     filter_df = summary_df[(summary_df['ATR%'] > ATR_THRESHOLD) & (~summary_df['_10pct_excluded'])].copy()
     filter_df = filter_df.sort_values('Quality Score', ascending=False)
@@ -2657,11 +2737,12 @@ if __name__ == "__main__":
                 sma50_v = float(row.get("SMA50%") or 0) or 0
                 atr_mult = round(sma50_v / atr_v, 1) if atr_v > 0 else 0.0
                 rs_leaders_triggered.append({
-                    "ticker":   row["Ticker"],
-                    "q":        float(row.get("Quality Score") or 0),
-                    "dist":     float(row.get("Dist From High%") or 0),
-                    "atr_mult": atr_mult,
-                    "rvol":     float(row.get("Rel Volume") or 0),
+                    "ticker":    row["Ticker"],
+                    "q":         float(row.get("Quality Score") or 0),
+                    "dist":      float(row.get("Dist From High%") or 0),
+                    "atr_mult":  atr_mult,
+                    "rvol":      float(row.get("Rel Volume") or 0),
+                    "rs_rating": int(row.get("RS Rating") or 0),
                 })
         # Sort by Q descending
         rs_leaders_triggered.sort(key=lambda d: d["q"], reverse=True)

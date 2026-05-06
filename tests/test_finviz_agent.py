@@ -165,7 +165,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         result = get_snapshot_metrics("AAPL")
         (atr_pct, eps, sales, dist_high, rel_vol, avg_vol,
          sma20, sma50, sma200, eps_qq, inst_own, inst_trans,
-         perf_month, perf_quarter) = result
+         perf_month, perf_quarter, perf_half_y, perf_year) = result
 
         self.assertAlmostEqual(atr_pct, 5.0, places=1)   # 2.50 / 50.00 * 100
         self.assertAlmostEqual(eps, 25.0, places=1)
@@ -185,7 +185,7 @@ class TestGetSnapshotMetrics(unittest.TestCase):
         mock_make_session.return_value = mock_session
 
         result = get_snapshot_metrics("FAKE")
-        self.assertEqual(result, (None,) * 14)
+        self.assertEqual(result, (None,) * 16)
 
     @patch("agents.screener.finviz_agent.make_session")
     def test_retries_on_429(self, mock_make_session):
