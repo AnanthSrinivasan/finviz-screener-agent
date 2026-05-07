@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 2,
+  "consecutive_losses": 5,
   "total_wins": 4,
-  "total_losses": 3,
-  "current_sizing_mode": "reduced",
+  "total_losses": 6,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-05-05",
+  "last_updated": "2026-05-07",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -73,6 +73,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -534.0
+    },
+    {
+      "ticker": "REMX",
+      "result": "loss",
+      "result_pct": -2.36,
+      "date": "2026-05-07",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -258.0
+    },
+    {
+      "ticker": "AMAT",
+      "result": "loss",
+      "result_pct": -4.48,
+      "date": "2026-05-07",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -192.6
+    },
+    {
+      "ticker": "LSCC",
+      "result": "loss",
+      "result_pct": -4.06,
+      "date": "2026-05-07",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -254.0
     }
   ],
   "market_state": "THRUST",
