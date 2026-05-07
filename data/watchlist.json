@@ -1121,9 +1121,10 @@
       "thesis": "Technology | Q=81 | ATR 6.1%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-05-07"
     },
     {
       "ticker": "RNG",
@@ -1148,12 +1149,13 @@
       "thesis": "Industrials | Q=80 | VCP | ATR 3.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-04-29",
       "focus_promoted_date": "2026-05-06",
-      "reactivated_date": "2026-05-06"
+      "reactivated_date": "2026-05-06",
+      "entry_ready_date": "2026-05-07"
     },
     {
       "ticker": "CODI",
@@ -1166,8 +1168,8 @@
       "priority": "watching",
       "source": "screener_auto",
       "archive_reason": null,
-      "archived_date": "2026-05-06",
-      "reactivated_date": "2026-05-06"
+      "archived_date": "2026-05-07",
+      "reactivated_date": "2026-05-07"
     },
     {
       "ticker": "JBL",
@@ -1458,11 +1460,13 @@
       "stop": null,
       "thesis": "Basic Materials | Q=95 | ATR 4.9%",
       "added": "2026-04-16",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-05-01"
+      "archive_reason": null,
+      "archived_date": "2026-05-01",
+      "reactivated_date": "2026-05-07",
+      "focus_promoted_date": "2026-05-07"
     },
     {
       "ticker": "VSH",
@@ -2267,6 +2271,30 @@
       "priority": "focus",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-05-06"
+    },
+    {
+      "ticker": "PRM",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-07",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-07"
+    },
+    {
+      "ticker": "MOD",
+      "entry_note": "RS Leader \u2014 rising MA stack, peel-safe, Stage 2 perfect",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Relative strength leader \u2014 stock-level signal",
+      "added": "2026-05-07",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-07",
+      "source": "rs_leader_auto"
     }
   ],
   "tickers": [
