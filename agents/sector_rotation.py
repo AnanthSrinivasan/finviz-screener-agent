@@ -44,6 +44,47 @@ ALPACA_DATA_URL      = "https://data.alpaca.markets"
 HISTORY_RETENTION_DAYS = 180
 
 
+# Regime → action map (Phase 1 — informational only).
+# Each tag in classify_regime()'s value space must have an entry here.
+REGIME_ACTIONS = {
+    "correlation_phase": {
+        "headline": "Beta tape — no sector edge",
+        "sizing":   "Size down. Trade SPY/QQQ if anything.",
+        "entries":  "No new sector entries.",
+        "held":     "Hold, no adds.",
+    },
+    "early-rotation": {
+        "headline": "Leadership forming",
+        "sizing":   "Normal size.",
+        "entries":  "Build watchlist in emerging RS leaders. Wait 5d confirm before chasing.",
+        "held":     "Hold.",
+    },
+    "mid-rotation": {
+        "headline": "Best entry tape",
+        "sizing":   "Full size in GREEN/THRUST · half in CAUTION.",
+        "entries":  "Press confirmed RS leaders.",
+        "held":     "Add to leaders, hold others.",
+    },
+    "late-rotation": {
+        "headline": "Leadership narrowing",
+        "sizing":   "Reduce new-entry size 50%.",
+        "entries":  "New entries only in fresh RS-rising leaders. Skip extended names.",
+        "held":     "Trim names ≥+25% from entry. No adds to leaders.",
+    },
+    "blow-off-risk": {
+        "headline": "Risk-off",
+        "sizing":   "No new entries.",
+        "entries":  "Skip all entries.",
+        "held":     "Tighten stops · trim aggressively · cash is a position.",
+    },
+}
+
+
+def regime_action(regime: str):
+    """Returns the action dict for a regime tag, or None for unknown tags."""
+    return REGIME_ACTIONS.get(regime)
+
+
 # ------------------------------------------------------------------
 # Universe loading
 # ------------------------------------------------------------------
@@ -392,8 +433,14 @@ def format_slack(snapshot: dict, sig: dict) -> str:
     lines = [
         f"*Sector Rotation — {date}*",
         f"Phase: `{regime}` · Dispersion p{disp_pct}",
-        "",
     ]
+    action = regime_action(regime)
+    if action:
+        lines.append(f"*{action['headline']}*")
+        lines.append(f"  • Sizing:  {action['sizing']}")
+        lines.append(f"  • Entries: {action['entries']}")
+        lines.append(f"  • Held:    {action['held']}")
+    lines.append("")
 
     def fmt_row(r, show_decay=False):
         rs   = r["rs_score"]

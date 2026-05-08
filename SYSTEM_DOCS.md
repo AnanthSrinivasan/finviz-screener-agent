@@ -602,6 +602,16 @@ Universe-level: `dispersion_1d_stdev` (stdev of 1d returns) percentile-ranked ag
 
 **Slack roll-up** (Mon + Thu post-close, `#daily-alerts`): IN list (rank +10/RS≥70), OUT list (rank −10/RS<50, with decay annotation), Anticipation list (2-day-confirmed). Other weekdays write the snapshot and update history silently.
 
+**Regime → action map (Phase 1, 2026-05-08).** Each regime tag maps to a Slack action block (headline + 3 bullets: sizing / entries / held) injected beneath the phase line. Lives in `REGIME_ACTIONS` dict in `agents/sector_rotation.py`; `regime_action(regime)` helper returns the dict or None for unknown tags. Phase 1 is informational only — no mutation of paper executor or position monitor logic. Phase 2 (deferred, gated on 4 weeks of validation) will wire `blow-off-risk` to block entries, `late-rotation` to halve `size_mul`, and add regime-transition alerts.
+
+| Regime | Headline | Sizing posture | Entry posture | Held positions |
+|---|---|---|---|---|
+| `correlation_phase` | Beta tape — no sector edge | Size down — beta tape | Trade SPY/QQQ if anything | Hold, no adds |
+| `early-rotation` | Leadership forming | Normal sizing | Build watchlist, wait 5d confirm | Hold |
+| `mid-rotation` | Best entry tape | Full size GREEN/THRUST · half CAUTION | Press confirmed RS leaders | Add to leaders, hold others |
+| `late-rotation` | Leadership narrowing | Reduce new-entry size 50% | Fresh RS-rising leaders only; skip extended | Trim ≥+25% from entry; no adds |
+| `blow-off-risk` | Risk-off | No new entries | Skip all entries | Tighten stops · trim aggressively · cash is a position |
+
 **Held-ticker → ETF lookup** lives in `agents/utils/sector_lookup.py` — explicit map at `data/ticker_sector_map.json` plus a Finviz-Sector-string fallback table. Used by future position monitor / paper executor integrations (deferred per spec rollout §13).
 
 ---

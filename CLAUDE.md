@@ -236,6 +236,18 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 - `late-rotation` (p≥80)
 - `blow-off-risk` (p≥80 AND SPY at 20d high)
 
+**Regime → action map** (Phase 1, informational; `REGIME_ACTIONS` in `agents/sector_rotation.py`). Each regime tag maps to a Slack action block (headline + sizing/entries/held lines), injected into every Slack post beneath the phase line.
+
+| Regime | Headline | Sizing | Entries | Held |
+|---|---|---|---|---|
+| `correlation_phase` | Beta tape — no sector edge | Size down. Trade SPY/QQQ if anything. | No new sector entries. | Hold, no adds. |
+| `early-rotation` | Leadership forming | Normal size. | Build watchlist in emerging RS leaders. Wait 5d confirm. | Hold. |
+| `mid-rotation` | Best entry tape | Full size in GREEN/THRUST · half in CAUTION. | Press confirmed RS leaders. | Add to leaders, hold others. |
+| `late-rotation` | Leadership narrowing | Reduce new-entry size 50%. | Fresh RS-rising leaders only. Skip extended names. | Trim names ≥+25% from entry. No adds. |
+| `blow-off-risk` | Risk-off | No new entries. | Skip all entries. | Tighten stops · trim aggressively · cash is a position. |
+
+**Phase 2 (deferred — 4-week validation gate):** wire `blow-off-risk` to block paper executor entries, `late-rotation` to halve `size_mul`, position monitor TIGHTEN-STOPS alert on `blow-off-risk`, regime-transition Slack post on day-over-day flips.
+
 **Slack:** posted Mon/Thu at 21:15 UTC; other weekdays still write the snapshot + update history but skip Slack.
 
 **Held-ticker → ETF resolution** (`agents/utils/sector_lookup.py`):

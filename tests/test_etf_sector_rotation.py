@@ -152,5 +152,49 @@ class DispersionTests(unittest.TestCase):
         self.assertEqual(sr.classify_regime(rows_narrow, 0.10, False), "correlation_phase")
 
 
+class RegimeActionTests(unittest.TestCase):
+    def test_regime_action_lookup_covers_classifier_outputs(self):
+        # Every tag classify_regime() can return must be in REGIME_ACTIONS.
+        rows = [{"theme": "g", "rs_score": 95}] * 5
+        produced = {
+            sr.classify_regime(rows, 0.10, False),  # correlation_phase
+            sr.classify_regime(rows, 0.30, False),  # early-rotation
+            sr.classify_regime(rows, 0.60, False),  # mid-rotation
+            sr.classify_regime(rows, 0.85, False),  # late-rotation
+            sr.classify_regime(rows, 0.85, True),   # blow-off-risk
+        }
+        for tag in produced:
+            self.assertIn(tag, sr.REGIME_ACTIONS, f"missing action for {tag}")
+            for key in ("headline", "sizing", "entries", "held"):
+                self.assertIn(key, sr.REGIME_ACTIONS[tag])
+
+    def test_format_slack_includes_action_headline(self):
+        snap = {
+            "date": "2026-05-08",
+            "regime": "mid-rotation",
+            "dispersion_percentile_180d": 0.50,
+            "etfs": [],
+        }
+        sig = {"in": [], "out": [], "anticipation": [], "decay": []}
+        text = sr.format_slack(snap, sig)
+        self.assertIn("Best entry tape", text)
+        self.assertIn("Sizing:", text)
+        self.assertIn("Entries:", text)
+        self.assertIn("Held:", text)
+
+    def test_format_slack_unknown_regime_no_crash(self):
+        snap = {
+            "date": "2026-05-08",
+            "regime": "unknown",
+            "dispersion_percentile_180d": 0.50,
+            "etfs": [],
+        }
+        sig = {"in": [], "out": [], "anticipation": [], "decay": []}
+        text = sr.format_slack(snap, sig)
+        self.assertIn("`unknown`", text)
+        # No action block injected for unknown tags
+        self.assertNotIn("Sizing:", text)
+
+
 if __name__ == "__main__":
     unittest.main()
