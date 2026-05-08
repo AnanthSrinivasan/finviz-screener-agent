@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: '15 21 * * 1-5'  # 21:15 UTC weekdays — 15 min after market_monitor.yml
   workflow_dispatch:
+    inputs:
+      force_slack:
+        description: 'Post to Slack regardless of day-of-week gate'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   run-rotation:
@@ -34,6 +43,7 @@ jobs:
           ALPACA_API_KEY:    ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          FORCE_SLACK:       ${{ inputs.force_slack || 'false' }}
         run: python agents/sector_rotation.py
 
       - name: Commit rotation data

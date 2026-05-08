@@ -519,7 +519,8 @@ def main() -> int:
              fpath, snap["regime"], snap["dispersion_percentile_180d"] * 100)
 
     weekday = datetime.date.fromisoformat(snap["date"]).weekday()  # Mon=0, Thu=3
-    if weekday in (0, 3):
+    force_slack = os.environ.get("FORCE_SLACK", "false").lower() == "true"
+    if weekday in (0, 3) or force_slack:
         sig = signals(snap)
         text = format_slack(snap, sig)
         post_slack(text)
