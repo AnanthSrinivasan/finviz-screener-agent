@@ -13,6 +13,14 @@ on:
         options:
           - 'false'
           - 'true'
+      backfill:
+        description: 'Backfill history before computing snapshot'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   run-rotation:
@@ -44,6 +52,7 @@ jobs:
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           FORCE_SLACK:       ${{ inputs.force_slack || 'false' }}
+          BACKFILL:          ${{ inputs.backfill || 'false' }}
         run: python agents/sector_rotation.py
 
       - name: Commit rotation data

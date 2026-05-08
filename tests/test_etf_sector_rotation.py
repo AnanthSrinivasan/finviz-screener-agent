@@ -152,6 +152,38 @@ class DispersionTests(unittest.TestCase):
         self.assertEqual(sr.classify_regime(rows_narrow, 0.10, False), "correlation_phase")
 
 
+class BootstrappingRegimeTests(unittest.TestCase):
+    def test_classify_regime_bootstrapping_when_history_thin(self):
+        rows = [{"theme": "g", "rs_score": 95}] * 5
+        # Fewer than MIN_HISTORY_DAYS_FOR_REGIME → bootstrapping regardless of inputs
+        self.assertEqual(sr.classify_regime(rows, 1.0, True, history_days=1), "bootstrapping")
+        self.assertEqual(sr.classify_regime(rows, 0.0, False, history_days=10), "bootstrapping")
+
+    def test_classify_regime_normal_when_history_sufficient(self):
+        rows = [{"theme": "g", "rs_score": 95}] * 5
+        self.assertEqual(
+            sr.classify_regime(rows, 0.85, True, history_days=sr.MIN_HISTORY_DAYS_FOR_REGIME),
+            "blow-off-risk",
+        )
+
+    def test_classify_regime_back_compat_no_history_arg(self):
+        rows = [{"theme": "g", "rs_score": 95}] * 5
+        # Existing callers that don't pass history_days still work
+        self.assertEqual(sr.classify_regime(rows, 0.10, False), "correlation_phase")
+
+    def test_history_days_count_excludes_today(self):
+        history = [
+            {"date": "2026-05-06", "etf": "X"},
+            {"date": "2026-05-06", "etf": "Y"},
+            {"date": "2026-05-07", "etf": "X"},
+            {"date": "2026-05-08", "etf": "X"},  # today
+        ]
+        self.assertEqual(sr.history_days_count(history, "2026-05-08"), 2)
+
+    def test_bootstrapping_in_action_map(self):
+        self.assertIn("bootstrapping", sr.REGIME_ACTIONS)
+
+
 class RegimeActionTests(unittest.TestCase):
     def test_regime_action_lookup_covers_classifier_outputs(self):
         # Every tag classify_regime() can return must be in REGIME_ACTIONS.

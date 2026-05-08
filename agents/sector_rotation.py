@@ -42,11 +42,21 @@ ALPACA_API_KEY       = os.environ.get("ALPACA_API_KEY", "")
 ALPACA_SECRET_KEY    = os.environ.get("ALPACA_SECRET_KEY", "")
 ALPACA_DATA_URL      = "https://data.alpaca.markets"
 HISTORY_RETENTION_DAYS = 180
+# Below this many days of history, the dispersion percentile is meaningless
+# (collapses to "today vs itself") so we tag the regime as `bootstrapping`
+# and surface a neutral action block.
+MIN_HISTORY_DAYS_FOR_REGIME = 20
 
 
 # Regime → action map (Phase 1 — informational only).
 # Each tag in classify_regime()'s value space must have an entry here.
 REGIME_ACTIONS = {
+    "bootstrapping": {
+        "headline": "Regime bootstrapping — insufficient history",
+        "sizing":   "Use market_state for sizing — ignore regime tag.",
+        "entries":  "Trust the screener; sector signal not yet calibrated.",
+        "held":     "Manage by existing rules.",
+    },
     "correlation_phase": {
         "headline": "Beta tape — no sector edge",
         "sizing":   "Size down. Trade SPY/QQQ if anything.",
@@ -319,7 +329,15 @@ def dispersion_percentile_180d(history: list, today_disp: float) -> float:
     return round(below / len(daily), 2)
 
 
-def classify_regime(rows: list, dispersion_pct: float, spy_at_20d_high: bool) -> str:
+def history_days_count(history: list, today: str) -> int:
+    """Number of distinct prior dates in history (excludes today)."""
+    return len({h["date"] for h in history if h["date"] < today})
+
+
+def classify_regime(rows: list, dispersion_pct: float, spy_at_20d_high: bool,
+                    history_days: Optional[int] = None) -> str:
+    if history_days is not None and history_days < MIN_HISTORY_DAYS_FOR_REGIME:
+        return "bootstrapping"
     if dispersion_pct < 0.20:
         return "correlation_phase"
     top_themes = {r.get("theme") for r in rows[:5] if r.get("rs_score", 0) >= 70}
@@ -368,7 +386,8 @@ def build_snapshot(today: Optional[str] = None) -> dict:
 
     disp = universe_dispersion(rows)
     disp_pct = dispersion_percentile_180d(history, disp)
-    regime = classify_regime(rows, disp_pct, spy_at_20d_high)
+    hist_days = history_days_count(history, today)
+    regime = classify_regime(rows, disp_pct, spy_at_20d_high, history_days=hist_days)
 
     snapshot = {
         "date":                       today,
@@ -557,6 +576,10 @@ def backfill(days: int = 60) -> None:
 # Main
 # ------------------------------------------------------------------
 def main() -> int:
+    if os.environ.get("BACKFILL", "false").lower() == "true" or "--backfill" in sys.argv:
+        days = int(os.environ.get("BACKFILL_DAYS", "60"))
+        log.info("Running history backfill for %d days", days)
+        backfill(days=days)
     snap = build_snapshot()
     if not snap:
         return 1
