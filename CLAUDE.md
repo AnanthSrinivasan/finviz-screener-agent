@@ -230,6 +230,7 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 - Anticipation (confirmed): `is_20d_rs_high AND rs_score < 60` for 2 consecutive days
 
 **Regime classification** (cycle context — informational only):
+- `bootstrapping` (history <20 days — percentile not yet meaningful; falls back to neutral action block)
 - `correlation_phase` (dispersion p<20)
 - `early-rotation` (p20–p50, narrow leadership)
 - `mid-rotation` (p50–p80)
