@@ -1,0 +1,52 @@
+name: Sector Rotation
+
+on:
+  schedule:
+    - cron: '15 21 * * 1-5'  # 21:15 UTC weekdays — 15 min after market_monitor.yml
+  workflow_dispatch:
+
+jobs:
+  run-rotation:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Luxembourg
+      DATA_DIR: "data"
+      PYTHONPATH: .
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run sector rotation
+        env:
+          ALPACA_API_KEY:    ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python agents/sector_rotation.py
+
+      - name: Commit rotation data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/sector_rotation_*.json data/sector_rotation_history.json
+          git diff --cached --quiet || git commit -m "chore: sector rotation $(date +%Y-%m-%d) [skip ci]"
+          git push || true
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_ALERTS }}" \
+            -H 'Content-type: application/json' \
+            --data '{"text": ":x: *Sector rotation failed* on `'"$(date +%Y-%m-%d)"'`\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

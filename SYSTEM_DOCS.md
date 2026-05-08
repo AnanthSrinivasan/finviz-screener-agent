@@ -582,6 +582,30 @@ Per-position transaction timeline is filtered to events at or after the position
 
 ---
 
+## 5b. Sector Rotation Tracker (added 2026-05-08)
+
+`agents/sector_rotation.py` runs daily at 21:15 UTC (15 min after market_monitor) and pulls daily Alpaca bars for a hand-curated ~33-ETF universe (sectors XLK/XLF/…/XLC + thematics SMH/XBI/GLD/SLV/REMX/XHB/JETS/… + benchmarks SPY/QQQ/IWM/DIA — see `data/sector_etf_map.json`).
+
+For each ETF it computes:
+- `ret_1d`, `ret_5d`, `ret_20d`
+- `ret_vs_spy_5d`, `ret_vs_spy_20d`
+- `rs_score` — 0–99 percentile rank of `ret_vs_spy_20d` within today's universe
+- `rank` — sorted by rs_score (1 = best)
+- `is_20d_rs_high` — today's `ret_vs_spy_20d` is the max in the trailing 20-day window for that ETF
+
+History (`data/sector_rotation_history.json`, rolling 180 days) supplies:
+- `rank_5d_ago`, `rank_delta_5d`
+- `decay_streak_days` — consecutive worsening-rank days while `rs_score < 50`
+- `anticipation_confirmed` — 20d-RS-high held for 2 consecutive days
+
+Universe-level: `dispersion_1d_stdev` (stdev of 1d returns) percentile-ranked against 180d → drives `regime` (`correlation_phase` / `early-rotation` / `mid-rotation` / `late-rotation` / `blow-off-risk`).
+
+**Slack roll-up** (Mon + Thu post-close, `#daily-alerts`): IN list (rank +10/RS≥70), OUT list (rank −10/RS<50, with decay annotation), Anticipation list (2-day-confirmed). Other weekdays write the snapshot and update history silently.
+
+**Held-ticker → ETF lookup** lives in `agents/utils/sector_lookup.py` — explicit map at `data/ticker_sector_map.json` plus a Finviz-Sector-string fallback table. Used by future position monitor / paper executor integrations (deferred per spec rollout §13).
+
+---
+
 ## 6. Data Storage
 
 **Flat files only — no database needed.**

@@ -1,0 +1,43 @@
+{
+  "sectors": {
+    "XLK":  {"name": "Technology",        "theme": "growth"},
+    "XLF":  {"name": "Financials",        "theme": "cyclical"},
+    "XLE":  {"name": "Energy",            "theme": "cyclical"},
+    "XLV":  {"name": "Healthcare",        "theme": "defensive"},
+    "XLI":  {"name": "Industrials",       "theme": "cyclical"},
+    "XLY":  {"name": "Cons Disc",         "theme": "cyclical"},
+    "XLP":  {"name": "Cons Staples",      "theme": "defensive"},
+    "XLU":  {"name": "Utilities",         "theme": "defensive"},
+    "XLB":  {"name": "Materials",         "theme": "cyclical"},
+    "XLRE": {"name": "Real Estate",       "theme": "rate-sensitive"},
+    "XLC":  {"name": "Comm Services",     "theme": "growth"}
+  },
+  "thematics": {
+    "SMH":  {"name": "Semiconductors",    "theme": "growth-narrow"},
+    "XBI":  {"name": "Biotech",           "theme": "speculative"},
+    "IBB":  {"name": "Biotech LC",        "theme": "speculative"},
+    "KRE":  {"name": "Regional Banks",    "theme": "rate-sensitive"},
+    "XOP":  {"name": "Oil & Gas E&P",     "theme": "commodity"},
+    "GDX":  {"name": "Gold Miners",       "theme": "precious-metal"},
+    "GLD":  {"name": "Gold",              "theme": "precious-metal"},
+    "SLV":  {"name": "Silver",            "theme": "precious-metal"},
+    "URA":  {"name": "Uranium",           "theme": "energy-transition"},
+    "LIT":  {"name": "Lithium",           "theme": "energy-transition"},
+    "ITB":  {"name": "Homebuilders",      "theme": "rate-sensitive"},
+    "XHB":  {"name": "Homebuild Sup.",    "theme": "rate-sensitive"},
+    "XRT":  {"name": "Retail",            "theme": "cyclical"},
+    "JETS": {"name": "Airlines",          "theme": "reopen"},
+    "XME":  {"name": "Metals & Mining",   "theme": "commodity"},
+    "REMX": {"name": "Rare Earth",        "theme": "energy-transition"},
+    "COPX": {"name": "Copper Miners",     "theme": "commodity"},
+    "TAN":  {"name": "Solar",             "theme": "energy-transition"},
+    "ICLN": {"name": "Clean Energy",      "theme": "energy-transition"},
+    "ARKK": {"name": "Innovation",        "theme": "speculative"}
+  },
+  "benchmarks": {
+    "SPY": {"name": "S&P 500"},
+    "QQQ": {"name": "Nasdaq 100"},
+    "IWM": {"name": "Russell 2000"},
+    "DIA": {"name": "Dow"}
+  }
+}

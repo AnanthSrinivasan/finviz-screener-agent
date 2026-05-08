@@ -41,6 +41,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Winners Watchlist | `winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
 | **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` (BUY placements + summary only) |
 | **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
+| Sector Rotation | `agents/sector_rotation.py` | 21:15 UTC Mon-Fri (Slack on Mon/Thu) | `#daily-alerts` |
 
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
@@ -89,6 +90,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Finviz Alerts | `alerts-finviz.yml` | Cron + workflow_dispatch |
 | Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
 | Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET (13:00 UTC) Mon-Fri + workflow_dispatch |
+| Sector Rotation | `sector-rotation.yml` | Cron 21:15 UTC Mon-Fri + workflow_dispatch |
 | Test Suite | `test.yml` | On push to main / PRs |
 
 ## Position Monitor — Rules Engine
@@ -208,7 +210,40 @@ data/
   finviz_weekly_YYYY-MM-DD.html           # Weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # Weekly signal scores
   positions_YYYY-MM-DD.json               # Position snapshots
+  sector_etf_map.json                     # ETF universe (sectors + thematics + benchmarks) — hand-curated
+  ticker_sector_map.json                  # Held-ticker → ETF map (with Finviz-sector fallback)
+  sector_rotation_YYYY-MM-DD.json         # Daily ETF RS snapshot + dispersion + regime
+  sector_rotation_history.json            # Rolling 180d of {date,etf,rs_score,rank,is_20d_rs_high,ret_1d}
 ```
+
+## Sector Rotation Tracker (`agents/sector_rotation.py`)
+
+Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + ret-vs-SPY, percentile-ranks 20d-vs-SPY into a 0–99 RS score, ranks the universe. History layer (`sector_rotation_history.json`, 180d) drives:
+
+- `rank_delta_5d` — change vs 5 trading days ago
+- `decay_streak_days` — consecutive worsening-rank days while `rs_score < 50`
+- `is_20d_rs_high` + `anticipation_confirmed` — today's relative-perf is 20d high AND yesterday's was too (2-day confirmation)
+
+**Trend signals:**
+- Leadership IN: `rank_delta_5d <= -10 AND rs_score >= 70`
+- Leadership decay (OUT): `rank_delta_5d >= +10 AND rs_score < 50`
+- Anticipation (confirmed): `is_20d_rs_high AND rs_score < 60` for 2 consecutive days
+
+**Regime classification** (cycle context — informational only):
+- `correlation_phase` (dispersion p<20)
+- `early-rotation` (p20–p50, narrow leadership)
+- `mid-rotation` (p50–p80)
+- `late-rotation` (p≥80)
+- `blow-off-risk` (p≥80 AND SPY at 20d high)
+
+**Slack:** posted Mon/Thu at 21:15 UTC; other weekdays still write the snapshot + update history but skip Slack.
+
+**Held-ticker → ETF resolution** (`agents/utils/sector_lookup.py`):
+1. Explicit map at `data/ticker_sector_map.json` (e.g. AAOI/AMAT/LSCC/NVDA → SMH).
+2. Fallback to caller-provided Finviz `Sector` string via `FINVIZ_SECTOR_TO_ETF` (e.g. "Healthcare" → XLV).
+3. None → caller skips sector signal for that position.
+
+**Pending integrations** (per spec rollout §13 — wire in after observing signal quality): position monitor SECTOR ROTATING OUT alert on `decay_streak_days >= 2`, paper executor lagging-sector annotation, weekly agent rotation section, `rotation.html` dashboard tab.
 
 ## Trading Rules Encoded
 

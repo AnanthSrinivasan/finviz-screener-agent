@@ -26,6 +26,9 @@ NEVER_ARCHIVE = {
     "alerts_state.json",
     "market_monitor_history.json",
     "paper_stops.json",
+    "sector_rotation_history.json",
+    "sector_etf_map.json",
+    "ticker_sector_map.json",
 }
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", str(Path(__file__).parent.parent / "data")))
