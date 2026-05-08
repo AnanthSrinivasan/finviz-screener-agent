@@ -14,9 +14,9 @@
       "peak_gain_pct": 53.61,
       "stop_price": 174.36,
       "breakeven_activated": true,
-      "current_gain_pct": 26.29,
+      "current_gain_pct": 23.36,
       "first_entry_price": 116.0,
-      "last_fade_alert_gain_pct": 30.47,
+      "last_fade_alert_gain_pct": 23.36,
       "ma_trail_alerted_date": "2026-05-08",
       "ma_trail_last": {
         "ma_type": "10% trail",
@@ -35,28 +35,12 @@
       "target2": 231.13,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 195.71,
-      "peak_gain_pct": 18.55,
-      "stop_price": 179.24,
-      "breakeven_activated": false,
-      "current_gain_pct": 10.49,
+      "highest_price_seen": 198.25,
+      "peak_gain_pct": 20.09,
+      "stop_price": 186.92,
+      "breakeven_activated": true,
+      "current_gain_pct": 18.09,
       "first_entry_price": 167.52
-    },
-    {
-      "ticker": "FIGS",
-      "shares": 300,
-      "entry_price": 16.65,
-      "entry_date": "2026-04-24",
-      "target1": 19.98,
-      "target1_hit": false,
-      "target2": 23.31,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 17.43,
-      "peak_gain_pct": 6.54,
-      "stop_price": 15.59,
-      "breakeven_activated": false,
-      "current_gain_pct": -7.69
     },
     {
       "ticker": "INDV",
@@ -71,9 +55,9 @@
       "highest_price_seen": 40.86,
       "first_entry_price": 34.2,
       "peak_gain_pct": 19.65,
-      "stop_price": 38.38,
+      "stop_price": 38.45,
       "breakeven_activated": false,
-      "current_gain_pct": 15.96
+      "current_gain_pct": 14.49
     },
     {
       "ticker": "CRWV",
@@ -90,7 +74,7 @@
       "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
       "peak_gain_pct": 19.46,
-      "current_gain_pct": 11.35
+      "current_gain_pct": -1.61
     },
     {
       "ticker": "TNA",
@@ -105,7 +89,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 67.58,
-      "current_gain_pct": 1.3,
+      "current_gain_pct": 2.2,
       "first_entry_price": 63.04,
       "peak_gain_pct": 7.2
     },
@@ -114,34 +98,51 @@
       "shares": 50,
       "entry_price": 204.32,
       "entry_date": "2026-05-06",
-      "stop_price": 200.87,
+      "stop_price": 204.52,
       "breakeven_activated": false,
       "target1": 245.18,
       "target1_hit": false,
       "target2": 286.05,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 214.19,
-      "current_gain_pct": 3.51,
+      "highest_price_seen": 217.78,
+      "current_gain_pct": 5.89,
       "first_entry_price": 204.32,
-      "peak_gain_pct": 4.83
+      "peak_gain_pct": 6.59
     },
     {
       "ticker": "IREN",
       "shares": 100,
       "entry_price": 61.4,
       "entry_date": "2026-05-08",
-      "stop_price": 53.91,
+      "stop_price": 59.56,
       "breakeven_activated": false,
       "target1": 73.68,
       "target1_hit": false,
       "target2": 85.96,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 62.43,
-      "current_gain_pct": -7.41,
+      "highest_price_seen": 65.61,
+      "current_gain_pct": 1.55,
       "first_entry_price": 61.4,
-      "peak_gain_pct": 1.68
+      "peak_gain_pct": 6.86
+    },
+    {
+      "ticker": "ZVRA",
+      "shares": 200,
+      "entry_price": 11.42,
+      "entry_date": "2026-05-08",
+      "stop_price": 10.55,
+      "breakeven_activated": false,
+      "target1": 13.7,
+      "target1_hit": false,
+      "target2": 15.99,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 11.59,
+      "current_gain_pct": -3.42,
+      "first_entry_price": 11.42,
+      "peak_gain_pct": 1.49
     }
   ],
   "closed_positions": [
@@ -366,6 +367,26 @@
       "close_price": 118.89,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -4.89
+    },
+    {
+      "ticker": "FIGS",
+      "shares": 300,
+      "entry_price": 16.65,
+      "entry_date": "2026-04-24",
+      "target1": 19.98,
+      "target1_hit": false,
+      "target2": 23.31,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 17.43,
+      "peak_gain_pct": 6.54,
+      "stop_price": 15.59,
+      "breakeven_activated": false,
+      "current_gain_pct": -7.69,
+      "close_date": "2026-05-08",
+      "close_price": 10.92,
+      "close_source": "live_quote",
+      "result_pct": -34.41
     }
   ]
 }

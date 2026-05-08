@@ -33,29 +33,16 @@
     "stop_price": 115.2
   },
   "GLW": {
-    "stop_price": 174.52,
+    "stop_price": 181.57,
     "entry_price": 179.92,
     "atr_pct": 6.1822427308611765,
     "entry_date": "2026-05-06",
-    "highest_price_seen": 195.71,
-    "peak_gain_pct": 8.78,
+    "highest_price_seen": 198.25,
+    "peak_gain_pct": 10.19,
     "breakeven_activated": false,
     "target1": 215.9,
     "target2": 251.89,
     "target1_hit": false
-  },
-  "IREN": {
-    "stop_price": 62.67,
-    "entry_price": 60.69,
-    "atr_pct": 6.614276358873608,
-    "entry_date": "2026-05-06",
-    "highest_price_seen": 68.69,
-    "peak_gain_pct": 13.18,
-    "breakeven_activated": false,
-    "target1": 72.83,
-    "target2": 84.97,
-    "target1_hit": false,
-    "pending_close": true
   },
   "RSI": {
     "stop_price": 25.44,
@@ -68,5 +55,38 @@
     "target1": 32.62,
     "target2": 38.06,
     "target1_hit": false
+  },
+  "ALGM": {
+    "entry_price": 47.85,
+    "highest_price_seen": 48.92,
+    "peak_gain_pct": 2.24,
+    "breakeven_activated": false,
+    "target1": 57.42,
+    "target2": 66.99,
+    "target1_hit": false,
+    "atr_pct": 5.28,
+    "stop_price": 43.87
+  },
+  "SQM": {
+    "entry_price": 91.560159,
+    "highest_price_seen": 92.22,
+    "peak_gain_pct": 0.72,
+    "breakeven_activated": false,
+    "target1": 109.87,
+    "target2": 128.18,
+    "target1_hit": false,
+    "atr_pct": 4.32,
+    "stop_price": 84.31
+  },
+  "VIK": {
+    "entry_price": 83.84,
+    "highest_price_seen": 85.0,
+    "peak_gain_pct": 1.38,
+    "breakeven_activated": false,
+    "target1": 100.61,
+    "target2": 117.38,
+    "target1_hit": false,
+    "atr_pct": 4.01,
+    "stop_price": 78.28
   }
 }
