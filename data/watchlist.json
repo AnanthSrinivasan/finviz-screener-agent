@@ -963,10 +963,12 @@
       "stop": null,
       "thesis": "Technology | Q=86 | VCP | ATR 4.9%",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-28"
+      "focus_promoted_date": "2026-04-28",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-08"
     },
     {
       "ticker": "LQDA",
@@ -1164,11 +1166,11 @@
       "stop": null,
       "thesis": "Industrials | Q=80 | VCP | ATR 5.5%",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "watching",
       "source": "screener_auto",
-      "archive_reason": null,
-      "archived_date": "2026-05-07",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-08",
       "reactivated_date": "2026-05-07"
     },
     {
@@ -1204,11 +1206,13 @@
       "stop": null,
       "thesis": "Energy | Q=78 | VCP | ATR 4.0%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-08",
+      "focus_promoted_date": "2026-05-08"
     },
     {
       "ticker": "CAVA",
@@ -1670,8 +1674,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-04-23",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-08"
     },
     {
       "ticker": "LIF",
@@ -2295,6 +2300,141 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-07",
       "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "PTCT",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Healthcare | Q=122 | VCP | ATR 4.9%",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-05-08"
+    },
+    {
+      "ticker": "MCHP",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Technology | Q=120 | VCP | ATR 4.0%",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-05-08"
+    },
+    {
+      "ticker": "DXYZ",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "KOPN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "PENG",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-08"
+    },
+    {
+      "ticker": "RXT",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "AMN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "FROG",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "TE",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "MRNA",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
+    },
+    {
+      "ticker": "CPAY",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
+    },
+    {
+      "ticker": "GPRE",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
     }
   ],
   "tickers": [

@@ -14,9 +14,9 @@
     "p90": 19.6,
     "max_seen": 23.7,
     "runs": 8,
-    "atr_pct_avg": 8.64,
+    "atr_pct_avg": 8.65,
     "calibrated": true,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "CRCL": {
     "calibrated": false,
@@ -212,7 +212,7 @@
     "runs": 7,
     "atr_pct_avg": 2.57,
     "calibrated": true,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "STX": {
     "signal": 10.3,
@@ -303,7 +303,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.22,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "ALHC": {
     "signal": 10.0,
@@ -729,15 +729,15 @@
   },
   "IREN": {
     "signal": 15.8,
-    "warn": 11.9,
-    "p50": 13.6,
+    "warn": 11.8,
+    "p50": 11.5,
     "p75": 15.8,
-    "p90": 16.7,
+    "p90": 16.4,
     "max_seen": 18.4,
-    "runs": 8,
-    "atr_pct_avg": 9.97,
+    "runs": 9,
+    "atr_pct_avg": 9.96,
     "calibrated": true,
-    "updated": "2026-05-02"
+    "updated": "2026-05-08"
   },
   "RVMD": {
     "signal": 10.0,
@@ -1554,7 +1554,7 @@
     "runs": 5,
     "atr_pct_avg": 3.24,
     "calibrated": true,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "FLG": {
     "signal": 10.0,
@@ -1590,7 +1590,7 @@
     "runs": 7,
     "atr_pct_avg": 5.39,
     "calibrated": true,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "CECO": {
     "signal": 10.0,
@@ -1722,7 +1722,7 @@
     "runs": 10,
     "atr_pct_avg": 5.81,
     "calibrated": true,
-    "updated": "2026-05-07"
+    "updated": "2026-05-08"
   },
   "REMX": {
     "signal": 10.4,
@@ -1735,5 +1735,29 @@
     "atr_pct_avg": 2.7,
     "calibrated": true,
     "updated": "2026-05-06"
+  },
+  "ZVRA": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 7.9,
+    "p75": 8.9,
+    "p90": 10.1,
+    "max_seen": 10.9,
+    "runs": 6,
+    "atr_pct_avg": 4.78,
+    "calibrated": true,
+    "updated": "2026-05-08"
+  },
+  "APLD": {
+    "signal": 12.7,
+    "warn": 9.5,
+    "p50": 8.7,
+    "p75": 12.7,
+    "p90": 18.4,
+    "max_seen": 21.7,
+    "runs": 8,
+    "atr_pct_avg": 10.11,
+    "calibrated": true,
+    "updated": "2026-05-08"
   }
 }
