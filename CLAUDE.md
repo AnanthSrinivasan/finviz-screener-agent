@@ -34,7 +34,8 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Daily Screener | `finviz_agent.py` | 20:30 UTC Mon-Fri | `#daily-alerts` |
 | Weekly Review | `finviz_weekly_agent.py` | 10:00 UTC Saturday | `#weekly-alerts` |
 | Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes + THRUST) |
-| Position Monitor | `position_monitor.py` | Hourly 14:00-21:00 UTC + 12:00 + 22:00 UTC Mon-Fri | `#positions` |
+| Position Book | `position_monitor.py` (`BOOK_RUN=1`) | 13:15 / 14:30 / 17:30 UTC Mon-Fri (3x daily) | `#positions` — consolidated table |
+| Position Critical | `position_monitor.py` | Every 30 min 14:00-21:00 UTC Mon-Fri | `#positions` — only when a critical event fires |
 | Alerts | `alerts_agent.py` | 21:00 UTC Mon-Fri | `#general-alerts` |
 | Earnings Alert | `earnings_alert.py` | 21:30 UTC Mon-Fri | `#general-alerts` |
 | Market Pulse | `market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
@@ -82,7 +83,8 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 
 | Workflow | File | Trigger |
 |----------|------|---------|
-| Position Monitor | `position-monitor.yml` | Cron (hourly market hours) + workflow_dispatch (BUY/SELL) |
+| Position Book | `position-book.yml` | Cron 13:15 / 14:30 / 17:30 UTC Mon-Fri (`BOOK_RUN=1`) + workflow_dispatch (BUY/SELL) |
+| Position Critical | `position-critical.yml` | Cron `*/30 14-21 UTC` Mon-Fri — fires immediate Slack on stop_hit / auto_close / share_drift / T1 / T2 / hard_stop only |
 | Daily Screener | `daily-finviz.yml` | Cron + workflow_dispatch |
 | Weekly Review | `weekly-finviz.yml` | Cron + workflow_dispatch |
 | Market Pulse | `market-pulse.yml` | Cron (4x daily) + workflow_dispatch |
@@ -92,6 +94,39 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET (13:00 UTC) Mon-Fri + workflow_dispatch |
 | Sector Rotation | `sector-rotation.yml` | Cron 21:15 UTC Mon-Fri + workflow_dispatch |
 | Test Suite | `test.yml` | On push to main / PRs |
+
+## Position Book / Critical Slack split (May 2026)
+
+The position monitor no longer posts a per-event hourly status block. It now
+splits Slack output into two streams:
+
+- **Book post** (`BOOK_RUN=1`, 3x daily at 13:15 / 14:30 / 17:30 UTC). One
+  consolidated table with TK / Avg / Now / Move% / Peak% / Stop / $P/L / STATE
+  per position, plus an `🚨 ACTIONS TODAY` block (top-priority
+  TRIM/ROUND-TRIP/STOP-NEAR/STOPPED) and an `📋 EVENTS SINCE LAST POST` digest
+  of inter-post events. Replaces ~6 alert types × 9 positions × hourly noise.
+  Strategy-readable in 10 seconds.
+- **Critical post** (every 30 min during market hours, no `BOOK_RUN`). Fires
+  ONLY when a critical event hits — `stop_hit`, `auto_closed`,
+  `share_drift_avg_up`, `share_drift_partial_sell`, `target1`, `target2`, or
+  `hard_stop`. Each event is a one-shot Slack message. The same event is also
+  appended to `data/book_last_post.json` so the next book post acknowledges it
+  in the EVENTS DIGEST footer.
+
+`agents/trading/rules.py` exports `CRITICAL_EVENT_KINDS`. The router lives in
+`agents/trading/position_monitor.py` (Step 14b–c, Book/critical router) and
+the table renderer is `agents/trading/book_table.py`. Digest log file:
+`data/book_last_post.json`.
+
+State map (book post `STATE` column):
+
+| State | Trigger |
+|---|---|
+| `🔻 STOPPED` | stop_hit / auto_closed / hard_stop fired this run |
+| `🚨 STOP NEAR` | `abs(price − stop) / price < 0.5%` |
+| `⚠ TRIM` | peak ≥ 25% AND price gave back > 10pp from peak AND target1_hit (more specific than ROUND-TRIP — evaluated first) |
+| `🚨 ROUND-TRIP` | peak ≥ 15% AND price gave back > 18pp from peak (no T1 lock yet) |
+| `✓ HOLD` | default |
 
 ## Position Monitor — Rules Engine
 
@@ -197,6 +232,7 @@ data/
   trading_state.json                      # Win/loss streaks, sizing mode, recent trades
   watchlist.json                          # Market pulse watchlist (auto-populated by screener + manual entries)
   paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit, pending_close}}
+  book_last_post.json                     # Position-book digest log {last_book_post_ts, events_since_last: [{kind, ticker, message, ts, ...}]}. Accumulated by position_monitor.py between book runs; cleared on each book post.
   paper_trading_state.json                # Paper streaks/sizing — independent from live trading_state.json. Same schema (consecutive_wins/losses, current_sizing_mode, recent_trades). Drives executor's size_mul + suspended block.
   hidden_growth.json                      # Today's Hidden Growth candidates (overwritten daily) — {date, candidates: [{ticker, signal_score, criteria, eps_yy_ttm, eps_qq, inst_trans, appearances}]}
   rs_leaders.json                         # RS Leader persistent tracker — {ticker: {first_triggered, trigger_state, trigger_q, trigger_dist, trigger_atr_mult, rs_rating, current_status, last_active_date, pullback_started, reacquired_dates, days_tracked}}

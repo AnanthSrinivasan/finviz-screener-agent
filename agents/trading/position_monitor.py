@@ -832,7 +832,7 @@ def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
 
 def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                               trading_state: dict, market_state: str,
-                              sell_fills: dict | None = None) -> list:
+                              sell_fills: dict | None = None) -> tuple:
     """
     Reconcile SnapTrade (source of truth for what exists) with positions.json
     (source of truth for rules-specific fields like stops/targets/gain protection).
@@ -840,9 +840,12 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
     Auto-adds new positions detected in SnapTrade with sensible defaults.
     Auto-closes positions gone from SnapTrade and updates win/loss streak.
 
-    Returns list of alert messages.
+    Returns (alerts, events) where alerts is the list of Slack-ready strings
+    (legacy) and events is the structured list of {kind, ticker, message,
+    ...} dicts for routing.
     """
     alerts = []
+    events: list = []
     today = datetime.date.today().isoformat()
     snap_tickers = {p["ticker"] for p in snaptrade_positions}
     snap_by_ticker = {p["ticker"]: p for p in snaptrade_positions}
@@ -884,6 +887,7 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             f"   Auto-stop: ${initial_stop:.2f} | T1: ${new_position['target1']:.2f} | T2: ${new_position['target2']:.2f}\n"
             f"   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed"
         )
+        events.append({"kind": "auto_added", "ticker": ticker, "message": alerts[-1]})
         log.info(f"Sync: auto-added {ticker} — {int(shares)} shares @ ${entry_price:.2f}")
 
     # --- SHARE-DRIFT RECONCILE: Ticker in both, but shares differ ---
@@ -913,23 +917,34 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             # Reset target/breakeven flags so the recomputed levels are used afresh.
             rpos["target1_hit"] = False
             rpos["breakeven_activated"] = False
-            alerts.append(
+            _msg = (
                 f"\U0001f7e1 SHARES INCREASED: {ticker}\n"
                 f"   {old_shares:g} → {snap_shares:g} shares "
                 f"(avg cost ${old_entry:.2f} → ${new_avg:.2f})\n"
                 f"   T1 ${rpos['target1']:.2f} | T2 ${rpos['target2']:.2f} (recomputed)"
             )
+            alerts.append(_msg)
+            events.append({
+                "kind": "share_drift_avg_up", "ticker": ticker, "message": _msg,
+                "old_shares": old_shares, "new_shares": snap_shares,
+                "new_avg": new_avg,
+            })
             log.info(
                 f"Sync: avg-up {ticker} — {old_shares:g} → {snap_shares:g} shares, "
                 f"avg ${old_entry:.2f} → ${new_avg:.2f}"
             )
         else:
             rpos["shares"] = int(snap_shares) if snap_shares == int(snap_shares) else snap_shares
-            alerts.append(
+            _msg = (
                 f"\U0001f7e1 PARTIAL SELL: {ticker}\n"
                 f"   {rules_shares:g} → {snap_shares:g} shares "
                 f"({-delta:g} sold) — entry/targets unchanged"
             )
+            alerts.append(_msg)
+            events.append({
+                "kind": "share_drift_partial_sell", "ticker": ticker, "message": _msg,
+                "old_shares": rules_shares, "new_shares": snap_shares,
+            })
             log.info(
                 f"Sync: partial-sell {ticker} — {rules_shares:g} → {snap_shares:g} shares"
             )
@@ -991,6 +1006,11 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
                 f"   Entry ${entry_price:.2f} \u2192 ${last_price:.2f}{source_tag} ({result_pct:+.1f}%) — {result_label}\n"
                 f"   Streak: {trading_state['consecutive_wins']}W / {trading_state['consecutive_losses']}L"
             )
+            events.append({
+                "kind": "auto_closed", "ticker": ticker, "message": alerts[-1],
+                "result_pct": round(result_pct, 2), "close_price": round(last_price, 2),
+                "close_source": close_source,
+            })
             log.info(f"Sync: auto-closed {ticker} — {result_pct:+.1f}% ({result_label})")
 
     # Remove closed positions from open list
@@ -1002,8 +1022,10 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
         # Recalculate sizing mode after closes
         sizing_alerts = update_sizing_mode(trading_state, market_state)
         alerts.extend(sizing_alerts)
+        for s in sizing_alerts:
+            events.append({"kind": "sizing_mode", "ticker": "—", "message": s})
 
-    return alerts
+    return alerts, events
 
 
 def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0,
@@ -1020,8 +1042,12 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
 
     `atr` is in DOLLARS (live convention). Shared engine takes atr_pct, so we
     convert: atr_pct = atr / entry_price * 100. Pre-port behaviour preserved.
+
+    Returns (alerts, modified, events). `events` is the structured event list
+    for the book/critical router; `alerts` is preserved for legacy callers.
     """
     alerts = []
+    events: list = []
     modified = False
     ticker = position["ticker"]
     entry = position["entry_price"]
@@ -1041,21 +1067,28 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
                 f"— suppressing alert this run (low-vol, trend intact)"
             )
         else:
-            alerts.append(
+            _stop_msg = (
                 f"\U0001f6a8 STOP HIT: {ticker} @ ${current_price:.2f} \u2014 "
                 f"exit immediately (stop ${stop:.2f})"
             )
+            alerts.append(_stop_msg)
+            events.append({
+                "kind": "stop_hit", "ticker": ticker, "message": _stop_msg,
+                "current_price": round(current_price, 2),
+                "stop_price": round(stop, 2),
+            })
             log.warning(f"{ticker}: STOP HIT signal — ${current_price:.2f} <= ${stop:.2f} (status stays active)")
 
     # Trail / breakeven / targets / fade — delegated to shared engine.
     atr_pct = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
-    events, eng_modified = rules.apply_position_rules(
+    engine_events, eng_modified = rules.apply_position_rules(
         ticker, position, current_price,
         day_high=day_high or current_price,
         atr_pct=atr_pct,
     )
     if eng_modified:
         modified = True
+    events.extend(engine_events)
 
     # Denormalised cache the dashboard reads (positions.json has no live quote
     # of its own). Refresh after engine updates so the published HTML shows
@@ -1065,7 +1098,7 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
         position["current_gain_pct"] = new_gain
         modified = True
 
-    for ev in events:
+    for ev in engine_events:
         alerts.append(ev["message"])
         kind = ev.get("kind")
         if kind == "breakeven":
@@ -1077,7 +1110,7 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
         elif kind == "target2":
             log.info(f"{ticker}: Target 2 hit at ${ev['target']:.2f}")
 
-    return alerts, modified
+    return alerts, modified, events
 
 
 def update_sizing_mode(trading_state: dict, market_state: str) -> list:
@@ -1569,10 +1602,11 @@ if __name__ == "__main__":
                            "history": history}, f, indent=2)
         except Exception as e:
             log.warning(f"Could not write position_history.json: {e}")
-    sync_alerts = sync_snaptrade_with_rules(
+    sync_alerts, sync_events = sync_snaptrade_with_rules(
         positions, positions_data, trading_state, market_state, sell_fills=sell_fills
     )
     rules_alerts.extend(sync_alerts)
+    all_events: list = list(sync_events)
 
     # Step 9b: Retro-patch any recently-closed records that used fallback prices
     # — broker activity may have arrived since the original close.
@@ -1600,11 +1634,12 @@ if __name__ == "__main__":
             if atr_pct_live <= 5.0:
                 _bars = fetch_alpaca_daily_bars(ticker, limit=5)
                 daily_closes_for_stop = [float(b["c"]) for b in _bars if b.get("c") is not None]
-            pos_alerts, modified = apply_minervini_rules(
+            pos_alerts, modified, pos_events = apply_minervini_rules(
                 rpos, cur_price, atr=atr, day_high=day_high,
                 daily_closes=daily_closes_for_stop,
             )
             rules_alerts.extend(pos_alerts)
+            all_events.extend(pos_events)
             if modified:
                 rules_state_modified = True
 
@@ -1683,24 +1718,148 @@ if __name__ == "__main__":
         else:
             log.error("Trade input missing shares or price — skipping")
 
+    # Step 14b: Tag existing Layer-1 alerts (hard stop / ATR / peel / etc.) into
+    # the event stream. HARD_STOP becomes a critical post; the rest fold into
+    # the book digest.
+    _L1_KIND = {
+        "HARD_STOP": "hard_stop",
+        "EXIT_ATR":  "exit_atr",
+        "EXIT_STOP": "exit_stop",
+        "WARN_ATR":  "warn_atr",
+        "WARN_STOP": "warn_stop",
+        "PEEL":      "peel_signal",
+        "PEEL_WARN": "peel_warn",
+    }
+    for alert_type, pos, metrics in alerts_to_fire:
+        kind = _L1_KIND.get(alert_type, alert_type.lower())
+        price = metrics.get("price", pos.get("current_price", 0))
+        pnl = (price - pos["avg_cost"]) * pos["shares"]
+        if alert_type == "HARD_STOP":
+            msg = (
+                f"\U0001f6a8 HARD STOP — {pos['ticker']} down ${abs(pnl):,.0f} "
+                f"(breaches ${abs(MAX_POSITION_LOSS):,.0f} cap). Get out now."
+            )
+        elif alert_type in ("EXIT_ATR", "EXIT_STOP"):
+            msg = (
+                f"\U0001f534 {alert_type} — {pos['ticker']} ATR mult "
+                f"{metrics.get('atr_multiple_ma', 0):.2f}, P&L ${pnl:+,.0f}"
+            )
+        elif alert_type in ("WARN_ATR", "WARN_STOP"):
+            msg = (
+                f"\U0001f7e1 {alert_type} — {pos['ticker']} ATR mult "
+                f"{metrics.get('atr_multiple_ma', 0):.2f}"
+            )
+        elif alert_type == "PEEL":
+            msg = (
+                f"\U0001f7e2 PEEL SIGNAL — {pos['ticker']} ATR mult "
+                f"{metrics.get('atr_multiple_ma', 0):.2f}x"
+            )
+        elif alert_type == "PEEL_WARN":
+            msg = (
+                f"\U0001f535 PEEL WARN — {pos['ticker']} ATR mult "
+                f"{metrics.get('atr_multiple_ma', 0):.2f}x"
+            )
+        else:
+            msg = f"{alert_type} — {pos['ticker']}"
+        all_events.append({
+            "kind": kind, "ticker": pos["ticker"], "message": msg,
+            "alert_type": alert_type,
+        })
+
+    # Step 14c: Add MA-trail violations and any other rules_alerts that aren't
+    # already represented in all_events (best-effort — duplicates filter below).
+    seen_msgs = {ev.get("message") for ev in all_events}
+    for a in rules_alerts:
+        if a in seen_msgs:
+            continue
+        # Try to extract a ticker by simple heuristic — first all-caps token.
+        import re as _re
+        m = _re.search(r"\b([A-Z]{1,6})\b", a)
+        tk = m.group(1) if m else "—"
+        kind = "ma_trail" if "MA Trail" in a else "info"
+        all_events.append({"kind": kind, "ticker": tk, "message": a})
+
     # Step 15: Save updated state files
     if rules_state_modified or sync_alerts:
         save_positions(positions_data)
     save_trading_state(trading_state)
 
-    # === EXISTING: Fire all per-position alerts (hard stop, ATR, peel etc.) ===
-    for alert_type, pos, metrics in alerts_to_fire:
-        send_position_alert(pos, metrics, alert_type)
+    # === Book / critical router ===
+    from agents.trading import book_table
 
-    # === EXISTING: Daily position summary ===
-    send_daily_position_summary(positions_with_metrics)
+    BOOK_RUN = os.environ.get("BOOK_RUN", "").strip() in ("1", "true", "yes")
+    digest_path = os.path.join(DATA_DIR, "book_last_post.json")
+    digest_log  = book_table.load_digest_log(digest_path)
+    now_iso     = datetime.datetime.utcnow().isoformat() + "Z"
 
-    # Step 16: Send rules engine alerts (only if there are actionable alerts)
-    if rules_alerts:
-        send_rules_engine_alerts(
-            rules_alerts, positions_data, trading_state,
-            market_state, positions_with_metrics,
+    # 1) Append every event to the persistent digest log (so the next book post
+    #    has the inter-post context, even for events that already pinged
+    #    critically).
+    for ev in all_events:
+        ev_with_ts = dict(ev)
+        ev_with_ts.setdefault("ts", now_iso)
+        book_table.append_digest_event(digest_log, ev_with_ts)
+
+    # 2) Post each critical event as its own Slack message — immediately, so
+    #    stop-hits / T1-T2 / share-drift don't wait for the next book.
+    critical_events = [
+        ev for ev in all_events
+        if ev.get("kind") in rules.CRITICAL_EVENT_KINDS
+    ]
+    if SLACK_WEBHOOK_URL:
+        for ev in critical_events:
+            try:
+                requests.post(
+                    SLACK_WEBHOOK_URL,
+                    json={"text": ev["message"]},
+                    timeout=10,
+                )
+                log.info(f"Critical posted: {ev['kind']} {ev['ticker']}")
+            except Exception as e:
+                log.error(f"Critical Slack failed: {e}")
+
+    # 3) Book post — only when this run is the scheduled book run.
+    if BOOK_RUN:
+        # Map of ticker → live price using the SnapTrade snapshot we already have.
+        live_prices = {
+            p["ticker"]: float(p.get("metrics", {}).get("price") or p.get("current_price") or 0)
+            for p in positions_with_metrics
+        }
+        stopped_tickers = {
+            ev["ticker"] for ev in all_events
+            if ev.get("kind") in ("stop_hit", "auto_closed", "hard_stop")
+        }
+        # Determine label by UTC hour for human readability.
+        utc_hour = datetime.datetime.utcnow().hour
+        if utc_hour < 14:
+            label = "13:15 UTC (pre-open)"
+        elif utc_hour < 17:
+            label = "14:30 UTC (post-open)"
+        else:
+            label = "17:30 UTC (mid-day)"
+
+        body = book_table.compose_book_message(
+            positions_data["open_positions"],
+            live_prices,
+            market_state,
+            trading_state.get("current_sizing_mode", "normal"),
+            digest_log.get("events_since_last", []),
+            header_label=label,
+            stopped_tickers=stopped_tickers,
         )
+        if SLACK_WEBHOOK_URL:
+            try:
+                requests.post(
+                    SLACK_WEBHOOK_URL,
+                    json={"text": body},
+                    timeout=10,
+                )
+                log.info(f"Book post sent — {label}")
+            except Exception as e:
+                log.error(f"Book post failed: {e}")
+        book_table.clear_digest_log(digest_log, now_iso)
+
+    book_table.save_digest_log(digest_path, digest_log)
 
     # === EXISTING: Save snapshot ===
     snapshot_path = os.path.join(DATA_DIR, f"positions_{today}.json")
@@ -1708,4 +1867,8 @@ if __name__ == "__main__":
         safe = [{k: v for k, v in p.items() if k != "account_id"} for p in positions_with_metrics]
         json.dump({"date": today, "positions": safe}, f, indent=2)
     log.info(f"Snapshot saved: {snapshot_path}")
-    log.info(f"=== Done — {len(positions)} positions, {len(alerts_to_fire)} existing alerts, {len(rules_alerts)} rules alerts ===")
+    log.info(
+        f"=== Done — {len(positions)} positions, "
+        f"{len(critical_events)} critical, "
+        f"{len(all_events)} total events, BOOK_RUN={BOOK_RUN} ==="
+    )

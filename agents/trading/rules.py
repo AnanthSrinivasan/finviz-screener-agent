@@ -27,6 +27,22 @@ import os
 import datetime
 
 
+# Event kinds that are decision points and must post immediately as their own
+# Slack message, not wait for the next book post. Caller routes by membership.
+# (`stop_hit`, `auto_closed`, `share_drift_avg_up`, `share_drift_partial_sell`
+# are emitted by position_monitor.py — `target1`/`target2` come from the engine
+# below and only fire on first cross via the `_hit` guards.)
+CRITICAL_EVENT_KINDS = {
+    "stop_hit",
+    "auto_closed",
+    "share_drift_avg_up",
+    "share_drift_partial_sell",
+    "target1",
+    "target2",
+    "hard_stop",
+}
+
+
 # --- Per-tick rules -------------------------------------------------------
 
 def apply_position_rules(ticker: str, entry: dict, current_price: float,
@@ -167,7 +183,9 @@ def apply_position_rules(ticker: str, entry: dict, current_price: float,
         })
 
     t2 = entry.get("target2", 0) or 0
-    if t2 > 0 and current_price >= t2:
+    if t2 > 0 and current_price >= t2 and not entry.get("target2_hit"):
+        entry["target2_hit"] = True
+        modified = True
         events.append({
             "kind": "target2",
             "ticker": ticker,

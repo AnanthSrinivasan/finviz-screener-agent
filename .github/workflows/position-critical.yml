@@ -1,0 +1,64 @@
+name: Position Critical
+
+# Runs every 30 minutes during US market hours. Posts ONLY when a critical
+# event fires (stop_hit, auto_closed, share_drift_avg_up,
+# share_drift_partial_sell, target1, target2, hard_stop). The book post is
+# never sent from this workflow — that's position-book.yml.
+
+on:
+  schedule:
+    - cron: '*/30 14-21 * * 1-5'
+
+jobs:
+  position-critical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: Europe/Luxembourg
+      PYTHONPATH: .
+      BOOK_RUN: ''
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_POSITIONS }}
+      SNAPTRADE_CLIENT_ID: ${{ secrets.SNAPTRADE_CLIENT_ID }}
+      SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}
+      SNAPTRADE_USER_ID: ${{ vars.SNAPTRADE_USER_ID }}
+      SNAPTRADE_USER_SECRET: ${{ secrets.SNAPTRADE_USER_SECRET }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.2
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run position monitor (critical-only)
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+        run: python agents/trading/position_monitor.py
+
+      - name: Commit state changes
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/positions.json data/trading_state.json data/book_last_post.json || true
+          git diff --cached --quiet || git commit -m "Critical event state update [skip ci]"
+          git push || true
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_ALERTS }}" \
+            -H 'Content-type: application/json' \
+            --data '{"text": ":x: *Position critical failed* `'"$(date '+%Y-%m-%d %H:%M')"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

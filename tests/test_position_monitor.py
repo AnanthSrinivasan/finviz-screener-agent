@@ -70,21 +70,21 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
 
     def test_stop_hit_fires_alert(self):
         pos = self._pos(stop_price=95.0)
-        alerts, modified = pm.apply_minervini_rules(pos, current_price=94.50, atr=2.0)
+        alerts, modified, _evs = pm.apply_minervini_rules(pos, current_price=94.50, atr=2.0)
         self.assertTrue(any("STOP HIT" in a for a in alerts))
         # Per spec B.1: status stays "active" (alert only, human decides).
         self.assertNotEqual(pos["status"], "stop_hit")
 
     def test_no_stop_alert_above_stop(self):
         pos = self._pos(stop=95.0)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=96.0, atr=2.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=96.0, atr=2.0)
         self.assertFalse(any("STOP HIT" in a for a in alerts))
         self.assertNotEqual(pos["status"], "stop_hit")
 
     def test_breakeven_activates_at_20_pct_gain(self):
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)  # lift targets out of range
-        alerts, modified = pm.apply_minervini_rules(pos, current_price=120.0, atr=2.0)
+        alerts, modified, _evs = pm.apply_minervini_rules(pos, current_price=120.0, atr=2.0)
         self.assertTrue(pos.get("breakeven_activated"))
         # 1.0× ATR trail at peak +20%: 120 - 2 = 118. BE floor (entry × 1.005 = 100.5)
         # is much lower; trail wins. Either way stop ≥ 100.5.
@@ -96,7 +96,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
         # atr=0 → ATR trail can't compute. BE floor (entry × 1.005 = 100.5) applies.
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=120.0, atr=0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=120.0, atr=0)
         self.assertTrue(pos.get("breakeven_activated"))
         self.assertAlmostEqual(pos["stop_price"], 100.5, places=2)
         self.assertTrue(any("breakeven" in a.lower() for a in alerts))
@@ -109,14 +109,14 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         highest_price_seen=130.0,
                         target1=200.0, target2=300.0,
                         breakeven_activated=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=130.0, atr=15.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=130.0, atr=15.0)
         self.assertAlmostEqual(pos["stop_price"], 117.0, places=2)
         self.assertTrue(any("trailing stop raised" in a for a in alerts))
 
     def test_atr_trail_silent_before_breakeven(self):
         pos = self._pos(entry_price=100.0, stop=95.0,
                         target1=200.0, target2=300.0)
-        alerts, modified = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
+        alerts, modified, _evs = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
         # peak 110 (+10%) → 1.5× tier. trail = 110 - 1.5×2 = 107. Silent.
         self.assertAlmostEqual(pos["stop_price"], 107.0, places=2)
         self.assertTrue(modified)
@@ -129,7 +129,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         highest_price_seen=125.0,
                         peak_gain_pct=25.0,
                         breakeven_activated=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=122.0, atr=2.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=122.0, atr=2.0)
         self.assertTrue(any("fading" in a for a in alerts))
 
     def test_fade_does_not_fire_within_one_atr_of_high(self):
@@ -139,7 +139,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         highest_price_seen=125.0,
                         peak_gain_pct=25.0,
                         breakeven_activated=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=124.0, atr=2.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=124.0, atr=2.0)
         self.assertFalse(any("fading" in a for a in alerts))
 
     def test_fade_requires_peak_above_20_pct(self):
@@ -148,7 +148,7 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         target1=200.0, target2=300.0,
                         highest_price_seen=115.0,
                         peak_gain_pct=15.0)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=110.0, atr=2.0)
         self.assertFalse(any("fading" in a for a in alerts))
 
     def test_fade_dedups_until_another_5pp_drop(self):
@@ -158,15 +158,15 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
                         highest_price_seen=150.0,
                         peak_gain_pct=50.0,
                         breakeven_activated=True)
-        alerts1, _ = pm.apply_minervini_rules(pos, current_price=140.0, atr=2.0)
+        alerts1, _, _evs = pm.apply_minervini_rules(pos, current_price=140.0, atr=2.0)
         self.assertTrue(any("fading" in a for a in alerts1))
 
         # Next tick: gain at 138/100 = +38% (2pp lower) — within 5pp dedup
-        alerts2, _ = pm.apply_minervini_rules(pos, current_price=138.0, atr=2.0)
+        alerts2, _, _evs = pm.apply_minervini_rules(pos, current_price=138.0, atr=2.0)
         self.assertFalse(any("fading" in a for a in alerts2))
 
         # Drop another 5pp → fires again
-        alerts3, _ = pm.apply_minervini_rules(pos, current_price=132.0, atr=2.0)
+        alerts3, _, _evs = pm.apply_minervini_rules(pos, current_price=132.0, atr=2.0)
         self.assertTrue(any("fading" in a for a in alerts3))
 
     def test_day_high_captures_intraday_peak(self):
@@ -190,19 +190,19 @@ class ApplyMinerviniRulesTests(unittest.TestCase):
     def test_target1_alert_fires_once(self):
         pos = self._pos(entry_price=100.0, target1=120.0, target2=140.0, stop=95.0)
         with patch.object(pm, "_save_winner_chart"):
-            alerts, _ = pm.apply_minervini_rules(pos, current_price=120.5, atr=2.0)
+            alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=120.5, atr=2.0)
         self.assertTrue(any("TARGET 1" in a for a in alerts))
         self.assertTrue(pos["target1_hit"])
 
         # Second run: target1_hit already true → should NOT re-alert
         with patch.object(pm, "_save_winner_chart"):
-            alerts2, _ = pm.apply_minervini_rules(pos, current_price=121.0, atr=2.0)
+            alerts2, _, _evs = pm.apply_minervini_rules(pos, current_price=121.0, atr=2.0)
         self.assertFalse(any("TARGET 1" in a for a in alerts2))
 
     def test_target2_alert(self):
         pos = self._pos(entry_price=100.0, target1=120.0, target2=140.0, stop=95.0,
                         target1_hit=True)
-        alerts, _ = pm.apply_minervini_rules(pos, current_price=141.0, atr=2.0)
+        alerts, _, _evs = pm.apply_minervini_rules(pos, current_price=141.0, atr=2.0)
         self.assertTrue(any("TARGET 2" in a for a in alerts))
 
     def test_highest_price_seen_tracks_up(self):
@@ -288,7 +288,7 @@ class PeakGainBreakevenTests(unittest.TestCase):
         # Current price is back at entry — current gain ~0, but peak was +20.5%.
         # Old code missed this; new code activates breakeven.
         pos = self._pos()
-        alerts, modified = pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
+        alerts, modified, _evs = pm.apply_minervini_rules(pos, current_price=100.0, atr=2.0)
         self.assertTrue(pos.get("breakeven_activated"))
         self.assertGreaterEqual(pos["stop_price"], 100.5)
         self.assertTrue(any("breakeven" in a.lower() for a in alerts))
@@ -341,7 +341,7 @@ class AutoCloseTests(unittest.TestCase):
         positions_data = self._state(open_positions=[pos])
         ts = self._trading(consecutive_wins=2)
         sell_fills = {"PL": {"price": 100.5, "date": "2026-04-24", "units": 100}}
-        alerts = pm.sync_snaptrade_with_rules(
+        alerts, _evs = pm.sync_snaptrade_with_rules(
             snaptrade_positions=[],
             positions_data=positions_data,
             trading_state=ts,
@@ -425,7 +425,7 @@ class ShareDriftReconcileTests(unittest.TestCase):
                  "current_price": 175.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
         ts = self._trading()
-        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
+        alerts, _evs = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
         self.assertEqual(rules_pos["shares"], 50)
         self.assertEqual(rules_pos["entry_price"], 170.00)
         self.assertAlmostEqual(rules_pos["target1"], 204.0, places=1)
@@ -443,7 +443,7 @@ class ShareDriftReconcileTests(unittest.TestCase):
                  "current_price": 58.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
         ts = self._trading()
-        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
+        alerts, _evs = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
         self.assertEqual(rules_pos["shares"], 50)
         self.assertEqual(rules_pos["entry_price"], 50.0)
         self.assertEqual(rules_pos["target1"], 60.0)  # unchanged
@@ -458,7 +458,7 @@ class ShareDriftReconcileTests(unittest.TestCase):
         snap = [{"ticker": "X", "shares": 100, "avg_cost": 50.0,
                  "current_price": 58.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
-        alerts = pm.sync_snaptrade_with_rules(snap, positions_data, self._trading(),
+        alerts, _evs = pm.sync_snaptrade_with_rules(snap, positions_data, self._trading(),
                                               "GREEN", sell_fills={})
         self.assertFalse(any("SHARES" in a or "PARTIAL" in a for a in alerts))
 

@@ -1,12 +1,15 @@
-name: Position Monitor
+name: Position Book
+
+# Consolidated position-book Slack at 3 fixed times per US trading day.
+# Replaces the per-event hourly spam from the old position-monitor cron.
+# A separate workflow (position-critical.yml) runs every 30 min and only posts
+# stop_hit / auto_close / share_drift / T1 / T2 events as immediate one-shots.
 
 on:
   schedule:
-    # Every 2 hours during US market hours (10am–4pm ET = 14,16,18,20 UTC)
-    - cron: '0 14,16,18,20 * * 1-5'
-    # Pre-market (8am ET = 12:00 UTC) and after-hours (6pm ET = 22:00 UTC)
-    - cron: '0 12 * * 1-5'
-    - cron: '0 22 * * 1-5'
+    - cron: '15 13 * * 1-5'   # 9:15 AM ET — pre-open book
+    - cron: '30 14 * * 1-5'   # 10:30 AM ET — post-open book
+    - cron: '30 17 * * 1-5'   # 1:30 PM ET — mid-day book
   workflow_dispatch:
     inputs:
       ticker:
@@ -29,12 +32,13 @@ on:
         required: false
 
 jobs:
-  position-monitor:
+  position-book:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       TZ: Europe/Luxembourg
       PYTHONPATH: .
+      BOOK_RUN: '1'
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_POSITIONS }}
       SNAPTRADE_CLIENT_ID: ${{ secrets.SNAPTRADE_CLIENT_ID }}
       SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}
@@ -58,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run position monitor
+      - name: Run position monitor (book mode)
         env:
           INPUT_TICKER: ${{ github.event.inputs.ticker }}
           INPUT_SHARES: ${{ github.event.inputs.shares }}
@@ -103,7 +107,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json data/claude_portfolio.html data/performance_2026.html dashboard.html watchlist.html || true
+          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json data/book_last_post.json data/claude_portfolio.html data/performance_2026.html dashboard.html watchlist.html || true
           git diff --cached --quiet || git commit -m "Update positions/trading state [skip ci]"
           git push || true
 
@@ -112,4 +116,4 @@ jobs:
         run: |
           curl -s -X POST "${{ secrets.SLACK_WEBHOOK_ALERTS }}" \
             -H 'Content-type: application/json' \
-            --data '{"text": ":x: *Position monitor failed* `'"$(date '+%Y-%m-%d %H:%M')"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'
+            --data '{"text": ":x: *Position book failed* `'"$(date '+%Y-%m-%d %H:%M')"'`\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

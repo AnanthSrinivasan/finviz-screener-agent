@@ -37,7 +37,7 @@ flowchart TB
         W1["daily-finviz.yml<br/><i>Mon-Fri 21:30 UTC</i>"]
         W2["weekly-finviz.yml<br/><i>Saturday 10:00 UTC</i>"]
         W3["earnings-alert.yml<br/><i>Mon-Fri 22:30 UTC</i>"]
-        W4["position-monitor.yml<br/><i>every 30 min</i>"]
+        W4["position-book.yml + position-critical.yml<br/><i>book 13:15/14:30/17:30 UTC · critical */30 14-21 UTC</i>"]
         W5["market_monitor.yml<br/><i>Mon-Fri 22:00 UTC</i>"]
     end
 
@@ -472,10 +472,24 @@ Finviz daily chart attached as media.
 
 ---
 
-### 3.8 Position Monitor — `finviz_position_monitor.py` ✅ UPDATED
+### 3.8 Position Monitor — `agents/trading/position_monitor.py` ✅ UPDATED (May 2026 — Book / Critical split)
 
-**Schedule:** Every 30 min during market hours  
-**Slack:** `#positions` via `SLACK_WEBHOOK_POSITIONS`
+**Slack output now split into two streams** (replaces hourly per-event spam):
+
+- **Position Book** (`position-book.yml`, env `BOOK_RUN=1`): runs **3x daily** at 13:15 / 14:30 / 17:30 UTC. Posts ONE consolidated table with TK / Avg / Now / Move% / Peak% / Stop / $P/L / STATE per row, plus an `🚨 ACTIONS TODAY` block (TRIM / ROUND-TRIP / STOP-NEAR / STOPPED rows sorted by severity) and an `📋 EVENTS SINCE LAST POST` digest.
+- **Position Critical** (`position-critical.yml`): runs every 30 min 14:00–21:00 UTC. Posts ONLY when an event in `rules.CRITICAL_EVENT_KINDS` fires — `stop_hit`, `auto_closed`, `share_drift_avg_up`, `share_drift_partial_sell`, `target1`, `target2`, `hard_stop`. Each event = its own short Slack message. Same event also appended to `data/book_last_post.json` so the next book post acknowledges it.
+
+State map (`agents/trading/book_table.py:compute_state`):
+
+| State | Trigger |
+|---|---|
+| `🔻 STOPPED`    | stop_hit / auto_closed / hard_stop fired this run |
+| `🚨 STOP NEAR`  | `abs(price − stop) / price < 0.5%` |
+| `⚠ TRIM`        | peak ≥ 25% AND giveback > 10pp AND target1_hit (evaluated first — more specific than ROUND-TRIP) |
+| `🚨 ROUND-TRIP` | peak ≥ 15% AND giveback > 18pp |
+| `✓ HOLD`        | default |
+
+`Slack:` `#positions` via `SLACK_WEBHOOK_POSITIONS`. New state file: `data/book_last_post.json` (`{last_book_post_ts, events_since_last: [...]}`). Cleared on every book post.
 
 **Hard stop (item 3) — `MAX_POSITION_LOSS = -4500`:**
 
