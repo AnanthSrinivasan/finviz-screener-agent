@@ -1055,11 +1055,14 @@
       "stop": null,
       "thesis": "Industrials | Q=83 | VCP | ATR 3.4%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-09",
+      "focus_promoted_date": "2026-05-09",
+      "entry_ready_date": "2026-05-09"
     },
     {
       "ticker": "KC",
@@ -2333,8 +2336,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-09"
     },
     {
       "ticker": "KOPN",
@@ -2367,8 +2371,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-09"
     },
     {
       "ticker": "AMN",
@@ -2378,8 +2383,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-09"
     },
     {
       "ticker": "FROG",
@@ -2411,8 +2417,9 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "watching",
-      "source": "breakout_auto"
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-09"
     },
     {
       "ticker": "CPAY",
