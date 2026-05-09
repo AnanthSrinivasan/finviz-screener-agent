@@ -71,8 +71,16 @@ class TestIsReadyToEnter(unittest.TestCase):
         self.assertFalse(_is_ready_to_enter(_row(**{"Dist From High%": -0.5}), set()))
 
     def test_rejects_broken_base(self):
-        # -15% from high = base broken
+        # -15% from high = base broken (gate is -12 after May 2026 softening)
         self.assertFalse(_is_ready_to_enter(_row(**{"Dist From High%": -15}), set()))
+
+    def test_accepts_mtsi_class_minus_10_to_minus_12(self):
+        # MTSI Apr-2026 class: -10.02% missed by 0.02pp under old -10 gate.
+        # New gate is -12, so -10.02 and -11.5 should pass.
+        self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -10.02}), set()))
+        self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -11.5}), set()))
+        self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -12.0}), set()))
+        self.assertFalse(_is_ready_to_enter(_row(**{"Dist From High%": -12.01}), set()))
 
     def test_rejects_atr_too_high(self):
         self.assertFalse(_is_ready_to_enter(_row(**{"ATR%": 8.5}), set()))
@@ -84,6 +92,7 @@ class TestIsReadyToEnter(unittest.TestCase):
         # Boundary values that SHOULD pass
         self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -1.0}), set()))
         self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -10.0}), set()))
+        self.assertTrue(_is_ready_to_enter(_row(**{"Dist From High%": -12.0}), set()))
         self.assertTrue(_is_ready_to_enter(_row(**{"ATR%": 7.0}), set()))
         self.assertTrue(_is_ready_to_enter(_row(**{"Rel Volume": 1.2}), set()))
         self.assertTrue(_is_ready_to_enter(_row(**{"Quality Score": 80}), set()))

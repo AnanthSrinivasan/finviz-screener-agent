@@ -803,7 +803,8 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             base_building_tickers: list | None = None,
                             all_df: pd.DataFrame | None = None,
                             rs_leader_tickers: list | None = None,
-                            rs_leaders_actions: dict | None = None) -> str:
+                            rs_leaders_actions: dict | None = None,
+                            htf_base_reclaim_tickers: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -853,6 +854,34 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
   </div>
   <div class="chart-grid">{"".join(sec['cards'])}</div>
 </div>"""
+
+    # HTF Base Reclaim — collapsible section (uncapped per spec). Tight-against-recent-pivot
+    # names that the 52w-high gate rejects from RTE/FB.
+    htf_base_reclaim_html = ""
+    if htf_base_reclaim_tickers:
+        # Try filter_df first, then fall back to all_df (summary_df) — HTF candidates often
+        # come from the pre-10%-gate universe.
+        _row_lookup_htf: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_htf:
+                    _row_lookup_htf[_t] = _r
+        htf_cards = []
+        for ht in htf_base_reclaim_tickers:
+            _r = _row_lookup_htf.get(ht)
+            if _r is None:
+                continue
+            htf_cards.append(_build_card(ht, _r, FINVIZ_BASE, top_sectors))
+        if htf_cards:
+            htf_base_reclaim_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    🌀 HTF Base Reclaim <span class="section-count">{len(htf_cards)}</span>
+    <span class="section-sub-inline">Stage 2 perfect · deep 52w pullback but tight against recent swing pivot</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(htf_cards)}</div>
+</details>"""
 
     # Base Building — collapsed secondary section (wider-base quality names, human reviews)
     base_building_html = ""
@@ -1173,6 +1202,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 {sector_rotation_html}
 {sections_html}
 {rs_leaders_html}
+{htf_base_reclaim_html}
 {base_building_html}
 {watchlist_html}
 <script>
@@ -1305,6 +1335,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              fresh_breakouts: list | None = None,
                              power_plays: list | None = None,
                              base_building: list | None = None,
+                             htf_base_reclaim: list | None = None,
                              rs_leaders_actions: dict | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
@@ -1412,11 +1443,31 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         })
         blocks.append({"type": "divider"})
 
+    # HTF Base Reclaim — RKLB-class names tight against recent swing pivot from a deeper base.
+    # htf_base_reclaim is list of dicts: {ticker, q, dist52, dist_swing, atr, rvol}
+    if htf_base_reclaim:
+        lines = []
+        for r in htf_base_reclaim[:5]:
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · 52w {r['dist52']:+.0f}% · "
+                f"swing {r['dist_swing']:+.1f}% · ATR {r['atr']:.1f}% · "
+                f"RVol {r['rvol']:.1f}x · `/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":cyclone: *HTF Base Reclaim* (deep 52w pullback but tight against recent swing pivot):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
     # Base Building — quality names in wider bases. Watch-only, no auto-add.
     # base_building is list of dicts: {ticker, q, dist, atr, stage_perfect, vcp_conf}
     if base_building:
         lines = []
-        for r in base_building[:3]:
+        for r in base_building[:10]:
             reason_parts = ["Stage 2 perfect" if r.get("stage_perfect") else "Stage 2"]
             if r.get("vcp_conf", 0) >= 50:
                 reason_parts.append(f"VCP {r['vcp_conf']:.0f}%")
@@ -1703,7 +1754,7 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     Pure predicate for the 'entry-ready' tier (and the Ready-to-Enter Slack block).
 
     All must hold: Stage 2 perfect · VCP conf ≥70 · Q ≥80 ·
-    pullback -1% to -10% from 52w high · ATR ≤7% · RVol ≤1.2 ·
+    pullback -1% to -12% from 52w high · ATR ≤7% · RVol ≤1.2 ·
     not already an open position.
     """
     ticker = row.get("Ticker") if hasattr(row, "get") else None
@@ -1728,7 +1779,7 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     if dist is None or pd.isna(dist):
         return False
     dist = float(dist)
-    if dist > -1.0 or dist < -10.0:
+    if dist > -1.0 or dist < -12.0:
         return False
 
     atr = row.get("ATR%")
@@ -1781,12 +1832,18 @@ def _is_fresh_breakout(row, open_positions_tickers: set) -> bool:
         return False
     atr = float(atr)
 
-    rvol = row.get("Rel Volume")
-    if rvol is None or pd.isna(rvol) or float(rvol) < 1.2:
-        return False
-
     qs = row.get("Quality Score")
     if qs is None or pd.isna(qs) or float(qs) < 70:
+        return False
+    qs_val = float(qs)
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol):
+        return False
+    rvol_val = float(rvol)
+    # Default RVol ≥ 1.2; tight quality exception: Q ≥ 80 AND ATR ≤ 6 allows RVol ≥ 1.0.
+    # Catches RMBS/TWLO-class quiet-pre-break setups where quality + tightness justify it.
+    if rvol_val < 1.2 and not (qs_val >= 80 and atr <= 6 and rvol_val >= 1.0):
         return False
 
     dist = row.get("Dist From High%")
@@ -1887,6 +1944,75 @@ def _is_base_building(row, open_positions_tickers: set, exclude_tickers: set) ->
         return False
 
     return True
+
+
+def _is_htf_base_reclaim_candidate(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
+    """
+    Pre-filter for 🌀 HTF Base Reclaim — checked BEFORE the Alpaca swing-pivot
+    fetch. Cuts API load to <50 tickers/day in practice.
+
+    All must hold (cheap, no network): Stage 2 perfect · Q ≥ 75 · ATR% ≤ 7 ·
+    dist from 52w high < -12% · rising MA stack (SMA20/50/200 all > 0) ·
+    peel-warn safe · RVol ≥ 1.0 · not held · not already in another callout.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    if stage_d.get("stage") != 2 or not stage_d.get("perfect", False):
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 75:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 7.0:
+        return False
+    atr = float(atr)
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    if float(dist) >= -12.0:
+        return False
+
+    sma20 = row.get("SMA20%")
+    if sma20 is None or pd.isna(sma20) or float(sma20) <= 0:
+        return False
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50) or float(sma50) <= 0:
+        return False
+    sma50 = float(sma50)
+    sma200 = row.get("SMA200%")
+    if sma200 is None or pd.isna(sma200) or float(sma200) <= 0:
+        return False
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) < 1.0:
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
+def _is_htf_base_reclaim(row, open_positions_tickers: set, exclude_tickers: set,
+                         swing_dist_pct: float) -> bool:
+    """Final HTF Base Reclaim predicate — pre-filter passes AND swing pivot
+    is within -10% (close to recent swing high). swing_dist_pct comes from
+    agents.utils.swing_pivot.fetch_swing_pivots_batch.
+    """
+    if not _is_htf_base_reclaim_candidate(row, open_positions_tickers, exclude_tickers):
+        return False
+    if swing_dist_pct is None:
+        return False
+    return swing_dist_pct >= -10.0
 
 
 def _is_textbook_vcp(row) -> bool:
@@ -2155,6 +2281,7 @@ def _update_watchlist(
     hidden_growth_tickers: list | None = None,
     breakout_tickers: list | None = None,
     rs_leader_tickers: list | None = None,
+    htf_base_reclaim_tickers: list | None = None,
 ):
     """
     Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
@@ -2379,6 +2506,40 @@ def _update_watchlist(
         rsl_added.append(rsl_ticker)
         log.info("Watchlist: added %s via RS Leader at focus tier (source=rs_leader_auto)", rsl_ticker)
 
+    # ── HTF Base Reclaim entry path: focus tier (parallel to RS Leader). ──
+    # Reclaim of a recent swing pivot from a deeper 52w drawdown is a high-conviction
+    # setup; lands at focus directly so it surfaces above generic watching entries.
+    htf_added: list[str] = []
+    for htf_ticker in (htf_base_reclaim_tickers or []):
+        if htf_ticker in by_ticker:
+            existing_entry = by_ticker[htf_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "focus"
+                existing_entry["focus_promoted_date"] = today
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(htf_ticker)
+                log.info("Watchlist: reactivated %s via HTF Base Reclaim at focus tier", htf_ticker)
+            continue
+        htf_entry = {
+            "ticker":               htf_ticker,
+            "entry_note":           "HTF Base Reclaim — tight against recent swing pivot, deeper 52w base",
+            "entry_price":          None,
+            "stop":                 None,
+            "thesis":               "HTF Base Reclaim — recent swing-pivot reclaim",
+            "added":                today,
+            "status":               "watching",
+            "priority":             "focus",
+            "focus_promoted_date":  today,
+            "source":               "htf_base_reclaim_auto",
+        }
+        existing.append(htf_entry)
+        by_ticker[htf_ticker] = htf_entry
+        htf_added.append(htf_ticker)
+        log.info("Watchlist: added %s via HTF Base Reclaim at focus tier (source=htf_base_reclaim_auto)", htf_ticker)
+
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
     promote_candidates = []
@@ -2431,9 +2592,9 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
@@ -2441,6 +2602,7 @@ def _update_watchlist(
         "hg_added":                hg_added,
         "br_added":                br_added,
         "rsl_added":               rsl_added,
+        "htf_added":               htf_added,
         "reactivated":             reactivated,
         "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
@@ -2714,9 +2876,53 @@ if __name__ == "__main__":
                     "vcp_conf":      float((vcp_d.get("confidence", 0) or 0)) if isinstance(vcp_d, dict) else 0.0,
                 })
         base_building.sort(key=lambda r: r["q"], reverse=True)
-        base_building = base_building[:5]
+        base_building = base_building[:10]
     if base_building:
         log.info("Base Building: %s", [r["ticker"] for r in base_building])
+
+    # HTF Base Reclaim — Stage 2 perfect names with deeper 52w drawdown but
+    # tight against their recent swing pivot. Pre-filter cheap, then fetch swing
+    # pivots from Alpaca for the remainder. Uncapped (predicate is the filter).
+    htf_base_reclaim: list[dict] = []
+    try:
+        exclude_from_htf = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in base_building}
+            | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+        )
+        htf_pre: list = []
+        if not summary_df.empty:
+            for _, row in summary_df.iterrows():
+                if _is_htf_base_reclaim_candidate(row, open_positions_tickers, exclude_from_htf):
+                    htf_pre.append(row)
+        if htf_pre:
+            from agents.utils.swing_pivot import fetch_swing_pivots_batch
+            pre_tickers = [r["Ticker"] for r in htf_pre]
+            log.info("HTF Base Reclaim pre-filter: %d candidates → fetching swing pivots", len(pre_tickers))
+            pivots = fetch_swing_pivots_batch(pre_tickers, days=90, exclude_last=5)
+            for row in htf_pre:
+                t = row["Ticker"]
+                pdata = pivots.get(t)
+                if not pdata:
+                    continue
+                swing_dist = pdata.get("dist_from_swing_high_pct")
+                if not _is_htf_base_reclaim(row, open_positions_tickers, exclude_from_htf, swing_dist):
+                    continue
+                htf_base_reclaim.append({
+                    "ticker":     t,
+                    "q":          float(row.get("Quality Score") or 0),
+                    "dist52":     float(row.get("Dist From High%") or 0),
+                    "dist_swing": float(swing_dist),
+                    "atr":        float(row.get("ATR%") or 0),
+                    "rvol":       float(row.get("Rel Volume") or 0),
+                })
+            htf_base_reclaim.sort(key=lambda r: r["q"], reverse=True)
+        if htf_base_reclaim:
+            log.info("HTF Base Reclaim: %s", [r["ticker"] for r in htf_base_reclaim])
+    except Exception as _e:
+        log.error("HTF Base Reclaim detection failed (non-fatal): %s", _e)
 
     # RS Leader detection — scans summary_df (pre-10%-gate) like Hidden Growth,
     # so single-screener stocks like DOCN (52w High only) are not excluded.
@@ -2770,6 +2976,7 @@ if __name__ == "__main__":
         all_df=summary_df,
         rs_leader_tickers=_rsl_gallery_tickers,
         rs_leaders_actions=rs_leaders_actions,
+        htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
     )
     log.info(f"Chart gallery: {gallery_path}")
 
@@ -2781,6 +2988,7 @@ if __name__ == "__main__":
         fresh_breakouts=fresh_breakouts,
         power_plays=power_plays,
         base_building=base_building,
+        htf_base_reclaim=htf_base_reclaim,
         rs_leaders_actions=rs_leaders_actions if rs_leaders_actions else None,
     )
 
@@ -2793,6 +3001,7 @@ if __name__ == "__main__":
         hidden_growth_tickers=hg_tickers_today,
         breakout_tickers=br_tickers_today,
         rs_leader_tickers=rsl_new_tickers,
+        htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])

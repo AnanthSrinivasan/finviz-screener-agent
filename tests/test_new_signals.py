@@ -76,6 +76,38 @@ class TestFreshBreakout(unittest.TestCase):
     def test_rejects_broken_base(self):
         self.assertFalse(_is_fresh_breakout(_row(**{"Dist From High%": -15.0}), set()))
 
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_q80_atr6_rvol_1_passes_via_exception(self):
+        # RMBS-class quiet pre-break: Q≥80 + ATR≤6 + RVol≥1.0 (no 1.2 expansion needed).
+        self.assertTrue(_is_fresh_breakout(
+            _row(**{"Quality Score": 82.0, "ATR%": 5.3, "Rel Volume": 1.05}),
+            set(),
+        ))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_exception_requires_q80(self):
+        # Q=78 with RVol 1.05 — exception clause fails Q gate, default fails RVol.
+        self.assertFalse(_is_fresh_breakout(
+            _row(**{"Quality Score": 78.0, "ATR%": 5.0, "Rel Volume": 1.05}),
+            set(),
+        ))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_exception_requires_atr_le_6(self):
+        # Q=85 ATR=7 RVol=1.05 — ATR too wide for tight-quality exception.
+        self.assertFalse(_is_fresh_breakout(
+            _row(**{"Quality Score": 85.0, "ATR%": 7.0, "Rel Volume": 1.05}),
+            set(),
+        ))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_exception_requires_rvol_1(self):
+        # Q=85 ATR=5 RVol=0.95 — below absolute floor.
+        self.assertFalse(_is_fresh_breakout(
+            _row(**{"Quality Score": 85.0, "ATR%": 5.0, "Rel Volume": 0.95}),
+            set(),
+        ))
+
     @patch("agents.screener.finviz_agent._peel_warn_for", lambda t, a: 3.0)
     def test_peel_warn_blocks_extended(self):
         # With peel_warn mocked to 3.0 (low ATR tier), sma50/atr = 20/3 = 6.67 > 3.0 → blocked

@@ -297,8 +297,9 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 Two actionable callouts in the daily Slack message, ordered by urgency:
 
 **🎯 Ready to Enter** — top-of-message, top 5 by Quality Score. All must pass:
-Stage 2 perfect · VCP conf ≥70 · Q ≥80 · dist from 52w high -1% to -10% ·
-ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions. Each line shows
+Stage 2 perfect · VCP conf ≥70 · Q ≥80 · dist from 52w high -1% to -12% ·
+ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions.
+(Dist gate softened from -10% → -12% May 2026 — MTSI/RMBS class missed by 0.02-0.33pp.) Each line shows
 metrics + `/stock-research <ticker>`. Also drives the `focus → entry-ready`
 watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate).
 
@@ -316,13 +317,15 @@ change), threshold lowers to 3/6. `eps_qq_strong + inst_buying + stage2_perfect 
 enough to surface without the persistence gate. FSLY (Q86, Q/Q +55%, Inst +7.91%,
 Stage 2 perfect, 1 appearance) is the reference case.
 
-**🚀 Fresh Breakout** — top 5 by Quality Score. Catches ANET-Apr8 / ARWR-today class (breakout-from-base with volume expansion; complementary to Ready-to-Enter which is pullback-based). Criteria: Stage 2 (not requiring perfect) · SMA20% > 0 · SMA50% in (0, 25%] · SMA200% > 0 · RVol ≥1.2 · ATR% ≤8% · Q ≥70 · dist from 52w high 0% to -12% · peel-warn safe (SMA50%/ATR% ≤ per-ticker calibrated) · not held. Auto-adds to watchlist with `source=breakout_auto` (third entry path alongside technical + Hidden Growth).
+**🚀 Fresh Breakout** — top 5 by Quality Score. Catches ANET-Apr8 / ARWR-today class (breakout-from-base with volume expansion; complementary to Ready-to-Enter which is pullback-based). Criteria: Stage 2 (not requiring perfect) · SMA20% > 0 · SMA50% in (0, 25%] · SMA200% > 0 · ATR% ≤8% · Q ≥70 · dist from 52w high 0% to -12% · peel-warn safe (SMA50%/ATR% ≤ per-ticker calibrated) · not held. RVol default ≥1.2 OR tight-quality exception `(Q≥80 AND ATR≤6 AND RVol≥1.0)` — May 2026, catches RMBS/TWLO-class quiet pre-break setups. Auto-adds to watchlist with `source=breakout_auto` (third entry path alongside technical + Hidden Growth).
+
+**🌀 HTF Base Reclaim (May 2026 — RKLB-class)** — catches Stage 2 perfect names that have reclaimed their recent swing pivot from a deeper 52w drawdown (RKLB Apr 16 reference: -16.7% from 52w high but -5%-ish from Jan/Feb swing high). Pre-filter (Finviz snapshot, no network): Stage 2 perfect · Q ≥75 · ATR% ≤7 · dist from 52w high < -12% · rising MA stack (SMA20/50/200 all > 0) · RVol ≥1.0 · peel-safe · not held · not already in RTE/FB/BB/PP/HG. Final gate (`agents/utils/swing_pivot.py`): fetches 90d daily bars from Alpaca, computes `swing_high = max(high)` over last 90d excluding last 5 days, requires `dist_from_swing_high_pct ≥ -10%`. Top 5 by Q in Slack block "🌀 HTF Base Reclaim". Gallery: `<details open>` section with all qualifiers (uncapped). Watchlist: auto-adds at `priority=focus` (`source=htf_base_reclaim_auto`) — fifth entry path alongside technical/HG/breakout/RS Leader.
 
 **⭐ Textbook VCP marker** — overlay badge, not a separate list. Promotes VCP confidence ≥85 · appearances ≥3 · ATR% ≤5 · Stage 2 perfect · dist -3% to -15% · Q ≥80 setups with a ⭐ badge on Slack Top Picks / Ready-to-Enter lines and watchlist.html ticker cells. Flag written to `daily_quality.json` as `textbook_vcp: true/false`. **Dist band widened from -8% to -15% (Apr 30 2026)** after INDV — a textbook setup at -13% — was missed by the prior tighter band.
 
 **💎 Power Play / High Tight Flag** — rare Minervini/O'Neil monster pattern. Criteria: Perf Month ≥50% OR Perf Quarter ≥100% (rocket) · ATR% ≤5 (tight flag) · RVol <1.0 (volume drying) · Stage 2 · peel-warn safe. Uses new Finviz snapshot fields `Perf Month` / `Perf Quarter` — `get_snapshot_metrics` now returns 14-tuple instead of 12.
 
-**🏗 Base Building** — watch-only research tag (no watchlist auto-add). Criteria: Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth. Top 5 by Q, top 3 in Slack block "🏗 Base Building". HTML gallery: collapsed `<details>` section with chart cards. Catches names in wider bases that the -10% Ready-to-Enter dist gate excludes.
+**🏗 Base Building** — watch-only research tag (no watchlist auto-add). Criteria: Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth. Top 10 by Q (May 2026 — bumped from 5 to surface RKLB-class Q=78 names ranked out on busy days), all 10 in Slack block "🏗 Base Building". HTML gallery: collapsed `<details>` section with chart cards.
 
 **⚠ High-vol card annotation** — when ATR%>7 AND Q≥80, `_build_card` adds a `badge-warn` "⚠ High-vol — size 50%" tag to the chart card. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) already hard-block these; the badge is the only signal for human to right-size on Top Picks cards.
 
