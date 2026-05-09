@@ -954,7 +954,7 @@ def _render_pullback_section(buckets: dict) -> str:
     body  = "<h2>🎯 Re-entry Setup — 21 EMA lane</h2>"
     body += (
         "<p class='lb-note'>"
-        "Filters Q≥80 · RS≥70 · ATR≤6 · dist [-12%, 0]. Buckets the "
+        "Filters Q≥80 · RS≥60 · ATR ∈ [3, 6] · dist [-12%, 0]. Buckets the "
         "recurring-names list by distance from the 21 EMA. Entry zone is "
         "where Qullamaggie buys — the rest is a status board, not a list to "
         "act on."
@@ -1963,7 +1963,7 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                     f"*{r['ticker']}*  ${r['price']:.2f}  21EMA ${r['ema21']:.2f}  "
                     f"gap {r['gap_pct']:+.1f}%  ·  Q{r['q']} RS{r['rs']} ATR {r['atr_pct']:.1f}%  ·  peel-safe"
                 )
-            pb_lines.append("_Filters: Q≥80 · RS≥70 · ATR≤6 · within ±1.5% of 21 EMA._")
+            pb_lines.append("_Filters: Q≥80 · RS≥60 · ATR ∈ [3, 6] · within ±1.5% of 21 EMA._")
             blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(pb_lines)}})
             blocks.append({"type": "divider"})
 

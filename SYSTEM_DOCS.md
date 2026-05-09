@@ -218,7 +218,7 @@ Quality Modifier (from daily quality JSON):
 
 EP/IPO names compete in the same ranking as persistence leaders. A 3/7 day EP with score 123 ranks above a passive 7/7 single-screener name at 110. Badges explain *why* a name ranks where it does.
 
-**🎯 Re-entry Setup — 21 EMA pullback lane** (`agents/utils/pullback_setup.py`): the recurring-names list is bucketed by distance from the 21 EMA. Pre-filter Q≥80 · RS≥70 · ATR≤6 · dist [-12%, 0]. Fetches last 30 daily bars from Alpaca per ticker, computes 21 EMA via `_ema` from `agents/trading/rules.py`. Buckets:
+**🎯 Re-entry Setup — 21 EMA pullback lane** (`agents/utils/pullback_setup.py`): the recurring-names list is bucketed by distance from the 21 EMA. Pre-filter Q≥80 · RS≥60 · ATR ∈ [3, 6] · dist [-12%, 0]. ATR floor 3 cuts dead/quiet names; ceiling 6 cuts FLEX/POET-class whippers where 21 EMA noise band > entry precision. Fetches last 30 daily bars from Alpaca per ticker, computes 21 EMA via `_ema` from `agents/trading/rules.py`. Buckets:
 - **🎯 Entry zone** — gap within ±1.5% of 21 EMA. Top 5 in HTML + Slack `#weekly-alerts` block (only when non-empty).
 - **⏳ Watching** — 1.5%–4% above 21 EMA (radar, 5 rows max).
 - **🚫 Extended** — peel multiple > per-ticker peel-warn (replaces the FLEX-ATR-10 class with a labeled "no action" view; 5 rows max).

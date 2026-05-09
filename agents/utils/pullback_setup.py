@@ -40,7 +40,7 @@ def classify_pullback_setup(
     Returns one of: 'entry_zone', 'watching', 'mid_flight', 'extended',
     'below_ema', 'skip'.
     """
-    if q < 80 or rs < 70 or atr_pct > 6 or dist_from_high > 0:
+    if q < 80 or rs < 60 or atr_pct < 3 or atr_pct > 6 or dist_from_high > 0:
         return "skip"
     if dist_from_high < -12:
         return "skip"

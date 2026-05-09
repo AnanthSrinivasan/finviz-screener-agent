@@ -55,8 +55,17 @@ class ClassifyPullbackTests(unittest.TestCase):
         self.assertEqual(classify_pullback_setup(**self._kw(q=70)), "skip")
         self.assertEqual(classify_pullback_setup(**self._kw(rs=50)), "skip")
         self.assertEqual(classify_pullback_setup(**self._kw(atr_pct=8.0)), "skip")
+        self.assertEqual(classify_pullback_setup(**self._kw(atr_pct=2.5)), "skip")
         self.assertEqual(classify_pullback_setup(**self._kw(dist_from_high=2.0)), "skip")
         self.assertEqual(classify_pullback_setup(**self._kw(dist_from_high=-15.0)), "skip")
+
+    def test_rs_60_passes(self):
+        self.assertEqual(classify_pullback_setup(**self._kw(rs=60)), "entry_zone")
+        self.assertEqual(classify_pullback_setup(**self._kw(rs=59)), "skip")
+
+    def test_atr_3_passes(self):
+        self.assertEqual(classify_pullback_setup(**self._kw(atr_pct=3.0, sma50_pct=8.0)), "entry_zone")
+        self.assertEqual(classify_pullback_setup(**self._kw(atr_pct=2.99)), "skip")
 
     def test_extended_via_peel(self):
         # peel_mult = sma50_pct / atr_pct = 40/4 = 10x > peel_warn 8x
