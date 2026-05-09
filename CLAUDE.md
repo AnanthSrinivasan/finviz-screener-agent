@@ -32,7 +32,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Agent | File | Schedule | Slack Channel |
 |-------|------|----------|---------------|
 | Daily Screener | `finviz_agent.py` | 20:30 UTC Mon-Fri | `#daily-alerts` |
-| Weekly Review | `finviz_weekly_agent.py` | 10:00 UTC Saturday | `#weekly-alerts` |
+| Weekly Review | `finviz_weekly_agent.py` | 10:00 UTC Saturday | `#weekly-alerts` — adds 🎯 Re-entry Setup (21 EMA pullback lane) block when actionable |
 | Market Monitor | `market_monitor.py` | 21:00 UTC Mon-Fri | `#market-alerts` (state changes + THRUST) |
 | Position Book | `position_monitor.py` (`BOOK_RUN=1`) | 13:15 / 14:30 / 17:30 UTC Mon-Fri (3x daily) | `#positions` — consolidated table |
 | Position Critical | `position_monitor.py` | Every 30 min 14:00-21:00 UTC Mon-Fri | `#positions` — only when a critical event fires |

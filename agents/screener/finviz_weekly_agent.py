@@ -11,6 +11,8 @@ import requests
 import pandas as pd
 from collections import defaultdict
 
+from agents.utils.pullback_setup import build_pullback_rows
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -904,10 +906,111 @@ def _fng_context(score: float, prev_month: float) -> str:
 # Part 3: HTML Report
 # ----------------------------
 
+def _render_pullback_section(buckets: dict) -> str:
+    """Render the four-bucket pullback re-entry HTML block. Returns empty
+    string when every bucket is empty."""
+    total = sum(len(v) for v in buckets.values())
+    entry_zone = buckets.get("entry_zone", [])
+    watching   = buckets.get("watching", [])[:5]
+    extended   = buckets.get("extended", [])[:5]
+    mid_flight = buckets.get("mid_flight", [])[:10]
+
+    def _row(r: dict, badge: str) -> str:
+        fv = f"{FINVIZ_BASE}/quote.ashx?t={r['ticker']}"
+        ema_str = f"${r['ema21']:.2f}" if r.get("ema21") is not None else "—"
+        gap_cls = "pos" if r["gap_pct"] >= 0 else "neg"
+        peel_note = (
+            f"peel {r['peel_mult']:.1f}x / warn {r['peel_warn']:.1f}x"
+            if badge == "extended"
+            else "peel-safe"
+        )
+        return (
+            "<tr>"
+            f"<td class='pb-badge pb-{badge}'>{_BUCKET_LABEL[badge]}</td>"
+            f"<td class='bold'><a href='{fv}' target='_blank'>{r['ticker']}</a></td>"
+            f"<td class='mono'>${r['price']:.2f}</td>"
+            f"<td class='mono'>{ema_str}</td>"
+            f"<td class='mono {gap_cls}'>{r['gap_pct']:+.1f}%</td>"
+            f"<td class='mono'>Q{r['q']}</td>"
+            f"<td class='mono'>RS{r['rs']}</td>"
+            f"<td class='mono'>{r['atr_pct']:.1f}%</td>"
+            f"<td class='mono'>{r['dist_from_high']:+.1f}%</td>"
+            f"<td class='dim'>{peel_note}</td>"
+            "</tr>"
+        )
+
+    rows_entry    = "".join(_row(r, "entry_zone") for r in entry_zone[:5])
+    rows_watching = "".join(_row(r, "watching") for r in watching)
+    rows_extended = "".join(_row(r, "extended") for r in extended)
+    rows_midflight = "".join(_row(r, "mid_flight") for r in mid_flight)
+
+    if total == 0:
+        return (
+            "<h2>🎯 Re-entry Setup — 21 EMA lane</h2>"
+            "<p class='lb-note'>No recurring names within reach of the 21 EMA "
+            "this week. Wait for a pullback.</p>"
+        )
+
+    body  = "<h2>🎯 Re-entry Setup — 21 EMA lane</h2>"
+    body += (
+        "<p class='lb-note'>"
+        "Filters Q≥80 · RS≥70 · ATR≤6 · dist [-12%, 0]. Buckets the "
+        "recurring-names list by distance from the 21 EMA. Entry zone is "
+        "where Qullamaggie buys — the rest is a status board, not a list to "
+        "act on."
+        "</p>"
+    )
+
+    if rows_entry or not (rows_watching or rows_extended or rows_midflight):
+        body += "<h3 class='pb-h3'>🎯 Entry zone — at 21 EMA (actionable)</h3>"
+        if rows_entry:
+            body += _PB_TABLE.format(rows=rows_entry)
+        else:
+            body += (
+                "<p class='lb-note'>0 names sitting at 21 EMA this week — "
+                "wait for a pullback.</p>"
+            )
+
+    if rows_watching:
+        body += "<h3 class='pb-h3'>⏳ Watching — pulled back, not yet at 21 EMA</h3>"
+        body += _PB_TABLE.format(rows=rows_watching)
+
+    if rows_extended:
+        body += "<h3 class='pb-h3'>🚫 Extended — past peel-warn (no action)</h3>"
+        body += _PB_TABLE.format(rows=rows_extended)
+
+    if rows_midflight:
+        body += (
+            "<details class='pb-details'>"
+            "<summary>🟡 Mid-flight — above 21 EMA but below peel-warn "
+            f"({len(buckets.get('mid_flight', []))})</summary>"
+            f"{_PB_TABLE.format(rows=rows_midflight)}"
+            "</details>"
+        )
+    return body
+
+
+_BUCKET_LABEL = {
+    "entry_zone": "🎯 Entry",
+    "watching":   "⏳ Watch",
+    "mid_flight": "🟡 Mid",
+    "extended":   "🚫 Ext",
+}
+
+_PB_TABLE = (
+    "<table class='pb-table'><thead><tr>"
+    "<th>Bucket</th><th>Ticker</th><th>Price</th><th>21 EMA</th>"
+    "<th>Gap</th><th>Q</th><th>RS</th><th>ATR%</th><th>Dist Hi</th>"
+    "<th>Peel</th>"
+    "</tr></thead><tbody>{rows}</tbody></table>"
+)
+
+
 def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
                           dates_found: list, ai_brief: str,
                           fng_data: dict = None, crypto_data: dict = None,
-                          cc_results: dict = None) -> str:
+                          cc_results: dict = None,
+                          pullback_buckets: dict = None) -> str:
     today      = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
@@ -1279,6 +1382,21 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .cc-trend      { font-size: 0.75rem; color: #374151; margin-bottom: 4px; line-height: 1.5; }
 .cc-conditions { font-size: 0.7rem; color: #16a34a; margin-top: 6px; line-height: 1.6; }
 .cc-note       { font-size: 0.7rem; color: #c2410c; margin-top: 4px; font-style: italic; }
+/* Pullback re-entry */
+.pb-h3       { font-size: 0.78rem; font-weight: 600; color: #111827; margin: 18px 0 6px; }
+.pb-table    { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 8px; }
+.pb-table th { text-align: left; padding: 6px 9px; color: #6b7280; font-weight: 500;
+               border-bottom: 1px solid #e5e7eb; text-transform: uppercase; font-size: 0.62rem; letter-spacing: .05em; }
+.pb-table td { padding: 6px 9px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; color: #111827; }
+.pb-table tr:hover td { background: #f9fafb; }
+.pb-table a  { color: #2563eb; text-decoration: none; }
+.pb-badge    { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.pb-entry_zone { background: #dcfce7; color: #166534; }
+.pb-watching   { background: #fef3c7; color: #92400e; }
+.pb-mid_flight { background: #fff7ed; color: #c2410c; }
+.pb-extended   { background: #fee2e2; color: #b91c1c; }
+.pb-details    { margin: 10px 0 18px; }
+.pb-details summary { cursor: pointer; color: #6b7280; font-size: 0.74rem; padding: 4px 0; }
 /* Leaderboard */
 .lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
 .lb-table th { text-align: left; padding: 6px 9px; color: #6b7280; font-weight: 500;
@@ -1363,6 +1481,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         + "<h2>Top 5 This Week <span class='h2-sub'>— already broken out</span></h2>"
         + "<div class='focus-grid'>" + focus_cards + "</div>"
         + emerging_html
+        + (_render_pullback_section(pullback_buckets) if pullback_buckets is not None else "")
         + cc_html
         + leaderboard_html
         + """<script>
@@ -1754,7 +1873,8 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
 def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                        ai_brief: str, weekly_html: str,
                        dates_found: list, fng_data: dict = None,
-                       crypto_data: dict = None):
+                       crypto_data: dict = None,
+                       pullback_buckets: dict = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
@@ -1833,6 +1953,19 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
     )
     blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": body}})
     blocks.append({"type": "divider"})
+
+    if pullback_buckets:
+        entry_rows = pullback_buckets.get("entry_zone", [])[:5]
+        if entry_rows:
+            pb_lines = ["🎯 *Re-entry Setup — at 21 EMA*"]
+            for r in entry_rows:
+                pb_lines.append(
+                    f"*{r['ticker']}*  ${r['price']:.2f}  21EMA ${r['ema21']:.2f}  "
+                    f"gap {r['gap_pct']:+.1f}%  ·  Q{r['q']} RS{r['rs']} ATR {r['atr_pct']:.1f}%  ·  peel-safe"
+                )
+            pb_lines.append("_Filters: Q≥80 · RS≥70 · ATR≤6 · within ±1.5% of 21 EMA._")
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(pb_lines)}})
+            blocks.append({"type": "divider"})
 
     try:
         resp = requests.post(SLACK_WEBHOOK_URL, json={"blocks": blocks}, timeout=10)
@@ -2011,8 +2144,30 @@ if __name__ == "__main__":
 
     log.info("Running Agent 3 — synthesised AI brief...")
     ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research, market_state)
-    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results)
+
+    # Pullback re-entry buckets — actionable subset of recurring names
+    log.info("Building 21 EMA pullback re-entry buckets...")
+    pullback_buckets = {"entry_zone": [], "watching": [], "mid_flight": [], "extended": []}
+    try:
+        from agents.trading.position_monitor import fetch_alpaca_daily_bars
+        from agents.trading.alpaca_executor import get_entry_peel_warn
+        latest_daily = daily_dfs.get(dates_found[-1]) if dates_found else None
+        leaderboard = select_leaderboard(persistence_df)
+        pullback_buckets = build_pullback_rows(
+            leaderboard, latest_daily, fetch_alpaca_daily_bars, get_entry_peel_warn,
+        )
+        log.info(
+            "Pullback buckets: entry=%d watching=%d mid=%d extended=%d",
+            len(pullback_buckets["entry_zone"]),
+            len(pullback_buckets["watching"]),
+            len(pullback_buckets["mid_flight"]),
+            len(pullback_buckets["extended"]),
+        )
+    except Exception as e:
+        log.warning("Pullback bucket build failed (non-fatal): %s", e)
+
+    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results, pullback_buckets)
     log.info(f"Report: {weekly_html}")
 
-    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data)
+    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data, pullback_buckets)
     log.info("=== Done ===")
