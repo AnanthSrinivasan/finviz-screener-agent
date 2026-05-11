@@ -499,6 +499,8 @@ State map (`agents/trading/book_table.py:compute_state`):
 
 `Slack:` `#positions` via `SLACK_WEBHOOK_POSITIONS`. New state file: `data/book_last_post.json` (`{last_book_post_ts, events_since_last: [...]}`). Cleared on every book post.
 
+**Events digest layout (May 2026 — `build_events_digest`):** events grouped into severity-ordered sections rather than a flat bullet list. Order: 🔻 Stops → ⚠ Warn / Peel → 🎯🎯 Target 2 → 🎯 Target 1 → 🟢 New positions → 🟡 Avg up → 🟠 Partial sell → 🪙 Breakeven / Trail / Fade → 🔄 Retro-patched → ℹ Other. Each event renders as one bullet — multi-line messages collapse newlines to ` · `, Slack `:emoji:` shortcodes and unicode emoji are stripped, ISO timestamps trim to `[HH:MM]`. Ticker prefix is suppressed when the message already names it. Classification uses `kind` first, falls back to `alert_type` (WARN_STOP / PEEL_WARN) and message regex (RETRO-PATCHED).
+
 **Hard stop (item 3) — `MAX_POSITION_LOSS = -4500`:**
 
 Fires 🚨 before any ATR calculation if a position is down more than $4,500 unrealised. Message says "Get out now. No exceptions." and references the SLV Feb 2026 loss explicitly.
