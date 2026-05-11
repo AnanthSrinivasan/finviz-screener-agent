@@ -1,4 +1,20 @@
 {
   "last_book_post_ts": "2026-05-11T17:09:32.811322Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $114.29 \u2014 exit immediately (stop $125.40)",
+      "current_price": 114.29,
+      "stop_price": 125.4,
+      "ts": "2026-05-11T19:00:10.733550Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "ZVRA",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 ZVRA ATR mult 1.88",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-11T19:00:10.733550Z"
+    }
+  ]
 }
