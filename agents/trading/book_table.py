@@ -21,6 +21,7 @@ State map (`compute_state`):
 
 import json
 import os
+import re
 
 ROUND_TRIP_PEAK_MIN = 15.0
 ROUND_TRIP_GIVEBACK = 18.0
@@ -166,24 +167,105 @@ def build_action_block(rows_with_state: list) -> str:
     return "\n".join(lines)
 
 
+_SLACK_EMOJI_RE = re.compile(r":[a-z0-9_+\-]+:")
+_UNICODE_EMOJI_RE = re.compile(
+    "[" "\U0001f300-\U0001faff" "☀-➿" "]+",
+)
+_WS_RE = re.compile(r"\s+")
+
+# Section ordering: most-actionable first.
+_SECTION_ORDER = [
+    ("stops",      "🔻 Stops"),
+    ("warn",       "⚠ Warn / Peel"),
+    ("target2",    "🎯🎯 Target 2"),
+    ("target1",    "🎯 Target 1"),
+    ("new",        "🟢 New positions"),
+    ("avg_up",     "🟡 Avg up"),
+    ("partial",    "🟠 Partial sell"),
+    ("trail",      "🪙 Breakeven / Trail / Fade"),
+    ("retro",      "🔄 Retro-patched"),
+    ("info",       "ℹ Other"),
+]
+
+_KIND_TO_SECTION = {
+    "stop_hit":                "stops",
+    "hard_stop":               "stops",
+    "auto_closed":             "stops",
+    "target1":                 "target1",
+    "target2":                 "target2",
+    "auto_added":              "new",
+    "share_drift_avg_up":      "avg_up",
+    "share_drift_partial_sell":"partial",
+    "breakeven":               "trail",
+    "trailing_stop":           "trail",
+    "fade":                    "trail",
+    "ma_trail":                "trail",
+    "sizing_mode":             "info",
+}
+
+
+def _short_ts(ts: str) -> str:
+    """Trim ISO ts to HH:MM. Empty string when ts is missing or unparseable."""
+    if not ts:
+        return ""
+    m = re.search(r"T(\d{2}:\d{2})", ts)
+    return m.group(1) if m else ""
+
+
+def _clean_message(msg: str) -> str:
+    """Strip Slack emoji codes + unicode emoji, collapse newlines to ' · '."""
+    s = msg.replace("\n", " · ")
+    s = _SLACK_EMOJI_RE.sub("", s)
+    s = _UNICODE_EMOJI_RE.sub("", s)
+    s = _WS_RE.sub(" ", s).strip(" ·-")
+    return s.strip()
+
+
+def _classify_event(ev: dict) -> str:
+    kind = ev.get("kind") or ""
+    alert_type = (ev.get("alert_type") or "").upper()
+    msg_upper = (ev.get("message") or "").upper()
+    if kind in _KIND_TO_SECTION:
+        return _KIND_TO_SECTION[kind]
+    if "WARN_STOP" in alert_type or "PEEL_WARN" in alert_type:
+        return "warn"
+    if "RETRO-PATCHED" in msg_upper or "RETRO_PATCH" in msg_upper:
+        return "retro"
+    if "WARN_STOP" in msg_upper or "PEEL WARN" in msg_upper:
+        return "warn"
+    return "info"
+
+
+def _format_event(ev: dict) -> str:
+    ticker = ev.get("ticker") or "—"
+    clean = _clean_message(ev.get("message") or ev.get("kind") or "")
+    # Drop a leading "TICKER:" / "TICKER —" if it duplicates the ticker we
+    # already have, so the bullet reads cleanly.
+    clean = re.sub(rf"^{re.escape(ticker)}\s*[:\-—]\s*", "", clean)
+    short_ts = _short_ts(ev.get("ts") or "")
+    ts_part = f"  [{short_ts}]" if short_ts else ""
+    if ticker and ticker != "—" and ticker.upper() not in clean.upper():
+        return f"  • {ticker} — {clean}{ts_part}"
+    return f"  • {clean}{ts_part}"
+
+
 def build_events_digest(events_since_last: list) -> str:
-    """Render inter-post events as bullets grouped by ticker. Empty string
-    when no events.
+    """Render inter-post events as bullets grouped into severity-ordered
+    sections. Empty string when no events.
     """
     if not events_since_last:
         return ""
-    lines = ["📋 EVENTS SINCE LAST POST"]
+
+    buckets: dict[str, list[str]] = {}
     for ev in events_since_last:
-        ticker = ev.get("ticker", "—")
-        kind = ev.get("kind", "event")
-        msg = ev.get("message") or kind
-        ts = ev.get("ts", "")
-        ts_part = f" [{ts}]" if ts else ""
-        # Strip Slack emoji markup so the digest stays compact.
-        clean_msg = msg.replace("\U0001f6a8", "").replace(":lock:", "").strip()
-        if ticker not in clean_msg:
-            clean_msg = f"{ticker}: {clean_msg}"
-        lines.append(f"  • {clean_msg}{ts_part}")
+        section = _classify_event(ev)
+        buckets.setdefault(section, []).append(_format_event(ev))
+
+    lines = ["📋 EVENTS SINCE LAST POST"]
+    for key, header in _SECTION_ORDER:
+        if key in buckets:
+            lines.append(header)
+            lines.extend(buckets[key])
     return "\n".join(lines)
 
 

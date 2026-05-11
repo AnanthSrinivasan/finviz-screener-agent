@@ -68,6 +68,66 @@ class EventsDigestTests(unittest.TestCase):
     def test_empty_returns_empty(self):
         self.assertEqual(book_table.build_events_digest([]), "")
 
+    def test_sections_ordered_stops_before_targets_before_new(self):
+        events = [
+            {"kind": "auto_added", "ticker": "COHR", "message": "COHR new position"},
+            {"kind": "target1",    "ticker": "GLW",  "message": "GLW T1 hit"},
+            {"kind": "stop_hit",   "ticker": "CRWV", "message": "CRWV stop hit"},
+        ]
+        out = book_table.build_events_digest(events)
+        self.assertLess(out.index("Stops"), out.index("Target 1"))
+        self.assertLess(out.index("Target 1"), out.index("New positions"))
+
+    def test_t1_and_t2_separate_sections(self):
+        events = [
+            {"kind": "target1", "ticker": "GLW",  "message": "GLW T1 hit"},
+            {"kind": "target2", "ticker": "AAOI", "message": "AAOI T2 hit"},
+        ]
+        out = book_table.build_events_digest(events)
+        self.assertIn("Target 1", out)
+        self.assertIn("Target 2", out)
+        self.assertLess(out.index("Target 2"), out.index("Target 1"))
+
+    def test_strips_slack_emoji_codes_and_newlines(self):
+        events = [{
+            "kind": "auto_added", "ticker": "COHR",
+            "message": ":large_green_circle: AUTO-DETECTED NEW POSITION: COHR\n   20 shares @ $344.31",
+            "ts": "2026-05-11T16:13:03.384850Z",
+        }]
+        out = book_table.build_events_digest(events)
+        self.assertNotIn(":large_green_circle:", out)
+        self.assertNotIn("\n   ", out)  # multi-line indent gone
+        self.assertIn("20 shares", out)
+        self.assertIn("[16:13]", out)  # short ts
+
+    def test_alert_type_routes_to_warn_section(self):
+        events = [
+            {"kind": "info", "ticker": "ZVRA", "alert_type": "WARN_STOP",
+             "message": "WARN_STOP — ZVRA ATR mult 2.01"},
+        ]
+        out = book_table.build_events_digest(events)
+        self.assertIn("Warn", out)
+        self.assertIn("ZVRA", out)
+
+    def test_retro_patch_routed_by_message(self):
+        events = [
+            {"kind": "info", "ticker": "FIGS",
+             "message": "RETRO-PATCHED CLOSE: FIGS — $10.92 → $11.30"},
+        ]
+        out = book_table.build_events_digest(events)
+        self.assertIn("Retro-patched", out)
+        self.assertIn("FIGS", out)
+
+    def test_avg_up_and_partial_sell_separate(self):
+        events = [
+            {"kind": "share_drift_avg_up",       "ticker": "APLD", "message": "APLD 50 → 100"},
+            {"kind": "share_drift_partial_sell", "ticker": "FOO",  "message": "FOO 200 → 100"},
+        ]
+        out = book_table.build_events_digest(events)
+        self.assertIn("Avg up", out)
+        self.assertIn("Partial sell", out)
+        self.assertLess(out.index("Avg up"), out.index("Partial sell"))
+
 
 class ComposeBookTests(unittest.TestCase):
     def test_full_message_renders_table_actions_digest(self):
