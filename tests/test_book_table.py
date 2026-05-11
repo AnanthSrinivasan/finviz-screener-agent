@@ -36,6 +36,99 @@ class ComputeStateTests(unittest.TestCase):
         )
 
 
+class ComputeActionTests(unittest.TestCase):
+    def test_stopped_returns_confirm_exit(self):
+        p = {"ticker": "X", "entry_price": 10, "stop_price": 9, "peak_gain_pct": 5}
+        self.assertEqual(
+            book_table.compute_action(p, 9.0, book_table.STATE_STOPPED),
+            "confirm exit, log result",
+        )
+
+    def test_stop_near_shows_price(self):
+        p = {"ticker": "GLW", "entry_price": 165, "stop_price": 196.81, "peak_gain_pct": 26.5}
+        action = book_table.compute_action(p, 196.85, book_table.STATE_STOP_NEAR)
+        self.assertIn("196.81", action)
+        self.assertIn("likely fires", action)
+
+    def test_t2_hit_trail_tight(self):
+        p = {"ticker": "AAOI", "entry_price": 124.75, "stop_price": 174.36,
+             "peak_gain_pct": 53.6, "target1_hit": True, "target2_hit": True}
+        self.assertEqual(
+            book_table.compute_action(p, 181.83, book_table.STATE_HOLD),
+            "trail tight · past T2",
+        )
+
+    def test_t1_hit_runs_to_t2(self):
+        p = {"ticker": "GLW", "entry_price": 165, "stop_price": 196.81,
+             "peak_gain_pct": 26.5, "target1_hit": True}
+        self.assertEqual(
+            book_table.compute_action(p, 207.60, book_table.STATE_HOLD),
+            "T1 locked · runs to T2",
+        )
+
+    def test_peak_20_be_flag(self):
+        p = {"ticker": "INDV", "entry_price": 34.15, "stop_price": 38.52,
+             "peak_gain_pct": 22.0}
+        self.assertEqual(
+            book_table.compute_action(p, 41.0, book_table.STATE_HOLD),
+            "BE flag · ATR trail",
+        )
+
+    def test_peak_10_low_vol_15x_tier(self):
+        p = {"ticker": "APLD", "entry_price": 41.68, "stop_price": 41.75,
+             "peak_gain_pct": 11.8, "atr_pct": 5.0}
+        self.assertEqual(
+            book_table.compute_action(p, 45.32, book_table.STATE_HOLD),
+            "1.5×ATR trail tier",
+        )
+
+    def test_peak_10_high_vol_10x_tier(self):
+        p = {"ticker": "APLD", "entry_price": 41.68, "stop_price": 41.75,
+             "peak_gain_pct": 11.8, "atr_pct": 10.0}
+        self.assertEqual(
+            book_table.compute_action(p, 45.32, book_table.STATE_HOLD),
+            "1.0×ATR trail · high-vol",
+        )
+
+    def test_peak_5_loss_cap_floor(self):
+        p = {"ticker": "TNA", "entry_price": 63.04, "stop_price": 61.90,
+             "peak_gain_pct": 7.2}
+        self.assertEqual(
+            book_table.compute_action(p, 66.43, book_table.STATE_HOLD),
+            "loss-cap floor on",
+        )
+
+    def test_weak_negative_with_low_peak(self):
+        p = {"ticker": "ZVRA", "entry_price": 11.44, "stop_price": 10.67,
+             "peak_gain_pct": 3.2}
+        self.assertEqual(
+            book_table.compute_action(p, 10.84, book_table.STATE_HOLD),
+            "respect stop · weak",
+        )
+
+    def test_avg_up_today_appends_no_adds(self):
+        p = {"ticker": "APLD", "entry_price": 41.68, "stop_price": 41.75,
+             "peak_gain_pct": 11.8, "atr_pct": 10.0, "last_avg_up_date": "2026-05-11"}
+        action = book_table.compute_action(p, 45.32, book_table.STATE_HOLD,
+                                            today_iso="2026-05-11")
+        self.assertIn("1.0×ATR trail", action)
+        self.assertIn("no adds", action)
+
+    def test_day_1_no_chase_overrides_when_extended(self):
+        p = {"ticker": "COHR", "entry_price": 344.31, "stop_price": 346.73,
+             "peak_gain_pct": 11.7, "atr_pct": 5.0,
+             "entry_date": "2026-05-11"}
+        action = book_table.compute_action(p, 379.89, book_table.STATE_HOLD,
+                                            today_iso="2026-05-11")
+        self.assertEqual(action, "day-1 · no chase")
+
+    def test_textbook_vcp_appends_star(self):
+        p = {"ticker": "INDV", "entry_price": 34.15, "stop_price": 38.52,
+             "peak_gain_pct": 19.6, "textbook_vcp": True}
+        action = book_table.compute_action(p, 38.93, book_table.STATE_HOLD)
+        self.assertIn("VCP ⭐", action)
+
+
 class ActionBlockTests(unittest.TestCase):
     def test_actions_sorted_by_severity(self):
         rows = [

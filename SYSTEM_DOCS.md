@@ -499,6 +499,10 @@ State map (`agents/trading/book_table.py:compute_state`):
 
 `Slack:` `#positions` via `SLACK_WEBHOOK_POSITIONS`. New state file: `data/book_last_post.json` (`{last_book_post_ts, events_since_last: [...]}`). Cleared on every book post.
 
+**ACTION column (May 2026 — `compute_action`):** every row in the book table now carries a short ("what to do") guidance string after STATE. Driven deterministically by state + target flags + peak-gain tier + ATR%, with context suffixes appended for `last_avg_up_date == today` ("no adds"), `entry_date == today` with peak < 20 and move ≥ 8 ("day-1 · no chase"), and `textbook_vcp` ("VCP ⭐"). Reads like the conversational guidance the user gets when asking "what should I do with X."
+
+Examples: `trail tight · past T2` (T2 hit) · `T1 locked · runs to T2` (T1 hit) · `BE flag · ATR trail` (peak ≥ 20%) · `1.5×ATR trail tier` (peak ≥ 10%, ATR ≤ 8%) · `1.0×ATR trail · high-vol` (peak ≥ 10%, ATR > 8%) · `loss-cap floor on` (peak ≥ 5%) · `respect stop · weak` (negative move, peak < 5%) · `confirm exit, log result` (STOPPED) · `stop $X ≈ price — likely fires` (STOP_NEAR) · `cut half — round-trip` (ROUND-TRIP) · `trim — gave back from peak` (TRIM) · `day-1 · no chase` (entry today, move ≥ 8%).
+
 **Events digest layout (May 2026 — `build_events_digest`):** events grouped into severity-ordered sections rather than a flat bullet list. Order: 🔻 Stops → ⚠ Warn / Peel → 🎯🎯 Target 2 → 🎯 Target 1 → 🟢 New positions → 🟡 Avg up → 🟠 Partial sell → 🪙 Breakeven / Trail / Fade → 🔄 Retro-patched → ℹ Other. Each event renders as one bullet — multi-line messages collapse newlines to ` · `, Slack `:emoji:` shortcodes and unicode emoji are stripped, ISO timestamps trim to `[HH:MM]`. Ticker prefix is suppressed when the message already names it. Classification uses `kind` first, falls back to `alert_type` (WARN_STOP / PEEL_WARN) and message regex (RETRO-PATCHED).
 
 **Hard stop (item 3) — `MAX_POSITION_LOSS = -4500`:**

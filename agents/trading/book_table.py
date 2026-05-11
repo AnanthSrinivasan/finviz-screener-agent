@@ -74,7 +74,66 @@ def _fmt_money(v: float) -> str:
     return f"{sign}${abs(v):,.0f}"
 
 
-def _row(position: dict, live_price: float, state: str) -> str:
+def compute_action(position: dict, live_price: float, state: str,
+                   today_iso: str = "") -> str:
+    """Short ('what to do') guidance per position, deterministic.
+
+    Driven by state, target flags, peak_gain tier, ATR%, and a few context
+    flags (textbook_vcp, just_avg_up_date). Reads like the conversational
+    guidance the user gets when asking 'what should I do with X.'
+    """
+    entry = float(position.get("entry_price") or 0)
+    peak  = float(position.get("peak_gain_pct") or 0)
+    stop  = float(position.get("stop_price") or 0)
+    atr_pct = float(position.get("atr_pct") or 0)
+    t1_hit = bool(position.get("target1_hit"))
+    t2_hit = bool(position.get("target2_hit"))
+    move = (live_price - entry) / entry * 100 if entry > 0 else 0.0
+
+    # State overrides — most-actionable first.
+    if state == STATE_STOPPED:
+        return "confirm exit, log result"
+    if state == STATE_STOP_NEAR:
+        return f"stop ${stop:.2f} ≈ price — likely fires"
+    if state == STATE_TRIM:
+        return "trim — gave back from peak"
+    if state == STATE_ROUND_TRIP:
+        return "cut half — round-trip"
+
+    # Target flags take precedence over peak tiers.
+    if t2_hit:
+        base = "trail tight · past T2"
+    elif t1_hit:
+        base = "T1 locked · runs to T2"
+    elif peak >= 20:
+        base = "BE flag · ATR trail"
+    elif peak >= 10:
+        base = "1.0×ATR trail · high-vol" if atr_pct > 8 else "1.5×ATR trail tier"
+    elif peak >= 5:
+        base = "loss-cap floor on"
+    elif move < 0 and peak < 5:
+        base = "respect stop · weak"
+    else:
+        base = "hold · normal trend"
+
+    suffixes = []
+    avg_up_date = position.get("last_avg_up_date") or ""
+    if today_iso and avg_up_date == today_iso:
+        suffixes.append("no adds")
+    entry_date = (position.get("entry_date") or "")[:10]
+    if today_iso and entry_date == today_iso and peak < 20:
+        # Day-1 hold — discourage chasing a same-day winner.
+        if move >= 8 and not (t1_hit or t2_hit):
+            base = "day-1 · no chase"
+    if position.get("textbook_vcp"):
+        suffixes.append("VCP ⭐")
+
+    if suffixes:
+        return base + " · " + " · ".join(suffixes)
+    return base
+
+
+def _row(position: dict, live_price: float, state: str, action: str = "") -> str:
     tk = position["ticker"]
     entry = float(position.get("entry_price") or 0)
     shares = float(position.get("shares") or 0)
@@ -86,7 +145,8 @@ def _row(position: dict, live_price: float, state: str) -> str:
 
     return (
         f"{tk:<5} {entry:>7.2f}  {live_price:>7.2f}  {move:+5.1f}%  "
-        f"{peak:+5.1f}%  {stop:>7.2f}  {_fmt_money(pnl):>8}  {state}"
+        f"{peak:+5.1f}%  {stop:>7.2f}  {_fmt_money(pnl):>8}  "
+        f"{state:<11}  {action}"
     )
 
 
@@ -99,9 +159,11 @@ def build_book_table(positions: list, live_prices: dict, market_state: str,
     rows_with_state: list of (position, live_price, state) tuples — caller
     feeds this to build_action_block().
     """
+    import datetime as _dt
     stopped = stopped_tickers or set()
     rows_with_state: list = []
     total_pnl = 0.0
+    today_iso = _dt.date.today().isoformat()
 
     for p in positions:
         tk = p["ticker"]
@@ -117,9 +179,12 @@ def build_book_table(positions: list, live_prices: dict, market_state: str,
         f"📊 POSITION BOOK — {header_label}".rstrip(" —"),
         f"Market: {market_state} · Sizing: {sizing_mode.upper()} · Open P/L: {_fmt_money(total_pnl)}",
         "",
-        f"{'TK':<5} {'Avg':>7}  {'Now':>7}  {'Move':>5}  {'Peak%':>5}  {'Stop':>7}  {'$P/L':>8}  STATE",
+        f"{'TK':<5} {'Avg':>7}  {'Now':>7}  {'Move':>5}  {'Peak%':>5}  {'Stop':>7}  {'$P/L':>8}  {'STATE':<11}  ACTION",
     ]
-    body_lines = [_row(p, lp, st) for p, lp, st in rows_with_state]
+    body_lines = [
+        _row(p, lp, st, compute_action(p, lp, st, today_iso=today_iso))
+        for p, lp, st in rows_with_state
+    ]
 
     text = "```\n" + "\n".join(header_lines + body_lines) + "\n```"
     return text, rows_with_state
