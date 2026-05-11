@@ -268,11 +268,12 @@
       "stop": null,
       "thesis": "Industrials | Q=91 | ATR 10.0%",
       "added": "2026-04-03",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
       "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-18"
+      "archive_reason": null,
+      "archived_date": "2026-04-18",
+      "reactivated_date": "2026-05-11"
     },
     {
       "ticker": "DELL",
@@ -509,10 +510,12 @@
       "stop": null,
       "thesis": "Technology | Q=99 | VCP | ATR 7.9%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "focus",
-      "focus_promoted_date": "2026-04-15"
+      "focus_promoted_date": "2026-04-15",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-11"
     },
     {
       "ticker": "AU",
@@ -977,11 +980,13 @@
       "stop": null,
       "thesis": "Healthcare | Q=85 | VCP | ATR 5.2%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-11",
+      "focus_promoted_date": "2026-05-11"
     },
     {
       "ticker": "ORLA",
@@ -1276,9 +1281,10 @@
       "thesis": "Technology | Q=99 | VCP | ATR 5.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-27"
+      "focus_promoted_date": "2026-04-27",
+      "entry_ready_date": "2026-05-11"
     },
     {
       "ticker": "WPM",
@@ -2128,8 +2134,10 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-06",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "entry-ready",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-11",
+      "entry_ready_date": "2026-05-11"
     },
     {
       "ticker": "OSS",
@@ -2439,6 +2447,98 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-08",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
+    },
+    {
+      "ticker": "ROKU",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Communication Services | Q=107 | VCP | ATR 3.9%",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "entry-ready",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-05-11",
+      "entry_ready_date": "2026-05-11"
+    },
+    {
+      "ticker": "UMAC",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "BW",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-11"
+    },
+    {
+      "ticker": "CRDO",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "EVC",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-11"
+    },
+    {
+      "ticker": "IONQ",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "ASML",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-11",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
+    },
+    {
+      "ticker": "NESR",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-11",
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
