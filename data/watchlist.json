@@ -268,11 +268,11 @@
       "stop": null,
       "thesis": "Industrials | Q=91 | ATR 10.0%",
       "added": "2026-04-03",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "watching",
-      "archive_reason": null,
-      "archived_date": "2026-04-18",
+      "archive_reason": "age_out",
+      "archived_date": "2026-05-12",
       "reactivated_date": "2026-05-11"
     },
     {
@@ -381,11 +381,12 @@
       "added": "2026-04-08",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-23",
       "reactivated_date": "2026-04-30",
-      "focus_promoted_date": "2026-04-30"
+      "focus_promoted_date": "2026-04-30",
+      "entry_ready_date": "2026-05-12"
     },
     {
       "ticker": "ADI",
@@ -497,11 +498,13 @@
       "stop": null,
       "thesis": "Basic Materials | Q=94 | VCP | ATR 5.7%",
       "added": "2026-04-09",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-24"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-05-12",
+      "focus_promoted_date": "2026-05-12"
     },
     {
       "ticker": "COHR",
@@ -594,11 +597,13 @@
       "stop": null,
       "thesis": "Basic Materials | Q=89 | VCP | ATR 5.3%",
       "added": "2026-04-09",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-24"
+      "priority": "focus",
+      "archive_reason": null,
+      "archived_date": "2026-04-24",
+      "reactivated_date": "2026-05-12",
+      "focus_promoted_date": "2026-05-12"
     },
     {
       "ticker": "AMAT",
@@ -1215,12 +1220,13 @@
       "thesis": "Energy | Q=78 | VCP | ATR 4.0%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-04-29",
       "reactivated_date": "2026-05-08",
-      "focus_promoted_date": "2026-05-08"
+      "focus_promoted_date": "2026-05-08",
+      "entry_ready_date": "2026-05-12"
     },
     {
       "ticker": "CAVA",
@@ -1266,12 +1272,13 @@
       "stop": null,
       "thesis": "Communication Services | Q=99 | ATR 6.2%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
+      "archive_reason": null,
       "archived_date": "2026-05-04",
-      "reactivated_date": "2026-05-02"
+      "reactivated_date": "2026-05-12",
+      "focus_promoted_date": "2026-05-12"
     },
     {
       "ticker": "AMKR",
@@ -1474,12 +1481,13 @@
       "thesis": "Basic Materials | Q=95 | ATR 4.9%",
       "added": "2026-04-16",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-05-01",
       "reactivated_date": "2026-05-07",
-      "focus_promoted_date": "2026-05-07"
+      "focus_promoted_date": "2026-05-07",
+      "entry_ready_date": "2026-05-12"
     },
     {
       "ticker": "VSH",
@@ -2027,9 +2035,10 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-05",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "hidden_growth_auto",
-      "focus_promoted_date": "2026-05-06"
+      "focus_promoted_date": "2026-05-06",
+      "entry_ready_date": "2026-05-12"
     },
     {
       "ticker": "GNRC",
@@ -2529,8 +2538,9 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-11",
       "status": "watching",
-      "priority": "watching",
-      "source": "breakout_auto"
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-12"
     },
     {
       "ticker": "NESR",
@@ -2542,6 +2552,63 @@
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
+    },
+    {
+      "ticker": "HTCO",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-12",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "ACHV",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-12",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "XMTR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-12",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "SGHC",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-12",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-12"
+    },
+    {
+      "ticker": "PACS",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-12",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-12"
     }
   ],
   "tickers": [
