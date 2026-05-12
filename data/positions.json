@@ -14,7 +14,7 @@
       "peak_gain_pct": 65.92,
       "stop_price": 186.29,
       "breakeven_activated": true,
-      "current_gain_pct": 48.63,
+      "current_gain_pct": 43.63,
       "first_entry_price": 116.0,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
@@ -23,7 +23,8 @@
         "ema": 172.47,
         "date": "2026-05-09"
       },
-      "target2_hit": true
+      "target2_hit": true,
+      "last_fade_alert_gain_pct": 43.63
     },
     {
       "ticker": "GLW",
@@ -39,7 +40,7 @@
       "peak_gain_pct": 26.52,
       "stop_price": 196.81,
       "breakeven_activated": true,
-      "current_gain_pct": 16.02,
+      "current_gain_pct": 15.42,
       "first_entry_price": 167.52,
       "last_fade_alert_gain_pct": 16.02
     },
@@ -58,7 +59,7 @@
       "peak_gain_pct": 19.65,
       "stop_price": 38.59,
       "breakeven_activated": false,
-      "current_gain_pct": 11.68
+      "current_gain_pct": 11.33
     },
     {
       "ticker": "CRWV",
@@ -75,7 +76,7 @@
       "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
       "peak_gain_pct": 19.46,
-      "current_gain_pct": -10.87,
+      "current_gain_pct": -11.01,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
         "ma_type": "10% trail",
@@ -97,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 223.74,
-      "current_gain_pct": 5.48,
+      "current_gain_pct": 6.59,
       "first_entry_price": 204.32,
       "peak_gain_pct": 9.5
     },
@@ -114,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 65.61,
-      "current_gain_pct": -12.64,
+      "current_gain_pct": -11.25,
       "first_entry_price": 61.4,
       "peak_gain_pct": 6.86
     },
@@ -131,7 +132,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 11.81,
-      "current_gain_pct": -5.51,
+      "current_gain_pct": -5.33,
       "first_entry_price": 11.42,
       "peak_gain_pct": 3.23
     },
@@ -148,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 46.59,
-      "current_gain_pct": 0.38,
+      "current_gain_pct": 1.8,
       "first_entry_price": 41.5,
       "peak_gain_pct": 11.78
     },
@@ -165,7 +166,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 384.54,
-      "current_gain_pct": 5.53,
+      "current_gain_pct": 3.83,
       "first_entry_price": 344.31,
       "peak_gain_pct": 11.68
     }

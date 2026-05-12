@@ -1,4 +1,75 @@
 {
   "last_book_post_ts": "2026-05-12T15:47:19.427292Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "AAOI",
+      "message": "\ud83d\udea8 STOP HIT: AAOI @ $179.18 \u2014 exit immediately (stop $186.29)",
+      "current_price": 179.18,
+      "stop_price": 186.29,
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "fade",
+      "ticker": "AAOI",
+      "peak_gain_pct": 65.9,
+      "current_gain_pct": 43.6,
+      "given_back_pp": 22.3,
+      "message": ":warning: AAOI fading \u2014 peak +65.9%, now +43.6% (gave back 22.3pp)",
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "GLW",
+      "message": "\ud83d\udea8 STOP HIT: GLW @ $190.54 \u2014 exit immediately (stop $196.81)",
+      "current_price": 190.54,
+      "stop_price": 196.81,
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $38.02 \u2014 exit immediately (stop $38.59)",
+      "current_price": 38.02,
+      "stop_price": 38.59,
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $102.97 \u2014 exit immediately (stop $125.40)",
+      "current_price": 102.97,
+      "stop_price": 125.4,
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $54.49 \u2014 exit immediately (stop $59.56)",
+      "current_price": 54.49,
+      "stop_price": 59.56,
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "CRWV",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 CRWV ATR mult 0.66, P&L $-1,274",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "IREN",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 IREN ATR mult 2.73, P&L $-691",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-05-12T16:23:24.056666Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "ZVRA",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 ZVRA ATR mult 1.83",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-12T16:23:24.056666Z"
+    }
+  ]
 }
