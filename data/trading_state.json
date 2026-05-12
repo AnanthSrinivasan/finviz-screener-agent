@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 6,
+  "consecutive_losses": 7,
   "total_wins": 4,
-  "total_losses": 7,
+  "total_losses": 8,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-05-08",
+  "last_updated": "2026-05-12",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -109,6 +109,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -1719.0
+    },
+    {
+      "ticker": "TNA",
+      "result": "loss",
+      "result_pct": -2.7,
+      "date": "2026-05-12",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -170.0
     }
   ],
   "market_state": "RED",
