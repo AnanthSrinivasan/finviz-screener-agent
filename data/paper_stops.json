@@ -32,19 +32,6 @@
     "atr_pct": 4.96,
     "stop_price": 119.12
   },
-  "GLW": {
-    "stop_price": 192.19,
-    "entry_price": 179.92,
-    "atr_pct": 6.1822427308611765,
-    "entry_date": "2026-05-06",
-    "highest_price_seen": 208.87,
-    "peak_gain_pct": 16.09,
-    "breakeven_activated": false,
-    "target1": 215.9,
-    "target2": 251.89,
-    "target1_hit": false,
-    "pending_close": true
-  },
   "RSI": {
     "stop_price": 25.54,
     "entry_price": 27.185,
@@ -66,7 +53,8 @@
     "target2": 66.99,
     "target1_hit": false,
     "atr_pct": 5.28,
-    "stop_price": 43.93
+    "stop_price": 43.93,
+    "pending_close": true
   },
   "SQM": {
     "entry_price": 91.560159,
