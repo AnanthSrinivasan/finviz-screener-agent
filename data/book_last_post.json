@@ -1,4 +1,36 @@
 {
   "last_book_post_ts": "2026-05-13T15:51:12.240627Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $37.99 \u2014 exit immediately (stop $38.67)",
+      "current_price": 37.99,
+      "stop_price": 38.67,
+      "ts": "2026-05-13T16:23:18.020840Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $110.92 \u2014 exit immediately (stop $128.74)",
+      "current_price": 110.92,
+      "stop_price": 128.74,
+      "ts": "2026-05-13T16:23:18.020840Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $54.34 \u2014 exit immediately (stop $59.56)",
+      "current_price": 54.34,
+      "stop_price": 59.56,
+      "ts": "2026-05-13T16:23:18.020840Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "IREN",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 IREN ATR mult 2.61, P&L $-956",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-05-13T16:23:18.020840Z"
+    }
+  ]
 }
