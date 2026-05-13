@@ -31,6 +31,37 @@
       "message": "\ud83d\udfe1 WARN_STOP \u2014 IREN ATR mult 2.86",
       "alert_type": "WARN_STOP",
       "ts": "2026-05-13T20:18:59.200405Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $38.35 \u2014 exit immediately (stop $38.67)",
+      "current_price": 38.35,
+      "stop_price": 38.67,
+      "ts": "2026-05-13T21:54:02.100045Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $111.31 \u2014 exit immediately (stop $128.74)",
+      "current_price": 111.31,
+      "stop_price": 128.74,
+      "ts": "2026-05-13T21:54:02.100045Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $55.17 \u2014 exit immediately (stop $59.56)",
+      "current_price": 55.17,
+      "stop_price": 59.56,
+      "ts": "2026-05-13T21:54:02.100045Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "IREN",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 IREN ATR mult 2.86",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-13T21:54:02.100045Z"
     }
   ]
 }
