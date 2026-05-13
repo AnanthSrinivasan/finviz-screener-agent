@@ -158,9 +158,10 @@
       "thesis": "Technology | Q=112 | VCP | ATR 3.7%",
       "added": "2026-04-02",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-17"
+      "focus_promoted_date": "2026-04-17",
+      "entry_ready_date": "2026-05-13"
     },
     {
       "ticker": "SQM",
@@ -268,12 +269,13 @@
       "stop": null,
       "thesis": "Industrials | Q=91 | ATR 10.0%",
       "added": "2026-04-03",
-      "status": "archived",
+      "status": "watching",
       "source": "screener_auto",
-      "priority": "watching",
-      "archive_reason": "age_out",
+      "priority": "focus",
+      "archive_reason": null,
       "archived_date": "2026-05-12",
-      "reactivated_date": "2026-05-11"
+      "reactivated_date": "2026-05-13",
+      "focus_promoted_date": "2026-05-13"
     },
     {
       "ticker": "DELL",
@@ -1081,11 +1083,13 @@
       "stop": null,
       "thesis": "Technology | Q=83 | VCP | ATR 5.2%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "reactivated_date": "2026-05-13",
+      "focus_promoted_date": "2026-05-13"
     },
     {
       "ticker": "LWLG",
@@ -1725,8 +1729,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-04-23",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-13"
     },
     {
       "ticker": "INDV",
@@ -2224,9 +2229,10 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-06",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-05-06"
+      "focus_promoted_date": "2026-05-06",
+      "entry_ready_date": "2026-05-13"
     },
     {
       "ticker": "ESTA",
@@ -2609,6 +2615,31 @@
       "priority": "focus",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-05-12"
+    },
+    {
+      "ticker": "LLY",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-13",
+      "status": "watching",
+      "priority": "entry-ready",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-13",
+      "entry_ready_date": "2026-05-13"
+    },
+    {
+      "ticker": "CGNX",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-13",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-13"
     }
   ],
   "tickers": [
