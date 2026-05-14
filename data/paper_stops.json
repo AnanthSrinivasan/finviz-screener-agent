@@ -12,14 +12,14 @@
   },
   "AVGO": {
     "entry_price": 435.049412,
-    "highest_price_seen": 437.51,
-    "peak_gain_pct": 0.57,
+    "highest_price_seen": 439.7,
+    "peak_gain_pct": 1.07,
     "breakeven_activated": false,
     "target1": 522.06,
     "target2": 609.07,
     "target1_hit": false,
     "atr_pct": 3.23,
-    "stop_price": 409.41
+    "stop_price": 411.6
   },
   "LSCC": {
     "entry_price": 122.145447,
@@ -53,17 +53,18 @@
     "target2": 128.18,
     "target1_hit": false,
     "atr_pct": 4.32,
-    "stop_price": 87.45
+    "stop_price": 87.45,
+    "pending_close": true
   },
   "VIK": {
     "entry_price": 83.84,
-    "highest_price_seen": 85.0,
-    "peak_gain_pct": 1.38,
+    "highest_price_seen": 91.89,
+    "peak_gain_pct": 9.6,
     "breakeven_activated": false,
     "target1": 100.61,
     "target2": 117.38,
     "target1_hit": false,
     "atr_pct": 4.01,
-    "stop_price": 78.28
+    "stop_price": 85.17
   }
 }
