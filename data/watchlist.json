@@ -56,7 +56,8 @@
       "thesis": "Character change, European solar demand, Iran energy crisis",
       "added": "2026-03-24",
       "status": "watching",
-      "priority": "watching"
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-14"
     },
     {
       "ticker": "PLAB",
@@ -502,11 +503,12 @@
       "added": "2026-04-09",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-24",
       "reactivated_date": "2026-05-12",
-      "focus_promoted_date": "2026-05-12"
+      "focus_promoted_date": "2026-05-12",
+      "entry_ready_date": "2026-05-14"
     },
     {
       "ticker": "COHR",
@@ -695,11 +697,13 @@
       "stop": null,
       "thesis": "Healthcare | Q=82 | VCP | ATR 4.8%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "entry-ready",
       "focus_promoted_date": "2026-04-23",
-      "entry_ready_date": "2026-04-23"
+      "entry_ready_date": "2026-04-23",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-14"
     },
     {
       "ticker": "NBIS",
@@ -2347,9 +2351,10 @@
       "thesis": "Technology | Q=120 | VCP | ATR 4.0%",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-05-08"
+      "focus_promoted_date": "2026-05-08",
+      "entry_ready_date": "2026-05-14"
     },
     {
       "ticker": "DXYZ",
@@ -2487,8 +2492,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-11",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-14"
     },
     {
       "ticker": "BW",
@@ -2556,8 +2562,10 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-11",
       "status": "watching",
-      "priority": "watching",
-      "source": "breakout_auto"
+      "priority": "entry-ready",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-14",
+      "entry_ready_date": "2026-05-14"
     },
     {
       "ticker": "HTCO",
@@ -2640,6 +2648,17 @@
       "priority": "focus",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-05-13"
+    },
+    {
+      "ticker": "SAIL",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-14",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
     }
   ],
   "tickers": [

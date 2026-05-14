@@ -3,8 +3,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 2,
-    "atr_pct_avg": 9.36,
-    "updated": "2026-04-21"
+    "atr_pct_avg": 9.42,
+    "updated": "2026-05-14"
   },
   "AAOI": {
     "signal": 15.8,
@@ -14,9 +14,9 @@
     "p90": 19.6,
     "max_seen": 23.7,
     "runs": 8,
-    "atr_pct_avg": 8.65,
+    "atr_pct_avg": 8.66,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "CRCL": {
     "calibrated": false,
@@ -35,7 +35,7 @@
     "runs": 5,
     "atr_pct_avg": 7.44,
     "calibrated": true,
-    "updated": "2026-05-13",
+    "updated": "2026-05-14",
     "gap_trimmed": true,
     "bars_start": "2024-01-24"
   },
@@ -212,7 +212,7 @@
     "runs": 7,
     "atr_pct_avg": 2.58,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "STX": {
     "signal": 10.8,
@@ -303,7 +303,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.21,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "ALHC": {
     "signal": 10.0,
@@ -591,7 +591,7 @@
     "runs": 8,
     "atr_pct_avg": 5.23,
     "calibrated": true,
-    "updated": "2026-05-10"
+    "updated": "2026-05-14"
   },
   "NBIS": {
     "signal": 10.0,
@@ -737,7 +737,7 @@
     "runs": 9,
     "atr_pct_avg": 9.96,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "RVMD": {
     "signal": 10.0,
@@ -1554,7 +1554,7 @@
     "runs": 5,
     "atr_pct_avg": 3.25,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "FLG": {
     "signal": 10.0,
@@ -1590,7 +1590,7 @@
     "runs": 7,
     "atr_pct_avg": 5.38,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "CECO": {
     "signal": 10.5,
@@ -1746,7 +1746,7 @@
     "runs": 6,
     "atr_pct_avg": 4.78,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "APLD": {
     "signal": 12.7,
@@ -1758,7 +1758,7 @@
     "runs": 8,
     "atr_pct_avg": 10.1,
     "calibrated": true,
-    "updated": "2026-05-13"
+    "updated": "2026-05-14"
   },
   "BAND": {
     "signal": 10.0,
@@ -2325,5 +2325,17 @@
     "atr_pct_avg": 5.22,
     "calibrated": true,
     "updated": "2026-05-10"
+  },
+  "XBI": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 7.2,
+    "p75": 8.6,
+    "p90": 8.6,
+    "max_seen": 8.7,
+    "runs": 4,
+    "atr_pct_avg": 2.81,
+    "calibrated": true,
+    "updated": "2026-05-14"
   }
 }
