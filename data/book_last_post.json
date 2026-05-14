@@ -50,6 +50,38 @@
       "current_price": 58.4,
       "stop_price": 59.56,
       "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AAOI",
+      "message": "\ud83d\udea8 STOP HIT: AAOI @ $203.57 \u2014 exit immediately (stop $210.14)",
+      "current_price": 203.57,
+      "stop_price": 210.14,
+      "ts": "2026-05-14T21:45:41.286250Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $37.83 \u2014 exit immediately (stop $38.73)",
+      "current_price": 37.83,
+      "stop_price": 38.73,
+      "ts": "2026-05-14T21:45:41.286250Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $114.21 \u2014 exit immediately (stop $128.86)",
+      "current_price": 114.21,
+      "stop_price": 128.86,
+      "ts": "2026-05-14T21:45:41.286250Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $58.40 \u2014 exit immediately (stop $59.56)",
+      "current_price": 58.4,
+      "stop_price": 59.56,
+      "ts": "2026-05-14T21:45:41.286250Z"
     }
   ]
 }
