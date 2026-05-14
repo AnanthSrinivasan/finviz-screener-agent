@@ -1,4 +1,55 @@
 {
   "last_book_post_ts": "2026-05-14T19:20:38.958261Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "share_drift_avg_up",
+      "ticker": "ARWR",
+      "message": "\ud83d\udfe1 SHARES INCREASED: ARWR\n   50 \u2192 100 shares (avg cost $80.00 \u2192 $79.82)\n   T1 $95.78 | T2 $111.75 (recomputed)",
+      "old_shares": 50.0,
+      "new_shares": 100.0,
+      "new_avg": 79.82,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "share_drift_avg_up",
+      "ticker": "XBI",
+      "message": "\ud83d\udfe1 SHARES INCREASED: XBI\n   50 \u2192 70 shares (avg cost $136.50 \u2192 $136.17)\n   T1 $163.40 | T2 $190.64 (recomputed)",
+      "old_shares": 50.0,
+      "new_shares": 70.0,
+      "new_avg": 136.17,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AAOI",
+      "message": "\ud83d\udea8 STOP HIT: AAOI @ $203.55 \u2014 exit immediately (stop $210.14)",
+      "current_price": 203.55,
+      "stop_price": 210.14,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $37.83 \u2014 exit immediately (stop $38.73)",
+      "current_price": 37.83,
+      "stop_price": 38.73,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $114.21 \u2014 exit immediately (stop $128.86)",
+      "current_price": 114.21,
+      "stop_price": 128.86,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $58.40 \u2014 exit immediately (stop $59.56)",
+      "current_price": 58.4,
+      "stop_price": 59.56,
+      "ts": "2026-05-14T20:16:19.694022Z"
+    }
+  ]
 }

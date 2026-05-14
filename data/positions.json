@@ -14,7 +14,7 @@
       "peak_gain_pct": 87.15,
       "stop_price": 210.14,
       "breakeven_activated": true,
-      "current_gain_pct": 63.49,
+      "current_gain_pct": 63.17,
       "first_entry_price": 116.0,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
@@ -40,7 +40,7 @@
       "peak_gain_pct": 28.23,
       "stop_price": 199.21,
       "breakeven_activated": true,
-      "current_gain_pct": 25.92,
+      "current_gain_pct": 26.16,
       "first_entry_price": 167.52
     },
     {
@@ -58,7 +58,7 @@
       "peak_gain_pct": 19.65,
       "stop_price": 38.73,
       "breakeven_activated": false,
-      "current_gain_pct": 8.47
+      "current_gain_pct": 8.21
     },
     {
       "ticker": "CRWV",
@@ -75,7 +75,7 @@
       "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
       "peak_gain_pct": 20.15,
-      "current_gain_pct": -0.05,
+      "current_gain_pct": -0.73,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
         "ma_type": "10% trail",
@@ -98,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 236.54,
-      "current_gain_pct": 15.64,
+      "current_gain_pct": 15.38,
       "first_entry_price": 204.32,
       "peak_gain_pct": 15.77
     },
@@ -115,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 65.61,
-      "current_gain_pct": -1.45,
+      "current_gain_pct": -1.22,
       "first_entry_price": 61.4,
       "peak_gain_pct": 10.98
     },
@@ -132,7 +132,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 12.04,
-      "current_gain_pct": 4.49,
+      "current_gain_pct": 2.73,
       "first_entry_price": 11.42,
       "peak_gain_pct": 6.08
     },
@@ -149,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 47.79,
-      "current_gain_pct": 11.83,
+      "current_gain_pct": 12.07,
       "first_entry_price": 41.5,
       "peak_gain_pct": 14.66
     },
@@ -166,43 +166,43 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 25.16,
-      "current_gain_pct": 5.99,
+      "current_gain_pct": 6.68,
       "first_entry_price": 22.84,
       "peak_gain_pct": 7.71
     },
     {
       "ticker": "ARWR",
-      "shares": 50,
-      "entry_price": 80.0,
+      "shares": 100,
+      "entry_price": 79.82,
       "entry_date": "2026-05-14",
       "stop_price": 74.56,
       "breakeven_activated": false,
-      "target1": 96.0,
+      "target1": 95.78,
       "target1_hit": false,
-      "target2": 112.0,
+      "target2": 111.75,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 82.26,
-      "current_gain_pct": -0.43,
+      "current_gain_pct": -0.16,
       "first_entry_price": 80.0,
-      "peak_gain_pct": 2.83
+      "peak_gain_pct": 3.06
     },
     {
       "ticker": "XBI",
-      "shares": 50,
-      "entry_price": 136.5,
+      "shares": 70,
+      "entry_price": 136.17,
       "entry_date": "2026-05-14",
       "stop_price": 130.0,
       "breakeven_activated": false,
-      "target1": 163.8,
+      "target1": 163.4,
       "target1_hit": false,
-      "target2": 191.1,
+      "target2": 190.64,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 136.8,
-      "current_gain_pct": -1.03,
+      "current_gain_pct": -0.97,
       "first_entry_price": 136.5,
-      "peak_gain_pct": 0.22
+      "peak_gain_pct": 0.46
     },
     {
       "ticker": "FLY",
@@ -217,7 +217,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 43.53,
-      "current_gain_pct": 2.02,
+      "current_gain_pct": 1.68,
       "first_entry_price": 41.62,
       "peak_gain_pct": 4.59
     }
