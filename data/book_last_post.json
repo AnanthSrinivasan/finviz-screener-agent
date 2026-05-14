@@ -1,4 +1,43 @@
 {
   "last_book_post_ts": "2026-05-14T16:28:33.891855Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_added",
+      "ticker": "FLY",
+      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: FLY\n   150 shares @ $41.62 (from SnapTrade)\n   Auto-stop: $31.83 | T1: $49.94 | T2: $58.27\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
+      "ts": "2026-05-14T18:17:40.000604Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AAOI",
+      "message": "\ud83d\udea8 STOP HIT: AAOI @ $205.35 \u2014 exit immediately (stop $210.14)",
+      "current_price": 205.35,
+      "stop_price": 210.14,
+      "ts": "2026-05-14T18:17:40.000604Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "INDV",
+      "message": "\ud83d\udea8 STOP HIT: INDV @ $38.17 \u2014 exit immediately (stop $38.73)",
+      "current_price": 38.17,
+      "stop_price": 38.73,
+      "ts": "2026-05-14T18:17:40.000604Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $113.60 \u2014 exit immediately (stop $128.86)",
+      "current_price": 113.6,
+      "stop_price": 128.86,
+      "ts": "2026-05-14T18:17:40.000604Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "IREN",
+      "message": "\ud83d\udea8 STOP HIT: IREN @ $58.01 \u2014 exit immediately (stop $59.56)",
+      "current_price": 58.01,
+      "stop_price": 59.56,
+      "ts": "2026-05-14T18:17:40.000604Z"
+    }
+  ]
 }
