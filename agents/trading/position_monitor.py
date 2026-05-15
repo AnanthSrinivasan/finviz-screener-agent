@@ -1130,7 +1130,7 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
 
     if side == "BUY":
         # Rule 6 — Market state gate
-        if market_state in ("RED", "BLACKOUT"):
+        if market_state in ("RED", "BLACKOUT", "EXTENDED"):
             alerts.append(
                 f"\u274c BLOCKED: Market is {market_state} \u2014 "
                 f"no new entries. Rule 6: no forced trades."
@@ -1164,8 +1164,10 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             initial_stop = ma50
 
         sizing_note = ""
-        if market_state == "CAUTION":
-            sizing_note = "\n\u26a0\ufe0f Market is CAUTION \u2014 half sizing applies."
+        if market_state in ("CAUTION", "STEADY-UPTREND"):
+            sizing_note = (
+                f"\n\u26a0\ufe0f Market is {market_state} \u2014 half sizing applies."
+            )
 
         # --- Averaging up: merge into existing position ---
         if existing:
@@ -1285,6 +1287,7 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
     state_emoji = {
         "THRUST": "\U0001f7e2", "GREEN": "\U0001f7e2", "CAUTION": "\U0001f7e1",
         "DANGER": "\U0001f7e0", "RED": "\U0001f534", "BLACKOUT": "\u26ab",
+        "EXTENDED": "\U0001f321\ufe0f", "STEADY-UPTREND": "\U0001f7e2",
     }
 
     # Build position lines
@@ -1528,7 +1531,7 @@ if __name__ == "__main__":
             pnl        = (price - avg_cost) * shares
             pnl_pct    = ((price / avg_cost) - 1) * 100 if avg_cost > 0 else 0
             # Tighten stop base in bear market conditions
-            base_pct = 3.0 if market_state in ("RED", "DANGER") else STOP_LOSS_BASE_PCT
+            base_pct = 3.0 if market_state in ("RED", "DANGER", "EXTENDED") else STOP_LOSS_BASE_PCT
             stop_loss_pct = base_pct + (atr_pct * STOP_LOSS_ATR_MULT)
 
             pos["stop_loss_pct"] = round(stop_loss_pct, 1)

@@ -378,17 +378,25 @@ no-op (reactivates if aged-out). Daily snapshot written to `data/hidden_growth.j
 
 ## Market State Classification
 
-The cycle flows directionally: RED → THRUST → CAUTION → GREEN → COOLING → CAUTION/RED → DANGER → RED
+The cycle flows directionally: RED → THRUST → CAUTION → STEADY-UPTREND → GREEN → COOLING → EXTENDED → DANGER → RED
 
 | State | Condition | Priority | Direction | Trading Action |
 |-------|-----------|----------|-----------|---------------|
 | BLACKOUT | Feb 1–end of Feb · Sep 1–Sep 30 | 1 | — | No new trades in Feb or Sep — both flagged as seasonally unreliable months |
 | DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | ↓ hard | No entries, raise stops immediately |
-| COOLING | prev_state == GREEN AND GREEN conditions no longer met | 3 | ↓ fading | Trim positions, tighten stops, no new entries |
-| THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 4 | ↑ signal | Start building watchlist NOW |
-| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 5 | ↑ bull | Full size entries |
-| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 6 | ↑ recovering | Half size, build watchlist, get ready |
-| RED | Everything else (SPY below 200d MA or 5d ratio < 1.0) | 7 | ↓ bear | No new trades |
+| **EXTENDED** | SPY ATR mult from 50MA ≥ 7 **OR** SPY %above 50MA ≥ 8 **OR** QQQ ATR mult from 50MA ≥ 9 | 3 | ↑↑ blow-off | **No new entries** — parabolic tape, tighten stops, no chase. Overrides THRUST/GREEN/CAUTION/STEADY (May 2026 — SNDK distribution-day class) |
+| COOLING | prev_state == GREEN AND GREEN conditions no longer met | 4 | ↓ fading | Trim positions, tighten stops, no new entries |
+| THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 5 | ↑ signal | Start building watchlist NOW |
+| GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 6 | ↑ bull | Full size entries |
+| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 7 | ↑ recovering | Half size, build watchlist, get ready |
+| **STEADY-UPTREND** | SPY > 200d AND SPY > 50d AND F&G ≥ 50 AND up4 ≥ dn4 AND 5d_ratio ≥ 0.9 AND prev_state ∉ {RED, DANGER, BLACKOUT, EXTENDED} AND not EXTENDED | 8 | ↑ steady | Half size, entries allowed on confirmed RS leaders. Fills the gap between thrust-day bullish tiers and RED on a trending tape between thrust days (May 2026) |
+| RED | Everything else (SPY below 200d MA or breadth weak) | 9 | ↓ bear | No new trades |
+
+**SPY/QQQ extension metrics** — `spy_atr_mult_50`, `spy_sma50_pct`, `qqq_atr_mult_50`, `qqq_sma50_pct` are computed from Alpaca daily bars via `fetch_index_extension()` and persisted in each daily JSON record. ATR% Multiple formula matches `utils/calibrate_peel.py`: `(close − sma50) × close / (sma50 × atr14)`. `is_extended()` predicate fires if any of: SPY ATR mult ≥ 7, SPY %above 50 ≥ 8, QQQ ATR mult ≥ 9.
+
+**STEADY-UPTREND prev_state guard** is strict by design: the only path out of RED stays RED → THRUST → CAUTION → GREEN. A single greedy-day bounce inside a downtrend cannot auto-rescue entries. Also blocked when EXTENDED is active (priority 3 wins).
+
+**Executor / position_monitor wiring:** EXTENDED → `(block=True, size_mul=0.0)`, STEADY-UPTREND → `(block=False, size_mul=0.5)`. In EXTENDED, dynamic stop base tightens to 3% (same as RED/DANGER). Backtest replay: `python scripts/replay_state_machine.py --days 60`.
 
 **Confidence Layer (two overlays — May 2026):**
 - **Layer 1 — Post-THRUST floor:** After any THRUST day, minimum state = CAUTION for 3 calendar days. Fixes THRUST→RED-next-day flips. DANGER still bypasses immediately. `post_thrust_floor_active` written to daily record + `trading_state.json`.

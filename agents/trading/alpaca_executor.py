@@ -44,21 +44,23 @@ WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 def effective_max_positions(market_state: str) -> int:
     if market_state in ("GREEN", "THRUST"):
         return 10
-    if market_state == "CAUTION":
+    if market_state in ("CAUTION", "STEADY-UPTREND"):
         return 7
-    return 5  # COOLING, DANGER, RED, BLACKOUT
+    return 5  # COOLING, DANGER, RED, BLACKOUT, EXTENDED
 
 
 # Market state → (block_entries, size_multiplier)
 # Mirrors the live position_monitor's Rule 6 / regime-conditioning policy.
 _MARKET_GATE = {
-    "BLACKOUT": (True,  0.0),  # seasonal freeze
-    "DANGER":   (True,  0.0),
-    "RED":      (True,  0.0),
-    "COOLING":  (False, 0.5),  # trim/tighten regime — half size
-    "CAUTION":  (False, 0.5),  # half size
-    "GREEN":    (False, 1.0),
-    "THRUST":   (False, 1.0),
+    "BLACKOUT":       (True,  0.0),  # seasonal freeze
+    "DANGER":         (True,  0.0),
+    "RED":            (True,  0.0),
+    "EXTENDED":       (True,  0.0),  # parabolic tape — no chase
+    "COOLING":        (False, 0.5),  # trim/tighten regime — half size
+    "CAUTION":        (False, 0.5),  # half size
+    "STEADY-UPTREND": (False, 0.5),  # steady trend tape — half size
+    "GREEN":          (False, 1.0),
+    "THRUST":         (False, 1.0),
 }
 
 # ATR% tier fallback for peel warn — mirrors PEEL_THRESHOLDS in position_monitor.py.

@@ -397,6 +397,11 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     # Fear & Greed
     fg = fetch_fng()
 
+    # Extension metrics — SPY + QQQ ATR multiples / SMA50% via Alpaca daily bars.
+    # Used to detect parabolic / "no chase" regime (EXTENDED state).
+    spy_ext = fetch_index_extension("SPY")
+    qqq_ext = fetch_index_extension("QQQ")
+
     return {
         "up_4_today":      up_4,
         "down_4_today":    down_4,
@@ -408,8 +413,87 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         "down_25_quarter": down_25_quarter,
         "spy_price":       spy_data.get("price"),
         "spy_sma200_pct":  spy_data.get("sma200_pct"),
+        "spy_sma50_pct":   spy_ext.get("sma50_pct") if spy_ext else None,
+        "spy_atr_mult_50": spy_ext.get("atr_mult_50") if spy_ext else None,
+        "qqq_sma50_pct":   qqq_ext.get("sma50_pct") if qqq_ext else None,
+        "qqq_atr_mult_50": qqq_ext.get("atr_mult_50") if qqq_ext else None,
         "fg":              fg,
     }
+
+
+def fetch_index_extension(ticker: str) -> dict | None:
+    """Fetch SPY/QQQ daily bars from Alpaca and compute extension metrics.
+
+    Returns dict with sma50_pct, atr_mult_50, sma200_pct or None on failure.
+    ATR% Multiple formula matches utils/calibrate_peel.py / TradingView:
+        (close - sma50) * close / (sma50 * atr14)
+    """
+    key = os.environ.get("ALPACA_API_KEY", "")
+    secret = os.environ.get("ALPACA_SECRET_KEY", "")
+    if not key or not secret:
+        log.warning("Alpaca keys missing — cannot compute %s extension metrics", ticker)
+        return None
+
+    try:
+        from utils.calibrate_peel import wilder_atr, compute_sma
+    except Exception as e:
+        log.warning("Could not import indicator helpers: %s", e)
+        return None
+
+    try:
+        resp = requests.get(
+            f"{ALPACA_DATA_URL}/stocks/{ticker}/bars",
+            headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret},
+            params={"timeframe": "1Day", "limit": 220, "adjustment": "raw", "feed": "iex"},
+            timeout=15,
+        )
+        if not resp.ok:
+            log.warning("Alpaca bars failed for %s: %s", ticker, resp.status_code)
+            return None
+        bars = resp.json().get("bars", [])
+        if len(bars) < 50:
+            log.warning("Insufficient %s bars (%d) for extension calc", ticker, len(bars))
+            return None
+        closes = [b["c"] for b in bars]
+        sma50 = compute_sma(closes, 50)[-1]
+        sma200 = compute_sma(closes, 200)[-1] if len(closes) >= 200 else None
+        atr14 = wilder_atr(bars)[-1]
+        close = closes[-1]
+        if sma50 and atr14:
+            atr_mult_50 = round((close - sma50) * close / (sma50 * atr14), 2)
+            sma50_pct = round((close - sma50) / sma50 * 100, 2)
+        else:
+            atr_mult_50 = None
+            sma50_pct = None
+        sma200_pct = round((close - sma200) / sma200 * 100, 2) if sma200 else None
+        log.info("%s extension: sma50%%=%s atr_mult_50=%s sma200%%=%s",
+                 ticker, sma50_pct, atr_mult_50, sma200_pct)
+        return {
+            "close": close,
+            "sma50_pct": sma50_pct,
+            "atr_mult_50": atr_mult_50,
+            "sma200_pct": sma200_pct,
+        }
+    except Exception as e:
+        log.warning("Extension fetch failed for %s: %s", ticker, e)
+        return None
+
+
+def is_extended(spy_atr_mult_50: float | None,
+                spy_sma50_pct: float | None,
+                qqq_atr_mult_50: float | None) -> bool:
+    """Parabolic / blow-off guardrail.
+
+    Fires when the index is stretched far above its 50MA. Any one trigger is
+    enough — SPY ATR mult ≥ 7, SPY %above 50 ≥ 8, or QQQ ATR mult ≥ 9.
+    """
+    if spy_atr_mult_50 is not None and spy_atr_mult_50 >= 7.0:
+        return True
+    if spy_sma50_pct is not None and spy_sma50_pct >= 8.0:
+        return True
+    if qqq_atr_mult_50 is not None and qqq_atr_mult_50 >= 9.0:
+        return True
+    return False
 
 
 def fetch_spy_data(session: requests.Session) -> dict:
@@ -528,8 +612,9 @@ def classify_market_state(metrics: dict, fg: float | None,
                           last_thrust_date: str | None = None,
                           consecutive_weak_days: int = 0) -> tuple[str, str, dict]:
     """
-    Classify market into one of 7 states, checked in priority order:
-      BLACKOUT → DANGER → COOLING → THRUST → GREEN → CAUTION → RED
+    Classify market into one of 9 states, checked in priority order:
+      BLACKOUT → DANGER → EXTENDED → COOLING → THRUST → GREEN → CAUTION
+      → STEADY-UPTREND → RED
 
     Returns (state, message, context) where context = {
         post_thrust_floor_active: bool,
@@ -559,6 +644,30 @@ def classify_market_state(metrics: dict, fg: float | None,
 
     extreme_greed = fg_val > 74
     extreme_fear  = fg_val < 25
+
+    # EXTENDED — parabolic / blow-off guardrail (May 2026, SNDK reference case).
+    # Overrides all bullish tiers (THRUST/GREEN/CAUTION/STEADY-UPTREND): when
+    # the index is stretched far above its 50MA, no new entries regardless of
+    # breadth. Existing positions: tighten stops, no chase. DANGER already
+    # escaped above. Skip during seasonal blackout.
+    spy_atr_mult_50 = today_data.get("spy_atr_mult_50")
+    spy_sma50_pct   = today_data.get("spy_sma50_pct")
+    qqq_atr_mult_50 = today_data.get("qqq_atr_mult_50")
+    extended = is_extended(spy_atr_mult_50, spy_sma50_pct, qqq_atr_mult_50)
+    if extended:
+        spy_part = (
+            f"SPY ATR mult {spy_atr_mult_50:.1f}× / +{spy_sma50_pct:.1f}% above 50MA"
+            if spy_atr_mult_50 is not None and spy_sma50_pct is not None
+            else "SPY extension data unavailable"
+        )
+        qqq_part = (
+            f"QQQ ATR mult {qqq_atr_mult_50:.1f}×"
+            if qqq_atr_mult_50 is not None else ""
+        )
+        msg = "Parabolic tape — no new entries, tighten stops. " + spy_part
+        if qqq_part:
+            msg += " · " + qqq_part
+        return "EXTENDED", msg, ctx
 
     # Layer 2b — Extreme fear + THRUST from RED/DANGER: high-confidence recovery.
     # Override THRUST → CAUTION so executor can size in immediately; tag the event.
@@ -618,6 +727,21 @@ def classify_market_state(metrics: dict, fg: float | None,
             and spy_above_200d):
         return "CAUTION", "Recovering — build watchlist, half size", ctx
 
+    # 6b. STEADY-UPTREND — trend tape between thrust days.
+    #     SPY > 200d AND SPY > 50d AND F&G ≥ 50 AND up4 ≥ dn4 AND 5d_ratio ≥ 0.9
+    #     AND prev_state ∉ {RED, DANGER, BLACKOUT, EXTENDED} (don't auto-rescue
+    #     a bear bounce; path out of RED stays RED → THRUST → CAUTION → GREEN).
+    #     Half size, entries allowed.
+    spy_above_50d = (spy_sma50_pct is not None and spy_sma50_pct > 0)
+    if (spy_above_200d
+            and spy_above_50d
+            and fg_val >= 50
+            and today_data["up_4_today"] >= today_data["down_4_today"]
+            and metrics["ratio_5day"] >= 0.9
+            and prev_state not in ("RED", "DANGER", "BLACKOUT", "EXTENDED", None)):
+        return ("STEADY-UPTREND",
+                "Steady uptrend — half size, entries allowed", ctx)
+
     # 7. RED — check Layer 1 post-THRUST floor before returning RED.
     #    After any THRUST, enforce minimum state = CAUTION for 3 trading days.
     #    DANGER already escaped above; floor only overrides RED.
@@ -667,6 +791,10 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
         "fg":                     today_data.get("fg"),
         "spy_price":              today_data.get("spy_price"),
         "spy_sma200_pct":         today_data.get("spy_sma200_pct"),
+        "spy_sma50_pct":          today_data.get("spy_sma50_pct"),
+        "spy_atr_mult_50":        today_data.get("spy_atr_mult_50"),
+        "qqq_sma50_pct":          today_data.get("qqq_sma50_pct"),
+        "qqq_atr_mult_50":        today_data.get("qqq_atr_mult_50"),
         "spy_above_200d":         metrics["spy_above_200d"],
         "market_state":           state,
         "state_message":          message,
@@ -747,6 +875,7 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
     state_emoji = {
         "THRUST": "🚨", "GREEN": "✅", "CAUTION": "🟡",
         "COOLING": "🧊", "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
+        "EXTENDED": "🌡️", "STEADY-UPTREND": "🟢",
     }
     emoji = state_emoji.get(state, "📊")
 
@@ -783,6 +912,18 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
             "ACTION: No new entries.\n"
             "Raise stops on all open positions.\n"
             "Consider peeling weak names."
+        )
+    elif state == "EXTENDED":
+        action = (
+            "ACTION: Parabolic tape — NO new entries.\n"
+            "Tighten stops on all holdings. Trim extended names.\n"
+            "Hold what's working; don't chase. Re-engage when SPY pulls back to ATR mult < 7."
+        )
+    elif state == "STEADY-UPTREND":
+        action = (
+            "ACTION: Steady uptrend between thrust days — half size only.\n"
+            "Entries allowed on confirmed RS leaders.\n"
+            "Watch for THRUST or GREEN confirmation to upsize."
         )
     elif state == "BLACKOUT":
         action = (
@@ -935,9 +1076,9 @@ def run_market_monitor(date: datetime.date | None = None):
     )
     log.info(f"Market state: {state} — {message}")
 
-    # Compute updated consecutive_weak_days: reset on GREEN/THRUST/BLACKOUT, else increment
+    # Compute updated consecutive_weak_days: reset on GREEN/THRUST/BLACKOUT/STEADY/EXTENDED, else increment
     new_consecutive_weak_days = (
-        0 if state in ("GREEN", "THRUST", "BLACKOUT")
+        0 if state in ("GREEN", "THRUST", "BLACKOUT", "STEADY-UPTREND", "EXTENDED")
         else consecutive_weak_days + 1
     )
 
@@ -970,7 +1111,9 @@ def run_market_monitor(date: datetime.date | None = None):
                 title=f"Market: {prev_state} → {state}",
                 date=record.get("date"),
                 severity={"RED": "high", "DANGER": "high", "BLACKOUT": "high",
+                          "EXTENDED": "high",
                           "COOLING": "med", "CAUTION": "med",
+                          "STEADY-UPTREND": "low",
                           "GREEN": "low", "THRUST": "low"}.get(state, "med"),
             )
         except Exception as e:

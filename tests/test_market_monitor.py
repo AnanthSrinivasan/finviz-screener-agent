@@ -383,5 +383,190 @@ class ConfidenceLayerTests(unittest.TestCase):
         self.assertIsNone(ctx["confidence_context"])
 
 
+class ExtendedAndSteadyUptrendTests(unittest.TestCase):
+    """v2 ladder additions (May 2026): EXTENDED + STEADY-UPTREND.
+
+    EXTENDED is the "no chase" guardrail — fires when SPY/QQQ stretch far
+    above their 50MA. Overrides all bullish tiers (THRUST/GREEN/CAUTION).
+    STEADY-UPTREND fills the gap between thrust-day bullish tiers and RED —
+    half-size entries on a trending tape; guarded so a bear bounce can't
+    sneak in.
+    """
+
+    def _date(self, m=5, d=14):
+        return datetime.date(2026, m, d)
+
+    def _metrics(self, ratio_5=1.0, ratio_10=1.0, thrust=False, spy_above=True):
+        return {
+            "ratio_today":   ratio_5,
+            "ratio_5day":    ratio_5,
+            "ratio_10day":   ratio_10,
+            "thrust":        thrust,
+            "spy_above_200d": spy_above,
+        }
+
+    def _today(self, up=10, down=10, spy_atr_mult=None,
+               spy_sma50=None, qqq_atr_mult=None):
+        return {
+            "up_4_today":      up,
+            "down_4_today":    down,
+            "spy_atr_mult_50": spy_atr_mult,
+            "spy_sma50_pct":   spy_sma50,
+            "qqq_atr_mult_50": qqq_atr_mult,
+        }
+
+    def test_is_extended_helpers(self):
+        # SPY ATR mult trigger
+        self.assertTrue(mm.is_extended(7.0, 5.0, 4.0))
+        self.assertFalse(mm.is_extended(6.99, 5.0, 4.0))
+        # SPY %above-50 trigger
+        self.assertTrue(mm.is_extended(3.0, 8.0, 4.0))
+        # QQQ ATR mult trigger (SPY moderate)
+        self.assertTrue(mm.is_extended(3.0, 5.0, 9.0))
+        # All None → not extended
+        self.assertFalse(mm.is_extended(None, None, None))
+
+    def test_extended_overrides_thrust(self):
+        # May 6 2026 scenario: THRUST day at parabolic levels — must NOT chase
+        state, msg, _ = mm.classify_market_state(
+            self._metrics(thrust=True, ratio_5=1.5),
+            fg=70, spy_price=748, spy_above_200d=True,
+            today_data=self._today(up=600, down=100,
+                                   spy_atr_mult=7.5, spy_sma50=7.0,
+                                   qqq_atr_mult=9.5),
+            date=self._date(),
+            prev_state="CAUTION",
+        )
+        self.assertEqual(state, "EXTENDED")
+        self.assertIn("Parabolic", msg)
+
+    def test_extended_overrides_green(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=2.5, ratio_10=1.8),
+            fg=70, spy_price=748, spy_above_200d=True,
+            today_data=self._today(up=300, down=100,
+                                   spy_atr_mult=8.0, spy_sma50=8.5,
+                                   qqq_atr_mult=10.0),
+            date=self._date(),
+            prev_state="GREEN",
+        )
+        self.assertEqual(state, "EXTENDED")
+
+    def test_extended_today_2026_05_14_inputs(self):
+        # Live inputs from data/market_monitor_2026-05-14.json + Alpaca backtest
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.95, ratio_10=1.17, thrust=False),
+            fg=66.1, spy_price=748.17, spy_above_200d=True,
+            today_data=self._today(up=252, down=181,
+                                   spy_atr_mult=8.6, spy_sma50=8.6,
+                                   qqq_atr_mult=10.04),
+            date=self._date(m=5, d=14),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "EXTENDED")
+
+    def test_danger_still_beats_extended(self):
+        # Collapse day at extended levels → DANGER wins
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.4),
+            fg=50, spy_price=700, spy_above_200d=True,
+            today_data=self._today(up=20, down=600,
+                                   spy_atr_mult=8.0, spy_sma50=8.5,
+                                   qqq_atr_mult=10.0),
+            date=self._date(),
+            prev_state="GREEN",
+        )
+        self.assertEqual(state, "DANGER")
+
+    def test_extended_skipped_during_blackout(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0),
+            fg=70, spy_price=700, spy_above_200d=True,
+            today_data=self._today(up=100, down=100,
+                                   spy_atr_mult=9.0, spy_sma50=9.0),
+            date=datetime.date(2026, 9, 15),
+            prev_state="GREEN",
+        )
+        self.assertEqual(state, "BLACKOUT")
+
+    def test_steady_uptrend_fires_from_caution(self):
+        # SPY > 200d, > 50d, F&G ≥ 50, up≥dn, ratio_5d ≥ 0.9, not extended,
+        # prev=CAUTION → STEADY-UPTREND.
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, ratio_10=1.1),
+            fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=120, down=100,
+                                   spy_atr_mult=3.0, spy_sma50=3.0,
+                                   qqq_atr_mult=4.0),
+            date=self._date(),
+            prev_state="CAUTION",
+        )
+        self.assertEqual(state, "STEADY-UPTREND")
+
+    def test_steady_blocked_from_red(self):
+        # Same metrics but prev=RED → not allowed; path out of RED stays
+        # via THRUST.
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, ratio_10=1.1),
+            fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=120, down=100,
+                                   spy_atr_mult=3.0, spy_sma50=3.0,
+                                   qqq_atr_mult=4.0),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "RED")
+
+    def test_steady_blocked_when_below_50ma(self):
+        # spy_sma50_pct = -1 → not above 50MA → no STEADY
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0),
+            fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=120, down=100,
+                                   spy_atr_mult=-0.5, spy_sma50=-1.0,
+                                   qqq_atr_mult=0.0),
+            date=self._date(),
+            prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "STEADY-UPTREND")
+
+    def test_steady_blocked_when_fg_below_50(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0),
+            fg=45, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=120, down=100,
+                                   spy_atr_mult=3.0, spy_sma50=3.0,
+                                   qqq_atr_mult=4.0),
+            date=self._date(),
+            prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "STEADY-UPTREND")
+
+    def test_steady_blocked_when_down_exceeds_up(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.95),
+            fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=100, down=150,
+                                   spy_atr_mult=3.0, spy_sma50=3.0,
+                                   qqq_atr_mult=4.0),
+            date=self._date(),
+            prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "STEADY-UPTREND")
+
+    def test_thrust_still_fires_off_bottom(self):
+        # Regression: ensure regular THRUST path still works at non-extended levels
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.0, ratio_10=1.0, thrust=True),
+            fg=30, spy_price=500, spy_above_200d=False,
+            today_data=self._today(up=550, down=50,
+                                   spy_atr_mult=0.5, spy_sma50=0.5,
+                                   qqq_atr_mult=0.5),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "THRUST")
+
+
 if __name__ == "__main__":
     unittest.main()
