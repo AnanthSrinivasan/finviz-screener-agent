@@ -369,8 +369,8 @@ Standalone daily agent that classifies overall market conditions using Alpaca br
 
 **The state cycle flows directionally:**
 ```
-RED → THRUST (signal) → CAUTION (building) → GREEN (full throttle)
-    → COOLING (fading) → CAUTION/RED → DANGER (hard stop) → RED → BLACKOUT → RED ...
+RED → THRUST (signal) → CAUTION (building) → STEADY-UPTREND (trend tape) → GREEN (full throttle)
+    → COOLING (fading) → EXTENDED (parabolic, no chase) → DANGER (hard stop) → RED → BLACKOUT → RED ...
 ```
 
 COOLING and CAUTION are intentionally different states — same breadth readings, opposite action depending on whether you're going up or coming down from GREEN.
@@ -381,11 +381,17 @@ COOLING and CAUTION are intentionally different states — same breadth readings
 |-------|-----------|-----------|--------|
 | BLACKOUT | Feb 1–end of Feb · Sep 1–Sep 30 | — | No new trades (seasonally unreliable months) |
 | DANGER | 500+ stocks down 4%+ AND 5d ratio < 0.5 | ↓ hard | Raise stops, no entries |
+| **EXTENDED** | SPY ATR mult from 50MA ≥ 7 OR SPY %above 50MA ≥ 8 OR QQQ ATR mult ≥ 9 | ↑↑ blow-off | **No new entries** — parabolic tape, tighten stops, no chase. Overrides THRUST/GREEN/CAUTION/STEADY (May 2026 — SNDK distribution top reference case) |
 | COOLING | prev_state==GREEN AND GREEN conditions no longer met | ↓ fading | Trim, tighten stops, no new entries |
 | THRUST | 500+ stocks up 4%+ (Bonde "Very High" buying pressure) | ↑ signal | Build watchlist NOW |
 | GREEN | 5d ratio ≥ 2.0, 10d ≥ 1.5, F&G ≥ 35, SPY above 200d MA | ↑ bull | Full size entries |
 | CAUTION | 5d ratio ≥ 1.5, F&G ≥ 25, SPY above 200d MA | ↑ recovering | Half size, build watchlist |
+| **STEADY-UPTREND** | SPY > 200d AND > 50d AND F&G ≥ 50 AND up4 ≥ dn4 AND 5d_ratio ≥ 0.9 AND prev_state ∉ {RED, DANGER, BLACKOUT, EXTENDED} AND not EXTENDED | ↑ steady | Half size, entries allowed — fills the gap between thrust-day bullish tiers and RED on trending tapes (May 2026) |
 | RED | Everything else (SPY below 200d or weak breadth) | ↓ bear | No new trades |
+
+**SPY/QQQ extension metrics** (May 2026): `fetch_index_extension()` in `agents/market/market_monitor.py` pulls SPY+QQQ daily bars from Alpaca and computes `spy_atr_mult_50`, `spy_sma50_pct`, `qqq_atr_mult_50`, `qqq_sma50_pct` using the same ATR% Multiple formula as `utils/calibrate_peel.py`: `(close − sma50) × close / (sma50 × atr14)`. `is_extended()` predicate fires if any of: SPY ATR mult ≥ 7, SPY %above 50 ≥ 8, QQQ ATR mult ≥ 9. Backtest replay: `python scripts/replay_state_machine.py --days 60`.
+
+**STEADY-UPTREND prev_state guard** is strict: path out of RED stays RED → THRUST → CAUTION → GREEN. A single greedy-day bounce inside a downtrend cannot auto-rescue entries. Also blocked while EXTENDED is active (priority 3 wins).
 
 **Confidence Layer (two overlays on top of base classification — May 2026):**
 
@@ -397,7 +403,7 @@ COOLING and CAUTION are intentionally different states — same breadth readings
 
 *2-day COOLING buffer (normal F&G 25–74):* When prev_state==COOLING and conditions are RED-level (below CAUTION threshold), state stays COOLING for 1 extra day before allowing RED. Recovery to CAUTION is always immediate. Tracked via `consecutive_weak_days` in `trading_state.json` (reset to 0 on GREEN/THRUST/BLACKOUT).
 
-**New fields in daily record:** `fg_regime` ("extreme_greed" | "extreme_fear" | "normal"), `post_thrust_floor_active` (bool), `confidence_context` (string | null).
+**New fields in daily record:** `fg_regime` ("extreme_greed" | "extreme_fear" | "normal"), `post_thrust_floor_active` (bool), `confidence_context` (string | null), `spy_sma50_pct`, `spy_atr_mult_50`, `qqq_sma50_pct`, `qqq_atr_mult_50` (May 2026 — extension metrics).
 
 **New fields in `trading_state.json`:** `consecutive_weak_days`, `last_extreme_greed_date`, `last_extreme_fear_date`.
 
@@ -843,15 +849,15 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 
 **Flow:**
 1. **Market state gate** (replaces old SPY/SMA200 check). Reads latest `market_state` from `data/market_monitor_history.json`:
-   - **RED / DANGER / BLACKOUT** → no buys, but post a Slack alert listing top-5 would-have-bought candidates ("your call"). Sizing-mode `suspended` overlays the same block.
-   - **CAUTION / COOLING** → continue, `size_mul = 0.5` (half size)
+   - **RED / DANGER / BLACKOUT / EXTENDED** → no buys, but post a Slack alert listing top-5 would-have-bought candidates ("your call"). Sizing-mode `suspended` overlays the same block. EXTENDED = parabolic guardrail (SPY ATR mult ≥ 7 etc.) — no chase.
+   - **CAUTION / COOLING / STEADY-UPTREND** → continue, `size_mul = 0.5` (half size)
    - **GREEN / THRUST** → continue, `size_mul = 1.0`
    - Sizing overlays from `paper_trading_state.json`: `reduced` clamps `size_mul ≤ 0.25`; `aggressive` boosts to 1.25× in GREEN/THRUST.
 2. Cancel stale GTC buy orders older than 2 days (avoids fills on outdated entries)
 3. Load today's enriched CSV + merge watchlist tickers from `daily_quality_YYYY-MM-DD.json` — ensures high-Q watchlist names get evaluated even if not in today's raw screener
 4. Pre-filter: Q≥60 + Stage 2, cap at top 10 candidates by Q score
 5. Fetch open positions + account equity from Alpaca
-6. Gate: `effective_max_positions(market_state)` — GREEN/THRUST: 10, CAUTION: 7, default (COOLING/RED/DANGER): 5. Weekend guard: executor exits immediately on Sat/Sun with a Slack notice.
+6. Gate: `effective_max_positions(market_state)` — GREEN/THRUST: 10, CAUTION/STEADY-UPTREND: 7, default (COOLING/RED/DANGER/EXTENDED/BLACKOUT): 5. Weekend guard: executor exits immediately on Sat/Sun with a Slack notice.
 7. For each candidate not already held:
    - Compute allocation by Q score tier (see below)
    - **Extended-entry gate:** if `SMA50% / ATR%` > peel warn, skip. Warn is per-ticker from `peel_calibration.json` when calibrated; else ATR% tier fallback (low ≤4%: 3.0x · mid ≤7%: 5.0x · high ≤10%: 6.5x · extreme: 8.5x). Replaces the older hardcoded 6.0x cap — lets high-vol names (e.g. AAOI calibrated warn 11.8x) enter on their own scale. Skip Slack message shows source (`calibrated` or `tier`).
