@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 1,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 1,
   "total_wins": 5,
-  "total_losses": 8,
+  "total_losses": 9,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-05-13",
+  "last_updated": "2026-05-15",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -122,11 +122,20 @@
     {
       "ticker": "COHR",
       "result": "win",
-      "result_pct": 18.34,
+      "result_pct": 18.25,
       "date": "2026-05-13",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 631.6
+    },
+    {
+      "ticker": "XBI",
+      "result": "loss",
+      "result_pct": -3.55,
+      "date": "2026-05-15",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -338.1
     }
   ],
   "market_state": "EXTENDED",

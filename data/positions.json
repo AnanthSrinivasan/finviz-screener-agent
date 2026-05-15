@@ -12,9 +12,9 @@
       "status": "active",
       "highest_price_seen": 233.47,
       "peak_gain_pct": 87.15,
-      "stop_price": 210.14,
+      "stop_price": 210.3,
       "breakeven_activated": true,
-      "current_gain_pct": 63.18,
+      "current_gain_pct": 53.34,
       "first_entry_price": 116.0,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
@@ -24,7 +24,7 @@
         "date": "2026-05-09"
       },
       "target2_hit": true,
-      "last_fade_alert_gain_pct": 65.39
+      "last_fade_alert_gain_pct": 53.34
     },
     {
       "ticker": "GLW",
@@ -40,8 +40,9 @@
       "peak_gain_pct": 28.23,
       "stop_price": 199.21,
       "breakeven_activated": true,
-      "current_gain_pct": 26.16,
-      "first_entry_price": 167.52
+      "current_gain_pct": 18.74,
+      "first_entry_price": 167.52,
+      "last_fade_alert_gain_pct": 18.74
     },
     {
       "ticker": "INDV",
@@ -56,16 +57,16 @@
       "highest_price_seen": 40.86,
       "first_entry_price": 34.2,
       "peak_gain_pct": 19.65,
-      "stop_price": 38.73,
+      "stop_price": 38.8,
       "breakeven_activated": false,
-      "current_gain_pct": 8.21
+      "current_gain_pct": 6.78
     },
     {
       "ticker": "CRWV",
       "shares": 125,
       "entry_price": 115.05,
       "entry_date": "2026-04-29",
-      "stop_price": 128.86,
+      "stop_price": 128.96,
       "breakeven_activated": true,
       "target1": 138.06,
       "target1_hit": false,
@@ -75,7 +76,7 @@
       "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
       "peak_gain_pct": 20.15,
-      "current_gain_pct": -0.73,
+      "current_gain_pct": -7.28,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
         "ma_type": "10% trail",
@@ -98,7 +99,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 236.54,
-      "current_gain_pct": 15.38,
+      "current_gain_pct": 11.06,
       "first_entry_price": 204.32,
       "peak_gain_pct": 15.77
     },
@@ -115,7 +116,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 65.61,
-      "current_gain_pct": -1.22,
+      "current_gain_pct": -10.13,
       "first_entry_price": 61.4,
       "peak_gain_pct": 10.98
     },
@@ -132,7 +133,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 12.04,
-      "current_gain_pct": 2.73,
+      "current_gain_pct": -0.79,
       "first_entry_price": 11.42,
       "peak_gain_pct": 6.08
     },
@@ -149,7 +150,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 47.79,
-      "current_gain_pct": 12.07,
+      "current_gain_pct": 2.45,
       "first_entry_price": 41.5,
       "peak_gain_pct": 14.66
     },
@@ -166,7 +167,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 25.16,
-      "current_gain_pct": 6.68,
+      "current_gain_pct": 0.56,
       "first_entry_price": 22.84,
       "peak_gain_pct": 7.71
     },
@@ -175,7 +176,7 @@
       "shares": 100,
       "entry_price": 79.82,
       "entry_date": "2026-05-14",
-      "stop_price": 74.56,
+      "stop_price": 74.74,
       "breakeven_activated": false,
       "target1": 95.78,
       "target1_hit": false,
@@ -183,41 +184,24 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 82.26,
-      "current_gain_pct": -0.16,
+      "current_gain_pct": -2.14,
       "first_entry_price": 80.0,
       "peak_gain_pct": 3.06
     },
     {
-      "ticker": "XBI",
-      "shares": 70,
-      "entry_price": 136.17,
-      "entry_date": "2026-05-14",
-      "stop_price": 130.0,
-      "breakeven_activated": false,
-      "target1": 163.4,
-      "target1_hit": false,
-      "target2": 190.64,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 136.8,
-      "current_gain_pct": -0.97,
-      "first_entry_price": 136.5,
-      "peak_gain_pct": 0.46
-    },
-    {
       "ticker": "FLY",
-      "shares": 150,
-      "entry_price": 41.62,
+      "shares": 200,
+      "entry_price": 41.63,
       "entry_date": "2026-05-14",
-      "stop_price": 35.45,
+      "stop_price": 35.65,
       "breakeven_activated": false,
-      "target1": 49.94,
+      "target1": 49.96,
       "target1_hit": false,
-      "target2": 58.27,
+      "target2": 58.28,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 43.53,
-      "current_gain_pct": 1.83,
+      "current_gain_pct": -3.36,
       "first_entry_price": 41.62,
       "peak_gain_pct": 4.59
     }
@@ -503,9 +487,30 @@
       "first_entry_price": 344.31,
       "peak_gain_pct": 19.93,
       "close_date": "2026-05-13",
-      "close_price": 407.47,
+      "close_price": 407.13,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 18.25
+    },
+    {
+      "ticker": "XBI",
+      "shares": 70,
+      "entry_price": 136.17,
+      "entry_date": "2026-05-14",
+      "stop_price": 130.0,
+      "breakeven_activated": false,
+      "target1": 163.4,
+      "target1_hit": false,
+      "target2": 190.64,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 136.8,
+      "current_gain_pct": -0.97,
+      "first_entry_price": 136.5,
+      "peak_gain_pct": 0.46,
+      "close_date": "2026-05-15",
+      "close_price": 131.34,
       "close_source": "live_quote",
-      "result_pct": 18.34
+      "result_pct": -3.55
     }
   ]
 }
