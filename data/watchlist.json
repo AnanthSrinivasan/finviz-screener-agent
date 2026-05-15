@@ -2645,9 +2645,10 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-13",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-05-13"
+      "focus_promoted_date": "2026-05-13",
+      "entry_ready_date": "2026-05-15"
     },
     {
       "ticker": "SAIL",
@@ -2659,6 +2660,30 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "ONDS",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-15",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-15"
+    },
+    {
+      "ticker": "FPS",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-15",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-15"
     }
   ],
   "tickers": [
