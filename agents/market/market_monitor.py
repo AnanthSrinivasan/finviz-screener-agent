@@ -441,16 +441,36 @@ def fetch_index_extension(ticker: str) -> dict | None:
         return None
 
     try:
-        resp = requests.get(
-            f"{ALPACA_DATA_URL}/stocks/{ticker}/bars",
-            headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret},
-            params={"timeframe": "1Day", "limit": 220, "adjustment": "raw", "feed": "iex"},
-            timeout=15,
-        )
-        if not resp.ok:
-            log.warning("Alpaca bars failed for %s: %s", ticker, resp.status_code)
-            return None
-        bars = resp.json().get("bars", [])
+        end = datetime.date.today()
+        start = end - datetime.timedelta(days=320)
+        bars: list = []
+        page_token = None
+        for _ in range(5):
+            params = {
+                "timeframe": "1Day",
+                "start": start.isoformat() + "T00:00:00Z",
+                "end":   end.isoformat()   + "T23:59:59Z",
+                "limit": 1000,
+                "adjustment": "raw",
+                "feed": "iex",
+            }
+            if page_token:
+                params["page_token"] = page_token
+            resp = requests.get(
+                f"{ALPACA_DATA_URL}/stocks/{ticker}/bars",
+                headers={"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret},
+                params=params,
+                timeout=15,
+            )
+            if not resp.ok:
+                log.warning("Alpaca bars failed for %s: %s", ticker, resp.status_code)
+                return None
+            payload = resp.json()
+            page_bars = payload.get("bars") or []
+            bars.extend(page_bars)
+            page_token = payload.get("next_page_token")
+            if not page_token:
+                break
         if len(bars) < 50:
             log.warning("Insufficient %s bars (%d) for extension calc", ticker, len(bars))
             return None
