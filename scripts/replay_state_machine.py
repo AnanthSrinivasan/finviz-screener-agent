@@ -53,7 +53,7 @@ def fetch_bars(ticker: str, days: int = 400):
 
 
 def compute_asof(bars, date_str: str):
-    """Return (atr_mult_50, sma50_pct, sma200_pct) using bars up to and including date_str."""
+    """Return dict of metrics as-of date_str (inclusive)."""
     idx = None
     for i, b in enumerate(bars):
         if b["t"][:10] <= date_str:
@@ -61,19 +61,34 @@ def compute_asof(bars, date_str: str):
         else:
             break
     if idx is None or idx < 49:
-        return (None, None, None)
+        return {}
     sub = bars[: idx + 1]
     closes = [b["c"] for b in sub]
-    sma50 = compute_sma(closes, 50)[-1]
+    highs = [b["h"] for b in sub]
+    sma50_series = compute_sma(closes, 50)
+    sma50 = sma50_series[-1]
     sma200 = compute_sma(closes, 200)[-1] if len(closes) >= 200 else None
     atr14 = wilder_atr(sub)[-1]
     close = closes[-1]
     if not (sma50 and atr14):
-        return (None, None, None)
+        return {}
     atr_mult_50 = round((close - sma50) * close / (sma50 * atr14), 2)
     sma50_pct = round((close - sma50) / sma50 * 100, 2)
     sma200_pct = round((close - sma200) / sma200 * 100, 2) if sma200 else None
-    return (atr_mult_50, sma50_pct, sma200_pct)
+    slope_10d = None
+    if len(sma50_series) >= 11 and sma50_series[-11]:
+        slope_10d = round((sma50 - sma50_series[-11]) / sma50_series[-11] * 100, 2)
+    pct_high = None
+    if len(highs) >= 20:
+        hi = max(highs[-20:])
+        pct_high = round((close - hi) / hi * 100, 2) if hi else None
+    return {
+        "atr_mult_50":       atr_mult_50,
+        "sma50_pct":         sma50_pct,
+        "sma200_pct":        sma200_pct,
+        "sma50_slope_10d":   slope_10d,
+        "pct_from_20d_high": pct_high,
+    }
 
 
 def main():
@@ -97,19 +112,38 @@ def main():
     flips_to_steady = 0
     rescued_from_red = 0
     bullish_at_top = 0
+    trend_follow_days = 0
+    v2_blocked_v3_allows = 0
     for f in files:
         with open(f) as fh:
             rec = json.load(fh)
         date_str = rec["date"]
-        spy_mult, spy_50, _ = compute_asof(spy_bars, date_str)
-        qqq_mult, _, _ = compute_asof(qqq_bars, date_str)
+        spy = compute_asof(spy_bars, date_str)
+        qqq = compute_asof(qqq_bars, date_str)
+        spy_mult = spy.get("atr_mult_50")
+        spy_50   = spy.get("sma50_pct")
+        qqq_mult = qqq.get("atr_mult_50")
+
+        # Participation proxy (up_25_quarter / universe_size, %)
+        universe = rec.get("universe_size") or 0
+        up25     = rec.get("up_25_quarter") or 0
+        part = round(up25 / universe * 100, 2) if universe > 0 else None
 
         today_data = {
-            "up_4_today":       rec["up_4_today"],
-            "down_4_today":     rec["down_4_today"],
-            "spy_atr_mult_50":  spy_mult,
-            "spy_sma50_pct":    spy_50,
-            "qqq_atr_mult_50":  qqq_mult,
+            "up_4_today":            rec["up_4_today"],
+            "down_4_today":          rec["down_4_today"],
+            "spy_atr_mult_50":       spy_mult,
+            "spy_sma50_pct":         spy_50,
+            "spy_sma200_pct":        rec.get("spy_sma200_pct"),
+            "spy_sma50_slope_10d":   spy.get("sma50_slope_10d"),
+            "spy_pct_from_20d_high": spy.get("pct_from_20d_high"),
+            "qqq_atr_mult_50":       qqq_mult,
+            "pct_above_50ma":        part,
+            # No historical VIX — assume calm (so trend-follow can fire in backtest)
+            "vix_close":             18.0,
+            "vix_change_pct":        -0.5,
+            "universe_size":         universe,
+            "up_25_quarter":         up25,
         }
         metrics = {
             "ratio_today":   rec["ratio_today"],
@@ -139,6 +173,10 @@ def main():
             flips_to_steady += 1
             if old == "RED":
                 rescued_from_red += 1
+        if new_state == "TREND-FOLLOW":
+            trend_follow_days += 1
+            if old in ("COOLING", "RED"):
+                v2_blocked_v3_allows += 1
         print(f"{date_str:<12}{old:<10}{new_state:<18}"
               f"{(str(spy_mult) if spy_mult is not None else '-'):<10}"
               f"{(str(spy_50)+'%' if spy_50 is not None else '-'):<10}"
@@ -151,6 +189,8 @@ def main():
           f"(safety: blocks chase)")
     print(f"flips → STEADY-UPTREND:  {flips_to_steady}  "
           f"(rescued from RED: {rescued_from_red})")
+    print(f"TREND-FOLLOW days:       {trend_follow_days}  "
+          f"(would have allowed entries on {v2_blocked_v3_allows} days that v2 blocked)")
 
 
 if __name__ == "__main__":

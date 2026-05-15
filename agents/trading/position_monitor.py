@@ -1288,6 +1288,7 @@ def send_rules_engine_alerts(alerts: list, positions_data: dict, trading_state: 
         "THRUST": "\U0001f7e2", "GREEN": "\U0001f7e2", "CAUTION": "\U0001f7e1",
         "DANGER": "\U0001f7e0", "RED": "\U0001f534", "BLACKOUT": "\u26ab",
         "EXTENDED": "\U0001f321\ufe0f", "STEADY-UPTREND": "\U0001f7e2",
+        "TREND-FOLLOW": "\U0001f30a",
     }
 
     # Build position lines

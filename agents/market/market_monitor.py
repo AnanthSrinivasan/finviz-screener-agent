@@ -398,26 +398,39 @@ def fetch_breadth_data(session: requests.Session) -> dict:
     fg = fetch_fng()
 
     # Extension metrics — SPY + QQQ ATR multiples / SMA50% via Alpaca daily bars.
-    # Used to detect parabolic / "no chase" regime (EXTENDED state).
+    # Used to detect parabolic / "no chase" regime (EXTENDED state) and the
+    # v3 TREND-FOLLOW trend regime detector (slope, 20d-high distance).
     spy_ext = fetch_index_extension("SPY")
     qqq_ext = fetch_index_extension("QQQ")
+    vix     = fetch_vix_snapshot()
+
+    today_partial = {
+        "universe_size":  universe_size,
+        "up_25_quarter":  up_25_quarter,
+    }
+    pct_above_50ma = compute_participation_proxy(today_partial)
 
     return {
-        "up_4_today":      up_4,
-        "down_4_today":    down_4,
-        "breadth_source":  breadth_source,
-        "universe_size":   universe_size,
-        "adv_total":       adv_total,
-        "dec_total":       dec_total,
-        "up_25_quarter":   up_25_quarter,
-        "down_25_quarter": down_25_quarter,
-        "spy_price":       spy_data.get("price"),
-        "spy_sma200_pct":  spy_data.get("sma200_pct"),
-        "spy_sma50_pct":   spy_ext.get("sma50_pct") if spy_ext else None,
-        "spy_atr_mult_50": spy_ext.get("atr_mult_50") if spy_ext else None,
-        "qqq_sma50_pct":   qqq_ext.get("sma50_pct") if qqq_ext else None,
-        "qqq_atr_mult_50": qqq_ext.get("atr_mult_50") if qqq_ext else None,
-        "fg":              fg,
+        "up_4_today":         up_4,
+        "down_4_today":       down_4,
+        "breadth_source":     breadth_source,
+        "universe_size":      universe_size,
+        "adv_total":          adv_total,
+        "dec_total":          dec_total,
+        "up_25_quarter":      up_25_quarter,
+        "down_25_quarter":    down_25_quarter,
+        "spy_price":          spy_data.get("price"),
+        "spy_sma200_pct":     spy_data.get("sma200_pct"),
+        "spy_sma50_pct":      spy_ext.get("sma50_pct") if spy_ext else None,
+        "spy_atr_mult_50":    spy_ext.get("atr_mult_50") if spy_ext else None,
+        "spy_sma50_slope_10d": spy_ext.get("sma50_slope_10d") if spy_ext else None,
+        "spy_pct_from_20d_high": spy_ext.get("pct_from_20d_high") if spy_ext else None,
+        "qqq_sma50_pct":      qqq_ext.get("sma50_pct") if qqq_ext else None,
+        "qqq_atr_mult_50":    qqq_ext.get("atr_mult_50") if qqq_ext else None,
+        "pct_above_50ma":     pct_above_50ma,
+        "vix_close":          vix.get("vix_close") if vix else None,
+        "vix_change_pct":     vix.get("vix_change_pct") if vix else None,
+        "fg":                 fg,
     }
 
 
@@ -475,7 +488,9 @@ def fetch_index_extension(ticker: str) -> dict | None:
             log.warning("Insufficient %s bars (%d) for extension calc", ticker, len(bars))
             return None
         closes = [b["c"] for b in bars]
-        sma50 = compute_sma(closes, 50)[-1]
+        highs = [b["h"] for b in bars]
+        sma50_series = compute_sma(closes, 50)
+        sma50 = sma50_series[-1]
         sma200 = compute_sma(closes, 200)[-1] if len(closes) >= 200 else None
         atr14 = wilder_atr(bars)[-1]
         close = closes[-1]
@@ -486,17 +501,141 @@ def fetch_index_extension(ticker: str) -> dict | None:
             atr_mult_50 = None
             sma50_pct = None
         sma200_pct = round((close - sma200) / sma200 * 100, 2) if sma200 else None
-        log.info("%s extension: sma50%%=%s atr_mult_50=%s sma200%%=%s",
-                 ticker, sma50_pct, atr_mult_50, sma200_pct)
+        # v3 trend-follow inputs
+        sma50_slope_10d = compute_sma50_slope_10d(sma50_series)
+        pct_from_20d_high_val = pct_from_20d_high(highs[:-1] + [close], closes)
+        log.info(
+            "%s extension: sma50%%=%s atr_mult_50=%s sma200%%=%s slope_10d=%s pct_from_20d_high=%s",
+            ticker, sma50_pct, atr_mult_50, sma200_pct,
+            sma50_slope_10d, pct_from_20d_high_val,
+        )
         return {
             "close": close,
             "sma50_pct": sma50_pct,
             "atr_mult_50": atr_mult_50,
             "sma200_pct": sma200_pct,
+            "sma50_slope_10d": sma50_slope_10d,
+            "pct_from_20d_high": pct_from_20d_high_val,
         }
     except Exception as e:
         log.warning("Extension fetch failed for %s: %s", ticker, e)
         return None
+
+
+def compute_sma50_slope_10d(sma50_series: list) -> float | None:
+    """Return percent change in SMA50 over the last 10 sessions.
+
+    `sma50_series` is the list from compute_sma(closes, 50). Returns None when
+    there are not enough non-None entries.
+    """
+    if not sma50_series or len(sma50_series) < 11:
+        return None
+    today = sma50_series[-1]
+    prior = sma50_series[-11]
+    if today is None or prior is None or prior == 0:
+        return None
+    return round((today - prior) / prior * 100, 2)
+
+
+def pct_from_20d_high(highs: list, closes: list) -> float | None:
+    """Percent distance of latest close from trailing 20-day high.
+
+    Negative when below; near zero when at or above the 20d high. Returns None
+    if there are fewer than 20 highs.
+    """
+    if not highs or not closes or len(highs) < 20:
+        return None
+    window = highs[-20:]
+    hi = max(window)
+    close = closes[-1]
+    if hi == 0:
+        return None
+    return round((close - hi) / hi * 100, 2)
+
+
+def fetch_vix_snapshot() -> dict | None:
+    """Fetch VIX close + day change via Yahoo Finance (^VIX).
+
+    Returns dict with keys vix_close, vix_change_pct, or None on failure.
+    Alpaca does not carry ^VIX, so Yahoo is the lightweight choice.
+    """
+    try:
+        import yfinance as yf  # local import — only loaded when needed
+        hist = yf.Ticker("^VIX").history(period="5d", interval="1d")
+        if hist is None or hist.empty or len(hist) < 2:
+            log.warning("VIX history empty or too short")
+            return None
+        close = float(hist["Close"].iloc[-1])
+        prev = float(hist["Close"].iloc[-2])
+        change_pct = round((close - prev) / prev * 100, 2) if prev else None
+        result = {
+            "vix_close":      round(close, 2),
+            "vix_change_pct": change_pct,
+        }
+        log.info("VIX: %.2f (Δ %s%%)", close, change_pct)
+        return result
+    except Exception as e:
+        log.warning("VIX fetch failed: %s", e)
+        return None
+
+
+def compute_participation_proxy(today_data: dict) -> float | None:
+    """Cheap participation proxy: up_25_quarter / universe_size.
+
+    Spec ships the proxy first; true %above-50MA can swap in later. Returns the
+    ratio as a percent (0–100) or None when inputs are missing.
+    """
+    universe = today_data.get("universe_size") or 0
+    up_25 = today_data.get("up_25_quarter") or 0
+    if universe <= 0:
+        return None
+    return round(up_25 / universe * 100, 2)
+
+
+def is_trend_follow(today_data: dict, fg: float | None) -> bool:
+    """All 6 TREND-FOLLOW gates pass.
+
+    - MA stack: SPY > SMA50 > SMA200
+    - 50MA slope: rising over last 10 sessions
+    - Near 20d high: SPY within 3%
+    - Participation: proxy >= 10% (up_25_quarter / universe — Apr 30 ref 12%)
+    - Vol calm: VIX < 25 OR VIX down on the day
+    - Not EXTENDED (caller enforces priority)
+    """
+    spy_sma50_pct  = today_data.get("spy_sma50_pct")
+    spy_sma200_pct = today_data.get("spy_sma200_pct")
+    if spy_sma50_pct is None or spy_sma200_pct is None:
+        return False
+    if not (spy_sma50_pct > 0 and spy_sma200_pct > 0):
+        return False
+
+    slope = today_data.get("spy_sma50_slope_10d")
+    if slope is None or slope <= 0:
+        return False
+
+    pct_high = today_data.get("spy_pct_from_20d_high")
+    if pct_high is None or pct_high < -3.0:
+        return False
+
+    part = today_data.get("pct_above_50ma")
+    # Threshold lowered from 10% → 8% (May 2026 calibration). Apr 24–29
+    # backtest hovered 8.3–9.0% on a clearly trending tape. Spec note in
+    # docs/specs/state-machine-v3-trend-follow.md flags participation proxy
+    # as the likely too-strict gate when backtest under-fires.
+    if part is None or part < 8.0:
+        return False
+
+    vix_close  = today_data.get("vix_close")
+    vix_change = today_data.get("vix_change_pct")
+    vix_calm = False
+    if vix_close is not None and vix_close < 25:
+        vix_calm = True
+    elif vix_change is not None and vix_change < 0:
+        vix_calm = True
+    if not vix_calm:
+        return False
+
+    return True
 
 
 def is_extended(spy_atr_mult_50: float | None,
@@ -717,7 +856,31 @@ def classify_market_state(metrics: dict, fg: float | None,
             ctx["confidence_context"] = "extreme_greed_caution"
         return "COOLING", "Market cooling from GREEN — trim and tighten", ctx
 
-    # 3b. Sustain COOLING for a 2nd consecutive weak day (normal F&G range only).
+    # 4. THRUST — single-day breadth explosion (Bonde signal)
+    if metrics["thrust"]:
+        return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%", ctx
+
+    # 5. GREEN — full bull, all conditions met
+    if green_conditions:
+        return "GREEN", "Full conditions met", ctx
+
+    # 6. TREND-FOLLOW — trend-persistence path to full size (v3, May 2026).
+    #    Reads MA stack + 50MA slope + 20d-high proximity + participation +
+    #    vol calm. Independent of the 5d/10d thrust ratio so steady grind-up
+    #    tapes are not dumped to RED. Checked before COOLING-sustain so a
+    #    recovered trend escapes the 2-day buffer. EXTENDED already escaped.
+    if is_trend_follow(today_data, fg):
+        vix_close = today_data.get("vix_close")
+        vix_str = f"VIX {vix_close:.1f}" if vix_close is not None else "VIX n/a"
+        part = today_data.get("pct_above_50ma")
+        part_str = f"participation {part:.1f}%" if part is not None else "participation n/a"
+        msg = (
+            f"Steady uptrend — full size, entries allowed. "
+            f"SMA50 rising · near 20d high · {part_str} · {vix_str}"
+        )
+        return "TREND-FOLLOW", msg, ctx
+
+    # 6b. Sustain COOLING for a 2nd consecutive weak day (normal F&G range only).
     #     Adds a 1-day buffer before allowing RED from COOLING.
     #     Only applies when conditions are RED-level (not CAUTION) — CAUTION recovery
     #     is always allowed immediately. Extreme greed bypasses the buffer.
@@ -733,15 +896,7 @@ def classify_market_state(metrics: dict, fg: float | None,
             and consecutive_weak_days < 2):
         return "COOLING", "Market still cooling — 2-day confirmation buffer", ctx
 
-    # 4. THRUST — single-day breadth explosion (Bonde signal)
-    if metrics["thrust"]:
-        return "THRUST", f"Breadth thrust — {today_data['up_4_today']} stocks up 4%", ctx
-
-    # 5. GREEN — full bull, all conditions met
-    if green_conditions:
-        return "GREEN", "Full conditions met", ctx
-
-    # 6. CAUTION — recovering/building phase (going UP toward GREEN)
+    # 7. CAUTION — recovering/building phase (going UP toward GREEN)
     if (metrics["ratio_5day"] >= 1.5
             and fg_val >= 25
             and spy_above_200d):
@@ -813,8 +968,14 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
         "spy_sma200_pct":         today_data.get("spy_sma200_pct"),
         "spy_sma50_pct":          today_data.get("spy_sma50_pct"),
         "spy_atr_mult_50":        today_data.get("spy_atr_mult_50"),
+        "spy_sma50_slope_10d":    today_data.get("spy_sma50_slope_10d"),
+        "spy_pct_from_20d_high":  today_data.get("spy_pct_from_20d_high"),
         "qqq_sma50_pct":          today_data.get("qqq_sma50_pct"),
         "qqq_atr_mult_50":        today_data.get("qqq_atr_mult_50"),
+        "pct_above_50ma":         today_data.get("pct_above_50ma"),
+        "vix_close":              today_data.get("vix_close"),
+        "vix_change_pct":         today_data.get("vix_change_pct"),
+        "trend_follow_active":    state == "TREND-FOLLOW",
         "spy_above_200d":         metrics["spy_above_200d"],
         "market_state":           state,
         "state_message":          message,
@@ -896,6 +1057,7 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
         "THRUST": "🚨", "GREEN": "✅", "CAUTION": "🟡",
         "COOLING": "🧊", "DANGER": "⚠️", "RED": "🔴", "BLACKOUT": "⛔",
         "EXTENDED": "🌡️", "STEADY-UPTREND": "🟢",
+        "TREND-FOLLOW": "🌊",
     }
     emoji = state_emoji.get(state, "📊")
 
@@ -944,6 +1106,12 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
             "ACTION: Steady uptrend between thrust days — half size only.\n"
             "Entries allowed on confirmed RS leaders.\n"
             "Watch for THRUST or GREEN confirmation to upsize."
+        )
+    elif state == "TREND-FOLLOW":
+        action = (
+            "ACTION: Trend-persistence regime — full size, entries allowed.\n"
+            "SMA50 rising · near 20d high · participation healthy · vol calm.\n"
+            "5d ratio shown as thrust-strength gauge only — not a state gate."
         )
     elif state == "BLACKOUT":
         action = (
@@ -1098,7 +1266,7 @@ def run_market_monitor(date: datetime.date | None = None):
 
     # Compute updated consecutive_weak_days: reset on GREEN/THRUST/BLACKOUT/STEADY/EXTENDED, else increment
     new_consecutive_weak_days = (
-        0 if state in ("GREEN", "THRUST", "BLACKOUT", "STEADY-UPTREND", "EXTENDED")
+        0 if state in ("GREEN", "THRUST", "BLACKOUT", "STEADY-UPTREND", "EXTENDED", "TREND-FOLLOW")
         else consecutive_weak_days + 1
     )
 
@@ -1133,7 +1301,7 @@ def run_market_monitor(date: datetime.date | None = None):
                 severity={"RED": "high", "DANGER": "high", "BLACKOUT": "high",
                           "EXTENDED": "high",
                           "COOLING": "med", "CAUTION": "med",
-                          "STEADY-UPTREND": "low",
+                          "STEADY-UPTREND": "low", "TREND-FOLLOW": "low",
                           "GREEN": "low", "THRUST": "low"}.get(state, "med"),
             )
         except Exception as e:

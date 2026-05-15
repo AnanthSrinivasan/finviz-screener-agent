@@ -42,7 +42,7 @@ PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
 MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 def effective_max_positions(market_state: str) -> int:
-    if market_state in ("GREEN", "THRUST"):
+    if market_state in ("GREEN", "THRUST", "TREND-FOLLOW"):
         return 10
     if market_state in ("CAUTION", "STEADY-UPTREND"):
         return 7
@@ -61,6 +61,7 @@ _MARKET_GATE = {
     "STEADY-UPTREND": (False, 0.5),  # steady trend tape — half size
     "GREEN":          (False, 1.0),
     "THRUST":         (False, 1.0),
+    "TREND-FOLLOW":   (False, 1.0),  # trend-persistence path to full size
 }
 
 # ATR% tier fallback for peel warn — mirrors PEEL_THRESHOLDS in position_monitor.py.

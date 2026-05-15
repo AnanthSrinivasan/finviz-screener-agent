@@ -568,5 +568,168 @@ class ExtendedAndSteadyUptrendTests(unittest.TestCase):
         self.assertEqual(state, "THRUST")
 
 
+class TrendFollowHelperTests(unittest.TestCase):
+    """Unit tests for the three v3 helper functions."""
+
+    def test_sma50_slope_10d_rising(self):
+        # 11-point series, rising linearly
+        series = [None] * 49 + [100 + i for i in range(11)]  # 100, 101, ..., 110
+        # last index minus 10 = 100, last = 110 → +10%
+        self.assertEqual(mm.compute_sma50_slope_10d(series), 10.0)
+
+    def test_sma50_slope_10d_flat(self):
+        series = [100.0] * 20
+        self.assertEqual(mm.compute_sma50_slope_10d(series), 0.0)
+
+    def test_sma50_slope_10d_falling(self):
+        series = [110 - i for i in range(11)]  # 110 → 100
+        # prior=110, today=100 → -9.09%
+        result = mm.compute_sma50_slope_10d(series)
+        self.assertIsNotNone(result)
+        self.assertLess(result, 0)
+
+    def test_sma50_slope_10d_too_short(self):
+        self.assertIsNone(mm.compute_sma50_slope_10d([1, 2, 3]))
+
+    def test_pct_from_20d_high_at_high(self):
+        highs = [10.0] * 19 + [12.0]
+        closes = [10.0] * 19 + [12.0]
+        self.assertEqual(mm.pct_from_20d_high(highs, closes), 0.0)
+
+    def test_pct_from_20d_high_below(self):
+        highs = [10.0] * 19 + [12.0]
+        closes = [10.0] * 19 + [11.4]  # 5% below 12
+        self.assertEqual(mm.pct_from_20d_high(highs, closes), -5.0)
+
+    def test_pct_from_20d_high_short_window(self):
+        self.assertIsNone(mm.pct_from_20d_high([1, 2], [1, 2]))
+
+    def test_participation_proxy(self):
+        # 360 / 3000 = 12%
+        td = {"universe_size": 3000, "up_25_quarter": 360}
+        self.assertEqual(mm.compute_participation_proxy(td), 12.0)
+
+    def test_participation_proxy_missing(self):
+        self.assertIsNone(mm.compute_participation_proxy({"universe_size": 0}))
+
+
+class TrendFollowTests(unittest.TestCase):
+    """All 6 TREND-FOLLOW gates + priority interactions."""
+
+    def _date(self, m=4, d=28):
+        return datetime.date(2026, m, d)
+
+    def _metrics(self, ratio_5=1.0, ratio_10=1.0, thrust=False, spy_above=True):
+        return {
+            "ratio_today":    ratio_5,
+            "ratio_5day":     ratio_5,
+            "ratio_10day":    ratio_10,
+            "thrust":         thrust,
+            "spy_above_200d": spy_above,
+        }
+
+    def _today(self, **overrides):
+        """Default = all 6 TREND-FOLLOW gates pass."""
+        base = {
+            "up_4_today":              50,
+            "down_4_today":            50,
+            "spy_atr_mult_50":         2.0,
+            "spy_sma50_pct":           2.0,
+            "spy_sma200_pct":          5.0,
+            "spy_sma50_slope_10d":     1.5,
+            "spy_pct_from_20d_high":   -1.0,
+            "qqq_atr_mult_50":         2.5,
+            "pct_above_50ma":          12.0,
+            "vix_close":               18.0,
+            "vix_change_pct":          -2.0,
+            "universe_size":           3000,
+            "up_25_quarter":           360,
+        }
+        base.update(overrides)
+        return base
+
+    def test_all_gates_pass(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(), date=self._date(), prev_state="CAUTION",
+        )
+        self.assertEqual(state, "TREND-FOLLOW")
+
+    def test_negative_slope_blocks(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(spy_sma50_slope_10d=-0.5),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "TREND-FOLLOW")
+
+    def test_far_below_20d_high_blocks(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(spy_pct_from_20d_high=-5.0),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "TREND-FOLLOW")
+
+    def test_low_participation_blocks(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(pct_above_50ma=4.0),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "TREND-FOLLOW")
+
+    def test_vix_high_and_rising_blocks(self):
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(vix_close=28.0, vix_change_pct=5.0),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertNotEqual(state, "TREND-FOLLOW")
+
+    def test_vix_high_but_falling_allows(self):
+        # VIX > 25 OR VIX down — falling VIX is OK
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(vix_close=28.0, vix_change_pct=-3.0),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertEqual(state, "TREND-FOLLOW")
+
+    def test_extended_beats_trend_follow(self):
+        # All gates pass BUT SPY is parabolic → EXTENDED wins (priority 3 > 7)
+        state, _, _ = mm.classify_market_state(
+            self._metrics(), fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(spy_atr_mult_50=8.0, spy_sma50_pct=10.0),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertEqual(state, "EXTENDED")
+
+    def test_green_beats_trend_follow(self):
+        # GREEN thrust-day conditions also satisfied → GREEN (priority 6 > 7)
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=2.5, ratio_10=1.8),
+            fg=55, spy_price=500, spy_above_200d=True,
+            today_data=self._today(),
+            date=self._date(), prev_state="CAUTION",
+        )
+        self.assertEqual(state, "GREEN")
+
+    def test_apr30_replay_trend_follow(self):
+        # Apr 30 2026 reference: steady grind-up, breadth ~ neutral, but trend intact.
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=1.1, ratio_10=1.0, thrust=False),
+            fg=58, spy_price=500, spy_above_200d=True,
+            today_data=self._today(
+                spy_sma50_pct=3.0, spy_sma200_pct=6.0,
+                spy_sma50_slope_10d=2.1, spy_pct_from_20d_high=-0.5,
+                pct_above_50ma=12.0, vix_close=18.0, vix_change_pct=-1.0,
+            ),
+            date=datetime.date(2026, 4, 30),
+            prev_state="COOLING",
+        )
+        self.assertEqual(state, "TREND-FOLLOW")
+
+
 if __name__ == "__main__":
     unittest.main()

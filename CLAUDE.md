@@ -378,25 +378,28 @@ no-op (reactivates if aged-out). Daily snapshot written to `data/hidden_growth.j
 
 ## Market State Classification
 
-The cycle flows directionally: RED → THRUST → CAUTION → STEADY-UPTREND → GREEN → COOLING → EXTENDED → DANGER → RED
+The cycle flows directionally: RED → THRUST → CAUTION → TREND-FOLLOW ⇌ GREEN → COOLING → EXTENDED → DANGER → RED. STEADY-UPTREND kept as a safety net when TREND-FOLLOW gates miss.
 
 | State | Condition | Priority | Direction | Trading Action |
 |-------|-----------|----------|-----------|---------------|
 | BLACKOUT | Feb 1–end of Feb · Sep 1–Sep 30 | 1 | — | No new trades in Feb or Sep — both flagged as seasonally unreliable months |
 | DANGER | 500+ stocks down 4%+ today AND 5d ratio < 0.5 | 2 | ↓ hard | No entries, raise stops immediately |
-| **EXTENDED** | SPY ATR mult from 50MA ≥ 7 **OR** SPY %above 50MA ≥ 8 **OR** QQQ ATR mult from 50MA ≥ 9 | 3 | ↑↑ blow-off | **No new entries** — parabolic tape, tighten stops, no chase. Overrides THRUST/GREEN/CAUTION/STEADY (May 2026 — SNDK distribution-day class) |
+| **EXTENDED** | SPY ATR mult from 50MA ≥ 7 **OR** SPY %above 50MA ≥ 8 **OR** QQQ ATR mult from 50MA ≥ 9 | 3 | ↑↑ blow-off | **No new entries** — parabolic tape, tighten stops, no chase. Overrides THRUST/GREEN/CAUTION/TREND-FOLLOW/STEADY (May 2026 — SNDK distribution-day class) |
 | COOLING | prev_state == GREEN AND GREEN conditions no longer met | 4 | ↓ fading | Trim positions, tighten stops, no new entries |
 | THRUST | 500+ stocks up 4%+ today (Bonde "Very High" buying pressure) | 5 | ↑ signal | Start building watchlist NOW |
 | GREEN | 5d ratio >= 2.0, 10d >= 1.5, F&G >= 35, SPY above 200d MA | 6 | ↑ bull | Full size entries |
-| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 7 | ↑ recovering | Half size, build watchlist, get ready |
-| **STEADY-UPTREND** | SPY > 200d AND SPY > 50d AND F&G ≥ 50 AND up4 ≥ dn4 AND 5d_ratio ≥ 0.9 AND prev_state ∉ {RED, DANGER, BLACKOUT, EXTENDED} AND not EXTENDED | 8 | ↑ steady | Half size, entries allowed on confirmed RS leaders. Fills the gap between thrust-day bullish tiers and RED on a trending tape between thrust days (May 2026) |
-| RED | Everything else (SPY below 200d MA or breadth weak) | 9 | ↓ bear | No new trades |
+| **TREND-FOLLOW** | SPY>SMA50>SMA200 AND SMA50 rising 10d AND SPY within 3% of 20d high AND participation proxy (up_25_qtr/universe) ≥ 8% AND (VIX<25 OR VIX falling) AND not EXTENDED | 7 | ↑ steady trend | **Full size, entries allowed.** Trend-persistence path independent of 5d/10d thrust ratio. Rides steady grind-up tapes (Apr 24–May 5 2026 reference) instead of falling to RED. May 2026. |
+| CAUTION | 5d ratio >= 1.5, F&G >= 25, SPY above 200d MA | 8 | ↑ recovering | Half size, build watchlist, get ready |
+| STEADY-UPTREND | SPY > 200d AND SPY > 50d AND F&G ≥ 50 AND up4 ≥ dn4 AND 5d_ratio ≥ 0.9 AND prev_state ∉ {RED, DANGER, BLACKOUT, EXTENDED} AND not EXTENDED | 9 | ↑ steady | Half size, entries allowed on confirmed RS leaders. Safety net when TREND-FOLLOW gates just miss (e.g. participation right under 8%). |
+| RED | Everything else (SPY below 200d MA or breadth weak) | 10 | ↓ bear | No new trades |
 
-**SPY/QQQ extension metrics** — `spy_atr_mult_50`, `spy_sma50_pct`, `qqq_atr_mult_50`, `qqq_sma50_pct` are computed from Alpaca daily bars via `fetch_index_extension()` and persisted in each daily JSON record. ATR% Multiple formula matches `utils/calibrate_peel.py`: `(close − sma50) × close / (sma50 × atr14)`. `is_extended()` predicate fires if any of: SPY ATR mult ≥ 7, SPY %above 50 ≥ 8, QQQ ATR mult ≥ 9.
+**SPY/QQQ extension metrics** — `spy_atr_mult_50`, `spy_sma50_pct`, `spy_sma50_slope_10d`, `spy_pct_from_20d_high`, `qqq_atr_mult_50`, `qqq_sma50_pct` are computed from Alpaca daily bars via `fetch_index_extension()` and persisted in each daily JSON record. ATR% Multiple formula matches `utils/calibrate_peel.py`: `(close − sma50) × close / (sma50 × atr14)`. `is_extended()` fires if any of: SPY ATR mult ≥ 7, SPY %above 50 ≥ 8, QQQ ATR mult ≥ 9. `is_trend_follow()` requires all 6 gates above. VIX comes from `fetch_vix_snapshot()` (Yahoo `^VIX`). Participation proxy `pct_above_50ma` ships as `up_25_quarter / universe_size` — true %above-50MA computation is a follow-up.
+
+**5d/10d breadth ratio demoted to gauge (v3, May 2026).** The 5-day and 10-day up4/down4 ratios are no longer used to gate any state. They were thrust-day detectors being mis-used as trend detectors — steady grind-up tapes produce few 4% moves either way → ratio ~1.0 → fell through to RED (Apr 24–May 4 missed-rally bug). The fields stay in the daily JSON and Slack message as a "thrust strength gauge"; trend decisions now flow through TREND-FOLLOW.
 
 **STEADY-UPTREND prev_state guard** is strict by design: the only path out of RED stays RED → THRUST → CAUTION → GREEN. A single greedy-day bounce inside a downtrend cannot auto-rescue entries. Also blocked when EXTENDED is active (priority 3 wins).
 
-**Executor / position_monitor wiring:** EXTENDED → `(block=True, size_mul=0.0)`, STEADY-UPTREND → `(block=False, size_mul=0.5)`. In EXTENDED, dynamic stop base tightens to 3% (same as RED/DANGER). Backtest replay: `python scripts/replay_state_machine.py --days 60`.
+**Executor / position_monitor wiring:** EXTENDED → `(block=True, size_mul=0.0)`, TREND-FOLLOW → `(block=False, size_mul=1.0)`, GREEN/THRUST → `(False, 1.0)`, STEADY-UPTREND → `(False, 0.5)`. `aggressive` mode bumps any `size_mul == 1.0` state to 1.25× (covers GREEN/THRUST/TREND-FOLLOW). `effective_max_positions` returns 10 for GREEN/THRUST/TREND-FOLLOW, 7 for CAUTION/STEADY-UPTREND, 5 otherwise. In EXTENDED, dynamic stop base tightens to 3% (same as RED/DANGER). Backtest replay: `python scripts/replay_state_machine.py --days 60`.
 
 **Confidence Layer (two overlays — May 2026):**
 - **Layer 1 — Post-THRUST floor:** After any THRUST day, minimum state = CAUTION for 3 calendar days. Fixes THRUST→RED-next-day flips. DANGER still bypasses immediately. `post_thrust_floor_active` written to daily record + `trading_state.json`.
