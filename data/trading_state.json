@@ -1,9 +1,9 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 3,
-  "total_wins": 6,
+  "consecutive_wins": 3,
+  "consecutive_losses": 0,
+  "total_wins": 9,
   "total_losses": 12,
-  "current_sizing_mode": "suspended",
+  "current_sizing_mode": "normal",
   "sizing_override": null,
   "last_updated": "2026-05-15",
   "recent_trades": [
@@ -172,6 +172,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -100.0
+    },
+    {
+      "ticker": "INDV",
+      "result": "win",
+      "result_pct": 5.15,
+      "date": "2026-05-15",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 540.0
+    },
+    {
+      "ticker": "NVDA",
+      "result": "win",
+      "result_pct": 10.28,
+      "date": "2026-05-15",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1050.0
+    },
+    {
+      "ticker": "TNA",
+      "result": "win",
+      "result_pct": 1.69,
+      "date": "2026-05-15",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 154.5
     }
   ],
   "market_state": "EXTENDED",
