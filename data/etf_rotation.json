@@ -1,0 +1,566 @@
+{
+  "date": "2026-05-17",
+  "regime": "mid-rotation",
+  "etfs": [
+    {
+      "ticker": "XLK",
+      "name": "Technology",
+      "theme": "growth",
+      "kind": "sector",
+      "bucket": "EXTENDED",
+      "metrics": {
+        "last": 176.26,
+        "atr_pct": 2.05,
+        "mult50": 8.62,
+        "pct50": 17.7,
+        "dist52": -2.2,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 15.4,
+        "ret20": 14.2,
+        "ema21d": 5.96,
+        "rvol": 1.32
+      }
+    },
+    {
+      "ticker": "XLRE",
+      "name": "Real Estate",
+      "theme": "rate-sensitive",
+      "kind": "sector",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 43.23,
+        "atr_pct": 1.32,
+        "mult50": 0.69,
+        "pct50": 0.9,
+        "dist52": -3.7,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 4.0,
+        "ret20": -2.8,
+        "ema21d": -1.48,
+        "rvol": 0.94
+      }
+    },
+    {
+      "ticker": "XLU",
+      "name": "Utilities",
+      "theme": "defensive",
+      "kind": "sector",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 43.87,
+        "atr_pct": 1.66,
+        "mult50": -2.76,
+        "pct50": -4.6,
+        "dist52": -8.2,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 7.9,
+        "ret20": -5.0,
+        "ema21d": -3.62,
+        "rvol": 1.08
+      }
+    },
+    {
+      "ticker": "COPX",
+      "name": "Copper Miners",
+      "theme": "commodity",
+      "kind": "thematic",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 83.05,
+        "atr_pct": 4.06,
+        "mult50": 0.82,
+        "pct50": 3.3,
+        "dist52": -16.9,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 19.6,
+        "ret20": -4.7,
+        "ema21d": -1.13,
+        "rvol": 1.7
+      }
+    },
+    {
+      "ticker": "GDX",
+      "name": "Gold Miners",
+      "theme": "precious-metal",
+      "kind": "thematic",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 87.35,
+        "atr_pct": 4.44,
+        "mult50": -1.36,
+        "pct50": -6.0,
+        "dist52": -25.5,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 16.1,
+        "ret20": -12.9,
+        "ema21d": -6.11,
+        "rvol": 1.86
+      }
+    },
+    {
+      "ticker": "KRE",
+      "name": "Regional Banks",
+      "theme": "rate-sensitive",
+      "kind": "thematic",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 66.97,
+        "atr_pct": 2.02,
+        "mult50": -0.1,
+        "pct50": -0.2,
+        "dist52": -9.6,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 7.2,
+        "ret20": -4.8,
+        "ema21d": -2.52,
+        "rvol": 1.32
+      }
+    },
+    {
+      "ticker": "LIT",
+      "name": "Lithium",
+      "theme": "energy-transition",
+      "kind": "thematic",
+      "bucket": "PRE-BREAKOUT",
+      "metrics": {
+        "last": 84.08,
+        "atr_pct": 2.64,
+        "mult50": 2.49,
+        "pct50": 6.6,
+        "dist52": -8.6,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 12.7,
+        "ret20": 1.0,
+        "ema21d": -2.24,
+        "rvol": 1.02
+      }
+    },
+    {
+      "ticker": "XLC",
+      "name": "Comm Services",
+      "theme": "growth",
+      "kind": "sector",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 116.08,
+        "atr_pct": 1.16,
+        "mult50": 0.88,
+        "pct50": 1.0,
+        "dist52": -3.6,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 3.8,
+        "ret20": -2.5,
+        "ema21d": -0.11,
+        "rvol": 0.94
+      }
+    },
+    {
+      "ticker": "XLP",
+      "name": "Cons Staples",
+      "theme": "defensive",
+      "kind": "sector",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 84.64,
+        "atr_pct": 1.34,
+        "mult50": 1.42,
+        "pct50": 1.9,
+        "dist52": -6.1,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 4.6,
+        "ret20": 2.6,
+        "ema21d": 1.05,
+        "rvol": 1.09
+      }
+    },
+    {
+      "ticker": "XLY",
+      "name": "Cons Disc",
+      "theme": "cyclical",
+      "kind": "sector",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 116.53,
+        "atr_pct": 1.63,
+        "mult50": 1.13,
+        "pct50": 1.8,
+        "dist52": -6.8,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 4.3,
+        "ret20": -3.2,
+        "ema21d": -1.03,
+        "rvol": 1.38
+      }
+    },
+    {
+      "ticker": "ARKK",
+      "name": "Innovation",
+      "theme": "speculative",
+      "kind": "thematic",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 74.9,
+        "atr_pct": 3.36,
+        "mult50": 0.57,
+        "pct50": 1.9,
+        "dist52": -19.2,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 10.6,
+        "ret20": -5.5,
+        "ema21d": -2.4,
+        "rvol": 1.59
+      }
+    },
+    {
+      "ticker": "ARKX",
+      "name": "ARK Space & Defense",
+      "theme": "space-defense",
+      "kind": "thematic",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 33.84,
+        "atr_pct": 3.0,
+        "mult50": 1.87,
+        "pct50": 5.6,
+        "dist52": -4.8,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 11.5,
+        "ret20": 0.7,
+        "ema21d": 1.17,
+        "rvol": 1.0
+      }
+    },
+    {
+      "ticker": "FCG",
+      "name": "NatGas",
+      "theme": "commodity",
+      "kind": "thematic",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 30.8,
+        "atr_pct": 2.52,
+        "mult50": 0.68,
+        "pct50": 1.7,
+        "dist52": -6.8,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 10.7,
+        "ret20": 8.2,
+        "ema21d": 2.21,
+        "rvol": 0.47
+      }
+    },
+    {
+      "ticker": "IGV",
+      "name": "Software",
+      "theme": "growth-narrow",
+      "kind": "thematic",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 91.78,
+        "atr_pct": 2.82,
+        "mult50": 3.15,
+        "pct50": 8.9,
+        "dist52": -22.2,
+        "s50_rising": true,
+        "s200_rising": false,
+        "range20": 11.5,
+        "ret20": 7.9,
+        "ema21d": 4.54,
+        "rvol": 1.28
+      }
+    },
+    {
+      "ticker": "UFO",
+      "name": "Space (pure)",
+      "theme": "space-defense",
+      "kind": "thematic",
+      "bucket": "PRE-BREAKOUT",
+      "metrics": {
+        "last": 56.25,
+        "atr_pct": 3.56,
+        "mult50": 3.64,
+        "pct50": 12.9,
+        "dist52": -3.6,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 16.8,
+        "ret20": 2.9,
+        "ema21d": 5.22,
+        "rvol": 0.95
+      }
+    },
+    {
+      "ticker": "XBI",
+      "name": "Biotech",
+      "theme": "speculative",
+      "kind": "thematic",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 130.69,
+        "atr_pct": 2.67,
+        "mult50": 0.31,
+        "pct50": 0.8,
+        "dist52": -6.1,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 8.4,
+        "ret20": -5.8,
+        "ema21d": -1.98,
+        "rvol": 1.2
+      }
+    },
+    {
+      "ticker": "XLF",
+      "name": "Financials",
+      "theme": "cyclical",
+      "kind": "sector",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 51.1,
+        "atr_pct": 1.33,
+        "mult50": 0.66,
+        "pct50": 0.9,
+        "dist52": -9.6,
+        "s50_rising": false,
+        "s200_rising": false,
+        "range20": 4.7,
+        "ret20": -2.5,
+        "ema21d": -0.6,
+        "rvol": 0.9
+      }
+    },
+    {
+      "ticker": "XLV",
+      "name": "Healthcare",
+      "theme": "defensive",
+      "kind": "sector",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 145.1,
+        "atr_pct": 1.39,
+        "mult50": -0.87,
+        "pct50": -1.2,
+        "dist52": -9.6,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 4.7,
+        "ret20": -2.5,
+        "ema21d": -0.33,
+        "rvol": 0.96
+      }
+    },
+    {
+      "ticker": "ITA",
+      "name": "Aerospace & Defense",
+      "theme": "space-defense",
+      "kind": "thematic",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 217.27,
+        "atr_pct": 2.36,
+        "mult50": -1.51,
+        "pct50": -3.6,
+        "dist52": -13.3,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 9.6,
+        "ret20": -6.3,
+        "ema21d": -2.3,
+        "rvol": 0.76
+      }
+    },
+    {
+      "ticker": "ITB",
+      "name": "Homebuilders",
+      "theme": "rate-sensitive",
+      "kind": "thematic",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 86.45,
+        "atr_pct": 2.84,
+        "mult50": -2.7,
+        "pct50": -7.7,
+        "dist52": -26.7,
+        "s50_rising": false,
+        "s200_rising": false,
+        "range20": 19.4,
+        "ret20": -11.7,
+        "ema21d": -7.42,
+        "rvol": 1.01
+      }
+    },
+    {
+      "ticker": "SMH",
+      "name": "Semiconductors",
+      "theme": "growth-narrow",
+      "kind": "thematic",
+      "bucket": "EXTENDED",
+      "metrics": {
+        "last": 556.34,
+        "atr_pct": 3.0,
+        "mult50": 7.73,
+        "pct50": 23.2,
+        "dist52": -4.3,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 22.0,
+        "ret20": 19.9,
+        "ema21d": 6.11,
+        "rvol": 1.34
+      }
+    },
+    {
+      "ticker": "TAN",
+      "name": "Solar",
+      "theme": "energy-transition",
+      "kind": "thematic",
+      "bucket": "EXTENDED",
+      "metrics": {
+        "last": 64.96,
+        "atr_pct": 3.35,
+        "mult50": 4.16,
+        "pct50": 14.0,
+        "dist52": -0.8,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 17.0,
+        "ret20": 17.8,
+        "ema21d": 7.23,
+        "rvol": 1.61
+      }
+    },
+    {
+      "ticker": "XLB",
+      "name": "Materials",
+      "theme": "cyclical",
+      "kind": "sector",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 50.3,
+        "atr_pct": 1.69,
+        "mult50": -0.38,
+        "pct50": -0.6,
+        "dist52": -7.1,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 5.0,
+        "ret20": -3.0,
+        "ema21d": -2.33,
+        "rvol": 1.12
+      }
+    },
+    {
+      "ticker": "XLI",
+      "name": "Industrials",
+      "theme": "cyclical",
+      "kind": "sector",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 171.4,
+        "atr_pct": 1.75,
+        "mult50": 0.76,
+        "pct50": 1.3,
+        "dist52": -4.4,
+        "s50_rising": false,
+        "s200_rising": true,
+        "range20": 5.0,
+        "ret20": -1.2,
+        "ema21d": -0.7,
+        "rvol": 0.94
+      }
+    },
+    {
+      "ticker": "HACK",
+      "name": "Cybersecurity",
+      "theme": "growth-narrow",
+      "kind": "thematic",
+      "bucket": "BROKEN",
+      "metrics": {
+        "last": 88.55,
+        "atr_pct": 2.42,
+        "mult50": 5.09,
+        "pct50": 12.3,
+        "dist52": -1.2,
+        "s50_rising": true,
+        "s200_rising": false,
+        "range20": 13.9,
+        "ret20": 12.7,
+        "ema21d": 6.6,
+        "rvol": 0.93
+      }
+    },
+    {
+      "ticker": "URA",
+      "name": "Uranium",
+      "theme": "energy-transition",
+      "kind": "thematic",
+      "bucket": "NEUTRAL",
+      "metrics": {
+        "last": 49.93,
+        "atr_pct": 5.16,
+        "mult50": -0.78,
+        "pct50": -4.0,
+        "dist52": -19.8,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 18.4,
+        "ret20": -10.6,
+        "ema21d": -8.26,
+        "rvol": 1.09
+      }
+    },
+    {
+      "ticker": "XLE",
+      "name": "Energy",
+      "theme": "cyclical",
+      "kind": "sector",
+      "bucket": "BASE",
+      "metrics": {
+        "last": 59.44,
+        "atr_pct": 2.2,
+        "mult50": 1.06,
+        "pct50": 2.3,
+        "dist52": -6.3,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 8.5,
+        "ret20": 8.0,
+        "ema21d": 2.86,
+        "rvol": 0.92
+      }
+    },
+    {
+      "ticker": "XOP",
+      "name": "Oil & Gas E&P",
+      "theme": "commodity",
+      "kind": "thematic",
+      "bucket": "PRE-BREAKOUT",
+      "metrics": {
+        "last": 174.13,
+        "atr_pct": 2.82,
+        "mult50": 0.5,
+        "pct50": 1.4,
+        "dist52": -8.5,
+        "s50_rising": true,
+        "s200_rising": true,
+        "range20": 12.7,
+        "ret20": 9.0,
+        "ema21d": 1.86,
+        "rvol": 0.88
+      }
+    }
+  ]
+}

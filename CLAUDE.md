@@ -243,6 +243,8 @@ data/
   finviz_screeners_YYYY-MM-DD.csv         # Enriched daily screener data
   finviz_screeners_YYYY-MM-DD.html        # HTML table
   finviz_chart_grid_YYYY-MM-DD.html       # Chart gallery (sector rotation panel + click-to-filter + Base Building + Watchlist tiers)
+  etf_rotation.html                       # ETF Rotation Dashboard (daily — regime banner + bucket cards + full metrics table)
+  etf_rotation.json                       # Machine-readable ETF rotation snapshot — {date, regime, etfs: [{ticker, name, kind, bucket, metrics}]}
   finviz_weekly_YYYY-MM-DD.html           # Weekly report
   finviz_weekly_persistence_YYYY-MM-DD.csv # Weekly signal scores
   positions_YYYY-MM-DD.json               # Position snapshots
@@ -292,7 +294,9 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 2. Fallback to caller-provided Finviz `Sector` string via `FINVIZ_SECTOR_TO_ETF` (e.g. "Healthcare" → XLV).
 3. None → caller skips sector signal for that position.
 
-**Pending integrations** (per spec rollout §13 — wire in after observing signal quality): position monitor SECTOR ROTATING OUT alert on `decay_streak_days >= 2`, paper executor lagging-sector annotation, weekly agent rotation section, `rotation.html` dashboard tab.
+**ETF Rotation Dashboard (May 2026)** — `agents/sector_rotation.py` extended to compute per-ETF setup metrics (ATR%, mult50, dist52, range20, ret20, ema21d, RVol, MA stack) and bucket each ETF: `BASE` / `PRE-BREAKOUT` / `EXTENDED` / `BROKEN` / `NEUTRAL`. Bucket logic in `assign_bucket()`. Daily outputs: `data/etf_rotation.html` (one-page dashboard with regime banner + bucket cards + full metrics table) + `data/etf_rotation.json`. Linked from `index.html` "ETF Rotation" tile. Universe curated 35 → 28 ETFs (sectors 11 + thematics 17). Spec: [docs/specs/etf-rotation-dashboard.md](docs/specs/etf-rotation-dashboard.md). Same cron as sector_rotation.yml (21:15 UTC weekdays).
+
+**Pending integrations** (per spec rollout §13 — wire in after observing signal quality): position monitor SECTOR ROTATING OUT alert on `decay_streak_days >= 2`, paper executor lagging-sector annotation, weekly agent rotation section. (`rotation.html` dashboard tab now lives — see ETF Rotation Dashboard above.)
 
 ## Trading Rules Encoded
 

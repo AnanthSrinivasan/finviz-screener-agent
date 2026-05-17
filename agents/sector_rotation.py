@@ -402,6 +402,282 @@ def build_snapshot(today: Optional[str] = None) -> dict:
 
 
 # ------------------------------------------------------------------
+# ETF setup metrics + buckets (for etf_rotation.html dashboard)
+# ------------------------------------------------------------------
+def _sma(vs: list, n: int) -> Optional[float]:
+    if len(vs) < n:
+        return None
+    return sum(vs[-n:]) / n
+
+
+def _ema(vs: list, n: int) -> Optional[float]:
+    if len(vs) < n:
+        return None
+    k = 2 / (n + 1)
+    e = sum(vs[:n]) / n
+    for v in vs[n:]:
+        e = v * k + e * (1 - k)
+    return e
+
+
+def _atr14(rows: list[dict]) -> Optional[float]:
+    if len(rows) < 15:
+        return None
+    trs = []
+    for i in range(1, len(rows)):
+        h = rows[i]["h"]; l = rows[i]["l"]; pc = rows[i - 1]["c"]
+        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+    atr = sum(trs[:14]) / 14
+    for tr in trs[14:]:
+        atr = (atr * 13 + tr) / 14
+    return atr
+
+
+def compute_etf_setup(df: pd.DataFrame) -> Optional[dict]:
+    """Compute setup metrics for a single ETF given Alpaca daily bars DataFrame."""
+    if df is None or len(df) < 200:
+        return None
+    rows = df.to_dict("records")
+    closes = [r["c"] for r in rows]
+    highs = [r["h"] for r in rows]
+    lows = [r["l"] for r in rows]
+    vols = [r["v"] for r in rows]
+    last = closes[-1]
+    s50 = _sma(closes, 50)
+    s200 = _sma(closes, 200)
+    e8 = _ema(closes, 8)
+    e21 = _ema(closes, 21)
+    atr = _atr14(rows)
+    if not all((s50, s200, e8, e21, atr)) or last <= 0:
+        return None
+    atr_pct = atr / last * 100
+    mult50 = (last - s50) * last / (s50 * atr)
+    pct50 = (last - s50) / s50 * 100
+    hi252 = max(highs[-252:]) if len(highs) >= 252 else max(highs)
+    dist52 = (last - hi252) / hi252 * 100
+    s50_10ago = _sma(closes[:-10], 50)
+    s200_10ago = _sma(closes[:-10], 200)
+    s50_rising = s50_10ago is not None and s50 > s50_10ago
+    s200_rising = s200_10ago is not None and s200 > s200_10ago
+    range20 = (max(highs[-20:]) - min(lows[-20:])) / last * 100
+    ret20 = (last - closes[-21]) / closes[-21] * 100 if len(closes) >= 21 else None
+    ema21d = (last - e21) / last * 100
+    av20 = sum(vols[-20:]) / 20 if len(vols) >= 20 else None
+    rvol = vols[-1] / av20 if av20 else None
+    return {
+        "last":        round(last, 2),
+        "atr_pct":     round(atr_pct, 2),
+        "mult50":      round(mult50, 2),
+        "pct50":       round(pct50, 1),
+        "dist52":      round(dist52, 1),
+        "s50_rising":  bool(s50_rising),
+        "s200_rising": bool(s200_rising),
+        "range20":     round(range20, 1),
+        "ret20":       round(ret20, 1) if ret20 is not None else None,
+        "ema21d":      round(ema21d, 2),
+        "rvol":        round(rvol, 2) if rvol else None,
+    }
+
+
+def assign_bucket(m: dict) -> str:
+    """Bucket an ETF by setup state. Order matters — BROKEN/EXTENDED checked first."""
+    if m["mult50"] < -1 or not m["s200_rising"]:
+        return "BROKEN"
+    if m["mult50"] > 5 or m["dist52"] > -2:
+        return "EXTENDED"
+    if (m["s50_rising"] and m["s200_rising"] and m["mult50"] < 3
+            and m["range20"] < 12 and -10 < m["dist52"] < -2):
+        return "BASE"
+    if (m["s50_rising"] and m["s200_rising"] and m["mult50"] < 4
+            and -10 <= m["dist52"] <= 0):
+        return "PRE-BREAKOUT"
+    return "NEUTRAL"
+
+
+def compute_etf_setups(bars: dict, universe: dict) -> list[dict]:
+    """Compute setup metrics + bucket for each ETF in the universe.
+    Returns list of {ticker, name, theme, kind (sector|thematic), bucket, metrics}.
+    """
+    meta_sectors = universe.get("sectors", {})
+    meta_thematics = universe.get("thematics", {})
+    out: list[dict] = []
+    for tk, df in bars.items():
+        if tk in meta_sectors:
+            kind = "sector"; meta = meta_sectors[tk]
+        elif tk in meta_thematics:
+            kind = "thematic"; meta = meta_thematics[tk]
+        else:
+            continue
+        m = compute_etf_setup(df)
+        if m is None:
+            out.append({"ticker": tk, "name": meta.get("name", tk),
+                        "theme": meta.get("theme", ""), "kind": kind,
+                        "bucket": "NEUTRAL", "metrics": None, "note": "insufficient bars"})
+            continue
+        out.append({"ticker": tk, "name": meta.get("name", tk),
+                    "theme": meta.get("theme", ""), "kind": kind,
+                    "bucket": assign_bucket(m), "metrics": m})
+    return out
+
+
+def _score(m: dict) -> float:
+    """Ranking score for BASE/PRE-BREAKOUT: lower mult50 + tighter range = higher score."""
+    return (10 - m["mult50"]) + (15 - m["range20"]) + (2 if m["s50_rising"] else 0)
+
+
+def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
+    """Render etf_rotation.html — one-page actionable ETF setup state."""
+    regime = snapshot.get("regime", "unknown")
+    action = regime_action(regime) or {}
+    today = snapshot.get("date", "")
+
+    by_bucket = {"BASE": [], "PRE-BREAKOUT": [], "EXTENDED": [], "BROKEN": [], "NEUTRAL": []}
+    for e in etf_setups:
+        by_bucket[e.get("bucket", "NEUTRAL")].append(e)
+    for b in ("BASE", "PRE-BREAKOUT"):
+        by_bucket[b].sort(key=lambda e: -_score(e["metrics"]) if e["metrics"] else 0)
+    # EXTENDED sorted by mult50 desc (most extended first), BROKEN by dist52 asc
+    by_bucket["EXTENDED"].sort(key=lambda e: -(e["metrics"]["mult50"] if e["metrics"] else 0))
+    by_bucket["BROKEN"].sort(key=lambda e: (e["metrics"]["dist52"] if e["metrics"] else 0))
+
+    def _metric_row(e: dict) -> str:
+        m = e["metrics"]
+        if m is None:
+            return f'<tr><td><b>{e["ticker"]}</b></td><td>{e["name"]}</td><td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
+        return (
+            f'<tr><td><b>{e["ticker"]}</b></td><td>{e["name"]}</td>'
+            f'<td style="color:#6b7280">{e["theme"]}</td>'
+            f'<td>{m["atr_pct"]}%</td><td>{m["mult50"]}</td><td>{m["dist52"]}%</td>'
+            f'<td>{m["range20"]}%</td><td>{m["ret20"]}%</td><td>{m["ema21d"]}%</td>'
+            f'<td>{m["rvol"]}x</td>'
+            f'<td>{"✓" if m["s50_rising"] else "—"}/{"✓" if m["s200_rising"] else "—"}</td>'
+            f'<td><span class="bucket-tag b-{e["bucket"]}">{e["bucket"]}</span></td></tr>'
+        )
+
+    def _card(e: dict, color: str) -> str:
+        m = e["metrics"] or {}
+        return (
+            f'<div class="etf-card" style="border-left:4px solid {color}">'
+            f'<div class="etf-head"><span class="etf-tk">{e["ticker"]}</span>'
+            f'<span class="etf-name">{e["name"]}</span>'
+            f'<span class="etf-theme">{e["theme"]}</span></div>'
+            f'<div class="etf-metrics">'
+            f'mult50 <b>{m.get("mult50","—")}</b> · '
+            f'range20 <b>{m.get("range20","—")}%</b> · '
+            f'dist52 <b>{m.get("dist52","—")}%</b> · '
+            f'ret20 <b>{m.get("ret20","—")}%</b> · '
+            f'RVol <b>{m.get("rvol","—")}x</b>'
+            f'</div></div>'
+        )
+
+    base_cards = "".join(_card(e, "#16a34a") for e in by_bucket["BASE"])
+    pre_cards = "".join(_card(e, "#2563eb") for e in by_bucket["PRE-BREAKOUT"])
+    ext_cards = "".join(_card(e, "#f59e0b") for e in by_bucket["EXTENDED"])
+    broken_cards = "".join(_card(e, "#dc2626") for e in by_bucket["BROKEN"])
+    neutral_cards = "".join(_card(e, "#9ca3af") for e in by_bucket["NEUTRAL"])
+
+    all_rows = "".join(_metric_row(e) for e in etf_setups)
+
+    headline = action.get("headline", "")
+    sizing = action.get("sizing", "")
+    entries = action.get("entries", "")
+    held = action.get("held", "")
+
+    return f"""<!doctype html><html><head><meta charset="utf-8"><title>ETF Rotation — {today}</title>
+<style>
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#111827;padding:24px;max-width:1280px;margin:0 auto}}
+h1{{color:#111827;margin-bottom:4px}}
+h2{{color:#374151;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-top:28px}}
+.subtitle{{color:#6b7280;font-size:14px;margin-bottom:24px}}
+.regime{{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:24px}}
+.regime-tag{{display:inline-block;background:#2563eb;color:#fff;padding:4px 12px;border-radius:4px;font-weight:bold;margin-bottom:8px;font-size:13px}}
+.regime-head{{font-weight:bold;color:#111827;margin-bottom:6px}}
+.action-row{{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:#374151}}
+.action-row b{{color:#111827}}
+.etf-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:12px 0}}
+.etf-card{{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px}}
+.etf-head{{display:flex;gap:8px;align-items:baseline;margin-bottom:6px}}
+.etf-tk{{font-weight:bold;font-size:16px;color:#111827}}
+.etf-name{{color:#374151;font-size:13px}}
+.etf-theme{{margin-left:auto;color:#9ca3af;font-size:11px}}
+.etf-metrics{{font-size:12px;color:#4b5563}}
+table{{border-collapse:collapse;width:100%;font-size:12px;margin-top:12px}}
+th,td{{border:1px solid #e5e7eb;padding:5px 8px;text-align:left}}
+th{{background:#f3f4f6;color:#111827;position:sticky;top:0}}
+.bucket-tag{{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold}}
+.b-BASE{{background:#d1fae5;color:#065f46}}
+.b-PRE-BREAKOUT{{background:#dbeafe;color:#1e40af}}
+.b-EXTENDED{{background:#fef3c7;color:#92400e}}
+.b-BROKEN{{background:#fee2e2;color:#991b1b}}
+.b-NEUTRAL{{background:#f3f4f6;color:#4b5563}}
+details{{margin-top:12px}}
+summary{{cursor:pointer;font-weight:bold;color:#374151;padding:4px 0}}
+a{{color:#2563eb}}
+</style></head><body>
+<h1>📊 ETF Rotation Dashboard</h1>
+<div class="subtitle">{today} · {len(etf_setups)} ETFs · regime auto-classified daily from <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent/blob/main/agents/sector_rotation.py">sector_rotation.py</a></div>
+
+<div class="regime">
+<div class="regime-tag">{regime}</div>
+<div class="regime-head">{headline}</div>
+<div class="action-row">
+<div><b>Sizing:</b> {sizing}</div>
+<div><b>Entries:</b> {entries}</div>
+<div><b>Held:</b> {held}</div>
+</div>
+</div>
+
+<h2>🎯 Base — {len(by_bucket['BASE'])} setups</h2>
+<div class="subtitle">Tight, low-vol, ready to break out. Ranked by tightness × room.</div>
+<div class="etf-grid">{base_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+
+<h2>🟦 Pre-Breakout — {len(by_bucket['PRE-BREAKOUT'])} setups</h2>
+<div class="subtitle">Approaching highs with room before peel-warn. Slightly less tight than BASE.</div>
+<div class="etf-grid">{pre_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+
+<h2>🚀 Extended — {len(by_bucket['EXTENDED'])} setups (wait for PB)</h2>
+<div class="subtitle">Strong trends already running. Don't chase — watch for 21 EMA pullback as entry.</div>
+<div class="etf-grid">{ext_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+
+<details>
+<summary>❌ Broken / Stage 4 — {len(by_bucket['BROKEN'])} ETFs</summary>
+<div class="etf-grid">{broken_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+</details>
+
+<details>
+<summary>◯ Neutral / ranging — {len(by_bucket['NEUTRAL'])} ETFs</summary>
+<div class="etf-grid">{neutral_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+</details>
+
+<h2>📋 Full metrics</h2>
+<table>
+<thead><tr><th>Ticker</th><th>Name</th><th>Theme</th><th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th><th>ret20</th><th>EMA21 dist</th><th>RVol</th><th>50/200 ↑</th><th>Bucket</th></tr></thead>
+<tbody>{all_rows}</tbody>
+</table>
+</body></html>"""
+
+
+def write_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
+    fpath = os.path.join(DATA_DIR, "etf_rotation.html")
+    html = render_etf_rotation_html(snapshot, etf_setups)
+    with open(fpath, "w") as f:
+        f.write(html)
+    return fpath
+
+
+def write_etf_rotation_json(snapshot: dict, etf_setups: list[dict]) -> str:
+    fpath = os.path.join(DATA_DIR, "etf_rotation.json")
+    payload = {
+        "date":   snapshot.get("date"),
+        "regime": snapshot.get("regime"),
+        "etfs":   etf_setups,
+    }
+    with open(fpath, "w") as f:
+        json.dump(payload, f, indent=2)
+    return fpath
+
+
+# ------------------------------------------------------------------
 # Persistence
 # ------------------------------------------------------------------
 def write_snapshot(snapshot: dict) -> str:
@@ -587,6 +863,23 @@ def main() -> int:
     append_to_history(snap)
     log.info("Wrote snapshot %s (regime=%s, dispersion p%.0f)",
              fpath, snap["regime"], snap["dispersion_percentile_180d"] * 100)
+
+    # ETF setup dashboard — re-uses same Alpaca bars universe for setup metrics.
+    try:
+        universe = load_universe()
+        syms = universe_symbols(universe)
+        # Re-fetch with enough history for SMA200 (>= 280 calendar days)
+        etf_bars = fetch_bars(sorted(set(syms)), days=280)
+        etf_setups = compute_etf_setups(etf_bars, universe)
+        json_path = write_etf_rotation_json(snap, etf_setups)
+        html_path = write_etf_rotation_html(snap, etf_setups)
+        bucket_counts: dict[str, int] = {}
+        for e in etf_setups:
+            bucket_counts[e["bucket"]] = bucket_counts.get(e["bucket"], 0) + 1
+        log.info("ETF rotation: wrote %s and %s — buckets %s",
+                 json_path, html_path, bucket_counts)
+    except Exception as e:
+        log.error("ETF rotation dashboard failed (non-fatal): %s", e)
 
     weekday = datetime.date.fromisoformat(snap["date"]).weekday()  # Mon=0, Thu=3
     force_slack = os.environ.get("FORCE_SLACK", "false").lower() == "true"
