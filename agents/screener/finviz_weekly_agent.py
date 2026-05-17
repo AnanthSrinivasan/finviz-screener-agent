@@ -12,6 +12,13 @@ import pandas as pd
 from collections import defaultdict
 
 from agents.utils.pullback_setup import build_pullback_rows
+from agents.utils.etf_rotation_summary import (
+    load_etf_rotation,
+    summarize_etf_rotation,
+    render_sector_setup_html,
+    render_sector_setup_slack,
+    SECTOR_SETUP_CSS,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -1010,7 +1017,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
                           dates_found: list, ai_brief: str,
                           fng_data: dict = None, crypto_data: dict = None,
                           cc_results: dict = None,
-                          pullback_buckets: dict = None) -> str:
+                          pullback_buckets: dict = None,
+                          etf_rotation_summary: dict = None) -> str:
     today      = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
@@ -1460,7 +1468,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-"""
+""" + SECTOR_SETUP_CSS
 
     html = (
         "<!DOCTYPE html><html lang='en'><head>"
@@ -1477,6 +1485,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         + crypto_html
         + fng_html
         + macro_html
+        + render_sector_setup_html(etf_rotation_summary)
         + ai_html
         + "<h2>Top 5 This Week <span class='h2-sub'>— already broken out</span></h2>"
         + "<div class='focus-grid'>" + focus_cards + "</div>"
@@ -1874,7 +1883,8 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                        ai_brief: str, weekly_html: str,
                        dates_found: list, fng_data: dict = None,
                        crypto_data: dict = None,
-                       pullback_buckets: dict = None):
+                       pullback_buckets: dict = None,
+                       etf_rotation_summary: dict = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
@@ -1953,6 +1963,11 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
     )
     blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": body}})
     blocks.append({"type": "divider"})
+
+    sector_setup_text = render_sector_setup_slack(etf_rotation_summary)
+    if sector_setup_text:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": sector_setup_text}})
+        blocks.append({"type": "divider"})
 
     if pullback_buckets:
         entry_rows = pullback_buckets.get("entry_zone", [])[:5]
@@ -2166,8 +2181,22 @@ if __name__ == "__main__":
     except Exception as e:
         log.warning("Pullback bucket build failed (non-fatal): %s", e)
 
-    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results, pullback_buckets)
+    etf_rotation_summary = None
+    try:
+        from agents.sector_rotation import regime_action as _regime_action
+        rotation = load_etf_rotation(DATA_DIR)
+        if rotation:
+            etf_rotation_summary = summarize_etf_rotation(
+                rotation, top_n=5, regime_actions_lookup=_regime_action,
+            )
+            log.info("ETF rotation summary loaded: regime=%s, buckets=%s",
+                     etf_rotation_summary.get("regime"),
+                     {b: len(rows) for b, rows in etf_rotation_summary.get("buckets", {}).items()})
+    except Exception as e:
+        log.warning("ETF rotation summary build failed (non-fatal): %s", e)
+
+    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results, pullback_buckets, etf_rotation_summary)
     log.info(f"Report: {weekly_html}")
 
-    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data, pullback_buckets)
+    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data, pullback_buckets, etf_rotation_summary)
     log.info("=== Done ===")
