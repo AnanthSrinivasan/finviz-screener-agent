@@ -188,6 +188,8 @@ Tickers outside core sectors get `⚠️ Outside Edge` and drop to Watch List.
 **Schedule:** 10:00 UTC Saturday  
 **Slack:** `#weekly-alerts` via `SLACK_WEBHOOK_WEEKLY`
 
+**📊 Sector Setup This Week block (added 2026-05-17).** Weekly HTML and Slack now render a sector setup block sourced from `data/etf_rotation.json` (Friday snapshot). HTML sits between macro snapshot and Top 5; Slack sits between Top Picks and the 21 EMA pullback re-entry block. Helper module: `agents/utils/etf_rotation_summary.py` — pure functions `load_etf_rotation`, `summarize_etf_rotation`, `render_sector_setup_html`, `render_sector_setup_slack`, plus `REGIME_ADVICE` dict (regime tag → one-sentence "what this means for you this week") and `SECTOR_SETUP_CSS`. Top 5 ETFs per actionable bucket (BASE / PRE-BREAKOUT / EXTENDED / BROKEN); NEUTRAL filtered. Empty buckets omitted. Sort keys: BASE by ret20 desc, PRE-BREAKOUT by closest-to-highs, EXTENDED by mult50 desc, BROKEN by most-broken first. Falls through gracefully when `etf_rotation.json` is missing or invalid — weekly review still ships, just without the block. Tests: `tests/test_etf_rotation_summary.py` (15 unit tests). Spec: [docs/specs/weekly-etf-rotation-section.md](docs/specs/weekly-etf-rotation-section.md). Rationale: sector rotation moves on weeks, not days — weekly is the correct consumption cadence; daily dashboard remains for ad-hoc lookup.
+
 **Unified Signal Score:**
 
 ```
