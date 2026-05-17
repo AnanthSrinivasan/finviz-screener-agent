@@ -1336,7 +1336,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              power_plays: list | None = None,
                              base_building: list | None = None,
                              htf_base_reclaim: list | None = None,
-                             rs_leaders_actions: dict | None = None):
+                             rs_leaders_actions: dict | None = None,
+                             ema21_pb: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1458,6 +1459,28 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": ":cyclone: *HTF Base Reclaim* (deep 52w pullback but tight against recent swing pivot):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # 🎯 21 EMA Pullback — continuation entries on names that ran, pulled back
+    # to EMA21/SMA20 area, with quiet-drift or active-bounce volume signature.
+    # ema21_pb is list of dicts: {ticker, q, sma20, atr, rvol, perf_month}
+    if ema21_pb:
+        lines = []
+        for r in ema21_pb:
+            rvol_tag = "active bounce" if r['rvol'] >= 1.0 else "quiet drift"
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · SMA20 {r['sma20']:+.1f}% · "
+                f"ATR {r['atr']:.1f}% · RVol {r['rvol']:.2f}x ({rvol_tag}) · "
+                f"Perf 1M {r['perf_month']:+.0f}% · `/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":dart: *21 EMA Pullback* (continuation after run — quiet drift or active bounce):\n"
                         + "\n".join(lines),
             }
         })
@@ -1756,23 +1779,15 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     All must hold: Stage 2 perfect · VCP conf ≥70 · Q ≥80 ·
     pullback -1% to -12% from 52w high · ATR ≤7% · RVol ≤1.2 ·
     not already an open position.
+
+    Pullback-friendly stage relaxation (May 2026): when dist ≤ -10% from high,
+    accept stage 2 with SMA20% ≥ -3 (instead of requiring sma20 > 0). On a
+    legitimate pullback to EMA21 / SMA20 area, price often dips 1-3% below
+    SMA20 — strict perfect ladder kills these (e.g. SMCI Jan 17 2024 class).
+    Inside -10% from high we keep the strict ladder.
     """
     ticker = row.get("Ticker") if hasattr(row, "get") else None
     if ticker in open_positions_tickers:
-        return False
-
-    stage_d = row.get("Stage") or {}
-    if not isinstance(stage_d, dict):
-        return False
-    if not (stage_d.get("stage") == 2 and stage_d.get("perfect", False)):
-        return False
-
-    vcp_d = row.get("VCP") or {}
-    if not isinstance(vcp_d, dict) or float(vcp_d.get("confidence", 0) or 0) < 70:
-        return False
-
-    qs = row.get("Quality Score")
-    if qs is None or pd.isna(qs) or float(qs) < 80:
         return False
 
     dist = row.get("Dist From High%")
@@ -1780,6 +1795,28 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
         return False
     dist = float(dist)
     if dist > -1.0 or dist < -12.0:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    if dist <= -10.0:
+        # Pullback-friendly Stage 2: trend up + tolerate small SMA20 dip.
+        sma20_v = float(row.get('SMA20%', 0) or 0)
+        sma50_v = float(row.get('SMA50%', 0) or 0)
+        sma200_v = float(row.get('SMA200%', 0) or 0)
+        if not (stage_d.get("stage") == 2 and sma200_v > sma50_v and sma50_v > 0 and sma20_v >= -3.0):
+            return False
+    else:
+        if not (stage_d.get("stage") == 2 and stage_d.get("perfect", False)):
+            return False
+
+    vcp_d = row.get("VCP") or {}
+    if not isinstance(vcp_d, dict) or float(vcp_d.get("confidence", 0) or 0) < 70:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 80:
         return False
 
     atr = row.get("ATR%")
@@ -1951,9 +1988,12 @@ def _is_htf_base_reclaim_candidate(row, open_positions_tickers: set, exclude_tic
     Pre-filter for 🌀 HTF Base Reclaim — checked BEFORE the Alpaca swing-pivot
     fetch. Cuts API load to <50 tickers/day in practice.
 
-    All must hold (cheap, no network): Stage 2 perfect · Q ≥ 75 · ATR% ≤ 7 ·
+    All must hold (cheap, no network): Stage 2 perfect · Q ≥ 75 · ATR% ≤ 8.5 ·
     dist from 52w high < -12% · rising MA stack (SMA20/50/200 all > 0) ·
     peel-warn safe · RVol ≥ 1.0 · not held · not already in another callout.
+
+    ATR cap raised 7 → 8.5 (May 2026) after retro coverage audit — DOCN Apr 13 2026
+    (ATR 8.0, dist -15.4%, clean HTF reclaim) was dropped by the prior cap.
     """
     ticker = row.get("Ticker") if hasattr(row, "get") else None
     if ticker in open_positions_tickers or ticker in exclude_tickers:
@@ -1970,7 +2010,7 @@ def _is_htf_base_reclaim_candidate(row, open_positions_tickers: set, exclude_tic
         return False
 
     atr = row.get("ATR%")
-    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 7.0:
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 8.5:
         return False
     atr = float(atr)
 
@@ -2013,6 +2053,76 @@ def _is_htf_base_reclaim(row, open_positions_tickers: set, exclude_tickers: set,
     if swing_dist_pct is None:
         return False
     return swing_dist_pct >= -10.0
+
+
+def _is_ema21_pullback(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
+    """
+    🎯 21 EMA Pullback — continuation entry after a name has run, pulled back
+    cleanly to the EMA21 area, and is showing either quiet drift or active
+    bounce on volume.
+
+    Predicate (Finviz-only — uses SMA20% as EMA21 proxy, Perf Month as ret20
+    proxy; both within ~1-2% of true EMA21/ret20 in practice):
+
+      - Stage 2 perfect (production def: SMA stacking + price above 20/50)
+        ※ relaxed to SMA20 ≥ -2 to allow the pullback to dip just into the
+        EMA21 area (the entire point of the block)
+      - ATR% ≤ 6 (tight, low-volatility name)
+      - Q ≥ 75
+      - SMA20% in [-2%, +3%] (price right at the SMA20 / EMA21 area)
+      - Perf Month ≥ 12% (real prior run to pull back from — proxy for ret20≥15)
+      - RVol filter: `<1.0` (quiet PB) OR `1.0 ≤ RVol ≤ 2.5` (active bounce day)
+      - Peel-warn safe · not held · not in another callout
+
+    Catches ANET Apr 22 (active bounce, RVol 2.15) and APP Sep 9 2024 (RVol 1.76,
+    real PB after run) — both missed by RS Leader's RVol ≤ 1.5 cap.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    sma20 = row.get("SMA20%")
+    sma50 = row.get("SMA50%")
+    sma200 = row.get("SMA200%")
+    if any(v is None or pd.isna(v) for v in (sma20, sma50, sma200)):
+        return False
+    sma20 = float(sma20); sma50 = float(sma50); sma200 = float(sma200)
+    # Trend up + tolerate small SMA20 dip (we're pulling back!)
+    if not (sma200 > sma50 and sma50 > 0 and sma20 >= -2.0):
+        return False
+    # Price right at SMA20 (EMA21 proxy)
+    if not (-2.0 <= sma20 <= 3.0):
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 75:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 6.0:
+        return False
+    atr = float(atr)
+
+    perf_month = row.get("Perf Month")
+    if perf_month is None or pd.isna(perf_month) or float(perf_month) < 12.0:
+        return False
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol):
+        return False
+    rvol = float(rvol)
+    if not (rvol < 1.0 or 1.0 <= rvol <= 2.5):
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
 
 
 def _is_textbook_vcp(row) -> bool:
@@ -2118,6 +2228,10 @@ def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
     All must hold: Stage 2 perfect · Q ≥ 75 · dist [-10%, +2%] · rising MA stack
     (SMA20/50/200 all > 0) · ATR% ≤ 8 · peel-safe · RVol ≤ 1.5 · not in excluded
     sectors · not held (real or paper).
+
+    Pullback-friendly stage at the dist=-10% edge (May 2026): when dist ≤ -10%
+    (which here means exactly -10% since cap is hard), accept SMA20% ≥ -3 to
+    tolerate price dipping toward EMA21/SMA20 on a legitimate pullback day.
     """
     ticker = row.get("Ticker") if hasattr(row, "get") else None
     if ticker in open_positions_tickers:
@@ -2127,16 +2241,6 @@ def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
     if sector in _RS_LEADER_EXCLUDED_SECTORS:
         return False
 
-    stage_d = row.get("Stage") or {}
-    if not isinstance(stage_d, dict):
-        return False
-    if stage_d.get("stage") != 2 or not stage_d.get("perfect", False):
-        return False
-
-    qs = row.get("Quality Score")
-    if qs is None or pd.isna(qs) or float(qs) < 75:
-        return False
-
     dist = row.get("Dist From High%")
     if dist is None or pd.isna(dist):
         return False
@@ -2144,17 +2248,30 @@ def _is_rs_leader_candidate(row, open_positions_tickers: set) -> bool:
     if dist > 2.0 or dist < -10.0:
         return False
 
-    sma20 = row.get("SMA20%")
-    if sma20 is None or pd.isna(sma20) or float(sma20) <= 0:
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
         return False
-
-    sma50 = row.get("SMA50%")
-    if sma50 is None or pd.isna(sma50) or float(sma50) <= 0:
+    pullback_path = dist <= -10.0
+    sma20_v = row.get('SMA20%')
+    sma50_v = row.get('SMA50%')
+    sma200_v = row.get('SMA200%')
+    if any(v is None or pd.isna(v) for v in (sma20_v, sma50_v, sma200_v)):
         return False
-    sma50 = float(sma50)
+    sma20_v = float(sma20_v); sma50_v = float(sma50_v); sma200_v = float(sma200_v)
+    if pullback_path:
+        # Pullback-friendly Stage 2 at the deep edge of the band.
+        if not (stage_d.get("stage") == 2 and sma200_v > sma50_v and sma50_v > 0 and sma20_v >= -3.0):
+            return False
+    else:
+        if stage_d.get("stage") != 2 or not stage_d.get("perfect", False):
+            return False
+        # Strict ladder: all SMAs above 0
+        if sma20_v <= 0 or sma50_v <= 0 or sma200_v <= 0:
+            return False
+    sma50 = sma50_v  # alias used downstream for peel calc
 
-    sma200 = row.get("SMA200%")
-    if sma200 is None or pd.isna(sma200) or float(sma200) <= 0:
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 75:
         return False
 
     atr = row.get("ATR%")
@@ -2282,6 +2399,7 @@ def _update_watchlist(
     breakout_tickers: list | None = None,
     rs_leader_tickers: list | None = None,
     htf_base_reclaim_tickers: list | None = None,
+    ema21_pb_tickers: list | None = None,
 ):
     """
     Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
@@ -2539,6 +2657,38 @@ def _update_watchlist(
         by_ticker[htf_ticker] = htf_entry
         htf_added.append(htf_ticker)
         log.info("Watchlist: added %s via HTF Base Reclaim at focus tier (source=htf_base_reclaim_auto)", htf_ticker)
+
+    # ── 21 EMA Pullback entry path: focus tier (parallel to RS Leader / HTF-BR). ──
+    pb_added: list[str] = []
+    for pb_ticker in (ema21_pb_tickers or []):
+        if pb_ticker in by_ticker:
+            existing_entry = by_ticker[pb_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "focus"
+                existing_entry["focus_promoted_date"] = today
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(pb_ticker)
+                log.info("Watchlist: reactivated %s via 21 EMA Pullback at focus tier", pb_ticker)
+            continue
+        pb_entry = {
+            "ticker":               pb_ticker,
+            "entry_note":           "21 EMA Pullback — continuation after run, tight at EMA21/SMA20",
+            "entry_price":          None,
+            "stop":                 None,
+            "thesis":               "21 EMA pullback continuation",
+            "added":                today,
+            "status":               "watching",
+            "priority":             "focus",
+            "focus_promoted_date":  today,
+            "source":               "ema21_pb_auto",
+        }
+        existing.append(pb_entry)
+        by_ticker[pb_ticker] = pb_entry
+        pb_added.append(pb_ticker)
+        log.info("Watchlist: added %s via 21 EMA Pullback at focus tier (source=ema21_pb_auto)", pb_ticker)
 
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
@@ -2965,6 +3115,40 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("RS Leader detection failed (non-fatal): %s", _e)
 
+    # 🎯 21 EMA Pullback — continuation entries on names that ran, pulled back to
+    # the EMA21/SMA20 area, and are either drifting quietly or bouncing on volume.
+    # Catches ANET-PB / APP-PB class missed by RS Leader's tight RVol cap.
+    ema21_pb: list[dict] = []
+    try:
+        exclude_from_pb = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in base_building}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+        )
+        if not summary_df.empty:
+            for _, row in summary_df.iterrows():
+                if _is_ema21_pullback(row, open_positions_tickers, exclude_from_pb):
+                    atr_v = float(row.get("ATR%") or 0) or 0
+                    sma20_v = float(row.get("SMA20%") or 0) or 0
+                    ema21_pb.append({
+                        "ticker":     row["Ticker"],
+                        "q":          float(row.get("Quality Score") or 0),
+                        "sma20":      sma20_v,
+                        "atr":        atr_v,
+                        "rvol":       float(row.get("Rel Volume") or 0),
+                        "perf_month": float(row.get("Perf Month") or 0),
+                    })
+            ema21_pb.sort(key=lambda r: r["q"], reverse=True)
+            ema21_pb = ema21_pb[:5]
+        if ema21_pb:
+            log.info("21 EMA Pullback: %s", [r["ticker"] for r in ema21_pb])
+    except Exception as _e:
+        log.error("21 EMA Pullback detection failed (non-fatal): %s", _e)
+
     # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
     _rsl_gallery_tickers = [
         d["ticker"] for d in rs_leaders_triggered
@@ -2990,6 +3174,7 @@ if __name__ == "__main__":
         base_building=base_building,
         htf_base_reclaim=htf_base_reclaim,
         rs_leaders_actions=rs_leaders_actions if rs_leaders_actions else None,
+        ema21_pb=ema21_pb,
     )
 
     # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
@@ -3002,6 +3187,7 @@ if __name__ == "__main__":
         breakout_tickers=br_tickers_today,
         rs_leader_tickers=rsl_new_tickers,
         htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
+        ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])
