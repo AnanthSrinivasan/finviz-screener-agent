@@ -1,55 +1,11 @@
 {
   "open_positions": [
     {
-      "ticker": "AAOI",
-      "shares": 10,
-      "entry_price": 124.75,
-      "entry_date": "2026-04-08",
-      "target1": 149.7,
-      "target1_hit": true,
-      "target2": 174.65,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 233.47,
-      "peak_gain_pct": 87.15,
-      "stop_price": 210.3,
-      "breakeven_activated": true,
-      "current_gain_pct": 52.59,
-      "first_entry_price": 116.0,
-      "ma_trail_alerted_date": "2026-05-09",
-      "ma_trail_last": {
-        "ma_type": "10% trail",
-        "close": 148.99,
-        "ema": 172.47,
-        "date": "2026-05-09"
-      },
-      "target2_hit": true,
-      "last_fade_alert_gain_pct": 53.34
-    },
-    {
-      "ticker": "GLW",
-      "shares": 25,
-      "entry_price": 165.09,
-      "entry_date": "2026-04-17",
-      "target1": 198.11,
-      "target1_hit": true,
-      "target2": 231.13,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 211.7,
-      "peak_gain_pct": 28.23,
-      "stop_price": 199.21,
-      "breakeven_activated": true,
-      "current_gain_pct": 16.19,
-      "first_entry_price": 167.52,
-      "last_fade_alert_gain_pct": 18.74
-    },
-    {
       "ticker": "CRWV",
       "shares": 100,
       "entry_price": 115.05,
       "entry_date": "2026-04-29",
-      "stop_price": 128.96,
+      "stop_price": 129.08,
       "breakeven_activated": true,
       "target1": 138.06,
       "target1_hit": false,
@@ -59,7 +15,7 @@
       "highest_price_seen": 138.23,
       "first_entry_price": 112.73,
       "peak_gain_pct": 20.15,
-      "current_gain_pct": -6.74,
+      "current_gain_pct": -12.99,
       "ma_trail_alerted_date": "2026-05-09",
       "ma_trail_last": {
         "ma_type": "10% trail",
@@ -67,7 +23,7 @@
         "ema": 124.41,
         "date": "2026-05-09"
       },
-      "last_fade_alert_gain_pct": -3.87
+      "last_fade_alert_gain_pct": -12.99
     },
     {
       "ticker": "IREN",
@@ -82,26 +38,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 65.61,
-      "current_gain_pct": -10.45,
+      "current_gain_pct": -16.42,
       "first_entry_price": 61.4,
       "peak_gain_pct": 10.98
-    },
-    {
-      "ticker": "CORZ",
-      "shares": 300,
-      "entry_price": 23.36,
-      "entry_date": "2026-05-12",
-      "stop_price": 22.66,
-      "breakeven_activated": false,
-      "target1": 28.03,
-      "target1_hit": false,
-      "target2": 32.7,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 25.16,
-      "current_gain_pct": 3.64,
-      "first_entry_price": 22.84,
-      "peak_gain_pct": 7.71
     }
   ],
   "closed_positions": [
@@ -556,6 +495,79 @@
       "close_price": 62.05,
       "close_source": "snaptrade_fill",
       "result_pct": 1.69
+    },
+    {
+      "ticker": "AAOI",
+      "shares": 10,
+      "entry_price": 124.75,
+      "entry_date": "2026-04-08",
+      "target1": 149.7,
+      "target1_hit": true,
+      "target2": 174.65,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 233.47,
+      "peak_gain_pct": 87.15,
+      "stop_price": 210.3,
+      "breakeven_activated": true,
+      "current_gain_pct": 52.59,
+      "first_entry_price": 116.0,
+      "ma_trail_alerted_date": "2026-05-09",
+      "ma_trail_last": {
+        "ma_type": "10% trail",
+        "close": 148.99,
+        "ema": 172.47,
+        "date": "2026-05-09"
+      },
+      "target2_hit": true,
+      "last_fade_alert_gain_pct": 53.34,
+      "close_date": "2026-05-18",
+      "close_price": 232.16,
+      "close_source": "snaptrade_fill",
+      "result_pct": 86.1
+    },
+    {
+      "ticker": "GLW",
+      "shares": 25,
+      "entry_price": 165.09,
+      "entry_date": "2026-04-17",
+      "target1": 198.11,
+      "target1_hit": true,
+      "target2": 231.13,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 211.7,
+      "peak_gain_pct": 28.23,
+      "stop_price": 199.21,
+      "breakeven_activated": true,
+      "current_gain_pct": 16.19,
+      "first_entry_price": 167.52,
+      "last_fade_alert_gain_pct": 18.74,
+      "close_date": "2026-05-18",
+      "close_price": 208.82,
+      "close_source": "snaptrade_fill",
+      "result_pct": 26.49
+    },
+    {
+      "ticker": "CORZ",
+      "shares": 300,
+      "entry_price": 23.36,
+      "entry_date": "2026-05-12",
+      "stop_price": 22.66,
+      "breakeven_activated": false,
+      "target1": 28.03,
+      "target1_hit": false,
+      "target2": 32.7,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 25.16,
+      "current_gain_pct": 3.64,
+      "first_entry_price": 22.84,
+      "peak_gain_pct": 7.71,
+      "close_date": "2026-05-18",
+      "close_price": 23.17,
+      "close_source": "live_quote",
+      "result_pct": -0.81
     }
   ]
 }

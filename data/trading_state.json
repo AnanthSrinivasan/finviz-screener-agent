@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 3,
+  "consecutive_wins": 5,
   "consecutive_losses": 0,
-  "total_wins": 9,
+  "total_wins": 11,
   "total_losses": 12,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-05-15",
+  "last_updated": "2026-05-18",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -199,6 +199,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 154.5
+    },
+    {
+      "ticker": "AAOI",
+      "result": "win",
+      "result_pct": 86.1,
+      "date": "2026-05-18",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1074.05
+    },
+    {
+      "ticker": "GLW",
+      "result": "win",
+      "result_pct": 26.49,
+      "date": "2026-05-18",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1093.13
+    },
+    {
+      "ticker": "CORZ",
+      "result": "neutral",
+      "result_pct": -0.81,
+      "date": "2026-05-18",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -57.0
     }
   ],
   "market_state": "TREND-FOLLOW",
