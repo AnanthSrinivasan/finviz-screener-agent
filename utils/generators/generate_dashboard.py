@@ -300,6 +300,50 @@ def _format_history_date(s):
 SYSTEM_HISTORY_FLOOR = "2026-04-01"  # Don't show pre-system trades.
 
 
+def compute_pnl_from_events(events, current_price=0.0, current_shares=0.0):
+    """Walk BUY/SELL events ascending, return realized + unrealized P/L.
+
+    Returns {realized, unrealized, avg_cost, total_bought_units, total_sold_units,
+    final_shares}. SELLs use weighted-avg cost basis at time of sale.
+    current_shares/current_price drive the unrealized leg; when current_shares is
+    falsy, unrealized falls back to final running shares from the walk.
+    """
+    realized = 0.0
+    running_shares = 0.0
+    running_cost = 0.0
+    total_bought = 0.0
+    total_sold = 0.0
+    for ev in events or []:
+        sh = float(ev.get("shares", 0) or 0)
+        px = float(ev.get("price", 0) or 0)
+        action = ev.get("action", "")
+        if sh <= 0 or px <= 0:
+            continue
+        if action == "BUY":
+            running_cost += sh * px
+            running_shares += sh
+            total_bought += sh
+        elif action == "SELL":
+            if running_shares > 0:
+                avg = running_cost / running_shares
+                sold = min(sh, running_shares)
+                realized += sold * (px - avg)
+                running_cost -= sold * avg
+                running_shares = max(0.0, running_shares - sold)
+                total_sold += sold
+    avg_cost = (running_cost / running_shares) if running_shares > 0 else 0.0
+    shares_for_unreal = float(current_shares) if current_shares else running_shares
+    unrealized = shares_for_unreal * (current_price - avg_cost) if (shares_for_unreal > 0 and current_price > 0 and avg_cost > 0) else 0.0
+    return {
+        "realized": realized,
+        "unrealized": unrealized,
+        "avg_cost": avg_cost,
+        "total_bought_units": total_bought,
+        "total_sold_units": total_sold,
+        "final_shares": running_shares,
+    }
+
+
 def _filter_history_for_position(events, entry_date=None, close_date=None):
     """Trim events to the current trade cycle: only those at or after entry_date
     (and not after close_date if given). Always respects the system-wide floor.
@@ -366,10 +410,19 @@ def _build_history_subrow(ticker, events, colspan, closed_meta=None):
         verdict = "WIN" if rp > 1 else ("LOSS" if rp < -1 else "BREAKEVEN")
         src = closed_meta.get("close_source", "—")
         cp = closed_meta.get("close_price", 0)
+        # Realized $ P/L from full BUY/SELL walk (captures pre-positions.json sells).
+        walk = compute_pnl_from_events(events, current_price=0, current_shares=0)
+        realized_dollars = walk["realized"]
+        bought = walk["total_bought_units"]
+        sold = walk["total_sold_units"]
+        extra = ""
+        if bought > 0 and sold > 0:
+            cls_dollar = "pos" if realized_dollars > 0 else ("neg" if realized_dollars < 0 else "neutral")
+            extra = f' · <strong>Realized $:</strong> <span class="{cls_dollar}">{_format_currency(realized_dollars)}</span> (bought {bought:g} / sold {sold:g})'
         summary_line = f"""
           <div class="history-summary {cls}">
             <strong>Result:</strong> {rp:+.2f}% ({verdict}) at ${cp:.2f}
-            · <span class="history-src">source: {src}</span>
+            · <span class="history-src">source: {src}</span>{extra}
           </div>"""
 
     return f"""
@@ -411,6 +464,18 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
         gain_pct = p.get("current_gain_pct", 0)
         cost = shares * entry
         pnl = cost * (gain_pct / 100)
+        # If we have history, recompute P/L from actual BUY/SELL walk (captures
+        # realized leg from prior partial sells — AAOI/GLW class).
+        ticker_for_pnl = p.get("ticker", "?")
+        hist_events = _filter_history_for_position(
+            position_history.get(ticker_for_pnl, []),
+            entry_date=p.get("entry_date"),
+        )
+        current_px = entry * (1 + gain_pct / 100) if entry else 0
+        if hist_events:
+            walk = compute_pnl_from_events(hist_events, current_price=current_px, current_shares=shares)
+            if walk["total_sold_units"] > 0 or walk["total_bought_units"] != shares:
+                pnl = walk["realized"] + walk["unrealized"]
         total_cost += cost
         total_pnl += pnl
         stop = p.get("stop_price", 0)

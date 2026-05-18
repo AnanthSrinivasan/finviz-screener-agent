@@ -210,55 +210,73 @@ def fetch_position_history(account_ids: list, days: int = 90) -> dict:
         return {}
     start_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
     history: dict = {}
+    seen_ids: set = set()
+    PAGE_LIMIT = 200
     for acct_id in account_ids:
-        resp = snaptrade_get(
-            f"/accounts/{acct_id}/activities",
-            params={"startDate": start_date},
-        )
-        if not resp:
-            continue
-        if isinstance(resp, dict):
-            activities = resp.get("data") or resp.get("activities") or []
-        elif isinstance(resp, list):
-            activities = resp
-        else:
-            continue
-        for act in activities:
-            if not isinstance(act, dict):
-                continue
-            try:
-                action = (act.get("type") or act.get("action") or "").upper()
-                if action not in ("BUY", "SELL", "BOUGHT", "SOLD"):
+        offset = 0
+        while True:
+            resp = snaptrade_get(
+                f"/accounts/{acct_id}/activities",
+                params={"startDate": start_date, "limit": PAGE_LIMIT, "offset": offset},
+            )
+            if not resp:
+                break
+            if isinstance(resp, dict):
+                activities = resp.get("data") or resp.get("activities") or []
+            elif isinstance(resp, list):
+                activities = resp
+            else:
+                break
+            if not activities:
+                break
+            page_new = 0
+            for act in activities:
+                if not isinstance(act, dict):
                     continue
-                action = "BUY" if action in ("BUY", "BOUGHT") else "SELL"
-                sym_block = act.get("symbol") or {}
-                if isinstance(sym_block, dict):
-                    sym_inner = sym_block.get("symbol") or {}
-                    if isinstance(sym_inner, dict):
-                        ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
-                    elif isinstance(sym_inner, str):
-                        ticker = sym_inner
+                try:
+                    act_id = act.get("id") or act.get("activity_id") or ""
+                    if act_id and act_id in seen_ids:
+                        continue
+                    action = (act.get("type") or act.get("action") or "").upper()
+                    if action not in ("BUY", "SELL", "BOUGHT", "SOLD"):
+                        if act_id:
+                            seen_ids.add(act_id)
+                        continue
+                    action = "BUY" if action in ("BUY", "BOUGHT") else "SELL"
+                    sym_block = act.get("symbol") or {}
+                    if isinstance(sym_block, dict):
+                        sym_inner = sym_block.get("symbol") or {}
+                        if isinstance(sym_inner, dict):
+                            ticker = sym_inner.get("symbol") or sym_block.get("local_id") or ""
+                        elif isinstance(sym_inner, str):
+                            ticker = sym_inner
+                        else:
+                            ticker = sym_block.get("local_id") or ""
+                    elif isinstance(sym_block, str):
+                        ticker = sym_block
                     else:
-                        ticker = sym_block.get("local_id") or ""
-                elif isinstance(sym_block, str):
-                    ticker = sym_block
-                else:
-                    ticker = ""
-                if not ticker:
-                    continue
-                price = float(act.get("price") or 0)
-                units = abs(float(act.get("units") or 0))
-                trade_date = act.get("trade_date") or act.get("settlement_date") or ""
-                if price <= 0 or units <= 0:
-                    continue
-                history.setdefault(ticker, []).append({
-                    "date": trade_date,
-                    "action": action,
-                    "shares": units,
-                    "price": round(price, 4),
-                })
-            except Exception as e:
-                log.warning(f"Could not parse SnapTrade activity for history: {e}")
+                        ticker = ""
+                    if not ticker:
+                        continue
+                    price = float(act.get("price") or 0)
+                    units = abs(float(act.get("units") or 0))
+                    trade_date = act.get("trade_date") or act.get("settlement_date") or ""
+                    if price <= 0 or units <= 0:
+                        continue
+                    if act_id:
+                        seen_ids.add(act_id)
+                    history.setdefault(ticker, []).append({
+                        "date": trade_date,
+                        "action": action,
+                        "shares": units,
+                        "price": round(price, 4),
+                    })
+                    page_new += 1
+                except Exception as e:
+                    log.warning(f"Could not parse SnapTrade activity for history: {e}")
+            if len(activities) < PAGE_LIMIT:
+                break
+            offset += len(activities)
     # Sort each ticker's events ascending by date
     for tk in history:
         history[tk].sort(key=lambda e: e["date"])
