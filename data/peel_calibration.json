@@ -303,7 +303,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.2,
-    "updated": "2026-05-17"
+    "updated": "2026-05-18"
   },
   "ALHC": {
     "signal": 10.0,
@@ -737,7 +737,7 @@
     "runs": 9,
     "atr_pct_avg": 9.95,
     "calibrated": true,
-    "updated": "2026-05-17"
+    "updated": "2026-05-18"
   },
   "RVMD": {
     "signal": 10.0,
@@ -2348,7 +2348,7 @@
     "runs": 6,
     "atr_pct_avg": 5.51,
     "calibrated": true,
-    "updated": "2026-05-17"
+    "updated": "2026-05-18"
   },
   "UMAC": {
     "signal": 10.0,
@@ -2545,5 +2545,17 @@
     "runs": 1,
     "atr_pct_avg": 7.21,
     "updated": "2026-05-17"
+  },
+  "NXT": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 6.3,
+    "p75": 7.7,
+    "p90": 8.5,
+    "max_seen": 8.6,
+    "runs": 7,
+    "atr_pct_avg": 5.01,
+    "calibrated": true,
+    "updated": "2026-05-18"
   }
 }

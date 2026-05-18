@@ -992,12 +992,13 @@
       "thesis": "Healthcare | Q=85 | VCP | ATR 5.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-04-29",
       "reactivated_date": "2026-05-11",
-      "focus_promoted_date": "2026-05-11"
+      "focus_promoted_date": "2026-05-11",
+      "entry_ready_date": "2026-05-18"
     },
     {
       "ticker": "ORLA",
@@ -2434,8 +2435,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-18"
     },
     {
       "ticker": "MRNA",
@@ -2478,11 +2480,13 @@
       "stop": null,
       "thesis": "Communication Services | Q=107 | VCP | ATR 3.9%",
       "added": "2026-05-11",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-05-11",
-      "entry_ready_date": "2026-05-11"
+      "entry_ready_date": "2026-05-11",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-18"
     },
     {
       "ticker": "UMAC",
@@ -2684,6 +2688,18 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-05-15"
+    },
+    {
+      "ticker": "RAMP",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-18",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-18"
     }
   ],
   "tickers": [
