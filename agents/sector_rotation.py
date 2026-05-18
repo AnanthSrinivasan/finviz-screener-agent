@@ -540,12 +540,16 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     by_bucket["EXTENDED"].sort(key=lambda e: -(e["metrics"]["mult50"] if e["metrics"] else 0))
     by_bucket["BROKEN"].sort(key=lambda e: (e["metrics"]["dist52"] if e["metrics"] else 0))
 
+    def _fv(tk: str) -> str:
+        return f'https://finviz.com/quote.ashx?t={tk}'
+
     def _metric_row(e: dict) -> str:
         m = e["metrics"]
+        tk_html = f'<a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a>'
         if m is None:
-            return f'<tr><td><b>{e["ticker"]}</b></td><td>{e["name"]}</td><td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
+            return f'<tr><td>{tk_html}</td><td>{e["name"]}</td><td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
         return (
-            f'<tr><td><b>{e["ticker"]}</b></td><td>{e["name"]}</td>'
+            f'<tr><td>{tk_html}</td><td>{e["name"]}</td>'
             f'<td style="color:#6b7280">{e["theme"]}</td>'
             f'<td>{m["atr_pct"]}%</td><td>{m["mult50"]}</td><td>{m["dist52"]}%</td>'
             f'<td>{m["range20"]}%</td><td>{m["ret20"]}%</td><td>{m["ema21d"]}%</td>'
@@ -558,7 +562,8 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         m = e["metrics"] or {}
         return (
             f'<div class="etf-card" style="border-left:4px solid {color}">'
-            f'<div class="etf-head"><span class="etf-tk">{e["ticker"]}</span>'
+            f'<div class="etf-head">'
+            f'<a class="etf-tk" href="{_fv(e["ticker"])}" target="_blank">{e["ticker"]}</a>'
             f'<span class="etf-name">{e["name"]}</span>'
             f'<span class="etf-theme">{e["theme"]}</span></div>'
             f'<div class="etf-metrics">'
@@ -576,7 +581,9 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     broken_cards = "".join(_card(e, "#dc2626") for e in by_bucket["BROKEN"])
     neutral_cards = "".join(_card(e, "#9ca3af") for e in by_bucket["NEUTRAL"])
 
-    all_rows = "".join(_metric_row(e) for e in etf_setups)
+    table_order = ["BASE", "PRE-BREAKOUT", "EXTENDED", "BROKEN", "NEUTRAL"]
+    ordered_setups = [e for b in table_order for e in by_bucket.get(b, [])]
+    all_rows = "".join(_metric_row(e) for e in ordered_setups)
 
     headline = action.get("headline", "")
     sizing = action.get("sizing", "")
@@ -597,7 +604,8 @@ h2{{color:#374151;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-top:
 .etf-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:12px 0}}
 .etf-card{{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px}}
 .etf-head{{display:flex;gap:8px;align-items:baseline;margin-bottom:6px}}
-.etf-tk{{font-weight:bold;font-size:16px;color:#111827}}
+.etf-tk{{font-weight:bold;font-size:16px;color:#2563eb;text-decoration:none}}
+.etf-tk:hover{{text-decoration:underline}}
 .etf-name{{color:#374151;font-size:13px}}
 .etf-theme{{margin-left:auto;color:#9ca3af;font-size:11px}}
 .etf-metrics{{font-size:12px;color:#4b5563}}
