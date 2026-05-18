@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Research — ROKU — 2026-05-05</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; line-height: 1.5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; }
+  h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: #374151; }
+  .banner { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; margin-bottom: 16px; }
+  .banner-red { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .banner-note { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; font-size: 0.8rem; font-weight: 500; margin-left: 8px; }
+  .meta { font-size: 0.85rem; color: #6b7280; margin-bottom: 24px; }
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .summary-table th { background: #f3f4f6; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; padding: 10px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+  .summary-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; vertical-align: top; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 32px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .card-ticker { font-size: 1.4rem; font-weight: 800; color: #111827; }
+  .card-name { font-size: 0.9rem; color: #6b7280; }
+  .card-body { padding: 20px; }
+  .section { margin-bottom: 24px; }
+  .section:last-child { margin-bottom: 0; }
+  .score-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .score-table th { background: #f3f4f6; padding: 7px 12px; text-align: left; font-weight: 600; font-size: 0.8rem; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+  .score-table td { padding: 7px 12px; border-bottom: 1px solid #f9fafb; }
+  .score-table tr:last-child td { border-bottom: none; }
+  .score-high { color: #16a34a; font-weight: 600; }
+  .score-mod { color: #d97706; font-weight: 600; }
+  .score-low { color: #dc2626; font-weight: 600; }
+  .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
+  .info-box.warn { background: #fffbeb; border-color: #fcd34d; }
+  .info-box.info { background: #eff6ff; border-color: #bfdbfe; }
+  .info-box.bear { background: #fef2f2; border-color: #fca5a5; }
+  .info-box.green { background: #f0fdf4; border-color: #86efac; }
+  .info-box label { font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; display: block; margin-bottom: 4px; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+  .data-table th { background: #f3f4f6; padding: 6px 10px; text-align: left; font-size: 0.78rem; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+  .data-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .verdict { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+  .verdict-high { background: #dcfce7; color: #15803d; }
+  .verdict-watch { background: #e0f2fe; color: #075985; }
+  .score-total { font-size: 1.1rem; font-weight: 800; margin-top: 12px; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .neutral { color: #6b7280; }
+  .chart-grade { font-size: 0.85rem; background: #f3f4f6; border-radius: 4px; padding: 8px 12px; margin-bottom: 16px; }
+  .chart-img { width: 100%; max-width: 900px; border-radius: 6px; border: 1px solid #e5e7eb; margin-bottom: 16px; display: block; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .pill-green { background: #dcfce7; color: #15803d; }
+  .pill-red { background: #fee2e2; color: #991b1b; }
+  .pill-amber { background: #fef3c7; color: #92400e; }
+  .pill-blue { background: #dbeafe; color: #1d4ed8; }
+  .section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+  ul.bear-list { padding-left: 18px; margin-top: 6px; }
+  ul.bear-list li { margin-bottom: 6px; font-size: 0.875rem; }
+  .flipper { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 10px 14px; margin-top: 8px; }
+  .flipper p { font-size: 0.875rem; margin-bottom: 4px; }
+  footer { text-align: center; font-size: 0.78rem; color: #9ca3af; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Stock Research — 2026-05-05</h1>
+  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+    <span class="banner banner-red">🔴 RED — No New Entries (Rule 6)</span>
+    <span class="banner-note">ℹ Market state as of May 1, 2026. Rule 6 blocks new positions in RED. Research is WATCH-mode only.</span>
+  </div>
+  <div class="meta">1 ticker · Sizing: <strong>reduced</strong> (2 consecutive losses → max 5% of book) · Streak: 0W/2L · Generated 2026-05-05</div>
+
+  <!-- Summary Table -->
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Held?</th>
+        <th>Score</th>
+        <th>Bull (≤12 words)</th>
+        <th>Bear (≤12 words)</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ROKU</strong></td>
+        <td><span class="pill pill-blue">WATCH</span></td>
+        <td><strong>22/27</strong> — HIGH</td>
+        <td>First GAAP profit, 100M households, ad margin 60%+</td>
+        <td>CEO sold $38M YTD; 86x P/E, ad cyclicality risk</td>
+        <td><span class="verdict verdict-watch">WATCH — Add at CAUTION/GREEN on 21 EMA PB</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ROKU Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-ticker">ROKU</span>
+      <span class="card-name">Roku, Inc. — CTV / Streaming Ad Platform</span>
+      <span class="pill pill-blue">NOT HELD</span>
+      <span class="pill pill-amber">Stage 2 ✓</span>
+    </div>
+    <div class="card-body">
+
+      <!-- Chart -->
+      <div class="section">
+        <div class="section-title">Chart — Daily (May 4, 2026)</div>
+        <img class="chart-img" src="https://finviz.com/chart.ashx?t=ROKU&ty=c&ta=1&p=d" alt="ROKU daily chart" />
+        <div class="chart-grade">
+          <strong>Chart: B</strong> — Stage 2 confirmed, post-earnings breakout to multi-month highs; extended 13% above 20 SMA. Wait for 21 EMA pullback.
+        </div>
+        <div class="info-box info">
+          <label>Technical Reading</label>
+          Price <strong>$126.02</strong> · SMA 20 <strong>$111.80</strong> · SMA 50 <strong>$101.66</strong> · SMA 200 <strong>$99.00</strong><br>
+          <span class="pos">✓ Perfect Stage 2:</span> price &gt; SMA 20 &gt; SMA 50 &gt; SMA 200, all three MAs rising.
+          Stock recovered strongly from Feb 2026 lows (~$82) and broke above a multi-month descending trendline in March.
+          Q1 earnings (May 1) drove a fresh breakout to new 52-week highs.
+          Currently <strong>13% extended above SMA 20</strong> — no immediate entry.
+          21 EMA estimated ~$107–110; SMA 50 support ~$101.
+          Volume on the May 1 breakout bar is moderate — not climactic, not distribution.
+          <br><br>
+          <span class="neg">Entry timing:</span> Wait for pullback to 21 EMA (~$107–110) with volume dry-up before initiating. A consolidation above SMA 20 for 2–3 weeks would improve setup grade to A.
+        </div>
+      </div>
+
+      <!-- Earnings Panel -->
+      <div class="section">
+        <div class="section-title">Earnings Panel — Q1 2026 (reported May 1, 2026)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Quarter</th>
+              <th>Revenue</th>
+              <th>Rev YoY</th>
+              <th>EPS Actual</th>
+              <th>EPS Est</th>
+              <th>Beat %</th>
+              <th>Net Income</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Q1 2026</strong></td>
+              <td>$1.248B</td>
+              <td><span class="pos">+22%</span></td>
+              <td><span class="pos">$0.57</span></td>
+              <td>$0.32–$0.34</td>
+              <td><span class="pos">+78%</span></td>
+              <td><span class="pos">$85.7M GAAP profit</span></td>
+            </tr>
+            <tr>
+              <td>Q4 2025 (prior)</td>
+              <td>$1.197B</td>
+              <td><span class="pos">+22%</span></td>
+              <td colspan="3" class="neutral">Beat expectations</td>
+              <td class="neutral">Loss</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="info-box green" style="margin-top:12px;">
+          <label>Character Change Signal (SNDK Pattern)</label>
+          ROKU was loss-making through 2025. Q1 2026 marks <strong>first GAAP profitability</strong> ($85.7M net income).
+          TTM EPS is distorted by prior losses. Q/Q EPS of $0.57 reveals the margin inflection the annual number obscures.
+          This is the system-underselling condition — standard EPS scoring underweights this setup.
+          FY2026 estimates revised UP from $0.85 → $1.07+ after Q1, with consensus at $1.28 (range $0.57–$1.80).
+        </div>
+        <table class="data-table" style="margin-top:8px;">
+          <thead>
+            <tr><th>Segment</th><th>Revenue Q1 2026</th><th>YoY Growth</th><th>Gross Margin</th><th>Commentary</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Platform (Ads + Subs)</td>
+              <td>$1.13B</td>
+              <td><span class="pos">+28%</span></td>
+              <td><span class="pos">51.6%</span></td>
+              <td>Core engine. Advertising +27% · Subscriptions +30%</td>
+            </tr>
+            <tr>
+              <td>Advertising</td>
+              <td>$613M</td>
+              <td><span class="pos">+27%</span></td>
+              <td><span class="pos">60.5% (+400bps YoY)</span></td>
+              <td>Management: "sustainable for rest of year and beyond"</td>
+            </tr>
+            <tr>
+              <td>Subscriptions</td>
+              <td>Included above</td>
+              <td><span class="pos">+30%</span></td>
+              <td>41–42%</td>
+              <td>Mix shift toward Apple TV / Peacock compressing sub margins</td>
+            </tr>
+            <tr>
+              <td>Devices (hardware)</td>
+              <td>~$118M</td>
+              <td class="neg">Declining</td>
+              <td>Low / negative</td>
+              <td>Loss-leader for platform growth. Q2 guide: down HSD%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Forward Estimates -->
+      <div class="section">
+        <div class="section-title">Forward Estimates &amp; Guidance</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Period</th><th>Revenue Est</th><th>YoY Growth</th><th>EPS Est</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Q2 2026 (guide)</td>
+              <td>~$1.30B</td>
+              <td><span class="pos">+17%</span></td>
+              <td>—</td>
+              <td>Platform +~20%; devices down HSD%. Step-down from Q1's +22% — watch closely.</td>
+            </tr>
+            <tr>
+              <td>FY2026 (mgmt guide)</td>
+              <td>$5.535B</td>
+              <td><span class="pos">~20%</span></td>
+              <td>$1.07–$1.28 consensus</td>
+              <td>FY guidance raised by $100M+ post-Q1. Adj EBITDA: $675M.</td>
+            </tr>
+            <tr>
+              <td>FY2026 (analyst)</td>
+              <td>$5.65B</td>
+              <td><span class="pos">+19%</span></td>
+              <td>$2.35 (StockAnalysis)</td>
+              <td>Divergence in EPS estimates reflects different adj. vs GAAP treatments.</td>
+            </tr>
+            <tr>
+              <td>FY2027 (analyst)</td>
+              <td>$6.33B</td>
+              <td><span class="pos">+12%</span></td>
+              <td>$2.44–$3.55 range</td>
+              <td>Deceleration expected; $1B FCF target by 2028 or sooner (mgmt).</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="info-box warn" style="margin-top:10px;">
+          <label>Estimate Revision Signal</label>
+          After Q1 beat, at least 5 Wall Street firms raised targets. FY2026 EPS revised from $0.85 → $1.07+ (>25% upward revision in 30 days).
+          22 of 26 analysts rated Buy. Strong positive revision cycle. This is the momentum that drives the stock.
+        </div>
+      </div>
+
+      <!-- Analyst Targets -->
+      <div class="section">
+        <div class="section-title">Analyst Price Targets (as of May 2026)</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Firm</th><th>Old Target</th><th>New Target</th><th>Rating</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Wells Fargo (Cahall)</td><td>$137</td><td><strong class="pos">$167</strong></td><td>Buy</td></tr>
+            <tr><td>Susquehanna</td><td>$130</td><td><strong class="pos">$160</strong></td><td>Buy</td></tr>
+            <tr><td>Citizens</td><td>—</td><td><strong class="pos">$170</strong></td><td>Buy</td></tr>
+            <tr><td>Multiple firms (May 1)</td><td>Various</td><td>$140–$160</td><td>Buy</td></tr>
+            <tr><td>JMP Securities</td><td>—</td><td>$95</td><td>Market Perform (lowest)</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-size:0.875rem;">
+          <strong>Consensus:</strong> $134.81–$141.33 (26 analysts) · <strong>High:</strong> $170 · <strong>Low:</strong> $95 · <strong>Current:</strong> $126.02
+          <br>Upside to consensus: ~+7% · Upside to high: ~+35% · Downside to low target: -25%
+        </div>
+      </div>
+
+      <!-- 9-Dim Score -->
+      <div class="section">
+        <div class="section-title">9-Dimension Entry Conviction Score</div>
+        <table class="score-table">
+          <thead>
+            <tr><th>Dimension</th><th>Rating</th><th>Pts</th><th>Evidence</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EPS beat trend</td>
+              <td><span class="score-high">HIGH</span></td>
+              <td><span class="score-high">3</span></td>
+              <td>Q1 2026 beat by 78% ($0.57 vs $0.32 est). First GAAP profitable quarter.</td>
+            </tr>
+            <tr>
+              <td>Estimate revisions</td>
+              <td><span class="score-high">HIGH</span></td>
+              <td><span class="score-high">3</span></td>
+              <td>FY2026 EPS revised from $0.85 → $1.07+ post-Q1 (&gt;25% upward revision). 5+ firms raised targets.</td>
+            </tr>
+            <tr>
+              <td>Revenue acceleration</td>
+              <td><span class="score-mod">MOD</span></td>
+              <td><span class="score-mod">2</span></td>
+              <td>Q1 +22% YoY — strong, but Q2 guided +17%. Platform growing ~20-28%. Slight decel.</td>
+            </tr>
+            <tr>
+              <td>Institutional adoption phase</td>
+              <td><span class="score-high">HIGH</span></td>
+              <td><span class="score-high">3</span></td>
+              <td>22/26 analysts Buy. Broad target raises post-Q1. Phase 3 adoption — institutions building position.</td>
+            </tr>
+            <tr>
+              <td>IPO cycle</td>
+              <td><span class="score-low">LOW</span></td>
+              <td><span class="score-low">1</span></td>
+              <td>IPO 2017. No IPO lifecycle tailwind. This is a turnaround, not an IPO cycle play.</td>
+            </tr>
+            <tr>
+              <td>TAM position</td>
+              <td><span class="score-mod">MOD</span></td>
+              <td><span class="score-mod">2</span></td>
+              <td>CTV advertising market growing. 100M streaming households = scale achieved. Mid S-curve; growth decelerating from hyper-growth days.</td>
+            </tr>
+            <tr>
+              <td>Short interest</td>
+              <td><span class="score-high">HIGH</span></td>
+              <td><span class="score-high">3</span></td>
+              <td>4.95% of float short (7.29M shares), declining. Not a squeeze candidate; low overhang is a positive.</td>
+            </tr>
+            <tr>
+              <td>Stage 2</td>
+              <td><span class="score-high">HIGH</span></td>
+              <td><span class="score-high">3</span></td>
+              <td>Price $126 &gt; SMA 20 $111.80 &gt; SMA 50 $101.66 &gt; SMA 200 $99.00. All MAs rising. Perfect alignment.</td>
+            </tr>
+            <tr>
+              <td>SNDK distortion (Q/Q vs TTM)</td>
+              <td><span class="score-mod">MOD</span></td>
+              <td><span class="score-mod">2</span></td>
+              <td>TTM EPS distorted by 2024–2025 losses. Q1 2026 actual $0.57 reveals true margin power. Character change is real.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="score-total">Total: <span class="pos">22/27 — HIGH CONVICTION</span></div>
+        <div class="info-box warn" style="margin-top:12px;">
+          <label>Market State Gate</label>
+          Market state is <strong>RED</strong>. Rule 6 blocks all new entries. <strong>Verdict: WATCH ONLY.</strong>
+          Re-evaluate when market transitions to CAUTION or GREEN. Current sizing mode REDUCED means max 5% of book on first entry when state clears.
+        </div>
+      </div>
+
+      <!-- Insider Panel -->
+      <div class="section">
+        <div class="section-title">Insider Activity — Last 90 Days</div>
+        <div class="info-box bear">
+          <label>Insider Selling — Significant Flag</label>
+          <table class="data-table" style="margin-top:4px;">
+            <thead>
+              <tr><th>Insider</th><th>Role</th><th>Activity</th><th>Shares</th><th>Est. $</th><th>Vehicle</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Anthony Wood</td>
+                <td>CEO &amp; Chairman</td>
+                <td class="neg">SELL (Mar 10)</td>
+                <td>50,000 Class A</td>
+                <td>~$5.5M</td>
+                <td>10b5-1 plan (Class B → A conversion)</td>
+              </tr>
+              <tr>
+                <td>Anthony Wood</td>
+                <td>CEO &amp; Chairman</td>
+                <td class="neg">SELL (Jan 12)</td>
+                <td>8 transactions</td>
+                <td>~$8.2M</td>
+                <td>10b5-1 plan</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="margin-top:8px;font-size:0.875rem;">
+            <strong>6-month summary:</strong> 85 insider trades — <span class="neg">0 purchases, 85 sales</span>.
+            CEO Anthony Wood alone: 37 sales, 375,000 shares, ~$38.3M. All executed under pre-planned 10b5-1 programs.<br>
+            <strong>Interpretation:</strong> 10b5-1 plans are pre-scheduled and don't signal imminent bad news, but consistent zero insider buying while the stock was recovering is a non-trivial negative for a "turnaround conviction" read.
+          </p>
+        </div>
+      </div>
+
+      <!-- Catalyst Calendar -->
+      <div class="section">
+        <div class="section-title">Catalyst Calendar — Next 90 Days</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Date</th><th>Event</th><th>Significance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Q2 2026 earnings<br><span class="neutral" style="font-size:0.8rem;">~late July 2026</span></td>
+              <td>Quarterly results</td>
+              <td>Critical: must hold ~20% platform revenue growth. Ad gross margin ≥60% sustainability. If Q2 guides Q3 below 15%, thesis weakens.</td>
+            </tr>
+            <tr>
+              <td>Ongoing</td>
+              <td>International expansion</td>
+              <td>Mgmt called out international as growth vector. Subscriber penetration outside US is an optionality catalyst.</td>
+            </tr>
+            <tr>
+              <td>Ongoing</td>
+              <td>DSP integrations</td>
+              <td>Amazon DV360 / Google / Trade Desk integrations deepen ad platform moat. Watch for new partnership announcements.</td>
+            </tr>
+            <tr>
+              <td>2028 (mgmt target)</td>
+              <td>$1B free cash flow</td>
+              <td>If hit early (2027), multiple expansion likely. Current trajectory looks achievable given EBITDA guide of $675M for FY2026.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bear Case -->
+      <div class="section">
+        <div class="section-title">Bear Case — Specific Risks</div>
+        <div class="info-box bear">
+          <label>Non-Negotiable Bear Points</label>
+          <ul class="bear-list">
+            <li><strong>Ad cyclicality + tariff risk:</strong> Digital ad spend is macro-sensitive. If US enters a tariff-driven recession in H2 2026, ad budgets get cut first. Q1's 60%+ ad GM came in a relatively benign environment — this number has not been stress-tested in a downturn. One bad ad quarter could knock $20–30 off the stock.</li>
+            <li><strong>Revenue decel trajectory:</strong> Platform revenue: Q1 +28% → Q2 guided +20%. If this step-down continues to +15% in Q3, growth-multiple compression kicks in hard at 86x P/E.</li>
+            <li><strong>CEO selling $38.3M in 6 months:</strong> Anthony Wood has sold 375,000 shares year-to-date. While 10b5-1 plans are scheduled, zero insider purchases while preaching a turnaround story is a credibility signal worth tracking. Watch for plan amendments or purchases.</li>
+            <li><strong>Subscription GM pressure:</strong> Apple TV and Peacock partnerships bring subscriber revenue but compress gross margins (41–42% vs ads at 60%+). As premium content partner obligations grow, platform-level margins could face structural pressure.</li>
+            <li><strong>Amazon Fire TV + Google TV duopoly risk:</strong> Amazon benefits from Prime integration across 200M+ US households; Google leverages $200B+ ad machine and YouTube dominance. ROKU's "open and interoperable" DSP positioning is strategically rational but doesn't eliminate the structural disadvantage of being the independent player against two hyperscalers.</li>
+            <li><strong>Valuation at 86x P/E:</strong> Current price of $126 at 86x trailing P/E (GF Value notes 22.5% overvalued). If market state deteriorates or macro weakens, this multiple compresses fast. Fair value at 40x forward $2.44 EPS (FY2027) = ~$98 — that's a -22% drawdown scenario.</li>
+          </ul>
+        </div>
+        <div class="flipper">
+          <p><strong>What flips this bear case:</strong></p>
+          <ul class="bear-list">
+            <li>Q2 2026 platform revenue ≥20% AND ad GM holds ≥58% → confirms Q1 was structural, not one-off</li>
+            <li>Insider purchase (Form 4 buy) by CEO Wood or any C-suite over $500K → conviction signal</li>
+            <li>International subscriber growth rate disclosed at &gt;50% YoY → unlocks TAM expansion story</li>
+            <li>$1B FCF milestone hit in 2027 (one year early) → multiple re-rating to 30–35x FCF</li>
+            <li>Named short thesis published (Kerrisdale / Muddy Waters) → watch for; none currently active</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Turnaround Verdict -->
+      <div class="section">
+        <div class="section-title">Turnaround Assessment — Is This Real?</div>
+        <div class="two-col">
+          <div class="info-box green">
+            <label>Evidence FOR Real Turnaround</label>
+            <ul class="bear-list">
+              <li><strong>First GAAP profit achieved</strong> — $85.7M net income in Q1. Not adjusted, not EBITDA-only.</li>
+              <li><strong>Scale milestone crossed</strong> — 100M streaming households. Comparable to major cable networks at peak.</li>
+              <li><strong>Ad gross margin structurally improved</strong> — 60.5% in Q1 (+400bps YoY). Management guided this is durable.</li>
+              <li><strong>Open DSP strategy working</strong> — Trade Desk, Amazon, Google DV360 integrations mean ROKU benefits regardless of which DSP wins ad budgets.</li>
+              <li><strong>Subscription revenue +30%</strong> — premium content partnerships (Apple TV, Peacock) driving recurring, higher-quality revenue.</li>
+              <li><strong>FY guidance raised by $100M+ post-Q1</strong> — rare for a company in early profit recovery; management has high conviction.</li>
+            </ul>
+          </div>
+          <div class="info-box bear">
+            <label>Evidence AGAINST / Execution Risks</label>
+            <ul class="bear-list">
+              <li><strong>One profitable quarter ≠ proven profitability</strong> — Watch Q2. If EPS misses or GM contracts, the "character change" narrative breaks.</li>
+              <li><strong>Device business still declining</strong> — Down HSD% in Q2 guidance. Hardware loss-leader drag on blended margins.</li>
+              <li><strong>86x P/E demands flawless execution</strong> — Any slip in guidance = multiple compression + growth investors exit.</li>
+              <li><strong>CEO not buying his own stock</strong> — 37 sales, 0 purchases in 6 months. Inconsistent with personal conviction in a turnaround.</li>
+              <li><strong>No short thesis flipper yet</strong> — No named bear (Kerrisdale, Muddy Waters) active, but the valuation at 86x is the standing bear case.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="info-box info" style="margin-top:10px;">
+          <label>Conclusion</label>
+          <strong>Yes — the turnaround is real, but it is early-stage and priced optimistically.</strong><br>
+          The Q1 character change (loss → profit, ad GM expansion, 100M households) is the kind of inflection Minervini setups are built on.
+          The 9-dim score of 22/27 is HIGH. Stage 2 is confirmed. The fundamental thesis is intact.<br><br>
+          <strong>The entry problem:</strong> At $126 (+13% above 20 SMA, 86x P/E), there is no margin of safety right now.
+          The stock needs to either (1) consolidate above the SMA 20 for 2–3 weeks forming a higher base,
+          or (2) pull back to the 21 EMA (~$107–110) before a risk-managed entry.
+          Market state RED is also a hard block — Rule 6 applies.<br><br>
+          <strong>Plan:</strong> Add to watchlist at <code>watching</code> tier. Revisit on market transition to CAUTION/GREEN.
+          Entry target: 21 EMA pullback ~$107–110. Stop: below SMA 50 ($101) or 2×ATR below entry.
+          Size: max 5% (reduced mode). Q2 2026 earnings in late July is the next catalyst gate.
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /card -->
+
+  <footer>Generated by /stock-research skill · 2026-05-05 · 1 ticker researched (ROKU) · Market state RED · Data: Finviz, StockAnalysis, Investing.com, SEC Form 4</footer>
+</div>
+</body>
+</html>

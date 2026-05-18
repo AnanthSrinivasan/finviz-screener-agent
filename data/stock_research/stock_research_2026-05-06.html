@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Research — 2026-05-06</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f9fafb; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; color: #111827; padding: 20px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 700; margin-bottom: 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; }
+  h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #374151; }
+  .header { background: #ffffff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
+  .state-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 12px; }
+  .state-caution { background: #fef3c7; color: #92400e; }
+  .state-suspended { background: #fee2e2; color: #991b1b; }
+  .card { background: #ffffff; border-radius: 8px; padding: 20px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+  .summary-table th { background: #f3f4f6; font-weight: 700; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .summary-table td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  .verdict-high { color: #16a34a; font-weight: 700; }
+  .verdict-paper { color: #d97706; font-weight: 700; }
+  table.data { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  table.data th { background: #f3f4f6; font-weight: 600; padding: 7px 10px; text-align: left; font-size: 12px; }
+  table.data td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  table.data tr:last-child td { border-bottom: none; }
+  .pos { color: #16a34a; font-weight: 600; }
+  .neg { color: #dc2626; font-weight: 600; }
+  .neutral { color: #6b7280; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; }
+  .badge-high { background: #dcfce7; color: #166534; }
+  .badge-mod { background: #fef3c7; color: #92400e; }
+  .badge-low { background: #fee2e2; color: #991b1b; }
+  .badge-paper { background: #fef3c7; color: #92400e; }
+  .badge-rs { background: #7c3aed; color: #fff; }
+  .score-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+  .score-total { font-size: 28px; font-weight: 800; color: #2563eb; }
+  .score-label { font-size: 13px; color: #6b7280; }
+  .wl-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+  .warn-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+  .earnings-warn { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+  .chart-grade { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 6px; }
+  .meta-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+  .meta-item { background: #f3f4f6; border-radius: 6px; padding: 8px 14px; }
+  .meta-item .label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; }
+  .meta-item .value { font-size: 16px; font-weight: 700; }
+  .dim-table td:last-child { text-align: center; }
+  footer { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Stock Research — 2026-05-06</h1>
+  <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span>1 ticker researched</span>
+    <span class="state-badge state-caution">Market: CAUTION</span>
+    <span class="state-badge state-suspended">Sizing: SUSPENDED (paper only)</span>
+  </div>
+</div>
+
+<!-- Summary table -->
+<div class="card">
+  <h2>Summary</h2>
+  <table class="summary-table">
+    <thead>
+      <tr><th>Ticker</th><th>Held?</th><th>Score</th><th>RS Rating</th><th>Bull</th><th>Bear</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>AMAT</strong></td>
+        <td class="neutral">No — Focus tier</td>
+        <td><span class="verdict-high">21/27 HIGH</span></td>
+        <td><span class="badge badge-rs">RS 73</span></td>
+        <td>Angstrom-era AI spend drives 20%+ equipment growth, 4 consecutive EPS beats</td>
+        <td>$600M China export headwind; revenue -2.1% YoY; earnings in 8 days</td>
+        <td class="verdict-paper">PAPER ONLY — wait post-earnings</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- AMAT research card -->
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div>
+      <span style="font-size:24px;font-weight:800">AMAT</span>
+      <span style="font-size:15px;color:#6b7280;margin-left:10px">Applied Materials — Semiconductor Equipment</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge badge-rs">RS 73</span>
+      <span class="badge badge-high">Q 94</span>
+      <span class="badge badge-high">Stage 2 Perfect</span>
+      <span class="badge badge-paper">New RS Leader 2026-05-06</span>
+      <span class="badge badge-paper">PAPER ONLY</span>
+    </div>
+  </div>
+
+  <!-- Watchlist context -->
+  <div class="wl-box">
+    <div class="section-label">Watchlist Context</div>
+    <strong>Focus tier</strong> · Added 2026-04-09 (screener_auto) · Promoted to Focus 2026-04-23 · RS Leader triggered today (first time)<br>
+    <em style="color:#6b7280">Entry note: VCP setup — wait for volume contraction then breakout · Thesis: Technology | Q=88 | VCP | ATR 4.3%</em>
+  </div>
+
+  <!-- Earnings warning -->
+  <div class="earnings-warn">
+    <strong>🚨 EARNINGS IN 8 DAYS — May 14, 2026 AMC</strong><br>
+    Market is pricing in ±8.78% move. Any entry here is a bet on the report, not the technical setup.
+    Verdict: <strong>wait for post-earnings reaction</strong> before any entry. If stock holds/breaks higher on volume after print → entry signal.
+  </div>
+
+  <!-- Key metrics -->
+  <div class="meta-row">
+    <div class="meta-item"><div class="label">Price</div><div class="value">$425.26</div></div>
+    <div class="meta-item"><div class="label">Today</div><div class="value pos">+3.51%</div></div>
+    <div class="meta-item"><div class="label">52W High</div><div class="value">$420.50</div></div>
+    <div class="meta-item"><div class="label">vs 52W High</div><div class="value pos">+1.1%</div></div>
+    <div class="meta-item"><div class="label">ATR%</div><div class="value">3.22%</div></div>
+    <div class="meta-item"><div class="label">RVol</div><div class="value">0.65x</div></div>
+    <div class="meta-item"><div class="label">Fwd P/E</div><div class="value">29.8x</div></div>
+    <div class="meta-item"><div class="label">Mkt Cap</div><div class="value">$337B</div></div>
+  </div>
+
+  <!-- Chart -->
+  <h2>Chart Assessment</h2>
+  <div class="chart-grade">Grade: B — Fresh 52W breakout, extended from MAs, earnings 8 days out</div>
+  <table class="data" style="margin-bottom:14px">
+    <tr><th>MA</th><th>Level</th><th>Price vs MA</th><th>Slope</th></tr>
+    <tr><td>SMA20</td><td>$397.99</td><td><span class="pos">+6.9%</span></td><td>↑ Rising</td></tr>
+    <tr><td>SMA50</td><td>$371.46</td><td><span class="pos">+14.5%</span></td><td>↑ Rising</td></tr>
+    <tr><td>SMA200</td><td>~$272</td><td><span class="pos">+56.4%</span></td><td>↑ Rising</td></tr>
+  </table>
+  <p style="color:#6b7280;font-size:13px;margin-bottom:14px">
+    Clean uptrend since Feb 2026. All MAs aligned, rising. Today's +3.51% move pushed through the 52W high of $420.50 on <em>below-average</em> volume (0.65x) — not a climactic blow-off, but also not the power-move confirmation you want. Price is extended 6.9% from SMA20; a 21 EMA pullback entry is not available. The <strong>right entry is post-earnings</strong>: if May 14 prints strong and stock gaps or holds, the pullback to 21 EMA is the A-grade setup.
+  </p>
+
+  <!-- Earnings panel -->
+  <h2>Earnings Panel</h2>
+  <table class="data">
+    <thead><tr><th>Quarter</th><th>EPS Est</th><th>EPS Actual</th><th>Beat%</th><th>Rev YoY</th></tr></thead>
+    <tbody>
+      <tr><td>Q1 2026</td><td>$2.21</td><td><strong>$2.38</strong></td><td class="pos">+7.7%</td><td class="neg">-2.1%</td></tr>
+      <tr><td>Q4 2025</td><td>$2.11</td><td><strong>$2.17</strong></td><td class="pos">+2.8%</td><td class="neutral">n/a</td></tr>
+      <tr><td>Q3 2025</td><td>$2.36</td><td><strong>$2.48</strong></td><td class="pos">+5.1%</td><td class="neutral">n/a</td></tr>
+      <tr><td>Q2 2025</td><td>$2.31</td><td><strong>$2.39</strong></td><td class="pos">+3.5%</td><td class="neutral">n/a</td></tr>
+    </tbody>
+  </table>
+  <div class="warn-box">
+    <strong>Q2 2026 (May 14):</strong> Street consensus EPS $2.23–$2.67 · Management guided $2.44–$2.84 (midpoint $2.64). Management guidance is well above street average of $2.23 — classic setup for upside surprise if they land at guidance midpoint. Revenue guidance not yet factored into most estimates.
+  </div>
+  <table class="data">
+    <thead><tr><th>Period</th><th>EPS Estimate</th><th>YoY Growth</th></tr></thead>
+    <tbody>
+      <tr><td>FY2026</td><td>$11.10</td><td class="pos">+17.8%</td></tr>
+      <tr><td>FY2027</td><td>$14.03</td><td class="pos">+26.4%</td></tr>
+    </tbody>
+  </table>
+  <p style="color:#6b7280;font-size:13px;margin-bottom:14px">
+    EPS beats are <strong>accelerating</strong> (3.5% → 5.1% → 2.8% → 7.7%). Revenue is <em>declining YoY</em> (-2.1% Q1) — this is a margin expansion story, not a revenue ramp. Management targets semiconductor equipment business growing 20%+ in calendar 2026.
+  </p>
+
+  <!-- Analyst targets -->
+  <h2>Analyst Targets (29 analysts, Strong Buy consensus)</h2>
+  <table class="data">
+    <thead><tr><th>Target</th><th>Price</th><th>vs Current $425</th></tr></thead>
+    <tbody>
+      <tr><td>Median 12mo</td><td>$390</td><td class="neg">-8.3%</td></tr>
+      <tr><td>Average 12mo</td><td>$352</td><td class="neg">-17.2%</td></tr>
+      <tr><td>Morgan Stanley (raised May)</td><td>$454</td><td class="pos">+6.8%</td></tr>
+      <tr><td>UBS (raised May)</td><td>$480</td><td class="pos">+12.9%</td></tr>
+      <tr><td>B. Riley (raised May)</td><td>$485</td><td class="pos">+14.1%</td></tr>
+      <tr><td>Susquehanna (raised May)</td><td>$500</td><td class="pos">+17.6%</td></tr>
+    </tbody>
+  </table>
+  <p style="color:#6b7280;font-size:13px;margin-bottom:14px">
+    <strong>Important nuance:</strong> The consensus average/median ($352–$390) is <em>stale</em> — most targets were set pre-rally. The 4 analysts who updated in May 2026 have targets $454–$500. The most bullish recent price action is ahead of the majority consensus. Rating breakdown: 24 Buy, 5 Hold, 0 Sell. <strong>Bull case validated at $500 (Susquehanna).</strong>
+  </p>
+
+  <!-- Insider / Institutional -->
+  <h2>Insider &amp; Institutional Activity</h2>
+  <table class="data">
+    <thead><tr><th>Category</th><th>Details</th><th>Signal</th></tr></thead>
+    <tbody>
+      <tr><td>Insider trades (90d)</td><td>4 sales + 1 tax withholding, ~$4.5M total sold, ~$3.5M net sales</td><td class="neutral">Routine selling — no buys</td></tr>
+      <tr><td>Insider ownership</td><td>0.30% of float</td><td class="neutral">Low — typical for mega-cap</td></tr>
+      <tr><td>Inst Trans (Finviz)</td><td>+0.11%</td><td class="neutral">Barely positive — not accelerating</td></tr>
+      <tr><td>Vanguard</td><td>59.46M shares (7.49%) — passive 13G, filed 03/31/2026</td><td class="neutral">Passive index hold</td></tr>
+    </tbody>
+  </table>
+  <p style="color:#6b7280;font-size:13px;margin-bottom:14px">
+    No named institutional accumulation visible. Insider activity is routine tax-related sells, not conviction sales. Institutional ownership broadly passive. Net: neutral on ownership signal.
+  </p>
+
+  <!-- Bear case -->
+  <h2>Bear Case (Specific)</h2>
+  <table class="data">
+    <thead><tr><th>Risk</th><th>Specifics</th><th>Flip point</th></tr></thead>
+    <tbody>
+      <tr><td>China export controls</td><td>~35% of revenue exposed. Management flagged $600M revenue headwind in FY2026 from BIS restrictions on tool shipments + servicing.</td><td class="neg">Any expansion of export license restrictions beyond current scope</td></tr>
+      <tr><td>Revenue declining YoY</td><td>Q1 2026: -2.1% YoY. Pure margin story. If margins plateau with flat revenue, EPS growth stalls.</td><td class="neg">Q2 2026 revenue below $6.7B — signals China impact worse than guided</td></tr>
+      <tr><td>Extended from 200 SMA</td><td>+56% above 200 SMA. In prior cycles (15 systemic shocks), AMAT draws down avg -23% vs S&amp;P -16%. In a market selloff, AMAT gets hit harder.</td><td class="neg">SPY breaks 200 SMA — AMAT re-rates violently</td></tr>
+      <tr><td>Earnings event risk (8 days)</td><td>May 14 AMC. Market pricing ±8.78%. If Q2 misses guidance midpoint ($2.64) or China headwinds are raised, stock gaps -10% immediately.</td><td class="neg">Q2 EPS &lt; $2.44 (low end of company guidance)</td></tr>
+      <tr><td>Valuation vs stale consensus</td><td>Average analyst target $352 is 17% below current price — most targets set before the current rally. Stock running ahead of consensus.</td><td class="neg">Analyst downgrades following guidance cut or margin miss</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Performance / RS context -->
+  <h2>Relative Strength Context</h2>
+  <table class="data">
+    <thead><tr><th>Window</th><th>Performance</th><th>RS Rating component</th></tr></thead>
+    <tbody>
+      <tr><td>3 months (Perf Quarter)</td><td class="pos">+42.9%</td><td>40% weight</td></tr>
+      <tr><td>6 months (Perf Half Y)</td><td class="pos">+78.9%</td><td>30% weight</td></tr>
+      <tr><td>12 months (Perf Year)</td><td class="pos">+177.9%</td><td>30% weight</td></tr>
+      <tr><td><strong>RS Rating (screener universe)</strong></td><td colspan="2"><span class="badge badge-rs">73 / 99</span> — top 27% of today's screener universe</td></tr>
+    </tbody>
+  </table>
+  <p style="color:#6b7280;font-size:13px;margin-bottom:14px">
+    RS 73 clears the Phase 2 gate (≥60). The stock has been a consistent relative outperformer: +178% in 12 months vs the screener universe. The 3-month acceleration (+42.9%) is exceptional and most recently weighted — the RS signal is real, not historical.
+  </p>
+
+  <!-- 9-Dim Score -->
+  <h2>9-Dimension Entry Score</h2>
+  <div class="score-box">
+    <span class="score-total">21</span><span class="score-label"> / 27 &nbsp;—&nbsp; HIGH conviction</span>
+    <span style="margin-left:16px;font-size:13px;color:#6b7280">(gate: &gt;20 HIGH · 14–20 MOD · &lt;14 SKIP)</span>
+  </div>
+  <table class="data dim-table">
+    <thead><tr><th>Dimension</th><th>Score</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>EPS beat trend</td><td><span class="badge badge-high">3 HIGH</span></td><td>4 consecutive beats, accelerating: +3.5% → +5.1% → +2.8% → +7.7%</td></tr>
+      <tr><td>Estimate revisions</td><td><span class="badge badge-high">3 HIGH</span></td><td>Company guided $2.44–$2.84 vs street $2.23; MS/UBS/B.Riley/SQ all raised targets May 2026</td></tr>
+      <tr><td>Revenue acceleration</td><td><span class="badge badge-low">1 LOW</span></td><td>Q1 2026 revenue -2.1% YoY — declining. Margin expansion story, not revenue ramp.</td></tr>
+      <tr><td>Institutional adoption</td><td><span class="badge badge-mod">2 MOD</span></td><td>Inst Trans +0.11%; Vanguard passive 7.49%. No named active fund accumulation visible.</td></tr>
+      <tr><td>IPO cycle</td><td><span class="badge badge-low">1 LOW</span></td><td>Mature $337B mega-cap. No IPO dynamic.</td></tr>
+      <tr><td>TAM position</td><td><span class="badge badge-high">3 HIGH</span></td><td>Angstrom-era logic, AI memory, $5B EPIC Center. Customer visibility for 20%+ equipment growth. Early in capex upcycle.</td></tr>
+      <tr><td>Short interest</td><td><span class="badge badge-high">3 HIGH</span></td><td>Short float 1.72% — bears absent. No named short thesis (Kerrisdale / Muddy Waters / etc.)</td></tr>
+      <tr><td>Stage 2</td><td><span class="badge badge-high">3 HIGH</span></td><td>Perfect alignment. All MAs rising, price above all. 52W breakout today.</td></tr>
+      <tr><td>SNDK distortion</td><td><span class="badge badge-mod">2 MOD</span></td><td>EPS Q/Q +75.25% vs TTM +27.46% — Q/Q meaningfully stronger. Some upside the TTM undersells.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Verdict -->
+  <h2>Verdict &amp; Action</h2>
+  <div class="warn-box">
+    <strong>Entry conviction: HIGH (21/27)</strong><br><br>
+    <strong>BUT:</strong> Sizing mode is <em>suspended</em> (3 consecutive losses) → paper trade only regardless of score.<br>
+    Market state CAUTION → half size if/when sizing normalizes.<br><br>
+    <strong>Action plan:</strong>
+    <ol style="margin-top:8px;margin-left:20px;line-height:1.8">
+      <li><strong>Do NOT enter before May 14</strong> — earnings event risk (±8.78%) dominates. Entering 8 days before is a coin-flip bet on the print, not a setup.</li>
+      <li><strong>Post-earnings scenario A (bullish print):</strong> Stock gaps/holds above $420, then pullback to 21 EMA (~$400 area) on normal volume = A-grade entry. Add to entry-ready on watchlist.</li>
+      <li><strong>Post-earnings scenario B (gap up + run):</strong> If AMAT rips to $450+ on earnings and holds, trail with existing RS Leader tracking. Don't chase the opening spike.</li>
+      <li><strong>Post-earnings scenario C (miss or China raised):</strong> Stock breaks below SMA20 ($397) = thesis under pressure. Drop to watching tier, wait for Stage 2 to re-confirm.</li>
+    </ol>
+    <br>
+    <strong>Watch items (what flips the thesis):</strong>
+    <ul style="margin-top:6px;margin-left:20px;line-height:1.8">
+      <li>Q2 EPS below $2.44 (low end of company guidance) — guidance was the bull case</li>
+      <li>China revenue headwind raised above $600M or new export license category added</li>
+      <li>Q2 revenue below $6.7B — confirms China impact materially worse than Q1</li>
+      <li>Analyst target cuts following earnings — would compress near-term upside</li>
+      <li>Insider sell &gt;$10M by named officers post-earnings lock expiry</li>
+    </ul>
+  </div>
+
+  <div style="margin-top:10px">
+    <strong>Stop (if/when entered):</strong> Entry − 2×ATR ≈ Entry − ~$27 (ATR $13.70 at 3.22% of $425)<br>
+    <strong>T1:</strong> Entry × 1.20 &nbsp;|&nbsp; <strong>T2:</strong> Entry × 1.40<br>
+    <strong>Bull case analyst target:</strong> $500 (Susquehanna) = +17.6% from current<br>
+    <strong>Horizon:</strong> 2–3 quarters. May 14 print sets the tone. Aug earnings = next sizing-up event.
+  </div>
+</div>
+
+<footer>Generated by /stock-research skill · 2026-05-06 · Market state: CAUTION · Sizing: SUSPENDED</footer>
+</body>
+</html>

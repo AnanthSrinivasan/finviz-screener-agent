@@ -1,0 +1,1718 @@
+{
+  "summary": {
+    "tickers_total": 20,
+    "tickers_passed": 11,
+    "rows_total": 39,
+    "rows_passed": 16,
+    "per_block_hits": {
+      "RTE-tech": 9,
+      "FB-tech": 4,
+      "HTF-BR-tech": 0,
+      "RS-Leader": 12,
+      "BB-tech": 1,
+      "21EMA-PB*": 0
+    },
+    "top_miss_reasons": [
+      [
+        "RTE-tech: not Stage2 loose",
+        9
+      ],
+      [
+        "FB-tech: not Stage2",
+        9
+      ],
+      [
+        "HTF-BR-tech: not Stage2 loose",
+        9
+      ],
+      [
+        "RS-Leader: not Stage2 loose",
+        9
+      ],
+      [
+        "BB-tech: not Stage2",
+        9
+      ],
+      [
+        "21EMA-PB*: not Stage2 loose",
+        9
+      ],
+      [
+        "BB-tech: ATR%>7",
+        6
+      ],
+      [
+        "RS-Leader: RVol>1.5",
+        2
+      ],
+      [
+        "RTE-tech: ATR%>7 (8.0)",
+        1
+      ],
+      [
+        "FB-tech: dist -15.4% outside [-12,0]",
+        1
+      ],
+      [
+        "HTF-BR-tech: ATR%>7 (8.0)",
+        1
+      ],
+      [
+        "RS-Leader: dist -15.4% outside [-10,+2]",
+        1
+      ],
+      [
+        "21EMA-PB*: ATR%>6 (8.0)",
+        1
+      ],
+      [
+        "RTE-tech: dist -0.4% outside [-12,-1]",
+        1
+      ],
+      [
+        "FB-tech: SMA50% 28.4 outside (0,25]",
+        1
+      ]
+    ]
+  },
+  "results": [
+    {
+      "ticker": "NBIS",
+      "date": "2026-04-09",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 136.29,
+        "atr_pct": 6.65,
+        "atr_mult_50": 5.02,
+        "pct_from_50": 33.34,
+        "pct_from_20": 19.86,
+        "dist_52": -3.37,
+        "dist_swing": 3.03,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.23,
+        "ret_20d": 21.69,
+        "ema21_dist_pct": 17.96
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.23"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 33.3 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -3.4% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -3.4% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.6)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "NBIS",
+      "date": "2026-04-14",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 161.88,
+        "atr_pct": 6.24,
+        "atr_mult_50": 8.49,
+        "pct_from_50": 52.97,
+        "pct_from_20": 35.76,
+        "dist_52": -2.51,
+        "dist_swing": 22.38,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.08,
+        "ret_20d": 24.72,
+        "ema21_dist_pct": 24.4
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 53.0 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -2.5% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -2.5% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.2)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "NBIS",
+      "date": "2026-05-05",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 175.86,
+        "atr_pct": 6.83,
+        "atr_mult_50": 6.01,
+        "pct_from_50": 41.0,
+        "pct_from_20": 15.14,
+        "dist_52": -2.27,
+        "dist_swing": 4.67,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.56,
+        "ret_20d": 49.74,
+        "ema21_dist_pct": 15.97
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 41.0 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -2.3% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -2.3% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.8)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "RKLB",
+      "date": "2026-04-16",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 82.92,
+        "atr_pct": 6.73,
+        "atr_mult_50": 2.78,
+        "pct_from_50": 18.68,
+        "pct_from_20": 21.5,
+        "dist_52": -16.71,
+        "dist_swing": -16.71,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 1.45,
+        "ret_20d": 19.33,
+        "ema21_dist_pct": 15.45
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "dist -16.7% outside [-12,-1]"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "dist -16.7% outside [-12,0]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "MA stack not rising"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "dist -16.7% outside [-10,+2]"
+        },
+        "BB-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.7)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "RKLB",
+      "date": "2026-04-22",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 90.01,
+        "atr_pct": 6.19,
+        "atr_mult_50": 4.29,
+        "pct_from_50": 26.55,
+        "pct_from_20": 24.79,
+        "dist_52": -9.59,
+        "dist_swing": -9.59,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.67,
+        "ret_20d": 36.27,
+        "ema21_dist_pct": 15.86
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 26.5 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -9.6% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -9.6% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.2)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "DOCN",
+      "date": "2026-04-06",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 87.03,
+        "atr_pct": 6.56,
+        "atr_mult_50": 4.41,
+        "pct_from_50": 28.96,
+        "pct_from_20": 10.4,
+        "dist_52": -5.4,
+        "dist_swing": -1.88,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.14,
+        "ret_20d": 59.79,
+        "ema21_dist_pct": 9.29
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 29.0 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -5.4% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -5.4% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (6.6)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "DOCN",
+      "date": "2026-04-13",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 79.89,
+        "atr_pct": 7.96,
+        "atr_mult_50": 1.76,
+        "pct_from_50": 14.01,
+        "pct_from_20": -4.46,
+        "dist_52": -15.4,
+        "dist_swing": -13.16,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.33,
+        "ret_20d": 16.51,
+        "ema21_dist_pct": -0.83
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (8.0)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "dist -15.4% outside [-12,0]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (8.0)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "dist -15.4% outside [-10,+2]"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (8.0)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "INDV",
+      "date": "2026-04-20",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 32.41,
+        "atr_pct": 3.84,
+        "atr_mult_50": 0.38,
+        "pct_from_50": 1.46,
+        "pct_from_20": 5.05,
+        "dist_52": -14.61,
+        "dist_swing": -13.72,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 0.69,
+        "ret_20d": 10.56,
+        "ema21_dist_pct": 2.83
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "INDV",
+      "date": "2026-04-28",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 34.44,
+        "atr_pct": 3.35,
+        "atr_mult_50": 2.39,
+        "pct_from_50": 8.02,
+        "pct_from_20": 7.33,
+        "dist_52": -9.27,
+        "dist_swing": -8.33,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 1.96,
+        "ret_20d": 19.67,
+        "ema21_dist_pct": 5.92
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.96"
+        },
+        "FB-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -9.3% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "MA stack not rising"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -9.3% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (5.9)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "ARWR",
+      "date": "2026-04-30",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 73.49,
+        "atr_pct": 4.22,
+        "atr_mult_50": 3.72,
+        "pct_from_50": 15.69,
+        "pct_from_20": 7.4,
+        "dist_52": -3.88,
+        "dist_swing": -3.88,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.85,
+        "ret_20d": 16.85,
+        "ema21_dist_pct": 6.45
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "RVol<1.2 (0.852115548586394)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -3.9% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -3.9% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (6.5)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "ANET",
+      "date": "2026-04-08",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 145.04,
+        "atr_pct": 4.46,
+        "atr_mult_50": 1.76,
+        "pct_from_50": 7.84,
+        "pct_from_20": 10.78,
+        "dist_52": -12.06,
+        "dist_swing": -4.32,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 2.22,
+        "ret_20d": 3.9,
+        "ema21_dist_pct": 9.76
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "ANET",
+      "date": "2026-04-22",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 177.69,
+        "atr_pct": 3.36,
+        "atr_mult_50": 8.46,
+        "pct_from_50": 28.41,
+        "pct_from_20": 23.8,
+        "dist_52": -0.42,
+        "dist_swing": 14.34,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 2.15,
+        "ret_20d": 35.86,
+        "ema21_dist_pct": 15.44
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "dist -0.4% outside [-12,-1]"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 28.4 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -0.4% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "RVol>1.5"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -0.4% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (15.4)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "FSLY",
+      "date": "2026-04-15",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 23.38,
+        "atr_pct": 12.98,
+        "atr_mult_50": 0.6,
+        "pct_from_50": 7.84,
+        "pct_from_20": -16.35,
+        "dist_52": -32.82,
+        "dist_swing": -32.82,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.44,
+        "ret_20d": -3.31,
+        "ema21_dist_pct": -12.38
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (13.0)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "ATR%>8 (13.0)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (13.0)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "ATR%>8 (13.0)"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (13.0)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "FSLY",
+      "date": "2026-04-28",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 24.62,
+        "atr_pct": 10.72,
+        "atr_mult_50": 0.13,
+        "pct_from_50": 1.36,
+        "pct_from_20": -8.43,
+        "dist_52": -29.24,
+        "dist_swing": -29.24,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.49,
+        "ret_20d": -3.58,
+        "ema21_dist_pct": -3.85
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (10.7)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "ATR%>8 (10.7)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (10.7)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "ATR%>8 (10.7)"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (10.7)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "RMBS",
+      "date": "2026-04-23",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 138.47,
+        "atr_pct": 4.13,
+        "atr_mult_50": 9.13,
+        "pct_from_50": 37.68,
+        "pct_from_20": 28.17,
+        "dist_52": -0.59,
+        "dist_swing": 2.54,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.93,
+        "ret_20d": 44.32,
+        "ema21_dist_pct": 17.88
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "dist -0.6% outside [-12,-1]"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 37.7 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -0.6% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -0.6% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (17.9)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "MTSI",
+      "date": "2026-04-22",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 276.99,
+        "atr_pct": 3.8,
+        "atr_mult_50": 4.03,
+        "pct_from_50": 15.32,
+        "pct_from_20": 10.98,
+        "dist_52": -3.82,
+        "dist_swing": 4.4,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.41,
+        "ret_20d": 16.87,
+        "ema21_dist_pct": 7.9
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.41"
+        },
+        "FB-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -3.8% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -3.8% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (7.9)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "ALAB",
+      "date": "2026-04-10",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 149.08,
+        "atr_pct": 6.33,
+        "atr_mult_50": 2.4,
+        "pct_from_50": 15.19,
+        "pct_from_20": 23.69,
+        "dist_52": -43.21,
+        "dist_swing": -21.66,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 2.71,
+        "ret_20d": 24.26,
+        "ema21_dist_pct": 17.68
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "ALAB",
+      "date": "2026-04-28",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 183.24,
+        "atr_pct": 6.77,
+        "atr_mult_50": 5.05,
+        "pct_from_50": 34.18,
+        "pct_from_20": 15.2,
+        "dist_52": -30.2,
+        "dist_swing": -6.82,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.05,
+        "ret_20d": 82.86,
+        "ema21_dist_pct": 9.02
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "AAOI",
+      "date": "2026-03-20",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 87.6,
+        "atr_pct": 13.65,
+        "atr_mult_50": 3.19,
+        "pct_from_50": 43.55,
+        "pct_from_20": -3.94,
+        "dist_52": -32.01,
+        "dist_swing": -32.01,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.91,
+        "ret_20d": 69.37,
+        "ema21_dist_pct": -0.27
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (13.7)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "ATR%>8 (13.7)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (13.7)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "ATR%>8 (13.7)"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (13.7)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "AAOI",
+      "date": "2026-04-08",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 132.73,
+        "atr_pct": 9.96,
+        "atr_mult_50": 7.22,
+        "pct_from_50": 71.97,
+        "pct_from_20": 30.76,
+        "dist_52": -1.24,
+        "dist_swing": 3.01,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.76,
+        "ret_20d": 10.17,
+        "ema21_dist_pct": 24.94
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (10.0)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "ATR%>8 (10.0)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (10.0)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "ATR%>8 (10.0)"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (10.0)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "AAOI",
+      "date": "2026-05-01",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 183.57,
+        "atr_pct": 9.29,
+        "atr_mult_50": 6.56,
+        "pct_from_50": 60.94,
+        "pct_from_20": 24.55,
+        "dist_52": -4.21,
+        "dist_swing": 6.26,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.46,
+        "ret_20d": 76.7,
+        "ema21_dist_pct": 21.59
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (9.3)"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "ATR%>8 (9.3)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "ATR%>7 (9.3)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "ATR%>8 (9.3)"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "ATR%>7"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "ATR%>6 (9.3)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "MU",
+      "date": "2026-03-25",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 382.1,
+        "atr_pct": 6.52,
+        "atr_mult_50": -0.83,
+        "pct_from_50": -5.39,
+        "pct_from_20": -7.33,
+        "dist_52": -18.92,
+        "dist_swing": -18.92,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.47,
+        "ret_20d": -10.91,
+        "ema21_dist_pct": -8.08
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "MU",
+      "date": "2026-04-15",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 456.11,
+        "atr_pct": 5.7,
+        "atr_mult_50": 2.26,
+        "pct_from_50": 12.86,
+        "pct_from_20": 14.46,
+        "dist_52": -3.21,
+        "dist_swing": -3.21,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.56,
+        "ret_20d": -1.23,
+        "ema21_dist_pct": 10.74
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "RVol<1.2 (0.5631691045042075)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -3.2% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -3.2% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (10.7)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "NVDA",
+      "date": "2026-03-19",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 178.5,
+        "atr_pct": 3.17,
+        "atr_mult_50": -1.09,
+        "pct_from_50": -3.47,
+        "pct_from_20": -2.97,
+        "dist_52": -15.86,
+        "dist_swing": -10.72,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 0.95,
+        "ret_20d": -4.99,
+        "ema21_dist_pct": -2.54
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "NVDA",
+      "date": "2026-04-15",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 198.85,
+        "atr_pct": 2.68,
+        "atr_mult_50": 3.37,
+        "pct_from_50": 9.04,
+        "pct_from_20": 10.85,
+        "dist_52": -6.27,
+        "dist_swing": 0.62,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 1.05,
+        "ret_20d": 9.28,
+        "ema21_dist_pct": 7.89
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "RVol<1.2 (1.051886462293284)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -6.3% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "MA stack not rising"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -6.3% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (7.9)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "Z",
+      "date": "2026-03-15",
+      "label": "D1_reclaim",
+      "metrics": {
+        "last": 42.92,
+        "atr_pct": 6.08,
+        "atr_mult_50": -3.8,
+        "pct_from_50": -23.1,
+        "pct_from_20": -3.79,
+        "dist_52": -54.25,
+        "dist_swing": -44.3,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": false,
+        "rvol": 0.47,
+        "ret_20d": -2.02,
+        "ema21_dist_pct": -8.55
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "Z",
+      "date": "2026-04-08",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 41.42,
+        "atr_pct": 5.34,
+        "atr_mult_50": -2.33,
+        "pct_from_50": -12.45,
+        "pct_from_20": -3.17,
+        "dist_52": -55.85,
+        "dist_swing": -46.24,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": false,
+        "rvol": 1.65,
+        "ret_20d": -5.99,
+        "ema21_dist_pct": -3.7
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "SMCI",
+      "date": "2024-01-17",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 31.83,
+        "atr_pct": 5.47,
+        "atr_mult_50": 1.89,
+        "pct_from_50": 10.35,
+        "pct_from_20": 3.03,
+        "dist_52": -11.01,
+        "dist_swing": -8.82,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.09,
+        "ret_20d": 6.21,
+        "ema21_dist_pct": 2.75
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "RVol<1.2 (1.093095062156863)"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -11.0% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "dist -11.0% outside [-10,+2]"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -11.0% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (2.7)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "SMCI",
+      "date": "2024-02-13",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 79.14,
+        "atr_pct": 5.37,
+        "atr_mult_50": 18.35,
+        "pct_from_50": 98.49,
+        "pct_from_20": 42.61,
+        "dist_52": -2.05,
+        "dist_swing": 15.52,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 0.91,
+        "ret_20d": 142.54,
+        "ema21_dist_pct": 26.78
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA50% 98.5 outside (0,25]"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -2.1% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -2.1% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (26.8)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "VRT",
+      "date": "2024-01-25",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 53.3,
+        "atr_pct": 3.27,
+        "atr_mult_50": 4.04,
+        "pct_from_50": 13.19,
+        "pct_from_20": 7.43,
+        "dist_52": -4.49,
+        "dist_swing": 4.49,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.45,
+        "ret_20d": 8.81,
+        "ema21_dist_pct": 5.83
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.45"
+        },
+        "FB-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -4.5% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -4.5% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (5.8)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "VRT",
+      "date": "2024-02-22",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 62.91,
+        "atr_pct": 4.92,
+        "atr_mult_50": 3.62,
+        "pct_from_50": 17.8,
+        "pct_from_20": 4.8,
+        "dist_52": -3.92,
+        "dist_swing": -3.47,
+        "stage2_perfect": true,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.32,
+        "ret_20d": 19.15,
+        "ema21_dist_pct": 5.43
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.32"
+        },
+        "FB-tech": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -3.9% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": true,
+          "reason": "pass"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -3.9% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "|price-EMA21|/price >2% (5.4)"
+        }
+      },
+      "any_pass": true
+    },
+    {
+      "ticker": "APP",
+      "date": "2024-08-08",
+      "label": "D2_flag",
+      "metrics": {
+        "last": 76.67,
+        "atr_pct": 6.16,
+        "atr_mult_50": -0.68,
+        "pct_from_50": -4.21,
+        "pct_from_20": -1.35,
+        "dist_52": -16.55,
+        "dist_swing": -16.55,
+        "stage2_perfect": false,
+        "stage2_loose": false,
+        "s50_rising": false,
+        "s200_rising": true,
+        "rvol": 2.49,
+        "ret_20d": -6.44,
+        "ema21_dist_pct": 0.71
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "not Stage2"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "not Stage2 loose"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "APP",
+      "date": "2024-09-09",
+      "label": "D3_ema21_pb",
+      "metrics": {
+        "last": 86.28,
+        "atr_pct": 4.72,
+        "atr_mult_50": 0.92,
+        "pct_from_50": 4.35,
+        "pct_from_20": -0.88,
+        "dist_52": -7.9,
+        "dist_swing": -7.9,
+        "stage2_perfect": false,
+        "stage2_loose": true,
+        "s50_rising": true,
+        "s200_rising": true,
+        "rvol": 1.76,
+        "ret_20d": 11.47,
+        "ema21_dist_pct": 0.25
+      },
+      "blocks": {
+        "RTE-tech": {
+          "pass": false,
+          "reason": "RVol>1.76"
+        },
+        "FB-tech": {
+          "pass": false,
+          "reason": "SMA20% \u22640"
+        },
+        "HTF-BR-tech": {
+          "pass": false,
+          "reason": "dist -7.9% \u2265 -12 (not HTF)"
+        },
+        "RS-Leader": {
+          "pass": false,
+          "reason": "RVol>1.5"
+        },
+        "BB-tech": {
+          "pass": false,
+          "reason": "dist -7.9% outside [-25,-12]"
+        },
+        "21EMA-PB*": {
+          "pass": false,
+          "reason": "prior 20d ret <15% (11.472868217054257)"
+        }
+      },
+      "any_pass": false
+    },
+    {
+      "ticker": "CRWD",
+      "date": "2020-06-04",
+      "label": "D2_flag",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "no bars"
+    },
+    {
+      "ticker": "CRWD",
+      "date": "2020-07-15",
+      "label": "D3_ema21_pb",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "no bars"
+    },
+    {
+      "ticker": "DDOG",
+      "date": "2020-05-12",
+      "label": "D2_flag",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "no bars"
+    },
+    {
+      "ticker": "DDOG",
+      "date": "2020-06-22",
+      "label": "D3_ema21_pb",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "no bars"
+    },
+    {
+      "ticker": "ENPH",
+      "date": "2020-05-06",
+      "label": "D1_reclaim",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "no bars"
+    },
+    {
+      "ticker": "ENPH",
+      "date": "2020-07-29",
+      "label": "D3_ema21_pb",
+      "metrics": null,
+      "blocks": {},
+      "any_pass": false,
+      "note": "insufficient history (3 bars)"
+    }
+  ]
+}

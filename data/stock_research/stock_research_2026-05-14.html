@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Research — LABU vs XBI — 2026-05-14</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; font-size: 14px; line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  h3 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; color: #374151; }
+  .meta { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .banner { padding: 10px 16px; border-radius: 8px; font-weight: 600; margin-bottom: 20px; }
+  .banner.caution { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+  .banner.suspended { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; margin-top: 8px; }
+  .card { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 20px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .ticker { font-size: 22px; font-weight: 800; color: #111827; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+  .badge-leveraged { background: #fef3c7; color: #92400e; }
+  .badge-etf { background: #dbeafe; color: #1e40af; }
+  .badge-warn { background: #fee2e2; color: #991b1b; }
+  .badge-ok { background: #dcfce7; color: #166534; }
+  .price { font-size: 20px; font-weight: 700; color: #2563eb; }
+  .chart-grade { font-size: 13px; color: #6b7280; font-style: italic; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  th { background: #f3f4f6; text-align: left; padding: 8px 10px; font-size: 12px; color: #6b7280; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  .pos { color: #16a34a; font-weight: 600; }
+  .neg { color: #dc2626; font-weight: 600; }
+  .neutral { color: #6b7280; }
+  .verdict-box { padding: 14px 16px; border-radius: 8px; margin-top: 16px; font-size: 14px; line-height: 1.7; }
+  .verdict-pass { background: #fef2f2; border: 1px solid #fca5a5; }
+  .verdict-paper { background: #fefce8; border: 1px solid #fde047; }
+  .verdict-watch { background: #f0fdf4; border: 1px solid #86efac; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .summary-table th, .summary-table td { font-size: 13px; }
+  .risk-bar { height: 6px; border-radius: 3px; margin-top: 4px; }
+  .risk-high { background: #dc2626; }
+  .risk-med { background: #f59e0b; }
+  .risk-low { background: #16a34a; }
+  .winner-box { background: #eff6ff; border: 2px solid #2563eb; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+  .winner-box h3 { color: #1e40af; margin-top: 0; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+  footer { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 32px; }
+  ul { padding-left: 18px; }
+  li { margin-bottom: 4px; }
+  .alert-box { padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; }
+  .alert-red { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+  .alert-yellow { background: #fef9c3; border: 1px solid #fde047; color: #854d0e; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Stock Research — LABU vs XBI</h1>
+  <p class="meta">Generated 2026-05-14 · 2 ETFs compared · Entry conviction mode (neither held)</p>
+
+  <div class="banner caution">⚠️ Market State: CAUTION — Half-size entries allowed. Post-THRUST floor (THRUST fired 2026-05-06, 8 days ago). F&amp;G: 66.9. SPY above 200d MA. 5d ratio: 1.33.</div>
+  <div class="banner suspended">🚫 Sizing Mode: SUSPENDED — 0W / 6L streak. Rules engine: paper trade only. No real money entries permitted until streak resets.</div>
+
+  <!-- WINNER BOX -->
+  <div class="winner-box">
+    <h3>📋 Pick: XBI over LABU — but paper-only</h3>
+    <p>On technical setup, fundamental structure, and risk-adjusted odds, <strong>XBI</strong> wins this comparison. LABU's 3× leverage is a liability, not an edge, in a CAUTION market with this streak. If you want biotech exposure right now, XBI is the vehicle — but wait for the pullback entry described below. Do not put real money on either until the loss streak clears.</p>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <h2>Summary</h2>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Ticker</th><th>Type</th><th>Price</th><th>Chart Grade</th><th>Risk Level</th><th>Sizing Gate</th><th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>LABU</strong> <span class="badge badge-leveraged">3× Leveraged</span></td>
+        <td>Leveraged ETF</td>
+        <td class="pos">$194.45</td>
+        <td>B−</td>
+        <td><span class="neg">EXTREME</span></td>
+        <td><span class="neg">SUSPENDED</span></td>
+        <td><strong>PASS / Paper-only if must trade</strong></td>
+      </tr>
+      <tr>
+        <td><strong>XBI</strong> <span class="badge badge-etf">Equal-Weight</span></td>
+        <td>Sector ETF</td>
+        <td class="pos">$135.85</td>
+        <td>B</td>
+        <td><span class="neutral" style="color:#f59e0b;">MODERATE</span></td>
+        <td><span class="neg">SUSPENDED</span></td>
+        <td><strong>PAPER — wait for pullback to $132–134</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ====== LABU CARD ====== -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <span class="ticker">LABU</span>
+        <span class="badge badge-leveraged">3× Leveraged</span>
+        <span class="badge badge-warn">PAPER ONLY</span>
+      </div>
+      <span class="price">$194.45</span>
+    </div>
+    <p class="chart-grade">Chart: B− — V-bottom recovery extended, approaching $200 resistance, no base structure</p>
+
+    <div class="alert-box alert-red">⚠️ LABU is a <strong>daily reset leveraged ETF</strong>. It decays at -21.5% per year on average from volatility drag. 100 shares = ~$19,400 notional but with effective 3× exposure (~$58K+) to the S&P Biotech Index. One bad day in a choppy market can wipe a week of gains.</div>
+
+    <h3>Technical Setup</h3>
+    <table>
+      <thead><tr><th>Level</th><th>Price</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Current</td><td>$194.45</td><td class="pos">Above all MAs</td></tr>
+        <tr><td>SMA 20</td><td>$190.25</td><td class="pos">+2.2% above — support</td></tr>
+        <tr><td>SMA 50</td><td>$173.70</td><td class="pos">+11.9% above — base support</td></tr>
+        <tr><td>SMA 200</td><td>~$138.50</td><td class="pos">Well above — Stage 2 aligned</td></tr>
+        <tr><td>April Low</td><td>~$145</td><td class="neutral">V-bottom origin (+34% from here)</td></tr>
+        <tr><td>Key resistance</td><td>$200–205</td><td class="neg">March/April highs — testing now</td></tr>
+      </tbody>
+    </table>
+
+    <h3>LABU vs XBI: The Leverage Math</h3>
+    <table>
+      <thead><tr><th>Scenario</th><th>XBI 1-day move</th><th>LABU expected</th><th>Reality in choppy markets</th></tr></thead>
+      <tbody>
+        <tr><td>Bull day</td><td>+2%</td><td class="pos">+6%</td><td class="pos">+5.5–6% (close to target)</td></tr>
+        <tr><td>Bear day</td><td>-2%</td><td class="neg">-6%</td><td class="neg">-6.5–7% (decay bites)</td></tr>
+        <tr><td>Flat chop week</td><td>±1% daily</td><td class="neutral">0%</td><td class="neg">-3 to -5% (decay compounds)</td></tr>
+        <tr><td>1-year sustained bull</td><td>+35% (actual)</td><td class="pos">~235%</td><td class="pos">Realized 2025→2026</td></tr>
+        <tr><td>5-year avg decay</td><td>+30% sector</td><td class="neg">-87%</td><td class="neg">Historical 5-year LABU</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Entry Scenarios — 100 Shares LABU</h3>
+    <table>
+      <thead><tr><th>Entry</th><th>Stop</th><th>Target</th><th>Risk $</th><th>Reward $</th><th>R multiple</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>$194.45 (now)</td>
+          <td>$185 (SMA20 area)</td>
+          <td>$220 (+13%)</td>
+          <td class="neg">$945</td>
+          <td class="pos">$2,555</td>
+          <td>2.7R</td>
+        </tr>
+        <tr>
+          <td>$185 (pullback wait)</td>
+          <td>$174 (SMA50)</td>
+          <td>$220</td>
+          <td class="neg">$1,100</td>
+          <td class="pos">$3,500</td>
+          <td>3.2R</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="verdict-box verdict-pass">
+      <strong>LABU Verdict: PASS (Paper-only if forced)</strong><br>
+      Even for a paper trade, LABU is wrong vehicle in CAUTION. You are at <em>resistance</em> ($200 zone) with no base, leveraged 3× into a market that just had a THRUST and is now consolidating. The decay clock runs whether XBI moves or not. If biotech chops sideways for 2 weeks, LABU loses 3–5% while XBI loses 1–2%. The leverage only helps if biotech immediately breaks out and holds — that's a coin flip at this resistance level.
+    </div>
+
+    <h3>Bear Case (LABU-specific)</h3>
+    <ul>
+      <li>FDA surprise rejection on a major XBI holding → XBI -5% → LABU -15% in a day</li>
+      <li>Biotech MACD sell signal already firing (3-month) — momentum may be fading</li>
+      <li>Any return to CAUTION-level chop eats -21.5% annualized from decay alone</li>
+      <li>100 shares at $194 = $19,400 notional. A 10% LABU drawdown = -$1,940 loss on 100 shares</li>
+      <li>Volatility decay is asymmetric: two 10% swings leaves you net -1% even if you "broke even" directionally</li>
+    </ul>
+  </div>
+
+  <!-- ====== XBI CARD ====== -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <span class="ticker">XBI</span>
+        <span class="badge badge-etf">Equal-Weight ETF</span>
+        <span class="badge badge-warn">PAPER ONLY</span>
+      </div>
+      <span class="price">$135.85</span>
+    </div>
+    <p class="chart-grade">Chart: B — Above all MAs, testing prior resistance at $138–140, SMA20 acting as support at $134.35</p>
+
+    <h3>Technical Setup</h3>
+    <table>
+      <thead><tr><th>Level</th><th>Price</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Current</td><td>$135.85</td><td class="pos">Above all MAs</td></tr>
+        <tr><td>SMA 20</td><td>$134.35</td><td class="pos">Just above — key near support</td></tr>
+        <tr><td>SMA 50</td><td>$129.30</td><td class="pos">+5% above — Stage 2 intact</td></tr>
+        <tr><td>SMA 200</td><td>~$118.00</td><td class="pos">Well above</td></tr>
+        <tr><td>Prior resistance</td><td>$138–140</td><td class="neg">March/April highs — 2% above now</td></tr>
+        <tr><td>Support band</td><td>$133.58 / $130.52</td><td class="neutral">Tech support per analysts</td></tr>
+        <tr><td>3-month target (90% conf.)</td><td>$135–154</td><td class="pos">+13% upside base case</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sector Fundamentals — XBI</h3>
+    <table>
+      <thead><tr><th>Factor</th><th>Reading</th><th>Signal</th></tr></thead>
+      <tbody>
+        <tr><td>M&amp;A deal volume</td><td>Highest decade in 2025, continuing</td><td class="pos">Bullish — equal-weight benefits most</td></tr>
+        <tr><td>Pharma patent cliff</td><td>$280B revenue at risk → acquisition demand</td><td class="pos">Structural bid under small biotech</td></tr>
+        <tr><td>FDA pace</td><td>56 novel drugs approved 2025</td><td class="pos">Bullish pipeline</td></tr>
+        <tr><td>FDA risk</td><td>Continued policy volatility (Mizuho)</td><td class="neg">Single-name binary risk</td></tr>
+        <tr><td>Holdings structure</td><td>~145 equal-weight names</td><td class="pos">Captures M&amp;A pops across names</td></tr>
+        <tr><td>1-year performance</td><td>+35% (XBI)</td><td class="neutral">Already had the run — don't chase</td></tr>
+        <tr><td>3-month analyst target</td><td>+9% median ($148 area)</td><td class="pos">Positive but not aggressive</td></tr>
+        <tr><td>MACD (3-month)</td><td>Sell signal active</td><td class="neg">Momentum may be fading near-term</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Entry Scenarios — 100 Shares XBI</h3>
+    <table>
+      <thead><tr><th>Entry</th><th>Stop</th><th>Target</th><th>Risk $</th><th>Reward $</th><th>R multiple</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="neg">$135.85 (now)</td>
+          <td>$129.30 (SMA50)</td>
+          <td>$148 (+9%)</td>
+          <td class="neg">$655</td>
+          <td class="pos">$1,215</td>
+          <td>1.9R</td>
+          <td class="neg">At resistance. Not ideal.</td>
+        </tr>
+        <tr>
+          <td class="pos">$132–134 (pullback)</td>
+          <td>$129 (SMA50)</td>
+          <td>$148</td>
+          <td class="neg">$350–500</td>
+          <td class="pos">$1,400–1,600</td>
+          <td>2.8–4.0R</td>
+          <td class="pos">Wait for this. SMA20 bounce.</td>
+        </tr>
+        <tr>
+          <td class="pos">$129–130 (SMA50 dip)</td>
+          <td>$125</td>
+          <td>$148</td>
+          <td class="neg">$400–500</td>
+          <td class="pos">$1,800–1,900</td>
+          <td>3.8R</td>
+          <td class="pos">Best R/R if market dips first</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="verdict-box verdict-paper">
+      <strong>XBI Verdict: PAPER — Wait for $132–134 pullback before entry</strong><br>
+      XBI is the right vehicle: no decay, equal-weight captures M&amp;A upside across 145 names, structural sector bid from patent cliffs. But <strong>do not enter at $135.85</strong> — you are right at the March/April resistance band ($138–140). Wait for a pullback to the SMA20 ($134) or ideally $132–133. That gives you 4+ R with a SMA50 stop. If biotech breaks $140 cleanly on volume — then re-evaluate chasing. Current entry is a 1.9R trade, which is below the 2R minimum threshold.
+    </div>
+
+    <h3>Bear Case (XBI)</h3>
+    <ul>
+      <li>3-month MACD sell signal — short-term momentum stalling near resistance</li>
+      <li>58% probability of outperforming ETF universe — only 5% better than random; not a compelling edge</li>
+      <li>Major FDA rejection on top-10 XBI holding → instant -5% to -8% gap in equal-weight structure</li>
+      <li>If market degrades from CAUTION → RED: XBI tests SMA50 ($129) fast. Stop must be placed accordingly.</li>
+      <li>XBI up 35% in past year — late-cycle sector rotation risk if macro softens</li>
+    </ul>
+  </div>
+
+  <!-- HEAD-TO-HEAD -->
+  <div class="card">
+    <h2>Head-to-Head Comparison</h2>
+    <table>
+      <thead><tr><th>Factor</th><th>LABU</th><th>XBI</th><th>Winner</th></tr></thead>
+      <tbody>
+        <tr><td>Vehicle type</td><td>3× Daily leveraged ETF</td><td>Equal-weight sector ETF</td><td class="pos">XBI</td></tr>
+        <tr><td>Decay risk</td><td class="neg">-21.5%/yr annualized</td><td class="pos">None</td><td class="pos">XBI</td></tr>
+        <tr><td>100-share notional</td><td class="neg">$19,400 (~$58K effective)</td><td class="pos">$13,600</td><td class="pos">XBI</td></tr>
+        <tr><td>Chart setup</td><td>B− (at resistance, no base)</td><td>B (testing resistance, SMA20 support)</td><td class="pos">XBI</td></tr>
+        <tr><td>Best entry R</td><td>2.7R at current price</td><td>4.0R on pullback to $132</td><td class="pos">XBI</td></tr>
+        <tr><td>M&amp;A catalyst capture</td><td>3× amplified but decayed</td><td class="pos">Equal-weight = full pop per name</td><td class="pos">XBI</td></tr>
+        <tr><td>Market-state fit</td><td class="neg">CAUTION kills 3× in chop</td><td class="pos">CAUTION = half-size, manageable</td><td class="pos">XBI</td></tr>
+        <tr><td>Suitable if market → GREEN</td><td class="pos">LABU would accelerate</td><td class="pos">XBI works fine</td><td class="neutral">Tie</td></tr>
+        <tr><td>Suitable if chop 2 weeks</td><td class="neg">LABU loses 3–5% from decay</td><td class="pos">XBI flat or -1%</td><td class="pos">XBI</td></tr>
+        <tr><td>Sizing mode gate</td><td class="neg">SUSPENDED = paper only</td><td class="neg">SUSPENDED = paper only</td><td class="neutral">Both blocked</td></tr>
+      </tbody>
+    </table>
+
+    <div class="alert-box alert-red" style="margin-top:16px;">
+      <strong>Hard Rule:</strong> Sizing mode = SUSPENDED (0W/6L). Neither position can be entered with real money. Both are paper-trade candidates only until the streak resets. This overrides all other analysis.
+    </div>
+  </div>
+
+  <!-- ODDS TABLE -->
+  <div class="card">
+    <h2>Probability Framework</h2>
+    <table>
+      <thead><tr><th>Scenario (next 30 days)</th><th>Probability</th><th>XBI outcome</th><th>LABU outcome</th></tr></thead>
+      <tbody>
+        <tr><td>Biotech breaks $140, sector leadership confirmed</td><td>25%</td><td class="pos">+8 to +12%</td><td class="pos">+24 to +36%</td></tr>
+        <tr><td>Sideways chop $130–140 range</td><td>45%</td><td class="neutral">-2 to +3%</td><td class="neg">-5 to -2% (decay)</td></tr>
+        <tr><td>Market weakens, XBI retests SMA50</td><td>20%</td><td class="neg">-5 to -8%</td><td class="neg">-15 to -24%</td></tr>
+        <tr><td>FDA/macro shock, gap down</td><td>10%</td><td class="neg">-12 to -18%</td><td class="neg">-35 to -50%+</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px; font-size:13px; color:#6b7280;">Expected value XBI: ~+0.5% (coin flip near-term). Expected value LABU: ~-2% (decay + asymmetric downside). <strong>Neither is a slam-dunk entry at this price.</strong> The wait for $132–134 XBI is the disciplined play.</p>
+  </div>
+
+  <footer>Generated by stock-research skill · 2026-05-14 · Market: CAUTION · Sizing: SUSPENDED</footer>
+</div>
+</body>
+</html>

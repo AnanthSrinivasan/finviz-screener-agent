@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Research — 2026-05-03</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; line-height: 1.5; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; }
+  h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: #374151; }
+  .banner { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; margin-bottom: 16px; }
+  .banner-caution { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+  .banner-note { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; font-size: 0.8rem; font-weight: 500; margin-left: 8px; }
+  .meta { font-size: 0.85rem; color: #6b7280; margin-bottom: 24px; }
+  /* Summary table */
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .summary-table th { background: #f3f4f6; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; padding: 10px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+  .summary-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; vertical-align: top; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  /* Ticker cards */
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 32px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: baseline; gap: 12px; }
+  .card-ticker { font-size: 1.4rem; font-weight: 800; color: #111827; }
+  .card-name { font-size: 0.9rem; color: #6b7280; }
+  .card-body { padding: 20px; }
+  .section { margin-bottom: 24px; }
+  .section:last-child { margin-bottom: 0; }
+  /* Score table */
+  .score-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .score-table th { background: #f3f4f6; padding: 7px 12px; text-align: left; font-weight: 600; font-size: 0.8rem; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+  .score-table td { padding: 7px 12px; border-bottom: 1px solid #f9fafb; }
+  .score-table tr:last-child td { border-bottom: none; }
+  .score-high { color: #16a34a; font-weight: 600; }
+  .score-mod { color: #d97706; font-weight: 600; }
+  .score-low { color: #dc2626; font-weight: 600; }
+  /* Info boxes */
+  .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
+  .info-box.warn { background: #fffbeb; border-color: #fcd34d; }
+  .info-box.info { background: #eff6ff; border-color: #bfdbfe; }
+  .info-box.bear { background: #fef2f2; border-color: #fca5a5; }
+  .info-box label { font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; display: block; margin-bottom: 4px; }
+  /* Data tables */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+  .data-table th { background: #f3f4f6; padding: 6px 10px; text-align: left; font-size: 0.78rem; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+  .data-table td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }
+  .data-table tr:last-child td { border-bottom: none; }
+  /* Verdict badge */
+  .verdict { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+  .verdict-high { background: #dcfce7; color: #15803d; }
+  .verdict-mod { background: #fef9c3; color: #854d0e; }
+  .verdict-watch { background: #e0f2fe; color: #075985; }
+  .verdict-skip { background: #fee2e2; color: #991b1b; }
+  /* Score total */
+  .score-total { font-size: 1.1rem; font-weight: 800; margin-top: 12px; }
+  .pos { color: #16a34a; }
+  .neg { color: #dc2626; }
+  .neutral { color: #6b7280; }
+  .chart-grade { font-size: 0.85rem; background: #f3f4f6; border-radius: 4px; padding: 6px 10px; margin-bottom: 16px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  footer { text-align: center; font-size: 0.78rem; color: #9ca3af; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Stock Research — 2026-05-03</h1>
+  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+    <span class="banner banner-caution">⚠ CAUTION (post-THRUST floor active)</span>
+    <span class="banner-note">ℹ History shows RED (May 1 run was pre-fix). Real state = CAUTION: THRUST Apr 30, day 3 of 3-day floor.</span>
+  </div>
+  <div class="meta">2 tickers · Sizing: <strong>reduced</strong> (2 consecutive losses → max 5% of book) · Streak: 0W/2L · Generated 2026-05-03</div>
+
+  <!-- Summary Table -->
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Ticker</th><th>Held?</th><th>Score /27</th><th>Bull (≤12 words)</th><th>Bear (≤12 words)</th><th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>UAMY</strong></td>
+        <td>No</td>
+        <td><strong>21 / 27</strong> — HIGH</td>
+        <td>Only US domestic antimony producer, DoD contract, +182% revenue</td>
+        <td>Q3 revenue miss 32%, 17.9% short float, execution risk pre-scale</td>
+        <td><span class="verdict verdict-watch">WATCH → entry on pullback; sizing reduced</span></td>
+      </tr>
+      <tr>
+        <td><strong>USAR</strong></td>
+        <td>No</td>
+        <td><strong>18 / 27</strong> — MODERATE</td>
+        <td>Round Top rare earth deposit, BlackRock +18%, critical minerals tailwind</td>
+        <td>$1.64M TTM revenue against $50M losses; no production until 2028+</td>
+        <td><span class="verdict verdict-watch">WATCHLIST only — pre-revenue, extended, sizing reduced</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ======== UAMY CARD ======== -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-ticker">UAMY</span>
+      <span class="card-name">United States Antimony Corporation · NYSEAMERICAN</span>
+    </div>
+    <div class="card-body">
+
+      <div class="chart-grade">
+        <strong>Chart: B</strong> — Stage 2 breakout from 6-month base, approaching Oct 2025 supply zone at $13–16
+      </div>
+
+      <!-- State box -->
+      <div class="info-box info">
+        <label>Context</label>
+        Not held · Not in watchlist · Not Hidden Growth · Market CAUTION (post-THRUST floor day 3) · Sizing: reduced (max 5%)
+      </div>
+
+      <!-- Earnings Panel -->
+      <div class="section">
+        <h3>Earnings &amp; Estimates</h3>
+        <table class="data-table">
+          <thead><tr><th>Period</th><th>EPS Actual</th><th>EPS Est</th><th>Beat/Miss</th><th>Revenue</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>Q3 2025</td><td class="neg">-$0.04</td><td>+$0.03</td><td class="neg">MISS</td><td>$8.7M</td><td class="neg">32% below $12.8M est. Stock –5.6%</td></tr>
+            <tr><td>9mo 2025</td><td>—</td><td>—</td><td>—</td><td>$26.2M</td><td class="pos">+182% YoY</td></tr>
+            <tr><td>FY2026E</td><td colspan="2">EPS avg $0.23 (range $0.11–$0.30)</td><td>—</td><td>$125M (mgmt guide)</td><td>+500–600 tons/mo target</td></tr>
+            <tr><td>FY2027E</td><td colspan="2">EPS avg $0.57 (range $0.49–$0.65)</td><td>—</td><td>—</td><td>Accelerating vs 2026E</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box warn" style="margin-top:10px;">
+          <label>SNDK Check</label>
+          Revenue +182% YoY for 9 months, but Q3 EPS was a miss. TTM EPS likely negative / distorted — system underselling the revenue acceleration story. FY2027E $0.57 implies real earnings power once production scales. Score adjusted accordingly.
+        </div>
+      </div>
+
+      <!-- Analyst Panel -->
+      <div class="section">
+        <h3>Analyst Targets</h3>
+        <table class="data-table">
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>High PT</td><td class="pos"><strong>$13.50</strong></td></tr>
+            <tr><td>Median PT</td><td><strong>$13.00</strong></td></tr>
+            <tr><td>Low PT</td><td>$11.50</td></tr>
+            <tr><td>TipRanks avg</td><td>$11.58</td></tr>
+            <tr><td>Coverage</td><td>3 analysts — all Buy/Strong Buy (0 Hold, 0 Sell)</td></tr>
+            <tr><td>Upside to median from $12.15</td><td class="pos">+7.0%</td></tr>
+            <tr><td>Upside to high from $12.15</td><td class="pos">+11.1%</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box warn" style="margin-top:10px;">
+          <label>Warning</label>
+          Only 3 analysts covering. Median PT $13.00 is only +7% from current $12.15. Limited upside to analyst consensus at current price — much of the near-term run may already be priced in. FY2027 EPS scenario ($0.57 × 20x = $11.40) supports current price but doesn't leave much room.
+        </div>
+      </div>
+
+      <!-- Insider Panel -->
+      <div class="section">
+        <h3>Insider &amp; Institutional Activity (last 90 days)</h3>
+        <table class="data-table">
+          <thead><tr><th>Who</th><th>Action</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>BlackRock</td><td>13G passive</td><td>6,560,151 shares (5.5%)</td><td>Passive institutional holder</td></tr>
+            <tr><td>Vanguard</td><td class="neg">13G/A — EXITED</td><td>0 shares (was holder)</td><td class="neg">Effective Jan 12, 2026 — full exit</td></tr>
+            <tr><td>Named insiders</td><td class="neutral">No open-market buys/sells surfaced</td><td>—</td><td>No Form 4 purchases in last 90 days found</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box warn" style="margin-top:10px;">
+          <label>Flag</label>
+          Vanguard exited (Jan 2026). No insider open-market buying surfaced despite the setup. BlackRock passive 5.5% is baseline institutional presence. Net institutional signal: mixed — large passive holder, major exit from Vanguard.
+        </div>
+      </div>
+
+      <!-- Catalyst Calendar -->
+      <div class="section">
+        <h3>Catalyst Calendar (next 90 days)</h3>
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Event</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr><td><strong>May 20, 2026</strong></td><td>Q4 / FY2025 Earnings</td><td>High — prior quarter was a miss; market expecting ramp</td></tr>
+            <tr><td>Recent</td><td>DoD/DoW $27M strategic antimony contract award</td><td>Positive — confirms domestic supply thesis</td></tr>
+            <tr><td>Late Apr 2026</td><td>Montana mine restart announced</td><td>Positive — production ramp toward 500–600 tons/mo target</td></tr>
+            <tr><td>Apr 6 / Apr 20</td><td>Benchmark analyst + B. Riley investor meetings</td><td>Coverage expansion risk if they initiate with lower PT</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAM -->
+      <div class="section">
+        <h3>TAM &amp; Product Cycle</h3>
+        <div class="info-box">
+          Antimony is a DoD critical mineral used in flame retardants, ammunition primers, semiconductors, and solar panels. US imports ~85% from China — UAMY is the only primary domestic producer. Tariff/trade war dynamics are a direct tailwind. TAM unclear in $ terms but geopolitical supply security is the underlying thesis, not addressable market size per se. S-curve position: early — production not yet proven at scale.
+        </div>
+      </div>
+
+      <!-- Bear Case -->
+      <div class="section">
+        <h3>Bear Case</h3>
+        <div class="info-box bear">
+          <label>Specific risks</label>
+          <ul style="margin-left:16px;margin-top:4px;font-size:0.875rem;">
+            <li><strong>Q3 revenue miss was 32%</strong> ($8.7M vs $12.8M est) — execution credibility damage. Next earnings May 20 is binary.</li>
+            <li><strong>17.9% of float short</strong> — elevated. Squeeze potential is real, but squeeze reversal is equally violent.</li>
+            <li><strong>Vanguard exited fully</strong> (Jan 2026) — a large institutional holder walked out right before the current run.</li>
+            <li><strong>Analyst PT median $13.00</strong> — only +7% upside from current price. Very thin risk/reward at $12.15.</li>
+            <li><strong>No proven production at scale</strong> — $125M FY2026 management guide requires 500–600 tons/month throughput that has not yet been demonstrated. One missed quarter and the multiple compresses hard.</li>
+            <li><strong>Antimony price volatility</strong> — commodity input price swings directly hit margins.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 9-Dim Score -->
+      <div class="section">
+        <h3>9-Dimension Entry Score</h3>
+        <table class="score-table">
+          <thead><tr><th>Dimension</th><th>Score</th><th>Rating</th><th>Evidence</th></tr></thead>
+          <tbody>
+            <tr><td>EPS beat trend</td><td class="score-low">1</td><td class="score-low">LOW</td><td>Q3 EPS miss (-$0.04 vs +$0.03 est)</td></tr>
+            <tr><td>Estimate revisions</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>Mgmt raised guidance to $125M; 3/3 analysts Buy; DoD contract validates thesis</td></tr>
+            <tr><td>Revenue acceleration</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>+182% YoY (9mo 2025); Montana mine restart driving ramp</td></tr>
+            <tr><td>Inst adoption phase</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>BlackRock 5.5% passive; Vanguard exited Jan 2026 — mixed signal</td></tr>
+            <tr><td>IPO cycle</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>Established company, revenue ramp phase; not a recent IPO</td></tr>
+            <tr><td>TAM position</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>Only US primary antimony producer; DoD critical mineral; China supply risk = structural tailwind</td></tr>
+            <tr><td>Short interest</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>17.9% of float short — elevated. Squeeze adds to vol but not a clean entry signal</td></tr>
+            <tr><td>Stage 2</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>Price $12.15 above SMA20 $10, SMA50 $9.53, SMA200 $7.45 — all stacked</td></tr>
+            <tr><td>SNDK distortion</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>TTM EPS negative; revenue +182% YoY. System underselling fundamentals but not extreme distortion</td></tr>
+          </tbody>
+        </table>
+        <div class="score-total">Total: <span class="pos">21 / 27</span> — <strong>HIGH</strong> &nbsp;|&nbsp; Threshold: &gt;20 = HIGH · 14–20 = MODERATE · &lt;14 = SKIP</div>
+        <div class="info-box warn" style="margin-top:12px;">
+          <label>Verdict — WATCH → wait for pullback</label>
+          Score qualifies as HIGH. But: (1) analyst median PT is only +7% from current $12.15 — thin risk/reward entering here; (2) next earnings May 20 is 17 days away — entering now means you carry binary event risk; (3) sizing is reduced (max 5% of book). Do NOT chase the current extension. A pullback to the 20 SMA ($10.00) or a post-earnings reaction base would be the cleaner entry. Add to watchlist at <strong>focus</strong> tier, set alert at $10.50.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======== USAR CARD ======== -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-ticker">USAR</span>
+      <span class="card-name">USA Rare Earth, Inc. · NASDAQ</span>
+    </div>
+    <div class="card-body">
+
+      <div class="chart-grade">
+        <strong>Chart: C</strong> — Running hard from $14 base but 30%+ above all MAs; prior Oct 2025 distribution at $40+ is heavy overhead; 39% from 52w high
+      </div>
+
+      <!-- State box -->
+      <div class="info-box info">
+        <label>Context</label>
+        Not held · Not in watchlist · Not Hidden Growth · Market CAUTION (post-THRUST floor day 3) · Sizing: reduced (max 5%)
+      </div>
+
+      <!-- Earnings Panel -->
+      <div class="section">
+        <h3>Earnings &amp; Estimates</h3>
+        <table class="data-table">
+          <thead><tr><th>Period</th><th>EPS Actual</th><th>EPS Est</th><th>Beat/Miss</th><th>Revenue</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>Q4 2025</td><td class="neg">-$0.19</td><td>-$0.06</td><td class="neg">MISS by $0.13</td><td>$1.64M</td><td class="neg">Significant miss; $50.21M net loss</td></tr>
+            <tr><td>Q1 2026E</td><td>-$0.06</td><td>-$0.06</td><td>—</td><td>Minimal</td><td>Pre-production; minimal revenue expected</td></tr>
+            <tr><td>FY2028E</td><td colspan="2">Analyst buildout model: $391M revenue</td><td>—</td><td>—</td><td>Production ramp from Round Top</td></tr>
+            <tr><td>FY2030E</td><td colspan="2">Analyst model: ~$1B revenue</td><td>—</td><td>—</td><td>Bull case full production</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box warn" style="margin-top:10px;">
+          <label>Pre-Revenue Company Flag</label>
+          $1.64M TTM revenue against $50M+ in losses. This is a development-stage miner. Traditional EPS scoring is meaningless. The investment thesis is 100% execution on Round Top Mountain mine buildout + Serra Verde acquisition. All value is 2028+ optionality. Score will reflect this.
+        </div>
+      </div>
+
+      <!-- Analyst Panel -->
+      <div class="section">
+        <h3>Analyst Targets</h3>
+        <table class="data-table">
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>High PT</td><td class="pos"><strong>$45.00</strong></td></tr>
+            <tr><td>Average PT</td><td><strong>$35.17–$35.71</strong> (4–7 analysts)</td></tr>
+            <tr><td>Low PT</td><td>$29.00</td></tr>
+            <tr><td>eToro</td><td>$38.00</td></tr>
+            <tr><td>WallStreetZen 1Y</td><td>$32.00</td></tr>
+            <tr><td>Consensus</td><td>Strong Buy (50% Strong Buy, 50% Buy; 0 Hold/Sell)</td></tr>
+            <tr><td>Upside to avg from $26.33</td><td class="pos">+33–36%</td></tr>
+            <tr><td>Upside to high from $26.33</td><td class="pos">+71%</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box" style="margin-top:10px;">
+          Low PT $29.00 = only +10% from current $26.33. 5 analysts covering. High PT $45 is the "flawless execution, 15x revenue multiple" scenario. Bear case (project delays, dilution) compresses to the $22–24 range which is back below the 50 SMA.
+        </div>
+      </div>
+
+      <!-- Insider Panel -->
+      <div class="section">
+        <h3>Insider &amp; Institutional Activity (last 90 days)</h3>
+        <table class="data-table">
+          <thead><tr><th>Who</th><th>Action</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>Director Michael Blitzer</td><td class="pos"><strong>BUY</strong></td><td><strong>100,000 shares @ $21.44 avg ($2.14M)</strong></td><td class="pos">Jan 29, 2026. Post-purchase: 847,500 shares. Meaningful open-market buy.</td></tr>
+            <tr><td>BlackRock</td><td class="pos">13G/A — INCREASED</td><td>12,850,199 shares = 5.9% (+18.37%)</td><td class="pos">Effective Mar 31, 2026. Active increase, not just passive drift.</td></tr>
+            <tr><td>Harraden Circle</td><td>13G/A passive</td><td>&gt;5% holder</td><td>Passive; no direction signal</td></tr>
+            <tr><td>Named insiders (last 6mo)</td><td>2 purchases, 0 sales</td><td>—</td><td class="pos">Clean insider register — no selling</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box" style="margin-top:10px;">
+          Insider/institutional signal is the strongest bull argument for USAR: director spent $2.14M at $21.44 and BlackRock actively added +18%. These are conviction signals. However, the Serra Verde acquisition financing may trigger further dilution — watch for new share issuance.
+        </div>
+      </div>
+
+      <!-- Catalyst Calendar -->
+      <div class="section">
+        <h3>Catalyst Calendar (next 90 days)</h3>
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Event</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr><td>TBD Q2 2026</td><td>Q1 2026 Earnings</td><td>Low news — pre-revenue; attention on Serra Verde update</td></tr>
+            <tr><td>Ongoing</td><td>Serra Verde (Brazil) acquisition progress &amp; financing terms</td><td>High — dilution risk if new shares issued for financing</td></tr>
+            <tr><td>Ongoing</td><td>Round Top Mountain production timeline updates</td><td>High — any delay or advance in 2028 production target</td></tr>
+            <tr><td>Policy</td><td>US-China rare earth trade restrictions / tariff escalation</td><td>Positive catalyst if China restricts RE exports</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAM -->
+      <div class="section">
+        <h3>TAM &amp; Product Cycle</h3>
+        <div class="info-box">
+          Round Top Mountain (Sierra Blanca, TX) holds neodymium, dysprosium, terbium, yttrium, gallium, beryllium, and lithium. These are critical to EV motors, defense systems, and semiconductors. Serra Verde adds Brazilian deposits. TAM is enormous (global rare earth market projected $20B+ by 2030) but USAR must achieve production to participate. S-curve position: pre-production, 2028+ entry into revenue curve. This is a 3–5 year thesis, not a 12-month trade.
+        </div>
+      </div>
+
+      <!-- Bear Case -->
+      <div class="section">
+        <h3>Bear Case</h3>
+        <div class="info-box bear">
+          <label>Specific risks</label>
+          <ul style="margin-left:16px;margin-top:4px;font-size:0.875rem;">
+            <li><strong>$1.64M revenue vs $50.21M losses</strong> in Q4 2025 — burning cash with no near-term inflection. Production is 2028+ at earliest.</li>
+            <li><strong>Q4 earnings missed by $0.13/share</strong> (3.2× the estimated loss) — management credibility at risk on execution timelines.</li>
+            <li><strong>12.0% short interest</strong> (26.15M shares short). Not extreme, but meaningful for a pre-revenue company where any project delay triggers -30% moves.</li>
+            <li><strong>Serra Verde acquisition dilution</strong> — financing terms not disclosed; if financed with equity at current prices, dilutes existing holders.</li>
+            <li><strong>Low analyst PT floor $29</strong> = only +10% from $26.33. If project delay materializes, analysts reset to $20–22, which is a -16% drop back to 50 SMA zone.</li>
+            <li><strong>China rare earth supply</strong> — if US-China trade war de-escalates, the supply security premium collapses and stock reprices to pure DCF on a 2028+ production timeline (very low today).</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 9-Dim Score -->
+      <div class="section">
+        <h3>9-Dimension Entry Score</h3>
+        <table class="score-table">
+          <thead><tr><th>Dimension</th><th>Score</th><th>Rating</th><th>Evidence</th></tr></thead>
+          <tbody>
+            <tr><td>EPS beat trend</td><td class="score-low">1</td><td class="score-low">LOW</td><td>Q4 miss by $0.13 (vs -$0.06 est). Pre-revenue — EPS not meaningful signal</td></tr>
+            <tr><td>Estimate revisions</td><td class="score-low">1</td><td class="score-low">LOW</td><td>No upward revisions surfaced; Q1 2026E consensus -$0.06. Pre-production estimates are guesswork</td></tr>
+            <tr><td>Revenue acceleration</td><td class="score-low">1</td><td class="score-low">LOW</td><td>$1.64M TTM — pre-revenue development stage. No acceleration to measure until 2028</td></tr>
+            <tr><td>Inst adoption phase</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>BlackRock +18.37% position increase (Mar 31 2026); director $2.14M open-market buy Jan 2026; 0 insider sells</td></tr>
+            <tr><td>IPO cycle</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>Recently public miner; development stage positions it in early institutional discovery phase</td></tr>
+            <tr><td>TAM position</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>Critical rare earths for defense + EV; $20B+ global TAM; US has almost no domestic production today</td></tr>
+            <tr><td>Short interest</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>12.0% — elevated but not extreme. Adds vol; squeeze potential offset by project-delay downside</td></tr>
+            <tr><td>Stage 2</td><td class="score-mod">2</td><td class="score-mod">MOD</td><td>Price above all MAs (20/50/200 stacked); 200 SMA slight downslope from Oct peak. Not perfect Stage 2</td></tr>
+            <tr><td>SNDK distortion</td><td class="score-high">3</td><td class="score-high">HIGH</td><td>$50M losses with $1.64M revenue — system completely underselling. 2028 production = character change event. Score reflects optionality, not current fundamentals</td></tr>
+          </tbody>
+        </table>
+        <div class="score-total">Total: <span class="score-mod">18 / 27</span> — <strong>MODERATE</strong> &nbsp;|&nbsp; Threshold: &gt;20 = HIGH · 14–20 = MODERATE · &lt;14 = SKIP</div>
+        <div class="info-box warn" style="margin-top:12px;">
+          <label>Verdict — WATCHLIST only, no entry here</label>
+          Score 18/27 = MODERATE. Even if you call it high-conviction, the entry here is poor: (1) $26.33 is 38% above 50 SMA $19.02 — very extended; (2) analyst low PT $29 is only +10%; (3) next support is $19–20 (50 SMA) = -25% from current price; (4) pre-revenue company means any project delay = catastrophic repricing; (5) sizing is reduced (max 5%). The thesis is intact and the insider signal is real, but you're buying extension, not base. Wait for a consolidation back to the $20–22 range (near 50 SMA + prior resistance-turned-support). Add to watchlist at <strong>watching</strong> tier.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- State fix note -->
+  <div class="info-box warn">
+    <label>Market State Note — History File Stale (pre-fix)</label>
+    The market_monitor_history.json last entry (May 1, 2026) shows RED because the post-THRUST floor fix was committed today (May 3, 2026 at 11:05 AM) — after the May 1 GH Actions run. The code is correct now. The real state at time of research is <strong>CAUTION</strong> (THRUST Apr 30; May 3 = calendar day 3 of the 3-day floor). History will self-correct on Monday's (May 4) market monitor run. No manual patch needed.
+  </div>
+
+  <footer>Generated by /stock-research skill · 2026-05-03 · Model: claude-sonnet-4-6</footer>
+</div>
+</body>
+</html>

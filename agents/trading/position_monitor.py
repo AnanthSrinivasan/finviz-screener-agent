@@ -234,11 +234,9 @@ def fetch_position_history(account_ids: list, days: int = 90) -> dict:
                 if not isinstance(a, dict):
                     continue
                 raw_str = json.dumps(a)
-                if "AAOI" in raw_str or "GLW" in raw_str:
-                    log.info(f"DIAG-ACT: type={a.get('type')!r} action={a.get('action')!r} "
-                             f"txn_type={a.get('transaction_type')!r} units={a.get('units')!r} "
-                             f"price={a.get('price')!r} date={a.get('trade_date')!r} "
-                             f"desc={a.get('description')!r}")
+                if "AAOI" in raw_str or "GLW" in raw_str or "Corning" in raw_str or "Optoelectronics" in raw_str:
+                    log.info(f"DIAG-ACT: type={a.get('type')!r} units={a.get('units')!r} "
+                             f"date={a.get('trade_date')!r} symbol={json.dumps(a.get('symbol'))[:300]}")
             page_new = 0
             for act in activities:
                 if not isinstance(act, dict):
