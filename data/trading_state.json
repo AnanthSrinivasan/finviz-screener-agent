@@ -228,17 +228,19 @@
       "profit_loss_usd": -57.0
     }
   ],
-  "market_state": "TREND-FOLLOW",
-  "up_4pct_count": 236,
-  "down_4pct_count": 307,
-  "5d_ratio": 0.8,
-  "10d_ratio": 0.87,
+  "market_state": "RED",
+  "up_4pct_count": 55,
+  "down_4pct_count": 179,
+  "5d_ratio": 0.65,
+  "10d_ratio": 0.78,
   "t2108": null,
-  "spy_price": 738.65,
-  "spy_200ma": 676.61,
-  "fng": 62.8,
+  "spy_price": 733.27,
+  "spy_200ma": 677.14,
+  "fng": 60.7,
   "last_thrust_date": "2026-05-06",
-  "consecutive_weak_days": 0,
+  "consecutive_weak_days": 1,
   "last_extreme_greed_date": null,
-  "last_extreme_fear_date": null
+  "last_extreme_fear_date": null,
+  "extended_since_date": null,
+  "days_below_21ema": 0
 }
