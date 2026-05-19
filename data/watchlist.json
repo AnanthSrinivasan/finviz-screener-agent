@@ -2755,8 +2755,9 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-19",
       "status": "watching",
-      "priority": "watching",
-      "source": "breakout_auto"
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-19"
     },
     {
       "ticker": "ARM",
@@ -2769,6 +2770,17 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-19",
       "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "MRX",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-19",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
     }
   ],
   "tickers": [
