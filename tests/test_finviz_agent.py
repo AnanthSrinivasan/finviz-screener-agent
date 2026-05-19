@@ -19,6 +19,7 @@ from agents.screener.finviz_agent import (
     _classify_ticker,
     _score_hidden_growth,
     _is_base_building,
+    _is_stage_transition,
 )
 from agents.alerts.earnings_alert import find_upcoming_earnings
 from agents.screener.finviz_weekly_agent import research_catalysts, generate_weekly_ai_brief
@@ -1065,6 +1066,101 @@ class TestIsBaseBuilding(unittest.TestCase):
         row = self._row()
         del row["Dist From High%"]
         self.assertFalse(_is_base_building(row, set(), set()))
+
+
+class TestIsStageTransition(unittest.TestCase):
+    """Tests for the _is_stage_transition predicate (🌱 early Stage 2 reclaim)."""
+
+    def _row(self, ticker="SNOW", sma20=3.0, sma50=2.0, sma200=-3.0,
+             atr=4.0, qs=82, rvol=1.4, industry="Software - Application",
+             sector="Technology"):
+        return pd.Series({
+            "Ticker": ticker,
+            "SMA20%": sma20,
+            "SMA50%": sma50,
+            "SMA200%": sma200,
+            "ATR%": atr,
+            "Quality Score": qs,
+            "Rel Volume": rvol,
+            "Sector": sector,
+            "Industry": industry,
+        })
+
+    def _snapshot(self, etf="IGV", rank_delta_5d=-8, rs_score=72):
+        return {etf: {"rank_delta_5d": rank_delta_5d, "rs_score": rs_score, "rank": 5, "name": etf}}
+
+    def test_qualifies_with_all_criteria(self):
+        self.assertTrue(_is_stage_transition(self._row(), set(), set(), self._snapshot()))
+
+    def test_fails_when_held(self):
+        self.assertFalse(_is_stage_transition(self._row(), {"SNOW"}, set(), self._snapshot()))
+
+    def test_fails_when_in_exclude(self):
+        self.assertFalse(_is_stage_transition(self._row(), set(), {"SNOW"}, self._snapshot()))
+
+    def test_fails_when_sma20_below_sma50(self):
+        self.assertFalse(_is_stage_transition(
+            self._row(sma20=1.0, sma50=2.0), set(), set(), self._snapshot()))
+
+    def test_fails_when_price_below_50ma(self):
+        self.assertFalse(_is_stage_transition(
+            self._row(sma50=-1.0), set(), set(), self._snapshot()))
+
+    def test_fails_when_200ma_far_overhead(self):
+        # sma200 ≤ -5 = 200 SMA more than 5% overhead → not a reclaim setup
+        self.assertFalse(_is_stage_transition(
+            self._row(sma200=-6.0), set(), set(), self._snapshot()))
+
+    def test_passes_when_200ma_within_reach(self):
+        # sma200 = -4% (just overhead) is fine — classic stage 2A
+        self.assertTrue(_is_stage_transition(
+            self._row(sma200=-4.0), set(), set(), self._snapshot()))
+
+    def test_passes_when_above_200ma(self):
+        self.assertTrue(_is_stage_transition(
+            self._row(sma200=2.0), set(), set(), self._snapshot()))
+
+    def test_fails_when_atr_too_high(self):
+        self.assertFalse(_is_stage_transition(
+            self._row(atr=7.5), set(), set(), self._snapshot()))
+
+    def test_fails_when_quality_below_70(self):
+        self.assertFalse(_is_stage_transition(
+            self._row(qs=69), set(), set(), self._snapshot()))
+
+    def test_passes_at_quality_70_boundary(self):
+        self.assertTrue(_is_stage_transition(
+            self._row(qs=70), set(), set(), self._snapshot()))
+
+    def test_fails_when_rvol_below_1(self):
+        self.assertFalse(_is_stage_transition(
+            self._row(rvol=0.9), set(), set(), self._snapshot()))
+
+    def test_fails_when_no_etf_resolved(self):
+        # No sector and no industry → no ETF → skip
+        row = self._row(industry="", sector="")
+        self.assertFalse(_is_stage_transition(row, set(), set(), self._snapshot()))
+
+    def test_fails_when_sector_not_rotating_in(self):
+        # rank_delta_5d > -5 → sector not actively rotating in
+        snap = self._snapshot(rank_delta_5d=-3)
+        self.assertFalse(_is_stage_transition(self._row(), set(), set(), snap))
+
+    def test_passes_at_rank_delta_boundary(self):
+        # rank_delta_5d == -5 should pass (≤ -5)
+        snap = self._snapshot(rank_delta_5d=-5)
+        self.assertTrue(_is_stage_transition(self._row(), set(), set(), snap))
+
+    def test_fails_when_etf_missing_from_snapshot(self):
+        # Industry maps to IGV but snapshot only has SMH → skip
+        snap = {"SMH": {"rank_delta_5d": -10, "rs_score": 90, "rank": 1, "name": "SMH"}}
+        self.assertFalse(_is_stage_transition(self._row(), set(), set(), snap))
+
+    def test_semis_route_to_smh(self):
+        # AMAT → semis industry → SMH; snapshot has SMH rotating in
+        row = self._row(ticker="AMAT", industry="Semiconductor Equipment & Materials")
+        snap = self._snapshot(etf="SMH", rank_delta_5d=-7)
+        self.assertTrue(_is_stage_transition(row, set(), set(), snap))
 
 
 if __name__ == "__main__":

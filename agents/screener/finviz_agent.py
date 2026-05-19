@@ -804,7 +804,8 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             all_df: pd.DataFrame | None = None,
                             rs_leader_tickers: list | None = None,
                             rs_leaders_actions: dict | None = None,
-                            htf_base_reclaim_tickers: list | None = None) -> str:
+                            htf_base_reclaim_tickers: list | None = None,
+                            stage_transition_entries: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -854,6 +855,43 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
   </div>
   <div class="chart-grid">{"".join(sec['cards'])}</div>
 </div>"""
+
+    # 🌱 Stage Transition — collapsible section. Early Stage 2 reclaim with
+    # sector rotation confirm. Sits adjacent to HTF Base Reclaim in priority.
+    stage_transition_html = ""
+    if stage_transition_entries:
+        _row_lookup_st: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_st:
+                    _row_lookup_st[_t] = _r
+        st_cards = []
+        for e in stage_transition_entries:
+            t = e["ticker"]
+            _r = _row_lookup_st.get(t)
+            if _r is None:
+                continue
+            card = _build_card(t, _r, FINVIZ_BASE, top_sectors)
+            etf_badge = (
+                f'<span style="font-size:9px;background:#16a34a;color:#fff;'
+                f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
+                f'{e["etf"]} Δ{e["etf_rank_delta"]:+d}</span>'
+            )
+            card = card.replace(
+                f'class="ticker-link">{t}</a>',
+                f'class="ticker-link">{t}</a>' + etf_badge,
+            )
+            st_cards.append(card)
+        if st_cards:
+            stage_transition_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    🌱 Stage Transition <span class="section-count">{len(st_cards)}</span>
+    <span class="section-sub-inline">Early Stage 2 reclaim · parent sector ETF rotating in (Δrank ≤ -5 over 5d)</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(st_cards)}</div>
+</details>"""
 
     # HTF Base Reclaim — collapsible section (uncapped per spec). Tight-against-recent-pivot
     # names that the 52w-high gate rejects from RTE/FB.
@@ -1202,6 +1240,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 {sector_rotation_html}
 {sections_html}
 {rs_leaders_html}
+{stage_transition_html}
 {htf_base_reclaim_html}
 {base_building_html}
 {watchlist_html}
@@ -1337,7 +1376,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              base_building: list | None = None,
                              htf_base_reclaim: list | None = None,
                              rs_leaders_actions: dict | None = None,
-                             ema21_pb: list | None = None):
+                             ema21_pb: list | None = None,
+                             stage_transition: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1459,6 +1499,27 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": ":cyclone: *HTF Base Reclaim* (deep 52w pullback but tight against recent swing pivot):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # 🌱 Stage Transition — early Stage 2 reclaim while parent sector ETF is rotating in.
+    # stage_transition is list of dicts: {ticker, q, atr, sma20, sma50, sma200, etf, etf_rank_delta, etf_rs}
+    if stage_transition:
+        lines = []
+        for r in stage_transition[:5]:
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · ATR {r['atr']:.1f}% · "
+                f"sma20 {r['sma20']:+.0f}% sma50 {r['sma50']:+.0f}% sma200 {r['sma200']:+.0f}% · "
+                f"sector {r['etf']} (Δrank {r['etf_rank_delta']:+d} · RS {r['etf_rs']}) · "
+                f"`/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":seedling: *Stage Transition* (early Stage 2 — sector rotating in):\n"
                         + "\n".join(lines),
             }
         })
@@ -2170,6 +2231,126 @@ def _is_textbook_vcp(row) -> bool:
     return True
 
 
+# ── Stage Transition (🌱 Stage 1→2 reclaim with sector rotating in) ──────────
+
+def _load_sector_rotation_snapshot(today: str) -> dict:
+    """Load today's (or yesterday's) sector_rotation snapshot keyed by ETF.
+
+    Returns dict mapping etf → {rank_delta_5d, rs_score, rank, name}.
+    Falls back to yesterday's snapshot if today's hasn't been written yet
+    (e.g. when the sector_rotation workflow hasn't run yet on a given day).
+    Returns {} if neither file exists or parsing fails.
+    """
+    import json as _json
+    import glob as _glob
+
+    snap = {}
+    candidates = [os.path.join("data", f"sector_rotation_{today}.json")]
+    # Fallback: most recent prior snapshot
+    prior = sorted(_glob.glob(os.path.join("data", "sector_rotation_*.json")), reverse=True)
+    for p in prior:
+        if p not in candidates:
+            candidates.append(p)
+
+    for path in candidates:
+        try:
+            with open(path) as f:
+                data = _json.load(f)
+        except Exception:
+            continue
+        for etf in data.get("etfs", []) or []:
+            sym = etf.get("etf")
+            if not sym:
+                continue
+            snap[sym] = {
+                "rank_delta_5d": int(etf.get("rank_delta_5d") or 0),
+                "rs_score":      int(etf.get("rs_score") or 0),
+                "rank":          int(etf.get("rank") or 0),
+                "name":          etf.get("name", ""),
+            }
+        if snap:
+            log.info("Stage Transition: loaded sector snapshot from %s (%d ETFs)", path, len(snap))
+            return snap
+    return snap
+
+
+def _resolve_ticker_etf(row) -> str | None:
+    """Resolve a screener row to its parent ETF using sector_lookup."""
+    from agents.utils.sector_lookup import lookup as _etf_lookup
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if not ticker:
+        return None
+    sector = str(row.get("Sector", "") or "").strip()
+    industry = str(row.get("Industry", "") or "").strip()
+    return _etf_lookup(ticker, finviz_sector=sector, finviz_industry=industry)
+
+
+def _is_stage_transition(row, open_positions_tickers: set, exclude_tickers: set,
+                         sector_snapshot: dict) -> bool:
+    """
+    🌱 Stage Transition — early Stage 2 reclaim while parent sector ETF is
+    rotating in. Catches Minervini "stage 2A" setups where the 200 SMA is still
+    overhead (Stage 2 gate would reject) but sector RS confirms the rotation.
+
+    All must hold:
+      - sma20 > sma50  (20 SMA above 50 SMA — proxy for 21 EMA > 50 SMA)
+      - sma50 > 0      (price above 50 SMA)
+      - sma200 > -5    (200 SMA within 5% — close to reclaim, OR already above)
+      - ATR% ≤ 7
+      - Q ≥ 70
+      - RVol ≥ 1.0
+      - not held, not in earlier-priority callout
+      - peel-safe (SMA50% / ATR% ≤ peel_warn)
+      - parent ETF's `rank_delta_5d ≤ -5` (sector rotating in over 5d)
+
+    The sector-rank gate is what makes this a high-confidence signal vs a junk
+    reclaim catcher — we only fire when the *sector itself* is rotating in.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if not ticker:
+        return False
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    sma20  = row.get("SMA20%")
+    sma50  = row.get("SMA50%")
+    sma200 = row.get("SMA200%")
+    if any(v is None or pd.isna(v) for v in (sma20, sma50, sma200)):
+        return False
+    sma20 = float(sma20); sma50 = float(sma50); sma200 = float(sma200)
+    if not (sma20 > sma50 and sma50 > 0 and sma200 > -5.0):
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 7.0:
+        return False
+    atr = float(atr)
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 70:
+        return False
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) < 1.0:
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    # Sector-rotation gate — parent ETF must be rotating in (rank improving by ≥5 over 5d)
+    etf = _resolve_ticker_etf(row)
+    if not etf:
+        return False
+    sec = sector_snapshot.get(etf)
+    if not sec:
+        return False
+    if sec.get("rank_delta_5d", 0) > -5:
+        return False
+
+    return True
+
+
 # ── RS Rating (Phase 2 — numeric relative strength score 0–99) ───────────────
 
 def _compute_rs_ratings(df) -> dict:
@@ -2400,6 +2581,7 @@ def _update_watchlist(
     rs_leader_tickers: list | None = None,
     htf_base_reclaim_tickers: list | None = None,
     ema21_pb_tickers: list | None = None,
+    stage_transition_tickers: list | None = None,
 ):
     """
     Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
@@ -2690,6 +2872,39 @@ def _update_watchlist(
         pb_added.append(pb_ticker)
         log.info("Watchlist: added %s via 21 EMA Pullback at focus tier (source=ema21_pb_auto)", pb_ticker)
 
+    # ── Stage Transition entry path: focus tier (parallel to RS Leader / HTF-BR / 21 EMA PB). ──
+    # Sector-rotation gate already makes this high-confidence; lands at focus directly.
+    st_added: list[str] = []
+    for st_ticker in (stage_transition_tickers or []):
+        if st_ticker in by_ticker:
+            existing_entry = by_ticker[st_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "focus"
+                existing_entry["focus_promoted_date"] = today
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(st_ticker)
+                log.info("Watchlist: reactivated %s via Stage Transition at focus tier", st_ticker)
+            continue
+        st_entry = {
+            "ticker":               st_ticker,
+            "entry_note":           "Stage Transition — early Stage 2 reclaim with sector rotating in",
+            "entry_price":          None,
+            "stop":                 None,
+            "thesis":               "Stage 1→2 reclaim — sector ETF rotating in (rank Δ ≤ -5 over 5d)",
+            "added":                today,
+            "status":               "watching",
+            "priority":             "focus",
+            "focus_promoted_date":  today,
+            "source":               "stage_transition_auto",
+        }
+        existing.append(st_entry)
+        by_ticker[st_ticker] = st_entry
+        st_added.append(st_ticker)
+        log.info("Watchlist: added %s via Stage Transition at focus tier (source=stage_transition_auto)", st_ticker)
+
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
     promote_candidates = []
@@ -2742,9 +2957,9 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
@@ -2753,6 +2968,7 @@ def _update_watchlist(
         "br_added":                br_added,
         "rsl_added":               rsl_added,
         "htf_added":               htf_added,
+        "st_added":                st_added,
         "reactivated":             reactivated,
         "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
@@ -2939,6 +3155,7 @@ if __name__ == "__main__":
             "stage_label": stage_labels.get(stage_num, "Transitional"),
             "section": section,
             "textbook_vcp": bool(_is_textbook_vcp(row)),
+            "etf": _resolve_ticker_etf(row),
         }
         if is_excluded:
             entry["excluded_reason"] = row.get('_10pct_exclude_reasons', '')
@@ -3149,6 +3366,47 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("21 EMA Pullback detection failed (non-fatal): %s", _e)
 
+    # 🌱 Stage Transition — early Stage 2 reclaim with parent sector ETF rotating in.
+    # Sector-rank gate (rank_delta_5d ≤ -5) prevents this from being a junk-reclaim
+    # catcher. Catches the rotation entry that strict Stage 2 gates reject (200 SMA
+    # still overhead). Triggered the May 2026 software rotation miss.
+    stage_transition: list[dict] = []
+    try:
+        sector_snapshot_today = _load_sector_rotation_snapshot(today)
+        exclude_from_st = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {r["ticker"] for r in ema21_pb}
+            | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+        )
+        if not summary_df.empty and sector_snapshot_today:
+            for _, row in summary_df.iterrows():
+                if _is_stage_transition(row, open_positions_tickers, exclude_from_st, sector_snapshot_today):
+                    etf = _resolve_ticker_etf(row)
+                    sec = sector_snapshot_today.get(etf, {})
+                    stage_transition.append({
+                        "ticker":         row["Ticker"],
+                        "q":              float(row.get("Quality Score") or 0),
+                        "atr":            float(row.get("ATR%") or 0),
+                        "sma20":          float(row.get("SMA20%") or 0),
+                        "sma50":          float(row.get("SMA50%") or 0),
+                        "sma200":         float(row.get("SMA200%") or 0),
+                        "etf":            etf,
+                        "etf_rank_delta": sec.get("rank_delta_5d", 0),
+                        "etf_rs":         sec.get("rs_score", 0),
+                    })
+            stage_transition.sort(key=lambda r: r["q"], reverse=True)
+            stage_transition = stage_transition[:5]
+        if stage_transition:
+            log.info("Stage Transition: %s", [r["ticker"] for r in stage_transition])
+        elif not sector_snapshot_today:
+            log.info("Stage Transition: no sector snapshot available — block skipped")
+    except Exception as _e:
+        log.error("Stage Transition detection failed (non-fatal): %s", _e)
+
     # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
     _rsl_gallery_tickers = [
         d["ticker"] for d in rs_leaders_triggered
@@ -3161,6 +3419,7 @@ if __name__ == "__main__":
         rs_leader_tickers=_rsl_gallery_tickers,
         rs_leaders_actions=rs_leaders_actions,
         htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
+        stage_transition_entries=stage_transition,
     )
     log.info(f"Chart gallery: {gallery_path}")
 
@@ -3175,6 +3434,7 @@ if __name__ == "__main__":
         htf_base_reclaim=htf_base_reclaim,
         rs_leaders_actions=rs_leaders_actions if rs_leaders_actions else None,
         ema21_pb=ema21_pb,
+        stage_transition=stage_transition,
     )
 
     # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
@@ -3188,6 +3448,7 @@ if __name__ == "__main__":
         rs_leader_tickers=rsl_new_tickers,
         htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
         ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
+        stage_transition_tickers=[r["ticker"] for r in stage_transition],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])

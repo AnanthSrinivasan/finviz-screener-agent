@@ -92,7 +92,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Finviz Alerts | `alerts-finviz.yml` | Cron + workflow_dispatch |
 | Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
 | Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET (13:00 UTC) Mon-Fri + workflow_dispatch |
-| Sector Rotation | `sector-rotation.yml` | Cron 21:15 UTC Mon-Fri + workflow_dispatch |
+| Sector Rotation | `sector-rotation.yml` | Cron 20:15 UTC Mon-Fri + workflow_dispatch (runs 15 min before daily screener so screener can read today's snapshot for Stage Transition gate) |
 | Test Suite | `test.yml` | On push to main / PRs |
 
 ## Position Book / Critical Slack split (May 2026)
@@ -290,9 +290,10 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 **Slack:** posted Mon/Thu at 21:15 UTC; other weekdays still write the snapshot + update history but skip Slack.
 
 **Held-ticker → ETF resolution** (`agents/utils/sector_lookup.py`):
-1. Explicit map at `data/ticker_sector_map.json` (e.g. AAOI/AMAT/LSCC/NVDA → SMH).
-2. Fallback to caller-provided Finviz `Sector` string via `FINVIZ_SECTOR_TO_ETF` (e.g. "Healthcare" → XLV).
-3. None → caller skips sector signal for that position.
+1. Explicit map at `data/ticker_sector_map.json` (override-only — e.g. AAOI → SMH because Finviz industry is "Communication Equipment" but revenue mix is semis-adjacent).
+2. **`INDUSTRY_TO_ETF`** substring match on Finviz Industry — semis ("Semiconductor*") → SMH, software ("Software - Application/Infrastructure") → IGV, internet ("Internet Content*") → FDN, banks → KBE, capital markets → KCE, insurance → KIE, biotech / drug manufacturers → XBI, residential construction / building products → XHB. Fixes the "Technology" lump bug where SMH semis and IGV software both resolved to XLK and rotation was invisible. First matching key wins (dict insertion order).
+3. Fallback to caller-provided Finviz `Sector` string via `FINVIZ_SECTOR_TO_ETF` (e.g. "Healthcare" → XLV).
+4. None → caller skips sector signal for that position.
 
 **ETF Rotation Dashboard (May 2026)** — `agents/sector_rotation.py` extended to compute per-ETF setup metrics (ATR%, mult50, dist52, range20, ret20, ema21d, RVol, MA stack) and bucket each ETF: `BASE` / `PRE-BREAKOUT` / `EXTENDED` / `BROKEN` / `NEUTRAL`. Bucket logic in `assign_bucket()`. Daily outputs: `data/etf_rotation.html` (one-page dashboard with regime banner + bucket cards + full metrics table) + `data/etf_rotation.json`. Linked from `index.html` "ETF Rotation" tile. Universe curated 35 → 28 ETFs (sectors 11 + thematics 17). Spec: [docs/specs/etf-rotation-dashboard.md](docs/specs/etf-rotation-dashboard.md). Same cron as sector_rotation.yml (21:15 UTC weekdays).
 
@@ -370,6 +371,8 @@ Stage 2 perfect, 1 appearance) is the reference case.
 **🏗 Base Building** — watch-only research tag (no watchlist auto-add). Criteria: Stage 2 · Q≥75 · dist -12% to -25% from 52w high · ATR%≤7 · not held · not already in Ready-to-Enter, Fresh Breakout, Power Play, or Hidden Growth. Top 10 by Q (May 2026 — bumped from 5 to surface RKLB-class Q=78 names ranked out on busy days), all 10 in Slack block "🏗 Base Building". HTML gallery: collapsed `<details>` section with chart cards.
 
 **⚠ High-vol card annotation** — when ATR%>7 AND Q≥80, `_build_card` adds a `badge-warn` "⚠ High-vol — size 50%" tag to the chart card. Ready-to-Enter (ATR≤7) and Fresh Breakout (ATR≤8) already hard-block these; the badge is the only signal for human to right-size on Top Picks cards.
+
+**🌱 Stage Transition (May 2026 — software-rotation-class)** — catches early Stage 2 reclaims while the **parent sector ETF is rotating in**. Solves the Minervini "stage 2A" miss: a name 6 months into a Stage 1 base just reclaiming the 50 SMA with the 200 SMA still overhead — strict Stage 2 gate rejects, every actionable block misses, the rotation entry is invisible. Criteria: `sma20 > sma50` (21 EMA > 50 SMA proxy) · `sma50 > 0` (price above 50 SMA) · `sma200 > -5` (200 SMA within 5% overhead, or already above) · ATR% ≤7 · Q ≥70 · RVol ≥1.0 · peel-safe · not held · not in another callout · **parent ETF `rank_delta_5d ≤ -5`** (sector RS rank improving over 5d). The sector-rank gate is what makes this high-confidence rather than a junk-reclaim catcher — fires only when the sector itself is rotating in. Top 5 by Q in Slack block "🌱 Stage Transition". Watchlist: auto-enters at `priority=focus` (`source=stage_transition_auto` — sixth entry path). Gallery: collapsible `<details open>` section with ETF Δrank badge per card. ETF resolution uses `agents/utils/sector_lookup.py` (ticker map > industry substring > sector). Data dep: `data/sector_rotation_YYYY-MM-DD.json` — `sector-rotation.yml` cron moved 21:15 → 20:15 UTC so the screener reads today's snapshot. Triggered by the May 2026 software-rotation miss (semis topping while software accumulating; both mapped to XLK → invisible). Spec: [docs/specs/industry-routing-and-stage-transition.md](docs/specs/industry-routing-and-stage-transition.md).
 
 **🎯 21 EMA Pullback (May 2026 — ANET/APP-class)** — continuation entries on names that ran, pulled back to the EMA21/SMA20 area, and are showing either quiet drift or active bounce. Criteria (Finviz-only — SMA20% as EMA21 proxy, Perf Month as ret20 proxy): Stage 2 (pullback-friendly: `sma200 > sma50 > 0 AND sma20 ≥ -2`) · ATR% ≤ 6 · Q ≥ 75 · SMA20% in `[-2%, +3%]` · Perf Month ≥ 12% · RVol `<1.0` (quiet drift) OR `1.0-2.5` (active bounce) · peel-safe · not held · not in another callout. Top 5 by Q in Slack block "🎯 21 EMA Pullback". Watchlist: auto-enters at `priority=focus` (`source=ema21_pb_auto`). Catches ANET Apr 22 (RVol 2.15) and APP Sep 9 2024 (RVol 1.76) class missed by RS Leader's RVol ≤ 1.5 cap. Derived from retro coverage audit ([docs/specs/retro-coverage-nbis-class.md](docs/specs/retro-coverage-nbis-class.md)).
 
