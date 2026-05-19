@@ -52,7 +52,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/book_last_post.json || true
+          git add data/positions.json data/trading_state.json data/book_last_post.json data/position_history.json || true
           git diff --cached --quiet || git commit -m "Critical event state update [skip ci]"
           git push || true
 

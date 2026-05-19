@@ -229,14 +229,6 @@ def fetch_position_history(account_ids: list, days: int = 90) -> dict:
                 break
             if not activities:
                 break
-            # DIAGNOSTIC: log raw types for AAOI/GLW to find SELL-label mismatch
-            for a in activities:
-                if not isinstance(a, dict):
-                    continue
-                raw_str = json.dumps(a)
-                if "AAOI" in raw_str or "GLW" in raw_str or "Corning" in raw_str or "Optoelectronics" in raw_str:
-                    log.info(f"DIAG-ACT: type={a.get('type')!r} units={a.get('units')!r} "
-                             f"date={a.get('trade_date')!r} symbol={json.dumps(a.get('symbol'))[:300]}")
             page_new = 0
             for act in activities:
                 if not isinstance(act, dict):
