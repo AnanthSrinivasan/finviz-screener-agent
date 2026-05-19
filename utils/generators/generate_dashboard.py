@@ -299,49 +299,7 @@ def _format_history_date(s):
 
 SYSTEM_HISTORY_FLOOR = "2026-04-01"  # Don't show pre-system trades.
 
-
-def compute_pnl_from_events(events, current_price=0.0, current_shares=0.0):
-    """Walk BUY/SELL events ascending, return realized + unrealized P/L.
-
-    Returns {realized, unrealized, avg_cost, total_bought_units, total_sold_units,
-    final_shares}. SELLs use weighted-avg cost basis at time of sale.
-    current_shares/current_price drive the unrealized leg; when current_shares is
-    falsy, unrealized falls back to final running shares from the walk.
-    """
-    realized = 0.0
-    running_shares = 0.0
-    running_cost = 0.0
-    total_bought = 0.0
-    total_sold = 0.0
-    for ev in events or []:
-        sh = float(ev.get("shares", 0) or 0)
-        px = float(ev.get("price", 0) or 0)
-        action = ev.get("action", "")
-        if sh <= 0 or px <= 0:
-            continue
-        if action == "BUY":
-            running_cost += sh * px
-            running_shares += sh
-            total_bought += sh
-        elif action == "SELL":
-            if running_shares > 0:
-                avg = running_cost / running_shares
-                sold = min(sh, running_shares)
-                realized += sold * (px - avg)
-                running_cost -= sold * avg
-                running_shares = max(0.0, running_shares - sold)
-                total_sold += sold
-    avg_cost = (running_cost / running_shares) if running_shares > 0 else 0.0
-    shares_for_unreal = float(current_shares) if current_shares else running_shares
-    unrealized = shares_for_unreal * (current_price - avg_cost) if (shares_for_unreal > 0 and current_price > 0 and avg_cost > 0) else 0.0
-    return {
-        "realized": realized,
-        "unrealized": unrealized,
-        "avg_cost": avg_cost,
-        "total_bought_units": total_bought,
-        "total_sold_units": total_sold,
-        "final_shares": running_shares,
-    }
+from utils.pnl_walk import compute_pnl_from_events  # shared source of truth
 
 
 def _filter_history_for_position(events, entry_date=None, close_date=None):

@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from utils.generators.generate_dashboard import compute_pnl_from_events
+from utils.pnl_walk import compute_pnl_from_events
 
 
 class ComputePnlFromEventsTests(unittest.TestCase):

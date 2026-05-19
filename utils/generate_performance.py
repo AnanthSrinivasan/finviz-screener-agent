@@ -24,6 +24,7 @@ import re
 DATA_DIR       = os.environ.get("DATA_DIR", "data")
 CSV_PATH       = os.path.join(DATA_DIR, "RH-2026.csv")
 POSITIONS_PATH = os.path.join(DATA_DIR, "positions.json")
+HISTORY_PATH   = os.path.join(DATA_DIR, "position_history.json")
 OUTPUT_PATH    = os.path.join(DATA_DIR, "performance_2026.html")
 
 TRADE_CODES = {"Buy", "Sell"}
@@ -132,6 +133,59 @@ def load_system_closed(path: str) -> list[dict]:
             "close_source": p.get("close_source", ""),
         })
     return trades
+
+
+def load_snaptrade_partial_realized(path: str) -> list[dict]:
+    """Read data/position_history.json → list of synthetic realized trades per
+    ticker that has SnapTrade SELL fills. Uses the shared
+    compute_pnl_from_events walker so AAOI/GLW-class partial-close P/L surfaces
+    here even when the position is still open in positions.json and the broker
+    CSV doesn't carry the fill.
+    """
+    from utils.pnl_walk import compute_pnl_from_events
+
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path) as f:
+            hist_doc = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    hist = hist_doc.get("history") or {}
+    out: list[dict] = []
+    for ticker, events in hist.items():
+        if not events:
+            continue
+        walk = compute_pnl_from_events(events, current_price=0, current_shares=0)
+        sold = walk["total_sold_units"]
+        if sold <= 0:
+            continue
+        sell_dates = [e.get("date", "")[:10] for e in events if e.get("action") == "SELL"]
+        buy_dates  = [e.get("date", "")[:10] for e in events if e.get("action") == "BUY"]
+        if not sell_dates:
+            continue
+        try:
+            sell_dt = datetime.date.fromisoformat(max(sell_dates))
+            first_buy = datetime.date.fromisoformat(min(buy_dates)) if buy_dates else sell_dt
+        except ValueError:
+            continue
+        cost = sold * walk["avg_cost"]
+        pnl  = walk["realized"]
+        pnl_pct = (pnl / cost * 100) if cost else 0.0
+        out.append({
+            "ticker":       ticker,
+            "sell_date":    sell_dt,
+            "first_buy":    first_buy,
+            "qty":          float(sold),
+            "proceeds":     round(cost + pnl, 2),
+            "cost":         round(cost, 2),
+            "pnl":          round(pnl, 2),
+            "pnl_pct":      round(pnl_pct, 2),
+            "prior_period": False,
+            "system_only":  True,
+            "close_source": "snaptrade_walk",
+        })
+    return out
 
 
 def merge_trades(broker: list[dict], system: list[dict]) -> list[dict]:
@@ -518,7 +572,18 @@ def main():
     else:
         broker = []
     system = load_system_closed(POSITIONS_PATH)
-    trades = merge_trades(broker, system)
+    snap   = load_snaptrade_partial_realized(HISTORY_PATH)
+    # SnapTrade walk supersedes the synthesized closed_positions entry for any
+    # ticker present in position_history.json — closed_positions only records
+    # the FINAL-tranche shares/price (e.g. AAOI close shows 10 sh × +86%) while
+    # the walk includes every prior partial SELL in the cycle (AAOI 90 sh sold
+    # → ~$7k realized).
+    snap_tickers = {t["ticker"] for t in snap}
+    system = [s for s in system
+              if not (s["ticker"] in snap_tickers
+                      and any(snap_t["first_buy"] <= s["sell_date"] <= snap_t["sell_date"] + datetime.timedelta(days=5)
+                              for snap_t in snap if snap_t["ticker"] == s["ticker"]))]
+    trades = merge_trades(merge_trades(broker, system), snap)
     stats  = compute_stats(trades)
     html   = generate_html(trades, stats)
     os.makedirs(DATA_DIR, exist_ok=True)
