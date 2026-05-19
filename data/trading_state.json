@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 5,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 4,
   "total_wins": 11,
-  "total_losses": 12,
-  "current_sizing_mode": "normal",
+  "total_losses": 17,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-05-18",
+  "last_updated": "2026-05-19",
   "recent_trades": [
     {
       "ticker": "AMD",
@@ -220,12 +220,48 @@
     },
     {
       "ticker": "CORZ",
-      "result": "neutral",
-      "result_pct": -0.81,
+      "result": "loss",
+      "result_pct": -1.54,
       "date": "2026-05-18",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -57.0
+    },
+    {
+      "ticker": "CRWV",
+      "result": "loss",
+      "result_pct": -7.0,
+      "date": "2026-05-19",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -805.0
+    },
+    {
+      "ticker": "IREN",
+      "result": "loss",
+      "result_pct": -10.42,
+      "date": "2026-05-19",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -616.0
+    },
+    {
+      "ticker": "NXT",
+      "result": "loss",
+      "result_pct": -5.29,
+      "date": "2026-05-19",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -359.5
+    },
+    {
+      "ticker": "ROKU",
+      "result": "loss",
+      "result_pct": -5.34,
+      "date": "2026-05-19",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -339.0
     }
   ],
   "market_state": "RED",
