@@ -543,13 +543,48 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     def _fv(tk: str) -> str:
         return f'https://finviz.com/quote.ashx?t={tk}'
 
+    def _rs_badge(e: dict) -> str:
+        rs = e.get("rs_score")
+        rk = e.get("rs_rank")
+        d5 = e.get("rank_delta_5d")
+        if rs is None and rk is None:
+            return ""
+        # Color the RS chip by score band
+        bg = "#16a34a" if (rs or 0) >= 70 else ("#2563eb" if (rs or 0) >= 50 else ("#f59e0b" if (rs or 0) >= 30 else "#dc2626"))
+        rk_txt = f" #{rk}" if rk else ""
+        d5_txt = ""
+        if d5 is not None:
+            sign = "+" if d5 > 0 else ""
+            d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
+            d5_txt = f' <span style="color:{d5_color};font-weight:700;margin-left:6px">Δ5d {sign}{d5}</span>'
+        return (
+            f'<span class="rs-chip" style="background:{bg};color:#fff;font-size:11px;'
+            f'font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px">'
+            f'RS {rs if rs is not None else "—"}{rk_txt}</span>{d5_txt}'
+        )
+
     def _metric_row(e: dict) -> str:
         m = e["metrics"]
         tk_html = f'<a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a>'
+        rs = e.get("rs_score")
+        rk = e.get("rs_rank")
+        d5 = e.get("rank_delta_5d")
+        rs_cell = f'{rs}' if rs is not None else "—"
+        rk_cell = f'#{rk}' if rk else "—"
+        d5_cell = "—"
+        if d5 is not None:
+            sign = "+" if d5 > 0 else ""
+            d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
+            d5_cell = f'<span style="color:{d5_color};font-weight:600">{sign}{d5}</span>'
         if m is None:
-            return f'<tr><td>{tk_html}</td><td>{e["name"]}</td><td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
+            return (
+                f'<tr><td>{tk_html}</td><td>{e["name"]}</td>'
+                f'<td>{rs_cell}</td><td>{rk_cell}</td><td>{d5_cell}</td>'
+                f'<td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
+            )
         return (
             f'<tr><td>{tk_html}</td><td>{e["name"]}</td>'
+            f'<td><b>{rs_cell}</b></td><td>{rk_cell}</td><td>{d5_cell}</td>'
             f'<td style="color:#6b7280">{e["theme"]}</td>'
             f'<td>{m["atr_pct"]}%</td><td>{m["mult50"]}</td><td>{m["dist52"]}%</td>'
             f'<td>{m["range20"]}%</td><td>{m["ret20"]}%</td><td>{m["ema21d"]}%</td>'
@@ -566,6 +601,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
             f'<a class="etf-tk" href="{_fv(e["ticker"])}" target="_blank">{e["ticker"]}</a>'
             f'<span class="etf-name">{e["name"]}</span>'
             f'<span class="etf-theme">{e["theme"]}</span></div>'
+            f'<div class="etf-rs">{_rs_badge(e)}</div>'
             f'<div class="etf-metrics">'
             f'mult50 <b>{m.get("mult50","—")}</b> · '
             f'range20 <b>{m.get("range20","—")}%</b> · '
@@ -580,6 +616,42 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     ext_cards = "".join(_card(e, "#f59e0b") for e in by_bucket["EXTENDED"])
     broken_cards = "".join(_card(e, "#dc2626") for e in by_bucket["BROKEN"])
     neutral_cards = "".join(_card(e, "#9ca3af") for e in by_bucket["NEUTRAL"])
+
+    # Global RS leaderboard — top 10 / bottom 5 by rs_rank (from sector_rotation snapshot)
+    _ranked = [e for e in etf_setups if e.get("rs_rank")]
+    _ranked.sort(key=lambda e: e.get("rs_rank") or 99)
+    def _rs_row(e: dict) -> str:
+        d5 = e.get("rank_delta_5d")
+        d5_html = "—"
+        if d5 is not None:
+            sign = "+" if d5 > 0 else ""
+            color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
+            d5_html = f'<span style="color:{color};font-weight:700">{sign}{d5}</span>'
+        return (
+            f'<tr><td><b>#{e.get("rs_rank","—")}</b></td>'
+            f'<td><a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a></td>'
+            f'<td>{e["name"]}</td>'
+            f'<td><b>{e.get("rs_score","—")}</b></td>'
+            f'<td>{d5_html}</td>'
+            f'<td><span class="bucket-tag b-{e["bucket"]}">{e["bucket"]}</span></td></tr>'
+        )
+    leaders_html = "".join(_rs_row(e) for e in _ranked[:10])
+    laggards_html = "".join(_rs_row(e) for e in _ranked[-5:][::-1])
+    rs_leaderboard_html = ""
+    if _ranked:
+        rs_leaderboard_html = (
+            '<h2>🏆 RS Leaderboard</h2>'
+            '<div class="subtitle">Top 10 and bottom 5 by relative strength rank (sector_rotation snapshot). '
+            'Δ5d negative = rank improving (rotating in).</div>'
+            '<div class="rs-board">'
+            '<div class="rs-col"><div class="rs-col-head">Leaders (top 10)</div>'
+            '<table class="rs-table"><thead><tr><th>Rank</th><th>ETF</th><th>Name</th><th>RS</th><th>Δ5d</th><th>Bucket</th></tr></thead>'
+            f'<tbody>{leaders_html}</tbody></table></div>'
+            '<div class="rs-col"><div class="rs-col-head">Laggards (bottom 5)</div>'
+            '<table class="rs-table"><thead><tr><th>Rank</th><th>ETF</th><th>Name</th><th>RS</th><th>Δ5d</th><th>Bucket</th></tr></thead>'
+            f'<tbody>{laggards_html}</tbody></table></div>'
+            '</div>'
+        )
 
     table_order = ["BASE", "PRE-BREAKOUT", "EXTENDED", "BROKEN", "NEUTRAL"]
     ordered_setups = [e for b in table_order for e in by_bucket.get(b, [])]
@@ -618,6 +690,13 @@ th{{background:#f3f4f6;color:#111827;position:sticky;top:0}}
 .b-EXTENDED{{background:#fef3c7;color:#92400e}}
 .b-BROKEN{{background:#fee2e2;color:#991b1b}}
 .b-NEUTRAL{{background:#f3f4f6;color:#4b5563}}
+.rs-board{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}}
+.rs-col-head{{font-weight:bold;color:#374151;margin-bottom:4px;font-size:13px}}
+.rs-table{{width:100%;font-size:12px}}
+.rs-table th{{background:#f3f4f6;color:#111827;text-align:left;padding:4px 8px;border:1px solid #e5e7eb}}
+.rs-table td{{padding:4px 8px;border:1px solid #e5e7eb}}
+.etf-rs{{margin:4px 0 6px 0}}
+@media (max-width:760px){{.rs-board{{grid-template-columns:1fr}}}}
 details{{margin-top:12px}}
 summary{{cursor:pointer;font-weight:bold;color:#374151;padding:4px 0}}
 a{{color:#2563eb}}
@@ -634,6 +713,8 @@ a{{color:#2563eb}}
 <div><b>Held:</b> {held}</div>
 </div>
 </div>
+
+{rs_leaderboard_html}
 
 <h2>🎯 Base — {len(by_bucket['BASE'])} setups</h2>
 <div class="subtitle">Tight, low-vol, ready to break out. Ranked by tightness × room.</div>
@@ -659,7 +740,7 @@ a{{color:#2563eb}}
 
 <h2>📋 Full metrics</h2>
 <table>
-<thead><tr><th>Ticker</th><th>Name</th><th>Theme</th><th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th><th>ret20</th><th>EMA21 dist</th><th>RVol</th><th>50/200 ↑</th><th>Bucket</th></tr></thead>
+<thead><tr><th>Ticker</th><th>Name</th><th title="Relative Strength 0-99 vs SPY (20d-vs-SPY percentile)">RS</th><th title="Universe rank 1=strongest">Rank</th><th title="Rank change vs 5 trading days ago (negative = rank improving)">Δ5d</th><th>Theme</th><th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th><th>ret20</th><th>EMA21 dist</th><th>RVol</th><th>50/200 ↑</th><th>Bucket</th></tr></thead>
 <tbody>{all_rows}</tbody>
 </table>
 </body></html>"""
@@ -879,6 +960,17 @@ def main() -> int:
         # Re-fetch with enough history for SMA200 (>= 280 calendar days)
         etf_bars = fetch_bars(sorted(set(syms)), days=280)
         etf_setups = compute_etf_setups(etf_bars, universe)
+        # Merge per-ETF RS rank + rs_score from the snapshot so dashboard surfaces them.
+        _rs_by_etf = {e.get("etf"): e for e in snap.get("etfs", []) if e.get("etf")}
+        for s in etf_setups:
+            r = _rs_by_etf.get(s["ticker"])
+            if r is None:
+                continue
+            s["rs_score"]      = r.get("rs_score")
+            s["rs_rank"]       = r.get("rank")
+            s["rank_delta_5d"] = r.get("rank_delta_5d")
+            s["is_20d_rs_high"] = r.get("is_20d_rs_high")
+            s["decay_streak_days"] = r.get("decay_streak_days")
         json_path = write_etf_rotation_json(snap, etf_setups)
         html_path = write_etf_rotation_html(snap, etf_setups)
         bucket_counts: dict[str, int] = {}
