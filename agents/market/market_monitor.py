@@ -112,6 +112,8 @@ def update_trading_state(record: dict, new_consecutive_weak_days: int = 0):
         "spy_200ma":             spy_200ma,
         "fng":                   record.get("fg"),
         "consecutive_weak_days": new_consecutive_weak_days,
+        "extended_since_date":   record.get("extended_since_date"),
+        "days_below_21ema":      record.get("days_below_21ema", 0),
     })
 
     if record["market_state"] == "THRUST":
@@ -425,6 +427,10 @@ def fetch_breadth_data(session: requests.Session) -> dict:
         "spy_atr_mult_50":    spy_ext.get("atr_mult_50") if spy_ext else None,
         "spy_sma50_slope_10d": spy_ext.get("sma50_slope_10d") if spy_ext else None,
         "spy_pct_from_20d_high": spy_ext.get("pct_from_20d_high") if spy_ext else None,
+        "spy_close":          spy_ext.get("close") if spy_ext else None,
+        "spy_sma50":          spy_ext.get("sma50") if spy_ext else None,
+        "spy_21ema":          spy_ext.get("ema21") if spy_ext else None,
+        "spy_20d_high":       spy_ext.get("close_20d_high") if spy_ext else None,
         "qqq_sma50_pct":      qqq_ext.get("sma50_pct") if qqq_ext else None,
         "qqq_atr_mult_50":    qqq_ext.get("atr_mult_50") if qqq_ext else None,
         "pct_above_50ma":     pct_above_50ma,
@@ -504,22 +510,50 @@ def fetch_index_extension(ticker: str) -> dict | None:
         # v3 trend-follow inputs
         sma50_slope_10d = compute_sma50_slope_10d(sma50_series)
         pct_from_20d_high_val = pct_from_20d_high(highs[:-1] + [close], closes)
+        # v4 EXTENDED stickiness inputs — 21 EMA + 20-day close high
+        ema21_series = compute_ema(closes, 21)
+        ema21 = ema21_series[-1] if ema21_series else None
+        close_20d_high = max(closes[-20:]) if len(closes) >= 20 else None
         log.info(
-            "%s extension: sma50%%=%s atr_mult_50=%s sma200%%=%s slope_10d=%s pct_from_20d_high=%s",
+            "%s extension: sma50%%=%s atr_mult_50=%s sma200%%=%s slope_10d=%s pct_from_20d_high=%s ema21=%s close_20d_high=%s",
             ticker, sma50_pct, atr_mult_50, sma200_pct,
             sma50_slope_10d, pct_from_20d_high_val,
+            round(ema21, 2) if ema21 else None,
+            round(close_20d_high, 2) if close_20d_high else None,
         )
         return {
             "close": close,
+            "sma50": sma50,
             "sma50_pct": sma50_pct,
             "atr_mult_50": atr_mult_50,
             "sma200_pct": sma200_pct,
             "sma50_slope_10d": sma50_slope_10d,
             "pct_from_20d_high": pct_from_20d_high_val,
+            "ema21": ema21,
+            "close_20d_high": close_20d_high,
         }
     except Exception as e:
         log.warning("Extension fetch failed for %s: %s", ticker, e)
         return None
+
+
+def compute_ema(values: list, period: int) -> list:
+    """Compute EMA over a list of floats. Returns list with None padding.
+
+    Seeds with SMA of the first `period` values, then applies the standard
+    smoothing factor k = 2 / (period + 1).
+    """
+    n = len(values)
+    if n < period:
+        return [None] * n
+    result: list = [None] * (period - 1)
+    seed = sum(values[:period]) / period
+    result.append(seed)
+    k = 2.0 / (period + 1)
+    for v in values[period:]:
+        prev = result[-1]
+        result.append(v * k + prev * (1 - k))
+    return result
 
 
 def compute_sma50_slope_10d(sma50_series: list) -> float | None:
@@ -592,16 +626,33 @@ def compute_participation_proxy(today_data: dict) -> float | None:
     return round(up_25 / universe * 100, 2)
 
 
-def is_trend_follow(today_data: dict, fg: float | None) -> bool:
-    """All 6 TREND-FOLLOW gates pass.
+def is_trend_follow(today_data: dict, fg: float | None,
+                    prev_state: str | None = None) -> bool:
+    """All TREND-FOLLOW gates pass.
 
-    - MA stack: SPY > SMA50 > SMA200
-    - 50MA slope: rising over last 10 sessions
-    - Near 20d high: SPY within 3%
-    - Participation: proxy >= 10% (up_25_quarter / universe — Apr 30 ref 12%)
-    - Vol calm: VIX < 25 OR VIX down on the day
-    - Not EXTENDED (caller enforces priority)
+    v4 (May 2026) — added two rejects:
+      - prev_state guard: TREND-FOLLOW is a *continuation* path; reject when
+        prev in {EXTENDED, RED, DANGER, BLACKOUT, COOLING}. Path out of those
+        must run through CAUTION → GREEN/THRUST first.
+      - breadth sanity: reject when today's dn4 ≥ 2 × up4 (heavy distribution).
+        A grind-up trend day does not print 535 vs 110.
+
+    Base gates:
+      - MA stack: SPY > SMA50 > SMA200
+      - 50MA slope: rising over last 10 sessions
+      - Near 20d high: SPY within 3%
+      - Participation: proxy >= 8% (up_25_quarter / universe)
+      - Vol calm: VIX < 25 OR VIX down on the day
+      - Not EXTENDED (caller enforces priority)
     """
+    if prev_state in ("EXTENDED", "RED", "DANGER", "BLACKOUT", "COOLING"):
+        return False
+
+    up4 = today_data.get("up_4_today") or 0
+    dn4 = today_data.get("down_4_today") or 0
+    if dn4 >= 2 * max(up4, 1):
+        return False
+
     spy_sma50_pct  = today_data.get("spy_sma50_pct")
     spy_sma200_pct = today_data.get("spy_sma200_pct")
     if spy_sma50_pct is None or spy_sma200_pct is None:
@@ -769,7 +820,9 @@ def classify_market_state(metrics: dict, fg: float | None,
                           date: datetime.date,
                           prev_state: str | None = None,
                           last_thrust_date: str | None = None,
-                          consecutive_weak_days: int = 0) -> tuple[str, str, dict]:
+                          consecutive_weak_days: int = 0,
+                          extended_since_date: str | None = None,
+                          days_below_21ema: int = 0) -> tuple[str, str, dict]:
     """
     Classify market into one of 9 states, checked in priority order:
       BLACKOUT → DANGER → EXTENDED → COOLING → THRUST → GREEN → CAUTION
@@ -789,31 +842,48 @@ def classify_market_state(metrics: dict, fg: float | None,
                 override to CAUTION + high_confidence_recovery tag.
     """
     fg_val = fg if fg is not None else 0
-    ctx: dict = {"post_thrust_floor_active": False, "confidence_context": None}
+    ctx: dict = {
+        "post_thrust_floor_active": False,
+        "confidence_context": None,
+        "extended_since_date": extended_since_date,
+        "days_below_21ema": days_below_21ema,
+    }
 
     # 1. Seasonal blackout — always overrides
     if is_blackout(date):
         return "BLACKOUT", "Seasonal no-trade period active", ctx
 
     # 2. DANGER — bypasses all floors/overrides (checked before THRUST so a
-    #    collapse day with 500+ down doesn't accidentally fire THRUST)
+    #    collapse day with 500+ down doesn't accidentally fire THRUST).
+    #    v4: catastrophic single-day distribution (dn4 ≥ 3 × up4) also fires
+    #    DANGER even when 5d hasn't deteriorated yet (05-15 reference).
     if (today_data["down_4_today"] >= DANGER_DOWN_THRESHOLD
-            and metrics["ratio_5day"] < 0.5):
+            and (metrics["ratio_5day"] < 0.5
+                 or today_data["down_4_today"]
+                    >= 3 * max(today_data["up_4_today"], 1))):
         return "DANGER", "Major breadth deterioration", ctx
 
     extreme_greed = fg_val > 74
     extreme_fear  = fg_val < 25
 
     # EXTENDED — parabolic / blow-off guardrail (May 2026, SNDK reference case).
-    # Overrides all bullish tiers (THRUST/GREEN/CAUTION/STEADY-UPTREND): when
-    # the index is stretched far above its 50MA, no new entries regardless of
-    # breadth. Existing positions: tighten stops, no chase. DANGER already
-    # escaped above. Skip during seasonal blackout.
+    # v4 (May 2026) stickiness: once EXTENDED trips, stay EXTENDED while SPY
+    # respects the 21 EMA / 50 SMA structure even after the ATR-mult metric
+    # cools. Pulls to 8/21 EMA that bounce are healthy Stage 2 digestion, not
+    # an exit. Exits are structural: 3 closes below 21 EMA → COOLING; any close
+    # below 50 SMA → RED. Re-entry from COOLING/CAUTION needs metric trip +
+    # new 20d close high.
     spy_atr_mult_50 = today_data.get("spy_atr_mult_50")
     spy_sma50_pct   = today_data.get("spy_sma50_pct")
     qqq_atr_mult_50 = today_data.get("qqq_atr_mult_50")
-    extended = is_extended(spy_atr_mult_50, spy_sma50_pct, qqq_atr_mult_50)
-    if extended:
+    spy_close       = today_data.get("spy_close")
+    spy_21ema       = today_data.get("spy_21ema")
+    spy_50sma       = today_data.get("spy_sma50")
+    spy_20d_high    = today_data.get("spy_20d_high")
+
+    metric_trip = is_extended(spy_atr_mult_50, spy_sma50_pct, qqq_atr_mult_50)
+
+    def _extended_message(days_below: int) -> str:
         spy_part = (
             f"SPY ATR mult {spy_atr_mult_50:.1f}× / +{spy_sma50_pct:.1f}% above 50MA"
             if spy_atr_mult_50 is not None and spy_sma50_pct is not None
@@ -826,7 +896,52 @@ def classify_market_state(metrics: dict, fg: float | None,
         msg = "Parabolic tape — no new entries, tighten stops. " + spy_part
         if qqq_part:
             msg += " · " + qqq_part
-        return "EXTENDED", msg, ctx
+        if days_below > 0:
+            msg += f" · {days_below}d under 21 EMA (3 = exit to COOLING)"
+        return msg
+
+    # Currently in EXTENDED — apply stickiness rules
+    if prev_state == "EXTENDED":
+        below_50 = (spy_close is not None and spy_50sma is not None
+                    and spy_close < spy_50sma)
+        if below_50:
+            ctx["extended_since_date"] = None
+            ctx["days_below_21ema"] = 0
+            return ("RED",
+                    "EXTENDED → RED: SPY closed below 50 SMA (trend damage)",
+                    ctx)
+
+        below_21 = (spy_close is not None and spy_21ema is not None
+                    and spy_close < spy_21ema)
+        new_days_below = days_below_21ema + 1 if below_21 else 0
+        if new_days_below >= 3:
+            ctx["extended_since_date"] = None
+            ctx["days_below_21ema"] = 0
+            return ("COOLING",
+                    "EXTENDED → COOLING: 3 closes below 21 EMA, "
+                    "leadership ended",
+                    ctx)
+
+        ctx["extended_since_date"] = extended_since_date or date.isoformat()
+        ctx["days_below_21ema"] = new_days_below
+        return "EXTENDED", _extended_message(new_days_below), ctx
+
+    # Re-entry from COOLING/CAUTION — metric trip + new 20d close high
+    if prev_state in ("COOLING", "CAUTION") and metric_trip:
+        if (spy_close is not None and spy_20d_high is not None
+                and spy_close >= spy_20d_high):
+            ctx["extended_since_date"] = date.isoformat()
+            ctx["days_below_21ema"] = 0
+            return ("EXTENDED",
+                    "Re-entered EXTENDED: new 20d high + parabolic metrics. "
+                    + _extended_message(0),
+                    ctx)
+
+    # Fresh trip from any non-bearish prev state
+    if metric_trip and prev_state not in ("RED", "DANGER", "BLACKOUT"):
+        ctx["extended_since_date"] = date.isoformat()
+        ctx["days_below_21ema"] = 0
+        return "EXTENDED", _extended_message(0), ctx
 
     # Layer 2b — Extreme fear + THRUST from RED/DANGER: high-confidence recovery.
     # Override THRUST → CAUTION so executor can size in immediately; tag the event.
@@ -869,7 +984,7 @@ def classify_market_state(metrics: dict, fg: float | None,
     #    vol calm. Independent of the 5d/10d thrust ratio so steady grind-up
     #    tapes are not dumped to RED. Checked before COOLING-sustain so a
     #    recovered trend escapes the 2-day buffer. EXTENDED already escaped.
-    if is_trend_follow(today_data, fg):
+    if is_trend_follow(today_data, fg, prev_state):
         vix_close = today_data.get("vix_close")
         vix_str = f"VIX {vix_close:.1f}" if vix_close is not None else "VIX n/a"
         part = today_data.get("pct_above_50ma")
@@ -983,6 +1098,15 @@ def build_daily_record(date: datetime.date, today_data: dict, metrics: dict,
         "fg_regime":              fg_regime,
         "post_thrust_floor_active": ctx.get("post_thrust_floor_active", False),
         "confidence_context":     ctx.get("confidence_context"),
+        "extended_since_date":    ctx.get("extended_since_date"),
+        "extended_days_active":   (
+            (date - datetime.date.fromisoformat(ctx["extended_since_date"])).days
+            if ctx.get("extended_since_date") else 0
+        ),
+        "days_below_21ema":       ctx.get("days_below_21ema", 0),
+        "spy_close":              today_data.get("spy_close"),
+        "spy_21ema":              today_data.get("spy_21ema"),
+        "spy_20d_high":           today_data.get("spy_20d_high"),
     }
 
 
@@ -1229,12 +1353,16 @@ def run_market_monitor(date: datetime.date | None = None):
     # Load last_thrust_date and consecutive_weak_days from trading_state.json
     last_thrust_date = None
     consecutive_weak_days = 0
+    extended_since_date = None
+    days_below_21ema = 0
     if os.path.exists(TRADING_STATE_FILE):
         try:
             with open(TRADING_STATE_FILE) as f:
                 ts = json.load(f)
             last_thrust_date = ts.get("last_thrust_date")
             consecutive_weak_days = ts.get("consecutive_weak_days", 0)
+            extended_since_date = ts.get("extended_since_date")
+            days_below_21ema = ts.get("days_below_21ema", 0)
         except Exception:
             pass
 
@@ -1261,6 +1389,8 @@ def run_market_monitor(date: datetime.date | None = None):
         metrics["spy_above_200d"], today_data, date, prev_state,
         last_thrust_date=last_thrust_date,
         consecutive_weak_days=consecutive_weak_days,
+        extended_since_date=extended_since_date,
+        days_below_21ema=days_below_21ema,
     )
     log.info(f"Market state: {state} — {message}")
 

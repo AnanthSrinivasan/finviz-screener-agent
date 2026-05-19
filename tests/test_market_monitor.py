@@ -453,7 +453,11 @@ class ExtendedAndSteadyUptrendTests(unittest.TestCase):
         self.assertEqual(state, "EXTENDED")
 
     def test_extended_today_2026_05_14_inputs(self):
-        # Live inputs from data/market_monitor_2026-05-14.json + Alpaca backtest
+        # Live inputs from data/market_monitor_2026-05-14.json + Alpaca backtest.
+        # v4 (May 2026): EXTENDED cannot trip directly from RED — must come up
+        # through THRUST/CAUTION first. The historic path into the parabolic
+        # phase actually ran via CAUTION; this test pins the metric-trip case
+        # against an allowed prev_state.
         state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=0.95, ratio_10=1.17, thrust=False),
             fg=66.1, spy_price=748.17, spy_above_200d=True,
@@ -461,7 +465,7 @@ class ExtendedAndSteadyUptrendTests(unittest.TestCase):
                                    spy_atr_mult=8.6, spy_sma50=8.6,
                                    qqq_atr_mult=10.04),
             date=self._date(m=5, d=14),
-            prev_state="RED",
+            prev_state="CAUTION",
         )
         self.assertEqual(state, "EXTENDED")
 
@@ -716,7 +720,9 @@ class TrendFollowTests(unittest.TestCase):
         self.assertEqual(state, "GREEN")
 
     def test_apr30_replay_trend_follow(self):
-        # Apr 30 2026 reference: steady grind-up, breadth ~ neutral, but trend intact.
+        # Apr 30 2026 reference: steady grind-up, breadth ~ neutral, but trend
+        # intact. v4 prev_state guard rejects COOLING — historical path into
+        # Apr 30 was actually via CAUTION (recovery tape).
         state, _, _ = mm.classify_market_state(
             self._metrics(ratio_5=1.1, ratio_10=1.0, thrust=False),
             fg=58, spy_price=500, spy_above_200d=True,
@@ -726,9 +732,224 @@ class TrendFollowTests(unittest.TestCase):
                 pct_above_50ma=12.0, vix_close=18.0, vix_change_pct=-1.0,
             ),
             date=datetime.date(2026, 4, 30),
-            prev_state="COOLING",
+            prev_state="CAUTION",
         )
         self.assertEqual(state, "TREND-FOLLOW")
+
+
+class StateMachineV4Tests(unittest.TestCase):
+    """State machine v4 — EXTENDED stickiness, TREND-FOLLOW guard, DANGER widening.
+
+    Spec: docs/specs/state-machine-v4-extended-stickiness.md
+    """
+
+    def _date(self, m=5, d=15):
+        return datetime.date(2026, m, d)
+
+    def _metrics(self, ratio_5=1.0, ratio_10=1.0, thrust=False, spy_above=True):
+        return {
+            "ratio_today":    ratio_5,
+            "ratio_5day":     ratio_5,
+            "ratio_10day":    ratio_10,
+            "thrust":         thrust,
+            "spy_above_200d": spy_above,
+        }
+
+    def _today(self, up=100, down=100, atr_mult=None, sma50_pct=None,
+               qqq_mult=None, close=None, sma50_price=None, ema21=None,
+               high_20d=None):
+        return {
+            "up_4_today":      up,
+            "down_4_today":    down,
+            "spy_atr_mult_50": atr_mult,
+            "spy_sma50_pct":   sma50_pct,
+            "qqq_atr_mult_50": qqq_mult,
+            "spy_close":       close,
+            "spy_sma50":       sma50_price,
+            "spy_21ema":       ema21,
+            "spy_20d_high":    high_20d,
+        }
+
+    # ---------------------------------------------------------- Change A
+    def test_extended_sticky_through_metric_drop(self):
+        # 05-15-style case: prev=EXTENDED, ATR mult cooled to 6.85, %above50
+        # 7.12, QQQ 8.24 — all under is_extended() trigger. SPY close above
+        # 21 EMA → stickiness keeps EXTENDED. (Calmer breadth used to avoid
+        # tripping the v4 widened DANGER 3× single-day path; that interaction
+        # is covered by test_danger_catastrophic_distribution separately.)
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.95, ratio_10=1.0),
+            fg=60, spy_price=739.17, spy_above_200d=True,
+            today_data=self._today(
+                up=200, down=180,
+                atr_mult=6.85, sma50_pct=7.12, qqq_mult=8.24,
+                close=739.17, sma50_price=695.0, ema21=730.0,
+                high_20d=748.17,
+            ),
+            date=self._date(),
+            prev_state="EXTENDED",
+            extended_since_date="2026-04-30",
+            days_below_21ema=0,
+        )
+        self.assertEqual(state, "EXTENDED")
+        self.assertEqual(ctx["days_below_21ema"], 0)
+        self.assertEqual(ctx["extended_since_date"], "2026-04-30")
+
+    def test_extended_exit_to_cooling_on_3_closes_below_21ema(self):
+        # prev=EXTENDED, today is the 3rd consecutive close below 21 EMA
+        # (days_below_21ema=2 carried in, +1 today → 3). SPY > 50 SMA → COOLING.
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.0),
+            fg=55, spy_price=720.0, spy_above_200d=True,
+            today_data=self._today(
+                up=150, down=180,
+                atr_mult=3.0, sma50_pct=2.5, qqq_mult=4.0,
+                close=720.0, sma50_price=700.0, ema21=725.0,
+                high_20d=748.0,
+            ),
+            date=self._date(),
+            prev_state="EXTENDED",
+            extended_since_date="2026-04-30",
+            days_below_21ema=2,
+        )
+        self.assertEqual(state, "COOLING")
+        self.assertEqual(ctx["days_below_21ema"], 0)
+        self.assertIsNone(ctx["extended_since_date"])
+
+    def test_extended_exit_to_red_on_50sma_break(self):
+        # prev=EXTENDED, single close below 50 SMA → straight to RED.
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=0.9),
+            fg=50, spy_price=690.0, spy_above_200d=True,
+            today_data=self._today(
+                up=120, down=200,
+                atr_mult=-1.0, sma50_pct=-1.0, qqq_mult=0.0,
+                close=690.0, sma50_price=700.0, ema21=720.0,
+                high_20d=748.0,
+            ),
+            date=self._date(),
+            prev_state="EXTENDED",
+            extended_since_date="2026-04-30",
+            days_below_21ema=1,
+        )
+        self.assertEqual(state, "RED")
+        self.assertEqual(ctx["days_below_21ema"], 0)
+        self.assertIsNone(ctx["extended_since_date"])
+
+    def test_extended_false_breakdown_reclaim(self):
+        # prev=EXTENDED, yesterday closed below 21 EMA (counter=1), today
+        # reclaimed above 21 EMA → counter resets to 0, stays EXTENDED.
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.1),
+            fg=60, spy_price=735.0, spy_above_200d=True,
+            today_data=self._today(
+                up=200, down=150,
+                atr_mult=5.0, sma50_pct=5.5, qqq_mult=6.0,
+                close=735.0, sma50_price=695.0, ema21=730.0,
+                high_20d=748.0,
+            ),
+            date=self._date(),
+            prev_state="EXTENDED",
+            extended_since_date="2026-04-30",
+            days_below_21ema=1,
+        )
+        self.assertEqual(state, "EXTENDED")
+        self.assertEqual(ctx["days_below_21ema"], 0)
+
+    def test_extended_re_entry_from_cooling(self):
+        # prev=COOLING, ATR mult ≥ 7, SPY closes at new 20d high → EXTENDED.
+        state, _, ctx = mm.classify_market_state(
+            self._metrics(ratio_5=1.5),
+            fg=65, spy_price=750.0, spy_above_200d=True,
+            today_data=self._today(
+                up=300, down=120,
+                atr_mult=7.5, sma50_pct=8.0, qqq_mult=8.5,
+                close=750.0, sma50_price=695.0, ema21=730.0,
+                high_20d=750.0,
+            ),
+            date=self._date(),
+            prev_state="COOLING",
+        )
+        self.assertEqual(state, "EXTENDED")
+        self.assertEqual(ctx["extended_since_date"], self._date().isoformat())
+        self.assertEqual(ctx["days_below_21ema"], 0)
+
+    # ---------------------------------------------------------- Change B
+    def test_trend_follow_blocked_after_extended(self):
+        # All 6 TREND-FOLLOW gates pass, but prev=EXTENDED → blocked.
+        # Use cooled metrics so EXTENDED stickiness exits cleanly first; here
+        # we test the standalone helper to keep it focused.
+        td = {
+            "up_4_today":              100,
+            "down_4_today":            80,
+            "spy_atr_mult_50":         2.0,
+            "spy_sma50_pct":           2.0,
+            "spy_sma200_pct":          5.0,
+            "spy_sma50_slope_10d":     1.5,
+            "spy_pct_from_20d_high":   -1.0,
+            "qqq_atr_mult_50":         2.5,
+            "pct_above_50ma":          12.0,
+            "vix_close":               18.0,
+            "vix_change_pct":          -1.0,
+            "universe_size":           3000,
+            "up_25_quarter":           360,
+        }
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="EXTENDED"))
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="RED"))
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="DANGER"))
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="BLACKOUT"))
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="COOLING"))
+        # Allowed prev states still pass:
+        self.assertTrue(mm.is_trend_follow(td, fg=55, prev_state="CAUTION"))
+        self.assertTrue(mm.is_trend_follow(td, fg=55, prev_state="GREEN"))
+
+    def test_trend_follow_blocked_on_distribution_day(self):
+        # All 6 gates pass + prev=GREEN, but dn4=535 vs up4=110 (4.86×) →
+        # breadth-sanity rejects.
+        td = {
+            "up_4_today":              110,
+            "down_4_today":            535,
+            "spy_atr_mult_50":         2.0,
+            "spy_sma50_pct":           2.0,
+            "spy_sma200_pct":          5.0,
+            "spy_sma50_slope_10d":     1.5,
+            "spy_pct_from_20d_high":   -1.0,
+            "qqq_atr_mult_50":         2.5,
+            "pct_above_50ma":          12.0,
+            "vix_close":               18.0,
+            "vix_change_pct":          -1.0,
+            "universe_size":           3000,
+            "up_25_quarter":           360,
+        }
+        self.assertFalse(mm.is_trend_follow(td, fg=55, prev_state="GREEN"))
+        # Sanity: 05-18 case (307 vs 236, 1.30×) still passes:
+        td["up_4_today"] = 236
+        td["down_4_today"] = 307
+        self.assertTrue(mm.is_trend_follow(td, fg=55, prev_state="GREEN"))
+
+    # ---------------------------------------------------------- Change C
+    def test_danger_catastrophic_distribution(self):
+        # dn4=535, up4=110, 5d=0.89 → DANGER fires via the 3× single-day path.
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.89, ratio_10=1.0),
+            fg=55, spy_price=739.0, spy_above_200d=True,
+            today_data=self._today(up=110, down=535),
+            date=self._date(),
+            prev_state="EXTENDED",
+        )
+        self.assertEqual(state, "DANGER")
+
+    def test_danger_sustained_weakness(self):
+        # dn4=520, up4=300, 5d=0.45 → DANGER fires via original 5d path
+        # (3× single-day check would NOT fire: 520 < 3*300).
+        state, _, _ = mm.classify_market_state(
+            self._metrics(ratio_5=0.45),
+            fg=30, spy_price=500, spy_above_200d=True,
+            today_data=self._today(up=300, down=520),
+            date=self._date(),
+            prev_state="RED",
+        )
+        self.assertEqual(state, "DANGER")
 
 
 if __name__ == "__main__":

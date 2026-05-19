@@ -24,6 +24,7 @@ import requests  # noqa: E402
 
 from agents.market import market_monitor as mm  # noqa: E402
 from utils.calibrate_peel import wilder_atr, compute_sma  # noqa: E402
+from agents.market.market_monitor import compute_ema  # noqa: E402
 
 ALPACA_DATA_URL = "https://data.alpaca.markets/v2"
 
@@ -82,12 +83,19 @@ def compute_asof(bars, date_str: str):
     if len(highs) >= 20:
         hi = max(highs[-20:])
         pct_high = round((close - hi) / hi * 100, 2) if hi else None
+    ema21_series = compute_ema(closes, 21)
+    ema21 = ema21_series[-1] if ema21_series else None
+    close_20d_high = max(closes[-20:]) if len(closes) >= 20 else None
     return {
         "atr_mult_50":       atr_mult_50,
         "sma50_pct":         sma50_pct,
         "sma200_pct":        sma200_pct,
         "sma50_slope_10d":   slope_10d,
         "pct_from_20d_high": pct_high,
+        "close":             close,
+        "sma50":             sma50,
+        "ema21":             ema21,
+        "close_20d_high":    close_20d_high,
     }
 
 
@@ -108,6 +116,8 @@ def main():
     print("-" * 70)
 
     prev_state = None
+    extended_since_date = None
+    days_below_21ema = 0
     flips_to_extended = 0
     flips_to_steady = 0
     rescued_from_red = 0
@@ -139,6 +149,10 @@ def main():
             "spy_pct_from_20d_high": spy.get("pct_from_20d_high"),
             "qqq_atr_mult_50":       qqq_mult,
             "pct_above_50ma":        part,
+            "spy_close":             spy.get("close"),
+            "spy_sma50":             spy.get("sma50"),
+            "spy_21ema":             spy.get("ema21"),
+            "spy_20d_high":          spy.get("close_20d_high"),
             # No historical VIX — assume calm (so trend-follow can fire in backtest)
             "vix_close":             18.0,
             "vix_change_pct":        -0.5,
@@ -153,7 +167,7 @@ def main():
             "spy_above_200d": rec["spy_above_200d"],
         }
         date = datetime.date.fromisoformat(date_str)
-        new_state, _, _ = mm.classify_market_state(
+        new_state, _, new_ctx = mm.classify_market_state(
             metrics,
             fg=rec.get("fg"),
             spy_price=rec.get("spy_price"),
@@ -163,7 +177,11 @@ def main():
             prev_state=prev_state,
             last_thrust_date=None,  # ignored for backtest noise
             consecutive_weak_days=0,
+            extended_since_date=extended_since_date,
+            days_below_21ema=days_below_21ema,
         )
+        extended_since_date = new_ctx.get("extended_since_date")
+        days_below_21ema = new_ctx.get("days_below_21ema", 0)
         old = rec["market_state"]
         if new_state == "EXTENDED" and old != "EXTENDED":
             flips_to_extended += 1
