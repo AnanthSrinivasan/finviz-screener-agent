@@ -135,12 +135,41 @@ def load_system_closed(path: str) -> list[dict]:
     return trades
 
 
+def _split_into_cycles(events: list[dict]) -> list[list[dict]]:
+    """Split a ticker's BUY/SELL stream into discrete trade cycles. A cycle
+    ends when running shares return to 0; the next BUY starts a new cycle.
+
+    Without this, FLY's 90-day history (Mar round-trip 400 in/400 out + Apr-May
+    cycle 450 in/450 out) walks as one 850/850 trade with bogus avg cost.
+    """
+    cycles: list[list[dict]] = []
+    current: list[dict] = []
+    running = 0.0
+    for ev in events:
+        sh = float(ev.get("shares", 0) or 0)
+        action = ev.get("action", "")
+        if sh <= 0:
+            continue
+        if action == "BUY" and running <= 0 and current:
+            cycles.append(current)
+            current = []
+        current.append(ev)
+        if action == "BUY":
+            running += sh
+        elif action == "SELL":
+            running = max(0.0, running - sh)
+    if current:
+        cycles.append(current)
+    return cycles
+
+
 def load_snaptrade_partial_realized(path: str) -> list[dict]:
-    """Read data/position_history.json → list of synthetic realized trades per
-    ticker that has SnapTrade SELL fills. Uses the shared
-    compute_pnl_from_events walker so AAOI/GLW-class partial-close P/L surfaces
-    here even when the position is still open in positions.json and the broker
-    CSV doesn't carry the fill.
+    """Read data/position_history.json → list of fully-closed trade cycles per
+    ticker. Each cycle (BUYs until shares return to 0) emits one trade row using
+    the shared pnl_walk helper. Open-but-trimmed positions (AAOI/GLW class)
+    are intentionally NOT emitted here — performance_2026 is a closed-trade
+    ledger, partial-trim realized P/L surfaces on the dashboard's open-position
+    $P/L cell instead.
     """
     from utils.pnl_walk import compute_pnl_from_events
 
@@ -156,35 +185,37 @@ def load_snaptrade_partial_realized(path: str) -> list[dict]:
     for ticker, events in hist.items():
         if not events:
             continue
-        walk = compute_pnl_from_events(events, current_price=0, current_shares=0)
-        sold = walk["total_sold_units"]
-        if sold <= 0:
-            continue
-        sell_dates = [e.get("date", "")[:10] for e in events if e.get("action") == "SELL"]
-        buy_dates  = [e.get("date", "")[:10] for e in events if e.get("action") == "BUY"]
-        if not sell_dates:
-            continue
-        try:
-            sell_dt = datetime.date.fromisoformat(max(sell_dates))
-            first_buy = datetime.date.fromisoformat(min(buy_dates)) if buy_dates else sell_dt
-        except ValueError:
-            continue
-        cost = sold * walk["avg_cost"]
-        pnl  = walk["realized"]
-        pnl_pct = (pnl / cost * 100) if cost else 0.0
-        out.append({
-            "ticker":       ticker,
-            "sell_date":    sell_dt,
-            "first_buy":    first_buy,
-            "qty":          float(sold),
-            "proceeds":     round(cost + pnl, 2),
-            "cost":         round(cost, 2),
-            "pnl":          round(pnl, 2),
-            "pnl_pct":      round(pnl_pct, 2),
-            "prior_period": False,
-            "system_only":  True,
-            "close_source": "snaptrade_walk",
-        })
+        for cycle in _split_into_cycles(events):
+            walk = compute_pnl_from_events(cycle, current_price=0, current_shares=0)
+            # Only fully-closed cycles land on performance_2026
+            if walk["final_shares"] > 0.0001 or walk["total_sold_units"] <= 0:
+                continue
+            sell_dates = [e.get("date", "")[:10] for e in cycle if e.get("action") == "SELL"]
+            buy_dates  = [e.get("date", "")[:10] for e in cycle if e.get("action") == "BUY"]
+            if not sell_dates:
+                continue
+            try:
+                sell_dt   = datetime.date.fromisoformat(max(sell_dates))
+                first_buy = datetime.date.fromisoformat(min(buy_dates)) if buy_dates else sell_dt
+            except ValueError:
+                continue
+            cost     = walk["cost_basis_sold"]
+            proceeds = walk["proceeds_sold"]
+            pnl      = walk["realized"]
+            pnl_pct  = (pnl / cost * 100) if cost else 0.0
+            out.append({
+                "ticker":       ticker,
+                "sell_date":    sell_dt,
+                "first_buy":    first_buy,
+                "qty":          float(walk["total_sold_units"]),
+                "proceeds":     round(proceeds, 2),
+                "cost":         round(cost, 2),
+                "pnl":          round(pnl, 2),
+                "pnl_pct":      round(pnl_pct, 2),
+                "prior_period": False,
+                "system_only":  True,
+                "close_source": "snaptrade_walk",
+            })
     return out
 
 
@@ -573,16 +604,30 @@ def main():
         broker = []
     system = load_system_closed(POSITIONS_PATH)
     snap   = load_snaptrade_partial_realized(HISTORY_PATH)
-    # SnapTrade walk supersedes the synthesized closed_positions entry for any
-    # ticker present in position_history.json — closed_positions only records
-    # the FINAL-tranche shares/price (e.g. AAOI close shows 10 sh × +86%) while
-    # the walk includes every prior partial SELL in the cycle (AAOI 90 sh sold
-    # → ~$7k realized).
-    snap_tickers = {t["ticker"] for t in snap}
+    # Broker walk (position_history.json) is canonical. Two filters:
+    #  1) Drop closed_positions rows for tickers whose SnapTrade walk shows
+    #     shares still open — rules engine sometimes records a close prematurely
+    #     while broker still holds residual shares (AAOI/GLW May 2026).
+    #  2) Drop closed_positions rows whose date falls inside a SnapTrade cycle
+    #     (the cycle walk supersedes the synthesized FINAL-tranche row).
+    from utils.pnl_walk import compute_pnl_from_events
+    if os.path.exists(HISTORY_PATH):
+        try:
+            with open(HISTORY_PATH) as f:
+                hist = (json.load(f).get("history") or {})
+        except (OSError, json.JSONDecodeError):
+            hist = {}
+    else:
+        hist = {}
+    open_per_broker = {tk for tk, evs in hist.items()
+                       if compute_pnl_from_events(evs, 0, 0)["final_shares"] > 0.0001}
+    snap_cycles_by_ticker: dict = {}
+    for t in snap:
+        snap_cycles_by_ticker.setdefault(t["ticker"], []).append(t)
     system = [s for s in system
-              if not (s["ticker"] in snap_tickers
-                      and any(snap_t["first_buy"] <= s["sell_date"] <= snap_t["sell_date"] + datetime.timedelta(days=5)
-                              for snap_t in snap if snap_t["ticker"] == s["ticker"]))]
+              if s["ticker"] not in open_per_broker
+              and not any(snap_t["first_buy"] <= s["sell_date"] <= snap_t["sell_date"] + datetime.timedelta(days=5)
+                          for snap_t in snap_cycles_by_ticker.get(s["ticker"], []))]
     trades = merge_trades(merge_trades(broker, system), snap)
     stats  = compute_stats(trades)
     html   = generate_html(trades, stats)

@@ -60,6 +60,59 @@ class ComputePnlFromEventsTests(unittest.TestCase):
         self.assertAlmostEqual(r["realized"] + r["unrealized"], 1245.0)
 
 
+class WalkProceedsCostBasisTests(unittest.TestCase):
+    def test_proceeds_and_cost_basis_tracked(self):
+        events = [
+            {"date": "2026-05-01", "action": "BUY", "shares": 10, "price": 100},
+            {"date": "2026-05-02", "action": "BUY", "shares": 10, "price": 120},  # avg=110
+            {"date": "2026-05-03", "action": "SELL", "shares": 15, "price": 130},
+        ]
+        r = compute_pnl_from_events(events)
+        # 15 sold at avg 110, proceeds 15*130=1950, cost_basis 15*110=1650, realized 300
+        self.assertAlmostEqual(r["proceeds_sold"], 1950.0)
+        self.assertAlmostEqual(r["cost_basis_sold"], 1650.0)
+        self.assertAlmostEqual(r["realized"], 300.0)
+
+    def test_full_close_cost_basis_nonzero(self):
+        # Reproduces the FLY bug: fully-closed position must report cost > 0.
+        events = [
+            {"date": "2026-04-01", "action": "BUY", "shares": 100, "price": 50},
+            {"date": "2026-04-10", "action": "SELL", "shares": 100, "price": 40},
+        ]
+        r = compute_pnl_from_events(events)
+        self.assertEqual(r["final_shares"], 0)
+        self.assertAlmostEqual(r["cost_basis_sold"], 5000.0)
+        self.assertAlmostEqual(r["proceeds_sold"], 4000.0)
+        self.assertAlmostEqual(r["realized"], -1000.0)
+
+
+class CycleSplittingTests(unittest.TestCase):
+    def test_two_cycles_separated(self):
+        from utils.generate_performance import _split_into_cycles
+        events = [
+            # Cycle 1
+            {"date": "2026-03-16", "action": "BUY", "shares": 400, "price": 24},
+            {"date": "2026-03-19", "action": "SELL", "shares": 400, "price": 22},
+            # Cycle 2
+            {"date": "2026-04-06", "action": "BUY", "shares": 100, "price": 33},
+            {"date": "2026-04-24", "action": "SELL", "shares": 100, "price": 35},
+        ]
+        cycles = _split_into_cycles(events)
+        self.assertEqual(len(cycles), 2)
+        self.assertEqual(len(cycles[0]), 2)
+        self.assertEqual(len(cycles[1]), 2)
+
+    def test_open_position_one_cycle(self):
+        from utils.generate_performance import _split_into_cycles
+        events = [
+            {"date": "2026-04-07", "action": "BUY", "shares": 50, "price": 100},
+            {"date": "2026-04-30", "action": "BUY", "shares": 20, "price": 110},
+            {"date": "2026-05-11", "action": "SELL", "shares": 25, "price": 130},
+        ]
+        cycles = _split_into_cycles(events)
+        self.assertEqual(len(cycles), 1)
+
+
 class FetchPositionHistoryPaginationTests(unittest.TestCase):
     def test_paginates_through_multiple_pages(self):
         from agents.trading import position_monitor as pm

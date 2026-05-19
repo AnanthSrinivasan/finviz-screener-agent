@@ -23,6 +23,8 @@ def compute_pnl_from_events(events, current_price=0.0, current_shares=0.0):
     running_cost = 0.0
     total_bought = 0.0
     total_sold = 0.0
+    proceeds_sold = 0.0       # gross $ received from SELLs
+    cost_basis_sold = 0.0     # cost basis of shares actually sold (at avg-at-time)
     for ev in events or []:
         sh = float(ev.get("shares", 0) or 0)
         px = float(ev.get("price", 0) or 0)
@@ -38,6 +40,8 @@ def compute_pnl_from_events(events, current_price=0.0, current_shares=0.0):
                 avg = running_cost / running_shares
                 sold = min(sh, running_shares)
                 realized += sold * (px - avg)
+                proceeds_sold += sold * px
+                cost_basis_sold += sold * avg
                 running_cost -= sold * avg
                 running_shares = max(0.0, running_shares - sold)
                 total_sold += sold
@@ -51,4 +55,6 @@ def compute_pnl_from_events(events, current_price=0.0, current_shares=0.0):
         "total_bought_units": total_bought,
         "total_sold_units": total_sold,
         "final_shares": running_shares,
+        "proceeds_sold": proceeds_sold,
+        "cost_basis_sold": cost_basis_sold,
     }
