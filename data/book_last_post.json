@@ -1,4 +1,18 @@
 {
   "last_book_post_ts": "2026-05-20T19:41:00.653717Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_added",
+      "ticker": "TAN",
+      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: TAN\n   100 shares @ $62.97 (from SnapTrade)\n   Auto-stop: $57.49 | T1: $75.56 | T2: $88.16\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
+      "ts": "2026-05-20T21:19:23.931872Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "UFO",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 UFO ATR mult 4.61x",
+      "alert_type": "PEEL",
+      "ts": "2026-05-20T21:19:23.931872Z"
+    }
+  ]
 }
