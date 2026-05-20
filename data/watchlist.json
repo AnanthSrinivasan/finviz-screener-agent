@@ -55,9 +55,11 @@
       "stop": 38,
       "thesis": "Character change, European solar demand, Iran energy crisis",
       "added": "2026-03-24",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
-      "focus_promoted_date": "2026-05-14"
+      "focus_promoted_date": "2026-05-14",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-21"
     },
     {
       "ticker": "PLAB",
@@ -2781,6 +2783,17 @@
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
+    },
+    {
+      "ticker": "AVR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
     }
   ],
   "tickers": [
