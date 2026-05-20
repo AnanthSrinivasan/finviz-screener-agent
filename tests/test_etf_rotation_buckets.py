@@ -128,15 +128,20 @@ class TestRenderHtml(unittest.TestCase):
         self.assertIn("XLRE", html)
         self.assertIn("XLK", html)
         self.assertIn("GDX", html)
-        self.assertIn("Base", html)
-        self.assertIn("Extended", html)
+        # New layout: bucket counts strip + sortable full table (no per-bucket card sections)
+        self.assertIn("Bucket counts", html)
+        self.assertIn("BASE", html)
+        self.assertIn("EXTENDED", html)
+        self.assertIn("Full metrics", html)
         self.assertIn("mid-rotation", html)
 
     def test_render_handles_empty_buckets(self):
         snapshot = {"date": "2026-05-17", "regime": "early-rotation"}
         html = render_etf_rotation_html(snapshot, [])
         self.assertIn("ETF Rotation Dashboard", html)
-        self.assertIn("None today", html)
+        # Empty universe still renders the bucket-counts strip with zeros
+        self.assertIn("BASE 0", html)
+        self.assertIn("Full metrics — all 0 ETFs", html)
 
 
 if __name__ == "__main__":

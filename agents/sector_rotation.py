@@ -549,22 +549,23 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         d5 = e.get("rank_delta_5d")
         if rs is None and rk is None:
             return ""
-        # Color the RS chip by score band
         bg = "#16a34a" if (rs or 0) >= 70 else ("#2563eb" if (rs or 0) >= 50 else ("#f59e0b" if (rs or 0) >= 30 else "#dc2626"))
         rk_txt = f" #{rk}" if rk else ""
         d5_txt = ""
         if d5 is not None:
             sign = "+" if d5 > 0 else ""
+            # Negative Δrank = rank improving = green; positive = rank worsening = red
             d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
-            d5_txt = f' <span style="color:{d5_color};font-weight:700;margin-left:6px">Δ5d {sign}{d5}</span>'
+            d5_txt = f' <span style="color:{d5_color};font-weight:700;margin-left:6px">Δrank {sign}{d5}</span>'
         return (
             f'<span class="rs-chip" style="background:{bg};color:#fff;font-size:11px;'
             f'font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px">'
             f'RS {rs if rs is not None else "—"}{rk_txt}</span>{d5_txt}'
         )
 
-    def _metric_row(e: dict) -> str:
-        m = e["metrics"]
+    def _full_row(e: dict) -> str:
+        """Shared schema for BOTH the RS leaderboard and the full metrics table."""
+        m = e.get("metrics")
         tk_html = f'<a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a>'
         rs = e.get("rs_score")
         rk = e.get("rs_rank")
@@ -576,16 +577,18 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
             sign = "+" if d5 > 0 else ""
             d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
             d5_cell = f'<span style="color:{d5_color};font-weight:600">{sign}{d5}</span>'
+        # Momentum-sweet-spot row tint: RS 60-80 = "just being noticed" band (Qullamaggie zone)
+        row_cls = ' class="row-momentum"' if (rs is not None and 60 <= rs <= 80) else ''
         if m is None:
             return (
-                f'<tr><td>{tk_html}</td><td>{e["name"]}</td>'
-                f'<td>{rs_cell}</td><td>{rk_cell}</td><td>{d5_cell}</td>'
-                f'<td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td></tr>'
+                f'<tr{row_cls}><td>{rk_cell}</td><td>{tk_html}</td><td>{e["name"]}</td>'
+                f'<td><b>{rs_cell}</b></td><td>{d5_cell}</td>'
+                f'<td colspan="9" style="color:#9ca3af">{e.get("note","—")}</td>'
+                f'<td><span class="bucket-tag b-{e["bucket"]}">{e["bucket"]}</span></td></tr>'
             )
         return (
-            f'<tr><td>{tk_html}</td><td>{e["name"]}</td>'
-            f'<td><b>{rs_cell}</b></td><td>{rk_cell}</td><td>{d5_cell}</td>'
-            f'<td style="color:#6b7280">{e["theme"]}</td>'
+            f'<tr{row_cls}><td>{rk_cell}</td><td>{tk_html}</td><td>{e["name"]}</td>'
+            f'<td><b>{rs_cell}</b></td><td>{d5_cell}</td>'
             f'<td>{m["atr_pct"]}%</td><td>{m["mult50"]}</td><td>{m["dist52"]}%</td>'
             f'<td>{m["range20"]}%</td><td>{m["ret20"]}%</td><td>{m["ema21d"]}%</td>'
             f'<td>{m["rvol"]}x</td>'
@@ -617,45 +620,63 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     broken_cards = "".join(_card(e, "#dc2626") for e in by_bucket["BROKEN"])
     neutral_cards = "".join(_card(e, "#9ca3af") for e in by_bucket["NEUTRAL"])
 
-    # Global RS leaderboard — top 10 / bottom 5 by rs_rank (from sector_rotation snapshot)
+    # Global RS leaderboard — top 10 by rs_rank, same schema as full table
     _ranked = [e for e in etf_setups if e.get("rs_rank")]
     _ranked.sort(key=lambda e: e.get("rs_rank") or 99)
-    def _rs_row(e: dict) -> str:
-        d5 = e.get("rank_delta_5d")
-        d5_html = "—"
-        if d5 is not None:
-            sign = "+" if d5 > 0 else ""
-            color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
-            d5_html = f'<span style="color:{color};font-weight:700">{sign}{d5}</span>'
-        return (
-            f'<tr><td><b>#{e.get("rs_rank","—")}</b></td>'
-            f'<td><a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a></td>'
-            f'<td>{e["name"]}</td>'
-            f'<td><b>{e.get("rs_score","—")}</b></td>'
-            f'<td>{d5_html}</td>'
-            f'<td><span class="bucket-tag b-{e["bucket"]}">{e["bucket"]}</span></td></tr>'
-        )
-    leaders_html = "".join(_rs_row(e) for e in _ranked[:10])
-    laggards_html = "".join(_rs_row(e) for e in _ranked[-5:][::-1])
+
+    SHARED_HEADER = (
+        '<thead><tr>'
+        '<th title="Universe rank — #1 is strongest">Rank</th>'
+        '<th>Ticker</th><th>Name</th>'
+        '<th title="Relative Strength 0-99 vs SPY (20d-vs-SPY percentile)">RS</th>'
+        '<th title="Rank change vs 5 trading days ago — negative is BETTER (rotating in)">Δrank ↓=better</th>'
+        '<th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th>'
+        '<th>ret20</th><th>EMA21 dist</th><th>RVol</th>'
+        '<th>50/200 ↑</th><th>Bucket</th>'
+        '</tr></thead>'
+    )
+    leaders_html = "".join(_full_row(e) for e in _ranked[:10])
     rs_leaderboard_html = ""
     if _ranked:
         rs_leaderboard_html = (
-            '<h2>🏆 RS Leaderboard</h2>'
-            '<div class="subtitle">Top 10 and bottom 5 by relative strength rank (sector_rotation snapshot). '
-            'Δ5d negative = rank improving (rotating in).</div>'
-            '<div class="rs-board">'
-            '<div class="rs-col"><div class="rs-col-head">Leaders (top 10)</div>'
-            '<table class="rs-table"><thead><tr><th>Rank</th><th>ETF</th><th>Name</th><th>RS</th><th>Δ5d</th><th>Bucket</th></tr></thead>'
-            f'<tbody>{leaders_html}</tbody></table></div>'
-            '<div class="rs-col"><div class="rs-col-head">Laggards (bottom 5)</div>'
-            '<table class="rs-table"><thead><tr><th>Rank</th><th>ETF</th><th>Name</th><th>RS</th><th>Δ5d</th><th>Bucket</th></tr></thead>'
-            f'<tbody>{laggards_html}</tbody></table></div>'
-            '</div>'
+            '<h2>🏆 RS Leaderboard — top 10 by relative strength</h2>'
+            '<div class="subtitle">Same columns as the full table below. '
+            '<b>Δrank ↓=better</b>: negative = rank improving (rotating in, green) · positive = rank deteriorating (rotating out, red). '
+            'Amber row tint = RS 60–80 momentum sweet spot (just being noticed).</div>'
+            f'<table class="sortable">{SHARED_HEADER}<tbody>{leaders_html}</tbody></table>'
         )
 
+    # SMH ↔ IGV rotation banner — semi/software is the most-asked pair
+    rotation_banner = ""
+    _by_etf = {e["ticker"]: e for e in etf_setups if e.get("rs_rank")}
+    smh = _by_etf.get("SMH"); igv = _by_etf.get("IGV")
+    if smh and igv:
+        smh_d5 = smh.get("rank_delta_5d") or 0
+        igv_d5 = igv.get("rank_delta_5d") or 0
+        # SMH rank worsening + IGV rank improving = possible rotation
+        if smh_d5 >= 3 and igv_d5 <= -3:
+            rotation_banner = (
+                '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;'
+                'padding:12px 16px;margin:12px 0;font-size:14px;color:#92400e">'
+                f'🔄 <b>Semi/Software RS shift</b>: SMH Δrank +{smh_d5} (weakening) · '
+                f'IGV Δrank {igv_d5} (strengthening) — possible rotation. '
+                'NOT proof of money flow; just relative strength.'
+                '</div>'
+            )
+        elif igv_d5 >= 3 and smh_d5 <= -3:
+            rotation_banner = (
+                '<div style="background:#dbeafe;border:1px solid #2563eb;border-radius:8px;'
+                'padding:12px 16px;margin:12px 0;font-size:14px;color:#1e40af">'
+                f'🔄 <b>Software/Semi RS shift</b>: IGV Δrank +{igv_d5} (weakening) · '
+                f'SMH Δrank {smh_d5} (strengthening) — possible rotation back to semis.'
+                '</div>'
+            )
+
+    # Full table: bucket-grouped by default (most actionable order). Columns are
+    # click-sortable in the browser via the tiny JS at the bottom of the page.
     table_order = ["BASE", "PRE-BREAKOUT", "EXTENDED", "BROKEN", "NEUTRAL"]
     ordered_setups = [e for b in table_order for e in by_bucket.get(b, [])]
-    all_rows = "".join(_metric_row(e) for e in ordered_setups)
+    full_table_rows = "".join(_full_row(e) for e in ordered_setups)
 
     headline = action.get("headline", "")
     sizing = action.get("sizing", "")
@@ -696,6 +717,10 @@ th{{background:#f3f4f6;color:#111827;position:sticky;top:0}}
 .rs-table th{{background:#f3f4f6;color:#111827;text-align:left;padding:4px 8px;border:1px solid #e5e7eb}}
 .rs-table td{{padding:4px 8px;border:1px solid #e5e7eb}}
 .etf-rs{{margin:4px 0 6px 0}}
+.row-momentum td{{background:#fffbeb}}
+table.sortable th:hover{{background:#e5e7eb}}
+table.sortable th[data-sort="asc"]::after{{content:" ▲";color:#2563eb;font-size:10px}}
+table.sortable th[data-sort="desc"]::after{{content:" ▼";color:#2563eb;font-size:10px}}
 @media (max-width:760px){{.rs-board{{grid-template-columns:1fr}}}}
 details{{margin-top:12px}}
 summary{{cursor:pointer;font-weight:bold;color:#374151;padding:4px 0}}
@@ -714,35 +739,58 @@ a{{color:#2563eb}}
 </div>
 </div>
 
+{rotation_banner}
 {rs_leaderboard_html}
 
-<h2>🎯 Base — {len(by_bucket['BASE'])} setups</h2>
-<div class="subtitle">Tight, low-vol, ready to break out. Ranked by tightness × room.</div>
-<div class="etf-grid">{base_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
+<div class="subtitle" style="margin-top:18px">
+Bucket counts:
+<span class="bucket-tag b-BASE">BASE {len(by_bucket['BASE'])}</span>
+<span class="bucket-tag b-PRE-BREAKOUT">PRE-BREAKOUT {len(by_bucket['PRE-BREAKOUT'])}</span>
+<span class="bucket-tag b-EXTENDED">EXTENDED {len(by_bucket['EXTENDED'])}</span>
+<span class="bucket-tag b-BROKEN">BROKEN {len(by_bucket['BROKEN'])}</span>
+<span class="bucket-tag b-NEUTRAL">NEUTRAL {len(by_bucket['NEUTRAL'])}</span>
+</div>
 
-<h2>🟦 Pre-Breakout — {len(by_bucket['PRE-BREAKOUT'])} setups</h2>
-<div class="subtitle">Approaching highs with room before peel-warn. Slightly less tight than BASE.</div>
-<div class="etf-grid">{pre_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
-
-<h2>🚀 Extended — {len(by_bucket['EXTENDED'])} setups (wait for PB)</h2>
-<div class="subtitle">Strong trends already running. Don't chase — watch for 21 EMA pullback as entry.</div>
-<div class="etf-grid">{ext_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
-
-<details>
-<summary>❌ Broken / Stage 4 — {len(by_bucket['BROKEN'])} ETFs</summary>
-<div class="etf-grid">{broken_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
-</details>
-
-<details>
-<summary>◯ Neutral / ranging — {len(by_bucket['NEUTRAL'])} ETFs</summary>
-<div class="etf-grid">{neutral_cards or '<div style="color:#9ca3af">None today.</div>'}</div>
-</details>
-
-<h2>📋 Full metrics</h2>
-<table>
-<thead><tr><th>Ticker</th><th>Name</th><th title="Relative Strength 0-99 vs SPY (20d-vs-SPY percentile)">RS</th><th title="Universe rank 1=strongest">Rank</th><th title="Rank change vs 5 trading days ago (negative = rank improving)">Δ5d</th><th>Theme</th><th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th><th>ret20</th><th>EMA21 dist</th><th>RVol</th><th>50/200 ↑</th><th>Bucket</th></tr></thead>
-<tbody>{all_rows}</tbody>
+<h2>📋 Full metrics — all {len(etf_setups)} ETFs</h2>
+<div class="subtitle">Click any column header to sort. Default: grouped by bucket (BASE → PRE-BREAKOUT → EXTENDED → BROKEN → NEUTRAL).</div>
+<table id="full-table" class="sortable">{SHARED_HEADER}
+<tbody>{full_table_rows}</tbody>
 </table>
+
+<script>
+(function() {{
+  document.querySelectorAll('table.sortable').forEach(function(table) {{
+    var headers = table.querySelectorAll('thead th');
+    headers.forEach(function(th, idx) {{
+      th.style.cursor = 'pointer';
+      th.style.userSelect = 'none';
+      var sortAsc = true;
+      th.addEventListener('click', function() {{
+        var tbody = table.tBodies[0];
+        var rows = Array.from(tbody.rows);
+        // Strip non-numeric chars (#, %, x, +) for numeric compare; fall back to string
+        function key(row) {{
+          var c = row.cells[idx];
+          if (!c) return '';
+          var t = (c.innerText || c.textContent || '').trim();
+          var n = parseFloat(t.replace(/[#%x,+]/g, ''));
+          return isNaN(n) ? t.toLowerCase() : n;
+        }}
+        rows.sort(function(a, b) {{
+          var ka = key(a), kb = key(b);
+          if (ka < kb) return sortAsc ? -1 : 1;
+          if (ka > kb) return sortAsc ? 1 : -1;
+          return 0;
+        }});
+        rows.forEach(function(r) {{ tbody.appendChild(r); }});
+        headers.forEach(function(h) {{ h.removeAttribute('data-sort'); }});
+        th.setAttribute('data-sort', sortAsc ? 'asc' : 'desc');
+        sortAsc = !sortAsc;
+      }});
+    }});
+  }});
+}})();
+</script>
 </body></html>"""
 
 

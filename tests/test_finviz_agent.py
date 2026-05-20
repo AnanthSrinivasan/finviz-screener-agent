@@ -1107,14 +1107,19 @@ class TestIsStageTransition(unittest.TestCase):
             self._row(sma50=-1.0), set(), set(), self._snapshot()))
 
     def test_fails_when_200ma_far_overhead(self):
-        # sma200 ≤ -5 = 200 SMA more than 5% overhead → not a reclaim setup
+        # sma200 ≤ -15 = 200 SMA more than 15% overhead → too early
         self.assertFalse(_is_stage_transition(
-            self._row(sma200=-6.0), set(), set(), self._snapshot()))
+            self._row(sma200=-16.0), set(), set(), self._snapshot()))
 
     def test_passes_when_200ma_within_reach(self):
-        # sma200 = -4% (just overhead) is fine — classic stage 2A
+        # sma200 = -10% (overhead, but reachable) — classic early Stage 2A reclaim
         self.assertTrue(_is_stage_transition(
-            self._row(sma200=-4.0), set(), set(), self._snapshot()))
+            self._row(sma200=-10.0), set(), set(), self._snapshot()))
+
+    def test_passes_at_200ma_boundary_minus_15(self):
+        # Boundary: -14.9% (just inside) passes
+        self.assertTrue(_is_stage_transition(
+            self._row(sma200=-14.9), set(), set(), self._snapshot()))
 
     def test_passes_when_above_200ma(self):
         self.assertTrue(_is_stage_transition(

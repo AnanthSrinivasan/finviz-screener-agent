@@ -2295,7 +2295,11 @@ def _is_stage_transition(row, open_positions_tickers: set, exclude_tickers: set,
     All must hold:
       - sma20 > sma50  (20 SMA above 50 SMA — proxy for 21 EMA > 50 SMA)
       - sma50 > 0      (price above 50 SMA)
-      - sma200 > -5    (200 SMA within 5% — close to reclaim, OR already above)
+      - sma200 > -15   (200 SMA within 15% overhead, OR price already above it)
+                       Loosened 2026-05-20 from -5 → -15 to catch early-cycle
+                       software runs (CRWD/SNOW/HUBS class) that reclaim
+                       50 SMA + 8/21 EMA while 200 SMA is still 10-15% above.
+                       Sector-rank gate carries the false-positive risk.
       - ATR% ≤ 7
       - Q ≥ 70
       - RVol ≥ 1.0
@@ -2318,7 +2322,7 @@ def _is_stage_transition(row, open_positions_tickers: set, exclude_tickers: set,
     if any(v is None or pd.isna(v) for v in (sma20, sma50, sma200)):
         return False
     sma20 = float(sma20); sma50 = float(sma50); sma200 = float(sma200)
-    if not (sma20 > sma50 and sma50 > 0 and sma200 > -5.0):
+    if not (sma20 > sma50 and sma50 > 0 and sma200 > -15.0):
         return False
 
     atr = row.get("ATR%")
