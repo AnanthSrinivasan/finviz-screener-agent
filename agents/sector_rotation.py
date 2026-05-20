@@ -646,31 +646,54 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
             f'<table class="sortable">{SHARED_HEADER}<tbody>{leaders_html}</tbody></table>'
         )
 
-    # SMH ↔ IGV rotation banner — semi/software is the most-asked pair
+    # SMH ↔ IGV pair tracker — always-on status line + alarmist banner on divergence.
+    # Semi/software is the most-asked pair; keeping it visible avoids hunting the table.
     rotation_banner = ""
     _by_etf = {e["ticker"]: e for e in etf_setups if e.get("rs_rank")}
     smh = _by_etf.get("SMH"); igv = _by_etf.get("IGV")
     if smh and igv:
         smh_d5 = smh.get("rank_delta_5d") or 0
         igv_d5 = igv.get("rank_delta_5d") or 0
-        # SMH rank worsening + IGV rank improving = possible rotation
-        if smh_d5 >= 3 and igv_d5 <= -3:
-            rotation_banner = (
-                '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;'
-                'padding:12px 16px;margin:12px 0;font-size:14px;color:#92400e">'
-                f'🔄 <b>Semi/Software RS shift</b>: SMH Δrank +{smh_d5} (weakening) · '
-                f'IGV Δrank {igv_d5} (strengthening) — possible rotation. '
-                'NOT proof of money flow; just relative strength.'
-                '</div>'
+        smh_rk = smh.get("rs_rank"); smh_rs = smh.get("rs_score")
+        igv_rk = igv.get("rs_rank"); igv_rs = igv.get("rs_score")
+
+        def _delta_fmt(d):
+            if d == 0:
+                return '<span style="color:#6b7280">Δ0</span>'
+            sign = "+" if d > 0 else ""
+            color = "#16a34a" if d < 0 else "#dc2626"
+            return f'<span style="color:{color};font-weight:700">Δ{sign}{d}</span>'
+
+        # Divergence detection — drives the colored banner
+        is_smh_to_igv = smh_d5 >= 3 and igv_d5 <= -3
+        is_igv_to_smh = igv_d5 >= 3 and smh_d5 <= -3
+        if is_smh_to_igv:
+            box_bg, box_border, box_color = "#fef3c7", "#f59e0b", "#92400e"
+            verdict = (
+                "🔄 <b>SMH weakening, IGV strengthening</b> — possible rotation. "
+                "<span style='color:#6b7280'>NOT proof of money flow; just relative strength.</span>"
             )
-        elif igv_d5 >= 3 and smh_d5 <= -3:
-            rotation_banner = (
-                '<div style="background:#dbeafe;border:1px solid #2563eb;border-radius:8px;'
-                'padding:12px 16px;margin:12px 0;font-size:14px;color:#1e40af">'
-                f'🔄 <b>Software/Semi RS shift</b>: IGV Δrank +{igv_d5} (weakening) · '
-                f'SMH Δrank {smh_d5} (strengthening) — possible rotation back to semis.'
-                '</div>'
+        elif is_igv_to_smh:
+            box_bg, box_border, box_color = "#dbeafe", "#2563eb", "#1e40af"
+            verdict = (
+                "🔄 <b>IGV weakening, SMH strengthening</b> — possible rotation back to semis."
             )
+        else:
+            # Neutral: subtle gray box, no alarm
+            box_bg, box_border, box_color = "#f9fafb", "#e5e7eb", "#4b5563"
+            verdict = "⚖️ Pair stable — no significant 5d shift."
+
+        rotation_banner = (
+            f'<div style="background:{box_bg};border:1px solid {box_border};border-radius:8px;'
+            f'padding:10px 14px;margin:12px 0;font-size:13px;color:{box_color}">'
+            f'<b>Semi ↔ Software:</b> '
+            f'<a href="{_fv("SMH")}" target="_blank" style="color:inherit;font-weight:700">SMH</a> '
+            f'#{smh_rk} (RS {smh_rs}) {_delta_fmt(smh_d5)} '
+            f'· <a href="{_fv("IGV")}" target="_blank" style="color:inherit;font-weight:700">IGV</a> '
+            f'#{igv_rk} (RS {igv_rs}) {_delta_fmt(igv_d5)} '
+            f'<span style="margin-left:12px">{verdict}</span>'
+            f'</div>'
+        )
 
     # Full table: bucket-grouped by default (most actionable order). Columns are
     # click-sortable in the browser via the tiny JS at the bottom of the page.
