@@ -5,17 +5,17 @@
       "shares": 100,
       "entry_price": 137.82,
       "entry_date": "2026-05-19",
-      "stop_price": 126.03,
+      "stop_price": 127.88,
       "breakeven_activated": false,
       "target1": 165.38,
       "target1_hit": false,
       "target2": 192.95,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 139.21,
-      "current_gain_pct": -0.97,
+      "highest_price_seen": 141.24,
+      "current_gain_pct": 1.71,
       "first_entry_price": 137.82,
-      "peak_gain_pct": 1.01
+      "peak_gain_pct": 2.48
     },
     {
       "ticker": "INDV",
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 38.3,
-      "current_gain_pct": 0.32,
+      "current_gain_pct": 0.16,
       "first_entry_price": 37.74,
       "peak_gain_pct": 1.48
     },
@@ -39,17 +39,17 @@
       "shares": 50,
       "entry_price": 121.31,
       "entry_date": "2026-05-20",
-      "stop_price": 115.39,
+      "stop_price": 115.69,
       "breakeven_activated": false,
       "target1": 145.57,
       "target1_hit": false,
       "target2": 169.83,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 124.53,
-      "current_gain_pct": 2.28,
+      "highest_price_seen": 124.91,
+      "current_gain_pct": 2.23,
       "first_entry_price": 121.31,
-      "peak_gain_pct": 2.65
+      "peak_gain_pct": 2.97
     },
     {
       "ticker": "SEDG",
@@ -64,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 58.21,
-      "current_gain_pct": 4.06,
+      "current_gain_pct": 3.47,
       "first_entry_price": 54.24,
       "peak_gain_pct": 7.32
     },
@@ -81,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 1443.24,
-      "current_gain_pct": -2.91,
+      "current_gain_pct": -1.8,
       "first_entry_price": 1427.84,
       "peak_gain_pct": 1.08
     },
@@ -90,17 +90,17 @@
       "shares": 100,
       "entry_price": 58.27,
       "entry_date": "2026-05-20",
-      "stop_price": 54.44,
+      "stop_price": 54.66,
       "breakeven_activated": false,
       "target1": 69.92,
       "target1_hit": false,
       "target2": 81.58,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 58.58,
-      "current_gain_pct": -0.17,
+      "highest_price_seen": 58.84,
+      "current_gain_pct": 0.72,
       "first_entry_price": 58.27,
-      "peak_gain_pct": 0.53
+      "peak_gain_pct": 0.98
     },
     {
       "ticker": "TNA",
@@ -115,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 61.8,
-      "current_gain_pct": -0.59,
+      "current_gain_pct": -0.16,
       "first_entry_price": 61.48,
       "peak_gain_pct": 0.52
     },
@@ -132,7 +132,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 53.1,
-      "current_gain_pct": -0.28,
+      "current_gain_pct": -0.6,
       "first_entry_price": 52.9,
       "peak_gain_pct": 0.38
     }
@@ -730,9 +730,9 @@
       "first_entry_price": 135.95,
       "peak_gain_pct": 4.94,
       "close_date": "2026-05-19",
-      "close_price": 128.76,
-      "close_source": "live_quote",
-      "result_pct": -5.29
+      "close_price": 123.26,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -9.33
     },
     {
       "ticker": "ROKU",
@@ -751,9 +751,9 @@
       "first_entry_price": 127.01,
       "peak_gain_pct": 0.09,
       "close_date": "2026-05-19",
-      "close_price": 120.23,
-      "close_source": "live_quote",
-      "result_pct": -5.34
+      "close_price": 121.9,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -4.02
     }
   ]
 }
