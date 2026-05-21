@@ -805,7 +805,12 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             rs_leader_tickers: list | None = None,
                             rs_leaders_actions: dict | None = None,
                             htf_base_reclaim_tickers: list | None = None,
-                            stage_transition_entries: list | None = None) -> str:
+                            stage_transition_entries: list | None = None,
+                            ready_to_enter: list | None = None,
+                            fresh_breakouts: list | None = None,
+                            power_plays: list | None = None,
+                            ema21_pullbacks: list | None = None,
+                            recovery_leaders: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -891,6 +896,42 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     <span class="section-sub-inline">Early Stage 2 reclaim · parent sector ETF rotating in (Δrank ≤ -5 over 5d)</span>
   </summary>
   <div class="chart-grid" style="margin-top:12px">{"".join(st_cards)}</div>
+</details>"""
+
+    # 🐉 Recovery Leader — V-recovery runners pre-golden-cross. Watch-only.
+    recovery_leader_html = ""
+    if recovery_leaders:
+        _row_lookup_rl: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_rl:
+                    _row_lookup_rl[_t] = _r
+        rl_cards = []
+        for e in recovery_leaders:
+            t = e["ticker"]
+            _r = _row_lookup_rl.get(t)
+            if _r is None:
+                continue
+            card = _build_card(t, _r, FINVIZ_BASE, top_sectors)
+            rl_badge = (
+                f'<span style="font-size:9px;background:#dc2626;color:#fff;'
+                f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
+                f'pre-cross</span>'
+            )
+            card = card.replace(
+                f'class="ticker-link">{t}</a>',
+                f'class="ticker-link">{t}</a>' + rl_badge,
+            )
+            rl_cards.append(card)
+        if rl_cards:
+            recovery_leader_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    🐉 Recovery Leader <span class="section-count">{len(rl_cards)}</span>
+    <span class="section-sub-inline">V-recovery, price above 50/200 MAs but 50/200 cross pending — watch only, size half</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(rl_cards)}</div>
 </details>"""
 
     # HTF Base Reclaim — collapsible section (uncapped per spec). Tight-against-recent-pivot
@@ -1071,6 +1112,105 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     except Exception as _e:
         log.warning("Watchlist section skipped (non-fatal): %s", _e)
 
+    # 🎯 Top Picks — hero block aggregating all Slack-actionable signals at the top.
+    # Dedup tickers across 7 sources; each card gets a multi-source badge string.
+    top_picks_html = ""
+    try:
+        _tp_sources: dict[str, list[str]] = {}  # ticker -> [source labels]
+        def _tp_add(tk: str, label: str):
+            if not tk:
+                return
+            _tp_sources.setdefault(tk, [])
+            if label not in _tp_sources[tk]:
+                _tp_sources[tk].append(label)
+
+        for _r in (ready_to_enter or []):
+            _tp_add(_r.get("ticker", ""), "RTE")
+        for _r in (fresh_breakouts or []):
+            _tp_add(_r.get("ticker", ""), "FB")
+        for _r in (power_plays or []):
+            _tp_add(_r.get("ticker", ""), "PP")
+        for _r in (ema21_pullbacks or []):
+            _tp_add(_r.get("ticker", ""), "21EMA")
+        for _t in (rs_leader_tickers or []):
+            _action = (rs_leaders_actions or {}).get(_t, "active")
+            if _action in {"new", "reacquired"}:
+                _tp_add(_t, "RSL")
+        for _e in (stage_transition_entries or []):
+            _tp_add(_e.get("ticker", ""), "ST")
+        for _t in (htf_base_reclaim_tickers or []):
+            _tp_add(_t, "HTF")
+        for _r in (recovery_leaders or []):
+            _tp_add(_r.get("ticker", ""), "RL")
+
+        if _tp_sources:
+            _tp_row_lookup: dict = {}
+            for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+                for _, _r in _df.iterrows():
+                    _t = _r.get("Ticker", "")
+                    if _t and _t not in _tp_row_lookup:
+                        _tp_row_lookup[_t] = _r
+
+            _source_colors = {
+                "RTE":   "#16a34a",  # green — entry-ready
+                "FB":    "#0ea5e9",  # sky — fresh breakout
+                "PP":    "#e11d48",  # rose — power play
+                "21EMA": "#f59e0b",  # amber — pullback
+                "RSL":   "#7c3aed",  # purple — RS leader
+                "ST":    "#16a34a",  # green — stage transition
+                "HTF":   "#2563eb",  # blue — HTF base reclaim
+                "RL":    "#dc2626",  # red — recovery leader (pre-cross, watch-only)
+            }
+
+            # Sort tickers: by source count desc, then by Quality Score desc
+            def _tp_sort_key(tk: str):
+                row = _tp_row_lookup.get(tk)
+                q = float(row.get("Quality Score") or 0) if row is not None else 0.0
+                return (-len(_tp_sources[tk]), -q)
+
+            _tp_tickers_sorted = sorted(_tp_sources.keys(), key=_tp_sort_key)
+
+            tp_cards = []
+            for tk in _tp_tickers_sorted:
+                _r = _tp_row_lookup.get(tk)
+                if _r is None:
+                    chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={tk}&ty=c&ta=1&p=d&s=m"
+                    finviz_url = f"{FINVIZ_BASE}/quote.ashx?t={tk}"
+                    card = (
+                        f'<div class="chart-item" style="border-color:#16a34a">'
+                        f'<div class="chart-header">'
+                        f'<div><a href="{finviz_url}" target="_blank" class="ticker-link">{tk}</a></div>'
+                        f'</div>'
+                        f'<a href="{finviz_url}" target="_blank">'
+                        f'<img src="{chart_url}" alt="{tk}" loading="lazy" class="chart-img"></a>'
+                        f'</div>'
+                    )
+                else:
+                    card = _build_card(tk, _r, FINVIZ_BASE, top_sectors)
+                # Inject multi-source signal badges
+                _badges = "".join(
+                    f'<span style="font-size:9px;background:{_source_colors.get(s, "#6b7280")};color:#fff;'
+                    f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">{s}</span>'
+                    for s in _tp_sources[tk]
+                )
+                card = card.replace(
+                    f'class="ticker-link">{tk}</a>',
+                    f'class="ticker-link">{tk}</a>' + _badges,
+                    1,
+                )
+                tp_cards.append(card)
+
+            top_picks_html = f"""
+<div class="section" style="border-left:4px solid #16a34a;padding-left:14px;background:#f0fdf4;border-radius:10px;padding:18px 16px 16px 14px;margin-bottom:32px">
+  <div class="section-header" style="border-left:none;padding-left:0">
+    <h2>🎯 Top Picks <span class="section-count">{len(_tp_sources)}</span></h2>
+    <p class="section-sub">All Slack-actionable signals in one place — RTE · FB · PP · 21EMA · RSL · ST · HTF. Sorted by signal count then Quality Score.</p>
+  </div>
+  <div class="chart-grid" style="margin-top:12px">{"".join(tp_cards)}</div>
+</div>"""
+    except Exception as _e:
+        log.warning("Top Picks block skipped (non-fatal): %s", _e)
+
     # Build sector rotation panel
     sector_data = compute_sector_rotation(filter_df)
     sector_rotation_html = ""
@@ -1237,10 +1377,12 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 <button class="pdf-btn" onclick="window.print()" title="Export PDF">⬇</button>
 <div class="page-title">Finviz Chart Gallery</div>
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
+{top_picks_html}
 {sector_rotation_html}
 {sections_html}
 {rs_leaders_html}
 {stage_transition_html}
+{recovery_leader_html}
 {htf_base_reclaim_html}
 {base_building_html}
 {watchlist_html}
@@ -1377,7 +1519,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              htf_base_reclaim: list | None = None,
                              rs_leaders_actions: dict | None = None,
                              ema21_pb: list | None = None,
-                             stage_transition: list | None = None):
+                             stage_transition: list | None = None,
+                             recovery_leaders: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1520,6 +1663,29 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": ":seedling: *Stage Transition* (early Stage 2 — sector rotating in):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # 🐉 Recovery Leader — V-recovery runners pre-golden-cross. Stage 0/1 names
+    # well above both MAs but 50MA still below 200MA from prior drawdown.
+    # Watch-only (sizing reflects pre-confirm risk). ALAB-class.
+    # recovery_leaders is list of dicts: {ticker, q, rs_rating, atr, sma50, sma200, perf_q, rvol, dist}
+    if recovery_leaders:
+        lines = []
+        for r in recovery_leaders[:5]:
+            lines.append(
+                f"`{r['ticker']}` Q{r['q']:.0f} · RS {r['rs_rating']} · ATR {r['atr']:.1f}% · "
+                f"sma50 {r['sma50']:+.0f}% sma200 {r['sma200']:+.0f}% (pre-cross) · "
+                f"PerfQ {r['perf_q']:+.0f}% · RVol {r['rvol']:.2f}x · "
+                f"`/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":dragon: *Recovery Leader* (V-recovery, 50/200 cross pending — watch only, size half):\n"
                         + "\n".join(lines),
             }
         })
@@ -2186,6 +2352,91 @@ def _is_ema21_pullback(row, open_positions_tickers: set, exclude_tickers: set) -
     return True
 
 
+_RECOVERY_LEADER_EXCLUDED_SECTORS = {
+    'Utilities', 'Energy', 'Real Estate', 'Basic Materials', 'Consumer Defensive',
+}
+
+
+def _is_recovery_leader(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
+    """
+    🐉 Recovery Leader — V-recovery runners where price has reclaimed everything
+    but the 50MA hasn't yet crossed back above the 200MA (golden cross pending).
+
+    Every Stage 2 gate rejects these by design (compute_stage requires
+    sma200_pct > sma50_pct, i.e. SMA50 above SMA200 in price). But the tape
+    is screaming: price 15%+ above both MAs, Perf Quarter ≥ +50%, RS strong.
+    ALAB May 19 2026 is the reference case (Q=71, RS=72, RVol=1.81,
+    sma50%+49.8, sma200%+44.9 — 50MA still below 200MA from prior drawdown).
+
+    Watch-only (no auto-entry — these are pre-confirm, high-vol; sizing
+    must reflect the structural risk that the 50/200 cross hasn't completed).
+
+    All must hold:
+      - Stage 0 or Stage 1 (NOT Stage 2 — that's caught by other blocks)
+      - sma50 ≥ +15  (price meaningfully above 50MA)
+      - sma200 ≥ +15 (price meaningfully above 200MA)
+      - sma20 > 0    (price above 20MA — short-term confirmed)
+      - Perf Quarter ≥ 50 (recovery has momentum)
+      - RS Rating ≥ 65
+      - Q ≥ 65
+      - ATR% ≤ 9 (don't catch already-blown-off tapes)
+      - RVol ≥ 1.0
+      - peel-safe (sma50 / atr ≤ peel_warn)
+      - not in slow-growth sectors
+      - not held · not already in another callout
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict):
+        return False
+    stage = stage_d.get("stage")
+    if stage not in (0, 1):
+        return False
+
+    sma20 = row.get("SMA20%")
+    sma50 = row.get("SMA50%")
+    sma200 = row.get("SMA200%")
+    if any(v is None or pd.isna(v) for v in (sma20, sma50, sma200)):
+        return False
+    sma20 = float(sma20); sma50 = float(sma50); sma200 = float(sma200)
+    if sma20 <= 0 or sma50 < 15.0 or sma200 < 15.0:
+        return False
+
+    perf_q = row.get("Perf Quarter")
+    if perf_q is None or pd.isna(perf_q) or float(perf_q) < 50.0:
+        return False
+
+    rs_rating = row.get("RS Rating")
+    if rs_rating is None or pd.isna(rs_rating) or int(rs_rating) < 65:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < 65:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 9.0:
+        return False
+    atr = float(atr)
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) < 1.0:
+        return False
+
+    sector = row.get("Sector") or ""
+    if sector in _RECOVERY_LEADER_EXCLUDED_SECTORS:
+        return False
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
 def _is_textbook_vcp(row) -> bool:
     """
     Pure predicate for the ⭐ Textbook VCP overlay marker. Stricter bar than
@@ -2586,6 +2837,7 @@ def _update_watchlist(
     htf_base_reclaim_tickers: list | None = None,
     ema21_pb_tickers: list | None = None,
     stage_transition_tickers: list | None = None,
+    recovery_leader_tickers: list | None = None,
 ):
     """
     Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
@@ -2744,6 +2996,37 @@ def _update_watchlist(
         by_ticker[hg_ticker] = hg_entry
         hg_added.append(hg_ticker)
         log.info("Watchlist: added %s via Hidden Growth (source=hidden_growth_auto)", hg_ticker)
+
+    # ── Recovery Leader entry path: V-recovery pre-golden-cross (parallel to HG). ──
+    # Ticker enters at priority=watching with source=recovery_leader_auto. Watch-only —
+    # these are Stage 0/1 with structural cross pending. ALAB-class.
+    rl_added: list[str] = []
+    for rl_ticker in (recovery_leader_tickers or []):
+        if rl_ticker in by_ticker:
+            existing_entry = by_ticker[rl_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(rl_ticker)
+                log.info("Watchlist: reactivated %s via Recovery Leader (previously aged out)", rl_ticker)
+            continue
+        rl_entry = {
+            "ticker":      rl_ticker,
+            "entry_note":  "Recovery Leader — V-recovery, 50/200 cross pending. Watch only, size half.",
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      "V-recovery runner, pre-golden-cross",
+            "added":       today,
+            "status":      "watching",
+            "priority":    "watching",
+            "source":      "recovery_leader_auto",
+        }
+        existing.append(rl_entry)
+        by_ticker[rl_ticker] = rl_entry
+        rl_added.append(rl_ticker)
+        log.info("Watchlist: added %s via Recovery Leader (source=recovery_leader_auto)", rl_ticker)
 
     # ── Fresh Breakout entry path: breakout-from-base (parallel to technical/HG adds). ──
     # Ticker enters at priority=watching with source=breakout_auto. Catches stocks
@@ -2961,9 +3244,9 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
@@ -2973,6 +3256,7 @@ def _update_watchlist(
         "rsl_added":               rsl_added,
         "htf_added":               htf_added,
         "st_added":                st_added,
+        "rl_added":                rl_added,
         "reactivated":             reactivated,
         "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
@@ -3411,6 +3695,45 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("Stage Transition detection failed (non-fatal): %s", _e)
 
+    # 🐉 Recovery Leader — V-recovery runners pre-golden-cross. Catches the
+    # ALAB-class miss: price 15%+ above both 50/200 MAs but 50MA still below
+    # 200MA from prior drawdown. Every Stage 2 gate rejects by design;
+    # this block scans Stage 0/1 with strong momentum + RS to surface them.
+    # Watch-only (priority=watching) — sizing must reflect pre-confirm risk.
+    recovery_leaders: list[dict] = []
+    try:
+        exclude_from_rl = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in base_building}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {r["ticker"] for r in ema21_pb}
+            | {r["ticker"] for r in stage_transition}
+            | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+        )
+        if not summary_df.empty:
+            for _, row in summary_df.iterrows():
+                if _is_recovery_leader(row, open_positions_tickers, exclude_from_rl):
+                    recovery_leaders.append({
+                        "ticker":     row["Ticker"],
+                        "q":          float(row.get("Quality Score") or 0),
+                        "rs_rating":  int(row.get("RS Rating") or 0),
+                        "atr":        float(row.get("ATR%") or 0),
+                        "sma50":      float(row.get("SMA50%") or 0),
+                        "sma200":     float(row.get("SMA200%") or 0),
+                        "perf_q":     float(row.get("Perf Quarter") or 0),
+                        "rvol":       float(row.get("Rel Volume") or 0),
+                        "dist":       float(row.get("Dist From High%") or 0),
+                    })
+            recovery_leaders.sort(key=lambda r: r["q"], reverse=True)
+            recovery_leaders = recovery_leaders[:5]
+        if recovery_leaders:
+            log.info("Recovery Leader: %s", [r["ticker"] for r in recovery_leaders])
+    except Exception as _e:
+        log.error("Recovery Leader detection failed (non-fatal): %s", _e)
+
     # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
     _rsl_gallery_tickers = [
         d["ticker"] for d in rs_leaders_triggered
@@ -3424,6 +3747,11 @@ if __name__ == "__main__":
         rs_leaders_actions=rs_leaders_actions,
         htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
         stage_transition_entries=stage_transition,
+        ready_to_enter=ready_to_enter,
+        fresh_breakouts=fresh_breakouts,
+        power_plays=power_plays,
+        ema21_pullbacks=ema21_pb,
+        recovery_leaders=recovery_leaders,
     )
     log.info(f"Chart gallery: {gallery_path}")
 
@@ -3439,6 +3767,7 @@ if __name__ == "__main__":
         rs_leaders_actions=rs_leaders_actions if rs_leaders_actions else None,
         ema21_pb=ema21_pb,
         stage_transition=stage_transition,
+        recovery_leaders=recovery_leaders,
     )
 
     # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
@@ -3453,6 +3782,7 @@ if __name__ == "__main__":
         htf_base_reclaim_tickers=[r["ticker"] for r in htf_base_reclaim],
         ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
         stage_transition_tickers=[r["ticker"] for r in stage_transition],
+        recovery_leader_tickers=[r["ticker"] for r in recovery_leaders],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])
