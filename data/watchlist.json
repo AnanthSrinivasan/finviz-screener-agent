@@ -1260,9 +1260,10 @@
       "thesis": "Technology | Q=77 | ATR 6.2%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-05-21"
     },
     {
       "ticker": "AEM",
@@ -2687,9 +2688,10 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-15",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "hidden_growth_auto",
-      "focus_promoted_date": "2026-05-15"
+      "focus_promoted_date": "2026-05-15",
+      "entry_ready_date": "2026-05-21"
     },
     {
       "ticker": "RAMP",
@@ -2786,6 +2788,29 @@
     },
     {
       "ticker": "AVR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "AAP",
+      "entry_note": "VCP setup \u2014 wait for volume contraction then breakout",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Consumer Cyclical | Q=110 | VCP | ATR 5.1%",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "focus",
+      "source": "screener_auto",
+      "focus_promoted_date": "2026-05-21"
+    },
+    {
+      "ticker": "SBLK",
       "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
       "entry_price": null,
       "stop": null,

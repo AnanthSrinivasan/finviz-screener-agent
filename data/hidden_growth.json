@@ -2,27 +2,27 @@
   "date": "2026-05-21",
   "candidates": [
     {
-      "ticker": "ALAB",
-      "signal_score": 4,
-      "eps_yy_ttm": 533.56,
-      "eps_qq": 148.21,
-      "inst_trans": 0.41,
-      "appearances": 5,
+      "ticker": "BTSG",
+      "signal_score": 5,
+      "eps_yy_ttm": 290.87,
+      "eps_qq": 144.76,
+      "inst_trans": 1.67,
+      "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": false,
-        "stage2_perfect": false,
+        "stage2_perfect": true,
         "ipo_lifecycle": true
       }
     },
     {
-      "ticker": "AUPH",
+      "ticker": "AAP",
       "signal_score": 4,
-      "eps_yy_ttm": 696.05,
-      "eps_qq": 53.13,
-      "inst_trans": 5.5,
+      "eps_yy_ttm": 113.09,
+      "eps_qq": 101.42,
+      "inst_trans": 4.64,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -34,18 +34,18 @@
       }
     },
     {
-      "ticker": "BTSG",
+      "ticker": "ALAB",
       "signal_score": 4,
-      "eps_yy_ttm": 290.87,
-      "eps_qq": 144.76,
-      "inst_trans": 1.67,
-      "appearances": 2,
+      "eps_yy_ttm": 533.56,
+      "eps_qq": 148.21,
+      "inst_trans": 0.41,
+      "appearances": 3,
       "criteria": {
-        "persistence": false,
+        "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": false,
-        "stage2_perfect": true,
+        "stage2_perfect": false,
         "ipo_lifecycle": true
       }
     },
@@ -82,19 +82,19 @@
       }
     },
     {
-      "ticker": "KRMN",
+      "ticker": "LASR",
       "signal_score": 4,
-      "eps_yy_ttm": 417.85,
-      "eps_qq": 261.98,
-      "inst_trans": 21.28,
+      "eps_yy_ttm": 74.24,
+      "eps_qq": 106.49,
+      "inst_trans": 3.5,
       "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
       }
     },
     {
@@ -114,19 +114,19 @@
       }
     },
     {
-      "ticker": "AVR",
-      "signal_score": 3,
-      "eps_yy_ttm": 2.38,
-      "eps_qq": 54.31,
-      "inst_trans": 9.96,
+      "ticker": "SNDK",
+      "signal_score": 4,
+      "eps_yy_ttm": 395.16,
+      "eps_qq": 272.72,
+      "inst_trans": -8.13,
       "appearances": 2,
       "criteria": {
         "persistence": false,
-        "eps_yy_strong": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
-        "ipo_lifecycle": false
+        "ipo_lifecycle": true
       }
     },
     {
@@ -178,22 +178,6 @@
       }
     },
     {
-      "ticker": "FCEL",
-      "signal_score": 3,
-      "eps_yy_ttm": 11.56,
-      "eps_qq": 65.45,
-      "inst_trans": 16.9,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "FPS",
       "signal_score": 3,
       "eps_yy_ttm": 0.0,
@@ -210,27 +194,27 @@
       }
     },
     {
-      "ticker": "LSCC",
+      "ticker": "SBLK",
       "signal_score": 3,
-      "eps_yy_ttm": -61.07,
-      "eps_qq": 331.13,
-      "inst_trans": -3.72,
-      "appearances": 3,
+      "eps_yy_ttm": -74.58,
+      "eps_qq": 13233.33,
+      "inst_trans": 5.51,
+      "appearances": 1,
       "criteria": {
-        "persistence": true,
+        "persistence": false,
         "eps_yy_strong": false,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
     },
     {
-      "ticker": "WERN",
+      "ticker": "UMC",
       "signal_score": 3,
-      "eps_yy_ttm": -154.33,
-      "eps_qq": 56.43,
-      "inst_trans": 4.16,
+      "eps_yy_ttm": 17.94,
+      "eps_qq": 116.06,
+      "inst_trans": 7.36,
       "appearances": 1,
       "criteria": {
         "persistence": false,
