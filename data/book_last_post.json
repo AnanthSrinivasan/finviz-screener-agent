@@ -29,6 +29,28 @@
       "message": "\ud83d\udd35 PEEL WARN \u2014 FPS ATR mult 5.19x",
       "alert_type": "PEEL_WARN",
       "ts": "2026-05-21T20:56:12.020684Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "SATS",
+      "message": "\ud83d\udea8 STOP HIT: SATS @ $128.44 \u2014 exit immediately (stop $128.99)",
+      "current_price": 128.44,
+      "stop_price": 128.99,
+      "ts": "2026-05-21T22:24:01.665289Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "SATS",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 SATS ATR mult 0.80",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-21T22:24:01.665289Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FPS",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FPS ATR mult 5.19x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-05-21T22:24:01.665289Z"
     }
   ]
 }
