@@ -7,10 +7,12 @@
       "stop": null,
       "thesis": "Bloom Energy \u2014 clean energy, data center power demand",
       "added": "2026-04-14",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "manual",
-      "entry_ready_date": "2026-04-24"
+      "entry_ready_date": "2026-04-24",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-21"
     },
     {
       "ticker": "CRCL",
@@ -2037,8 +2039,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-05",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-21"
     },
     {
       "ticker": "COHU",
@@ -2523,8 +2526,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-11",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-21"
     },
     {
       "ticker": "EVC",
@@ -2556,10 +2560,12 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-11",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-05-12"
+      "focus_promoted_date": "2026-05-12",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-21"
     },
     {
       "ticker": "NESR",
@@ -2687,11 +2693,13 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-15",
-      "status": "watching",
+      "status": "archived",
       "priority": "entry-ready",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-05-15",
-      "entry_ready_date": "2026-05-21"
+      "entry_ready_date": "2026-05-21",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-21"
     },
     {
       "ticker": "RAMP",
@@ -2830,6 +2838,42 @@
       "status": "watching",
       "priority": "watching",
       "source": "breakout_auto"
+    },
+    {
+      "ticker": "RL",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-21"
+    },
+    {
+      "ticker": "VSAT",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-21"
+    },
+    {
+      "ticker": "RKLB",
+      "entry_note": "RS Leader \u2014 rising MA stack, peel-safe, Stage 2 perfect",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Relative strength leader \u2014 stock-level signal",
+      "added": "2026-05-21",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-21",
+      "source": "rs_leader_auto"
     }
   ],
   "tickers": [

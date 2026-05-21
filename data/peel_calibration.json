@@ -689,7 +689,7 @@
     "runs": 8,
     "atr_pct_avg": 6.84,
     "calibrated": true,
-    "updated": "2026-05-17"
+    "updated": "2026-05-21"
   },
   "BEAM": {
     "signal": 10.0,
@@ -2420,7 +2420,7 @@
     "runs": 8,
     "atr_pct_avg": 3.1,
     "calibrated": true,
-    "updated": "2026-05-17"
+    "updated": "2026-05-21"
   },
   "NESR": {
     "signal": 16.7,
@@ -2543,8 +2543,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 1,
-    "atr_pct_avg": 7.21,
-    "updated": "2026-05-17"
+    "atr_pct_avg": 7.18,
+    "updated": "2026-05-21"
   },
   "NXT": {
     "signal": 10.0,
@@ -2591,6 +2591,18 @@
     "max_seen": 6.1,
     "runs": 4,
     "atr_pct_avg": 3.22,
+    "calibrated": true,
+    "updated": "2026-05-21"
+  },
+  "AMZN": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 6.7,
+    "p75": 7.0,
+    "p90": 7.7,
+    "max_seen": 8.3,
+    "runs": 6,
+    "atr_pct_avg": 5.98,
     "calibrated": true,
     "updated": "2026-05-21"
   }
