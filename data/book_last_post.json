@@ -1,18 +1,4 @@
 {
-  "last_book_post_ts": "2026-05-21T17:14:12.297257Z",
-  "events_since_last": [
-    {
-      "kind": "auto_added",
-      "ticker": "AMZN",
-      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: AMZN\n   50 shares @ $267.30 (from SnapTrade)\n   Auto-stop: $240.79 | T1: $320.76 | T2: $374.22\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
-      "ts": "2026-05-21T19:00:42.515049Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "AMZN",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 AMZN ATR mult 4.52x",
-      "alert_type": "PEEL",
-      "ts": "2026-05-21T19:00:42.515049Z"
-    }
-  ]
+  "last_book_post_ts": "2026-05-21T19:28:00.784014Z",
+  "events_since_last": []
 }
