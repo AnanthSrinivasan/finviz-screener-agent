@@ -101,8 +101,8 @@
       "2026-05-07",
       "2026-05-11"
     ],
-    "days_tracked": 7,
-    "rs_rating": 69
+    "days_tracked": 8,
+    "rs_rating": 64
   },
   "CORZ": {
     "first_triggered": "2026-05-06",
@@ -110,9 +110,9 @@
     "trigger_q": 95.0,
     "trigger_dist": -6.093948370715186,
     "trigger_atr_mult": 5.0,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-05-21",
-    "pullback_started": null,
+    "pullback_started": "2026-05-21",
     "reacquired_dates": [
       "2026-05-21"
     ],
@@ -147,8 +147,8 @@
       "2026-05-07",
       "2026-05-11"
     ],
-    "days_tracked": 7,
-    "rs_rating": 73
+    "days_tracked": 8,
+    "rs_rating": 71
   },
   "SMTC": {
     "first_triggered": "2026-05-06",
@@ -286,14 +286,15 @@
     "trigger_q": 100.0,
     "trigger_dist": -4.125074916816496,
     "trigger_atr_mult": 7.0,
-    "rs_rating": 95,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-05-18",
-    "pullback_started": "2026-05-19",
+    "rs_rating": 94,
+    "current_status": "reacquired",
+    "last_active_date": "2026-05-21",
+    "pullback_started": null,
     "reacquired_dates": [
-      "2026-05-12"
+      "2026-05-12",
+      "2026-05-21"
     ],
-    "days_tracked": 3
+    "days_tracked": 4
   },
   "VRT": {
     "first_triggered": "2026-05-07",
@@ -344,14 +345,15 @@
     "trigger_q": 94.0,
     "trigger_dist": -8.09758771929825,
     "trigger_atr_mult": 2.4,
-    "rs_rating": 85,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-05-18",
-    "pullback_started": "2026-05-19",
+    "rs_rating": 81,
+    "current_status": "reacquired",
+    "last_active_date": "2026-05-21",
+    "pullback_started": null,
     "reacquired_dates": [
-      "2026-05-14"
+      "2026-05-14",
+      "2026-05-21"
     ],
-    "days_tracked": 4
+    "days_tracked": 5
   },
   "PWR": {
     "first_triggered": "2026-05-09",
@@ -452,7 +454,20 @@
     "trigger_q": 98.0,
     "trigger_dist": -6.907085378754552,
     "trigger_atr_mult": 6.8,
-    "rs_rating": 94,
+    "rs_rating": 93,
+    "current_status": "active",
+    "last_active_date": "2026-05-21",
+    "pullback_started": null,
+    "reacquired_dates": [],
+    "days_tracked": 2
+  },
+  "MU": {
+    "first_triggered": "2026-05-21",
+    "trigger_state": "THRUST",
+    "trigger_q": 94.0,
+    "trigger_dist": -8.681153578364897,
+    "trigger_atr_mult": 7.1,
+    "rs_rating": 93,
     "current_status": "active",
     "last_active_date": "2026-05-21",
     "pullback_started": null,
