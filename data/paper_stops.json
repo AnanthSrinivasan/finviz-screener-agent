@@ -1,14 +1,14 @@
 {
   "LSCC": {
     "entry_price": 122.145447,
-    "highest_price_seen": 137.46,
-    "peak_gain_pct": 12.54,
+    "highest_price_seen": 141.51,
+    "peak_gain_pct": 15.85,
     "breakeven_activated": false,
     "target1": 146.57,
     "target2": 171.0,
     "target1_hit": false,
     "atr_pct": 4.96,
-    "stop_price": 128.37
+    "stop_price": 132.42
   },
   "RSI": {
     "stop_price": 25.54,
@@ -24,19 +24,19 @@
   },
   "BTSG": {
     "entry_price": 55.856072,
-    "highest_price_seen": 58.84,
-    "peak_gain_pct": 5.34,
+    "highest_price_seen": 59.62,
+    "peak_gain_pct": 6.74,
     "breakeven_activated": false,
     "target1": 67.03,
     "target2": 78.2,
     "target1_hit": false,
     "atr_pct": 3.6,
-    "stop_price": 54.85
+    "stop_price": 55.6
   },
   "MTSI": {
     "entry_price": 349.242564,
-    "highest_price_seen": 376.92,
-    "peak_gain_pct": 7.92,
+    "highest_price_seen": 377.34,
+    "peak_gain_pct": 8.05,
     "breakeven_activated": false,
     "target1": 419.09,
     "target2": 488.94,
@@ -57,14 +57,14 @@
   },
   "SNDK": {
     "entry_price": 1314.993333,
-    "highest_price_seen": 1443.24,
-    "peak_gain_pct": 9.75,
+    "highest_price_seen": 1493.36,
+    "peak_gain_pct": 13.56,
     "breakeven_activated": false,
     "target1": 1577.99,
     "target2": 1840.99,
     "target1_hit": false,
     "atr_pct": 7.63,
-    "stop_price": 1275.54
+    "stop_price": 1342.86
   },
   "VIK": {
     "entry_price": 85.224769,
@@ -88,9 +88,15 @@
     "stop_price": 294.3
   },
   "AHR": {
-    "stop_price": 47.77,
+    "stop_price": 48.03,
     "entry_price": 50.58,
     "atr_pct": 2.778325123152709,
-    "entry_date": "2026-05-21"
+    "entry_date": "2026-05-21",
+    "highest_price_seen": 50.84,
+    "peak_gain_pct": 0.51,
+    "breakeven_activated": false,
+    "target1": 60.7,
+    "target2": 70.81,
+    "target1_hit": false
   }
 }
