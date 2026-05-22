@@ -1,4 +1,20 @@
 {
   "last_book_post_ts": "2026-05-22T19:14:45.061637Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "SATS",
+      "message": "\ud83d\udea8 STOP HIT: SATS @ $124.20 \u2014 exit immediately (stop $128.99)",
+      "current_price": 124.2,
+      "stop_price": 128.99,
+      "ts": "2026-05-22T20:21:02.205953Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "SATS",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 SATS ATR mult 0.14, P&L $-1,362",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-05-22T20:21:02.205953Z"
+    }
+  ]
 }
