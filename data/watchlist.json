@@ -21,8 +21,10 @@
       "stop": 100,
       "thesis": "CLARITY Act April 3, stablecoin infrastructure, IPO lifecycle",
       "added": "2026-03-24",
-      "status": "watching",
-      "priority": "watching"
+      "status": "archived",
+      "priority": "watching",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-22"
     },
     {
       "ticker": "CORZ",
@@ -2721,9 +2723,10 @@
       "thesis": "Energy | Q=106 | ATR 3.2%",
       "added": "2026-05-19",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-05-19"
+      "focus_promoted_date": "2026-05-19",
+      "entry_ready_date": "2026-05-22"
     },
     {
       "ticker": "ALAB",
@@ -2733,8 +2736,9 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-19",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-22"
     },
     {
       "ticker": "SIMO",
@@ -2825,8 +2829,10 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-21",
       "status": "watching",
-      "priority": "watching",
-      "source": "hidden_growth_auto"
+      "priority": "entry-ready",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-22",
+      "entry_ready_date": "2026-05-22"
     },
     {
       "ticker": "SKYT",
@@ -2874,6 +2880,75 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-21",
       "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "ASTI",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "SIDU",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "LION",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-22"
+    },
+    {
+      "ticker": "ZM",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-22"
+    },
+    {
+      "ticker": "IMAX",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "focus",
+      "source": "breakout_auto",
+      "focus_promoted_date": "2026-05-22"
+    },
+    {
+      "ticker": "UTI",
+      "entry_note": "Fresh Breakout \u2014 breakout from base, watch follow-through",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Breakout from base on volume expansion",
+      "added": "2026-05-22",
+      "status": "watching",
+      "priority": "watching",
+      "source": "breakout_auto"
     }
   ],
   "tickers": [
