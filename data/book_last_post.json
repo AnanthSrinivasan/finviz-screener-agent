@@ -15,6 +15,37 @@
       "message": "\ud83d\udd34 EXIT_STOP \u2014 SATS ATR mult 0.14, P&L $-1,362",
       "alert_type": "EXIT_STOP",
       "ts": "2026-05-22T20:21:02.205953Z"
+    },
+    {
+      "kind": "share_drift_partial_sell",
+      "ticker": "SATS",
+      "message": "\ud83d\udfe1 PARTIAL SELL: SATS\n   100 \u2192 25 shares (75 sold) \u2014 entry/targets unchanged",
+      "old_shares": 100.0,
+      "new_shares": 25.0,
+      "ts": "2026-05-22T21:43:54.799152Z"
+    },
+    {
+      "kind": "share_drift_partial_sell",
+      "ticker": "CRCL",
+      "message": "\ud83d\udfe1 PARTIAL SELL: CRCL\n   150 \u2192 100 shares (50 sold) \u2014 entry/targets unchanged",
+      "old_shares": 150.0,
+      "new_shares": 100.0,
+      "ts": "2026-05-22T21:43:54.799152Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "SATS",
+      "message": "\ud83d\udea8 STOP HIT: SATS @ $124.20 \u2014 exit immediately (stop $128.99)",
+      "current_price": 124.2,
+      "stop_price": 128.99,
+      "ts": "2026-05-22T21:43:54.799152Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "SATS",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 SATS ATR mult 0.14, P&L $-340",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-05-22T21:43:54.799152Z"
     }
   ]
 }
