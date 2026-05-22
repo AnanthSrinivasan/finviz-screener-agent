@@ -810,7 +810,8 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             fresh_breakouts: list | None = None,
                             power_plays: list | None = None,
                             ema21_pullbacks: list | None = None,
-                            recovery_leaders: list | None = None) -> str:
+                            recovery_leaders: list | None = None,
+                            episodic_pivots: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
     out_html = f"data/finviz_chart_grid_{today}.html"
@@ -933,6 +934,16 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
   </summary>
   <div class="chart-grid" style="margin-top:12px">{"".join(rl_cards)}</div>
 </details>"""
+
+    # ⚡ Episodic Pivot — Pradeep SB lane. Rendered via the helper in
+    # agents.utils.episodic_pivot (keeps gallery cards aligned with #momentum-alerts).
+    episodic_pivot_html = ""
+    if episodic_pivots:
+        try:
+            from agents.utils.episodic_pivot import format_html_section as _ep_html
+            episodic_pivot_html = _ep_html(episodic_pivots)
+        except Exception as _eph:
+            log.warning("EP gallery section render failed (non-fatal): %s", _eph)
 
     # HTF Base Reclaim — collapsible section (uncapped per spec). Tight-against-recent-pivot
     # names that the 52w-high gate rejects from RTE/FB.
@@ -1383,6 +1394,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 {rs_leaders_html}
 {stage_transition_html}
 {recovery_leader_html}
+{episodic_pivot_html}
 {htf_base_reclaim_html}
 {base_building_html}
 {watchlist_html}
@@ -1520,7 +1532,8 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              rs_leaders_actions: dict | None = None,
                              ema21_pb: list | None = None,
                              stage_transition: list | None = None,
-                             recovery_leaders: list | None = None):
+                             recovery_leaders: list | None = None,
+                             episodic_pivots: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
         return
@@ -1875,6 +1888,19 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                          "text": f":chart_with_downwards_trend: *RS Leader pulling back:* {pb_str}"
                                  " (14-day grace — will reacquire or drop)"}
             })
+
+    # ⚡ Episodic Pivot teaser — 1 line cross-link to #momentum-alerts.
+    if episodic_pivots:
+        try:
+            from agents.utils.episodic_pivot import format_daily_teaser as _ep_teaser
+            _t = _ep_teaser(episodic_pivots)
+            if _t:
+                blocks.append({
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": _t},
+                })
+        except Exception as _eee:
+            log.warning("EP daily-alert teaser failed (non-fatal): %s", _eee)
 
     blocks.append({"type": "divider"})
 
@@ -2838,6 +2864,7 @@ def _update_watchlist(
     ema21_pb_tickers: list | None = None,
     stage_transition_tickers: list | None = None,
     recovery_leader_tickers: list | None = None,
+    episodic_pivot_tickers: list | None = None,
 ):
     """
     Maintain data/watchlist.json. Four entry paths (parallel, one row per ticker):
@@ -3027,6 +3054,39 @@ def _update_watchlist(
         by_ticker[rl_ticker] = rl_entry
         rl_added.append(rl_ticker)
         log.info("Watchlist: added %s via Recovery Leader (source=recovery_leader_auto)", rl_ticker)
+
+    # ── Episodic Pivot entry path: SB (Setup Bar) — Pradeep / Bonde. ──
+    # Ticker enters at priority=watching with source=episodic_pivot_auto. Watch-only —
+    # high-vol momentum lane, sized by human after chart review. QBTS/AMKR/AXTI class.
+    ep_added: list[str] = []
+    for ep_ticker in (episodic_pivot_tickers or []):
+        if ep_ticker in by_ticker:
+            existing_entry = by_ticker[ep_ticker]
+            existing_entry["last_ep_fire_date"] = today
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(ep_ticker)
+                log.info("Watchlist: reactivated %s via Episodic Pivot (previously aged out)", ep_ticker)
+            continue
+        ep_entry = {
+            "ticker":      ep_ticker,
+            "entry_note":  "Episodic Pivot SB — drying volume + 3d pullback + reversal. Watch chart, size by tier.",
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      "SB before catalyst-driven expansion (Pradeep EP lane)",
+            "added":       today,
+            "status":      "watching",
+            "priority":    "watching",
+            "source":      "episodic_pivot_auto",
+            "last_ep_fire_date": today,
+        }
+        existing.append(ep_entry)
+        by_ticker[ep_ticker] = ep_entry
+        ep_added.append(ep_ticker)
+        log.info("Watchlist: added %s via Episodic Pivot (source=episodic_pivot_auto)", ep_ticker)
 
     # ── Fresh Breakout entry path: breakout-from-base (parallel to technical/HG adds). ──
     # Ticker enters at priority=watching with source=breakout_auto. Catches stocks
@@ -3244,9 +3304,9 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader) + %d (episodic_pivot), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(ep_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
@@ -3257,6 +3317,7 @@ def _update_watchlist(
         "htf_added":               htf_added,
         "st_added":                st_added,
         "rl_added":                rl_added,
+        "ep_added":                ep_added,
         "reactivated":             reactivated,
         "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
@@ -3734,6 +3795,121 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("Recovery Leader detection failed (non-fatal): %s", _e)
 
+    # ⚡ Episodic Pivot — Pradeep SB lane (pullback-reversal on drying volume).
+    # Scans tickers seen in any screener over last 20 trading days (~300-500 universe).
+    # Two-stage filter: cheap Finviz pre-filter → Alpaca bars for bar-shape gate.
+    # Outputs: fires list + context tags (SECTOR/PEERS/STANDALONE).
+    ep_fires: list = []
+    ep_history: dict = {}
+    try:
+        from agents.utils import episodic_pivot as ep_mod
+        ep_history = ep_mod.load_ep_history()
+        ep_universe = ep_mod.build_recent_screener_universe(today)
+        log.info("EP: screener-history universe = %d tickers", len(ep_universe))
+
+        # Exclude tickers already surfaced in other blocks this run
+        ep_exclude = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in base_building}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {r["ticker"] for r in ema21_pb}
+            | {r["ticker"] for r in stage_transition}
+            | {r["ticker"] for r in recovery_leaders}
+            | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
+        )
+
+        # Stage 1: cheap Finviz pre-filter on summary_df (broader than filter_df —
+        # catches Power Move recovery names that were 10%-excluded for being extended)
+        ep_candidates: list = []
+        scan_df = summary_df if not summary_df.empty else filter_df
+        for _, row in scan_df.iterrows():
+            ticker = str(row.get("Ticker", "")).strip().upper()
+            if not ticker or ticker in open_positions_tickers or ticker in ep_exclude:
+                continue
+            if ep_mod.is_in_cooldown(ticker, today, ep_history):
+                continue
+            passes, _reason = ep_mod.passes_pre_filter(
+                row, ep_universe, open_positions_tickers, ep_exclude,
+            )
+            if passes:
+                ep_candidates.append(row)
+        log.info("EP: %d candidates passed pre-filter", len(ep_candidates))
+
+        # Stage 2: Alpaca bars + bar-shape gate
+        if ep_candidates:
+            cand_tickers = [str(r.get("Ticker")).strip().upper() for r in ep_candidates]
+            bars_by_t = ep_mod.fetch_bars_batch(cand_tickers, days=40)
+            log.info("EP: fetched bars for %d/%d candidates", len(bars_by_t), len(cand_tickers))
+
+            # Load sector context (etf rotation + sector_rotation snapshot)
+            etf_rotation = ep_mod.load_etf_rotation()
+            sector_snap = _load_sector_rotation_snapshot(today)
+
+            for row in ep_candidates:
+                ticker = str(row.get("Ticker")).strip().upper()
+                rows = bars_by_t.get(ticker)
+                if not rows:
+                    continue
+                metrics = ep_mod.compute_bar_metrics(rows)
+                if not metrics:
+                    continue
+                passes, _reason = ep_mod.passes_bar_shape(metrics)
+                if not passes:
+                    continue
+
+                # Resolve ETF + compute context tags
+                etf = _resolve_ticker_etf(row)
+                industry = str(row.get("Industry", "") or "").strip()
+                tags, peers = ep_mod.compute_context_tags(
+                    ticker, etf, etf_rotation, sector_snap, industry, ep_history, today,
+                )
+
+                # Use Finviz dist-from-52w-high if available, else fall back to bar-window
+                dist_hi = row.get("Dist From High%")
+                try:
+                    dist_hi = float(dist_hi) if dist_hi is not None else float(metrics.get("dist_window_hi", 0))
+                except (TypeError, ValueError):
+                    dist_hi = float(metrics.get("dist_window_hi", 0))
+
+                ep_fires.append(ep_mod.EPFire(
+                    ticker=ticker,
+                    date=today,
+                    close=float(metrics["close"]),
+                    chg_pct=float(metrics["chg_pct"]),
+                    rvol=float(metrics["rvol"]),
+                    atr_pct=float(row.get("ATR%") or 0),
+                    range_contract=float(metrics["range_contract"]),
+                    prior_3d_cum=float(metrics["prior_3d_cum"]),
+                    dist_52w_hi=dist_hi,
+                    sector=str(row.get("Sector", "") or ""),
+                    industry=industry,
+                    etf=etf,
+                    tags=tags,
+                    peers=peers,
+                ))
+
+        if ep_fires:
+            ep_fires.sort(key=lambda f: (f.tier, -f.score))
+            log.info("EP fires: %s", [(f.ticker, f.emoji) for f in ep_fires])
+            # Persist history + post separately to #momentum-alerts
+            ep_mod.update_ep_history(ep_fires, today, ep_history)
+            ep_mod.save_ep_history(ep_history)
+            try:
+                pages_base = os.getenv("PAGES_BASE_URL", "").rstrip("/")
+                gallery_url = f"{pages_base}/data/finviz_chart_grid_{today}.html" if pages_base else None
+                ep_blocks = ep_mod.format_momentum_slack_blocks(ep_fires, today, gallery_url)
+                ep_mod.post_to_momentum_channel(ep_blocks)
+            except Exception as _ep_post_e:
+                log.error("EP momentum post failed (non-fatal): %s", _ep_post_e)
+        else:
+            log.info("EP: no fires today")
+    except Exception as _e:
+        log.error("Episodic Pivot detection failed (non-fatal): %s", _e, exc_info=True)
+        ep_fires = []
+
     # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
     _rsl_gallery_tickers = [
         d["ticker"] for d in rs_leaders_triggered
@@ -3752,6 +3928,7 @@ if __name__ == "__main__":
         power_plays=power_plays,
         ema21_pullbacks=ema21_pb,
         recovery_leaders=recovery_leaders,
+        episodic_pivots=ep_fires,
     )
     log.info(f"Chart gallery: {gallery_path}")
 
@@ -3768,6 +3945,7 @@ if __name__ == "__main__":
         ema21_pb=ema21_pb,
         stage_transition=stage_transition,
         recovery_leaders=recovery_leaders,
+        episodic_pivots=ep_fires,
     )
 
     # Step 8: Auto-populate watchlist + auto-promote watching→focus→entry-ready
@@ -3783,6 +3961,7 @@ if __name__ == "__main__":
         ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
         stage_transition_tickers=[r["ticker"] for r in stage_transition],
         recovery_leader_tickers=[r["ticker"] for r in recovery_leaders],
+        episodic_pivot_tickers=[f.ticker for f in (ep_fires or [])],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
     promoted_to_entry_ready = wl_changes.get("promoted_to_entry_ready", [])

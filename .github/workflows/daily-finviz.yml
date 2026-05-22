@@ -36,6 +36,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          SLACK_WEBHOOK_MOMENTUM: ${{ secrets.SLACK_WEBHOOK_MOMENTUM }}
+          PAGES_BASE_URL: ${{ secrets.PAGES_BASE_URL }}
 
       - name: Regenerate index page
         env:

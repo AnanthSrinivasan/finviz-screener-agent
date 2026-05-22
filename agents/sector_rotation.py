@@ -531,6 +531,27 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     action = regime_action(regime) or {}
     today = snapshot.get("date", "")
 
+    # Cross-link: EP fires today, grouped by ETF (read from data/episodic_pivots.json).
+    # Each card under a sector shows "EP setups: TKR (🔥), TKR (🌊)" when that sector
+    # has at least one EP fire today.
+    ep_by_etf: dict[str, list[tuple[str, str]]] = {}
+    try:
+        import json as _json
+        with open("data/episodic_pivots.json") as _epf:
+            _ep_hist = _json.load(_epf)
+        for _tk, _rec in _ep_hist.items():
+            if _rec.get("last_fire_date") != today:
+                continue
+            _etf = _rec.get("etf")
+            if not _etf:
+                continue
+            _tags = _rec.get("last_fire_tags", []) or []
+            _s, _p = "SECTOR" in _tags, "PEERS" in _tags
+            _emoji = "🔥" if (_s and _p) else "🌊" if _p else "📈" if _s else "⚡"
+            ep_by_etf.setdefault(_etf, []).append((_tk, _emoji))
+    except (FileNotFoundError, ValueError, KeyError):
+        ep_by_etf = {}
+
     by_bucket = {"BASE": [], "PRE-BREAKOUT": [], "EXTENDED": [], "BROKEN": [], "NEUTRAL": []}
     for e in etf_setups:
         by_bucket[e.get("bucket", "NEUTRAL")].append(e)
@@ -598,6 +619,15 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
 
     def _card(e: dict, color: str) -> str:
         m = e["metrics"] or {}
+        ep_html = ""
+        eps = ep_by_etf.get(e["ticker"]) or []
+        if eps:
+            ep_parts = " · ".join(f"{t} {emoji}" for t, emoji in eps[:5])
+            ep_html = (
+                f'<div class="etf-ep" style="margin-top:6px;font-size:11px;color:#1d4ed8;'
+                f'background:#eff6ff;padding:4px 8px;border-radius:4px">'
+                f'⚡ EP setups: {ep_parts}</div>'
+            )
         return (
             f'<div class="etf-card" style="border-left:4px solid {color}">'
             f'<div class="etf-head">'
@@ -611,7 +641,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
             f'dist52 <b>{m.get("dist52","—")}%</b> · '
             f'ret20 <b>{m.get("ret20","—")}%</b> · '
             f'RVol <b>{m.get("rvol","—")}x</b>'
-            f'</div></div>'
+            f'</div>{ep_html}</div>'
         )
 
     base_cards = "".join(_card(e, "#16a34a") for e in by_bucket["BASE"])
@@ -923,6 +953,38 @@ def format_slack(snapshot: dict, sig: dict) -> str:
 
     if not (sig["in"] or sig["out"] or sig["anticipation"]):
         lines.append("_No leadership changes today — universe in equilibrium._")
+
+    # ⚡ Cross-mention: 🔥 EP setups in sectors that are also rotating in.
+    # Sector rotation runs at 20:15 UTC (before screener at 20:30 UTC), so we
+    # surface 🔥 fires from the last 4 calendar days (covers Fri→Mon and Mon→Thu
+    # gaps for the twice-weekly Slack cadence).
+    try:
+        import json as _json
+        from datetime import timedelta as _td
+        with open("data/episodic_pivots.json") as _epf:
+            _ep_hist = _json.load(_epf)
+        today = date.today()
+        cutoff = today - _td(days=4)
+        _hot = []
+        for _tk, _rec in _ep_hist.items():
+            _last = _rec.get("last_fire_date") or ""
+            try:
+                _d = date.fromisoformat(_last)
+            except ValueError:
+                continue
+            if _d < cutoff or _d > today:
+                continue
+            _tags = _rec.get("last_fire_tags", []) or []
+            if "SECTOR" in _tags and "PEERS" in _tags:
+                _hot.append((_tk, _rec.get("etf", ""), _last))
+        if _hot:
+            lines.append("")
+            lines.append("*⚡ 🔥 Recent Episodic Pivots in rotating sectors*")
+            for _tk, _etf, _d in _hot:
+                lines.append(f"  • `{_tk}` ({_d}) — EP in {_etf or '?'} — see #momentum-alerts")
+    except (FileNotFoundError, ValueError, KeyError, OSError):
+        pass
+
     return "\n".join(lines)
 
 
