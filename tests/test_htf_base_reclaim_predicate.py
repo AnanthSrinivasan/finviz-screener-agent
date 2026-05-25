@@ -65,11 +65,11 @@ class TestHtfBaseReclaimCandidate(unittest.TestCase):
         ))
 
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
-    def test_rejects_atr_above_8_5(self):
-        # ATR cap raised 7 → 8.5 (May 2026) — ATR 8.6 still rejects.
+    def test_rejects_atr_above_cap(self):
+        # ATR cap raised 7 → 8.5 (May 2026) → 10 (2026-05-25). ATR 10.5 rejects.
         # See tests/test_htf_br_atr_cap.py for the boundary tests.
         self.assertFalse(_is_htf_base_reclaim_candidate(
-            _row(**{"ATR%": 8.6}), set(), set()
+            _row(**{"ATR%": 10.5}), set(), set()
         ))
 
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)

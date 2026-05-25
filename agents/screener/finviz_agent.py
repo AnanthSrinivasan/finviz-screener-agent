@@ -2241,12 +2241,15 @@ def _is_htf_base_reclaim_candidate(row, open_positions_tickers: set, exclude_tic
     Pre-filter for 🌀 HTF Base Reclaim — checked BEFORE the Alpaca swing-pivot
     fetch. Cuts API load to <50 tickers/day in practice.
 
-    All must hold (cheap, no network): Stage 2 perfect · Q ≥ 75 · ATR% ≤ 8.5 ·
+    All must hold (cheap, no network): Stage 2 perfect · Q ≥ 75 · ATR% ≤ 10 ·
     dist from 52w high < -12% · rising MA stack (SMA20/50/200 all > 0) ·
     peel-warn safe · RVol ≥ 1.0 · not held · not already in another callout.
 
-    ATR cap raised 7 → 8.5 (May 2026) after retro coverage audit — DOCN Apr 13 2026
-    (ATR 8.0, dist -15.4%, clean HTF reclaim) was dropped by the prior cap.
+    ATR cap raised 7 → 8.5 (May 2026) after DOCN Apr 13 (ATR 8.0).
+    ATR cap raised 8.5 → 10 (2026-05-25) after RDW May 8 (Q84, ATR 9.12, dist -50%
+    Stage 2 perfect reclaim) was missed by 0.6pp — went +90% in 2 weeks. Cards
+    with ATR > 7 already carry `⚠ High-vol — size 50%` badge, so the extra
+    width still surfaces with the correct sizing nudge.
     """
     ticker = row.get("Ticker") if hasattr(row, "get") else None
     if ticker in open_positions_tickers or ticker in exclude_tickers:
@@ -2263,7 +2266,7 @@ def _is_htf_base_reclaim_candidate(row, open_positions_tickers: set, exclude_tic
         return False
 
     atr = row.get("ATR%")
-    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 8.5:
+    if atr is None or pd.isna(atr) or float(atr) <= 0 or float(atr) > 10.0:
         return False
     atr = float(atr)
 

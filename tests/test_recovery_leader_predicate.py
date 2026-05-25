@@ -107,9 +107,12 @@ class TestRecoveryLeader(unittest.TestCase):
     def test_rejects_already_in_callout(self):
         self.assertFalse(_is_recovery_leader(_row(), set(), {"ALAB"}))
 
+    @patch("agents.screener.finviz_agent._peel_warn_for", lambda t, a: 6.5)
     def test_rejects_blown_off_by_peel_warn(self):
-        # Extended past peel-warn — strict peel uses tier fallback (ATR≤10 → 6.5x)
-        # ALAB at sma50=49.8, atr=7.9 → 6.3x just under; bump sma50 to 55 → 6.96x rejects
+        # Extended past peel-warn (using tier fallback 6.5x for ATR≤10).
+        # Patch the lookup so the test isn't sensitive to per-ticker calibration drift
+        # (ALAB's calibrated warn rose to 9.7 after 2026-05-23 run, masking this test).
+        # ALAB at sma50=49.8, atr=7.9 → 6.3x just under; bump sma50 to 55 → 6.96x rejects.
         self.assertFalse(_is_recovery_leader(_row(**{"SMA50%": 55.0}), set(), set()))
 
 
