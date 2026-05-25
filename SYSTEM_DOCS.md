@@ -723,6 +723,8 @@ S3 structure: `YYYY/MM/DD/<filename>`
 
 Files archived: `daily_quality_*`, `finviz_screeners_*` (csv+html), `finviz_chart_grid_*`, `market_monitor_YYYY-MM-DD.json`, `positions_YYYY-MM-DD.json`, `finviz_weekly_*`, `finviz_weekly_persistence_*`
 
+**Ad-hoc external sharing** (`utils/share_via_s3.py`): on-demand helper that uploads a single HTML report to `s3://screener-data-repository/share/<YYYY-MM-DD>/<basename>` and prints a 7-day presigned URL (SigV4 max). Used to share daily chart grids / weekly reports on X or with reviewers without exposing the dated-URL pattern of the public GH Pages site. Requires AWS profile `personal-090960193599` (admin_user) — overridable via `AWS_SHARE_PROFILE`. Usage: `python utils/share_via_s3.py data/finviz_chart_grid_YYYY-MM-DD.html [more.html ...]`
+
 Never archived: `positions.json`, `trading_state.json`, `watchlist.json`, `alerts_state.json`, `market_monitor_history.json`, `paper_stops.json`
 
 Infra managed via CDK (`infra/` directory, `ScreenerInfraStack`, account `090960193599`). IAM user `finviz-screener-bot` scoped to `PutObject/GetObject/ListBucket` only — no delete permission.
