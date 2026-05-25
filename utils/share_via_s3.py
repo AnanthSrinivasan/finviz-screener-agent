@@ -2,16 +2,19 @@
 and prints a 7-day presigned URL.
 
 Usage:
-    python utils/share_via_s3.py path/to/report.html [more.html ...]
+    python utils/share_via_s3.py --daily            # latest daily chart grid only
+    python utils/share_via_s3.py --weekly           # latest weekly review only
+    python utils/share_via_s3.py --daily --weekly   # both (also: no args = both)
+    python utils/share_via_s3.py path/to/x.html ... # explicit files
 
-Uses the `personal-stack-admin` profile if AWS_PROFILE not set. Each file goes
-to `share/<YYYY-MM-DD>/<basename>` keyed by today's date. Returns a presigned
-URL valid for 7 days (the SigV4 maximum).
+Each file goes to `share/<YYYY-MM-DD>/<basename>` keyed by today's date.
+Returns a presigned URL valid for 7 days (the SigV4 maximum).
 """
 from __future__ import annotations
 
 import os
 import sys
+import glob
 import boto3
 from botocore.exceptions import ClientError
 from datetime import date
@@ -54,12 +57,49 @@ def upload_and_sign(local_path: str, today: str | None = None) -> str:
     return url
 
 
+def _latest(pattern: str) -> str | None:
+    """Return the latest file matching `data/<pattern>` by sorted filename."""
+    files = sorted(glob.glob(os.path.join("data", pattern)))
+    return files[-1] if files else None
+
+
+def _resolve_args(argv: list[str]) -> list[str]:
+    """Convert flags + paths into a concrete file list.
+    No args / --daily --weekly → both.
+    --daily only → latest daily.
+    --weekly only → latest weekly.
+    Explicit paths pass through.
+    """
+    want_daily = "--daily" in argv
+    want_weekly = "--weekly" in argv
+    paths = [a for a in argv if not a.startswith("--")]
+    if not want_daily and not want_weekly and not paths:
+        want_daily = want_weekly = True
+    if want_daily:
+        d = _latest("finviz_chart_grid_*.html")
+        if d:
+            paths.append(d)
+        else:
+            print("WARN: no finviz_chart_grid_*.html found", file=sys.stderr)
+    if want_weekly:
+        candidates = sorted(
+            f for f in glob.glob("data/finviz_weekly_*.html")
+            if "persistence" not in f
+        )
+        if candidates:
+            paths.append(candidates[-1])
+        else:
+            print("WARN: no finviz_weekly_*.html found", file=sys.stderr)
+    return paths
+
+
 def main(argv: list[str]) -> int:
-    if not argv:
-        print("usage: python utils/share_via_s3.py <file.html> [<file2.html> ...]",
+    paths = _resolve_args(argv)
+    if not paths:
+        print("usage: python utils/share_via_s3.py [--daily] [--weekly] [<file.html> ...]",
               file=sys.stderr)
         return 1
-    for path in argv:
+    for path in paths:
         try:
             url = upload_and_sign(path)
             print(f"\n{os.path.basename(path)} ↓\n{url}\n")
