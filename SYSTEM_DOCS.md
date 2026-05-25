@@ -723,7 +723,12 @@ S3 structure: `YYYY/MM/DD/<filename>`
 
 Files archived: `daily_quality_*`, `finviz_screeners_*` (csv+html), `finviz_chart_grid_*`, `market_monitor_YYYY-MM-DD.json`, `positions_YYYY-MM-DD.json`, `finviz_weekly_*`, `finviz_weekly_persistence_*`
 
-**Ad-hoc external sharing** (`utils/share_via_s3.py`): on-demand helper that uploads a single HTML report to `s3://screener-data-repository/share/<YYYY-MM-DD>/<basename>` and prints a 7-day presigned URL (SigV4 max). Used to share daily chart grids / weekly reports on X or with reviewers without exposing the dated-URL pattern of the public GH Pages site. Requires AWS profile `personal-090960193599` (admin_user) — overridable via `AWS_SHARE_PROFILE`. Usage: `python utils/share_via_s3.py [--daily] [--weekly] [<file.html> ...]` — no args = both latest reports; `--daily` only = latest chart grid; `--weekly` only = latest weekly review; explicit paths still pass through.
+**Ad-hoc external sharing** (`utils/share_via_s3.py`): on-demand helper that uploads a single HTML report to `s3://screener-data-repository/share/<YYYY-MM-DD>/<basename>` and prints a 7-day presigned URL (SigV4 max). Used to share daily chart grids / weekly reports on X or with reviewers without exposing the dated-URL pattern of the public GH Pages site. Requires AWS profile `personal-090960193599` (admin_user) — overridable via `AWS_SHARE_PROFILE`. Auto-shortens with TinyURL by default (`--no-short` to skip). Usage:
+- `python utils/share_via_s3.py` — latest daily chart grid (default)
+- `python utils/share_via_s3.py --weekly` — latest weekly review only
+- `python utils/share_via_s3.py --date 2026-05-21` — specific day's daily chart grid
+- `python utils/share_via_s3.py --both` — latest daily + latest weekly
+- `python utils/share_via_s3.py path/to/x.html` — explicit file(s)
 
 Never archived: `positions.json`, `trading_state.json`, `watchlist.json`, `alerts_state.json`, `market_monitor_history.json`, `paper_stops.json`
 
