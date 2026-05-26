@@ -1128,7 +1128,55 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
         elif kind == "target2":
             log.info(f"{ticker}: Target 2 hit at ${ev['target']:.2f}")
 
+    # Stale-entry alert (alert-only — live system never auto-sells). Same
+    # thresholds as the paper auto-cull. Dedup via stale_alerted_date.
+    stale_event = check_live_stale_entry(position)
+    if stale_event:
+        alerts.append(stale_event["message"])
+        events.append(stale_event)
+        modified = True
+
     return alerts, modified, events
+
+
+def check_live_stale_entry(position: dict, today: datetime.date | None = None) -> dict | None:
+    """Emit a 💤 STALE event when a live position has been flat for
+    rules.STALE_DAYS days with peak gain below rules.STALE_PEAK_THRESHOLD.
+
+    Alert-only — caller forwards to Slack via the critical-event router.
+    Dedup: writes today's date to position['stale_alerted_date'] on fire;
+    subsequent calls the same day return None.
+    """
+    today_d = today or datetime.date.today()
+    today_iso = today_d.isoformat()
+    if position.get("stale_alerted_date") == today_iso:
+        return None
+    entry_date = position.get("entry_date")
+    if not entry_date:
+        return None
+    try:
+        ed = datetime.datetime.strptime(entry_date, "%Y-%m-%d").date()
+    except Exception:
+        return None
+    days_open = (today_d - ed).days
+    if days_open < rules.STALE_DAYS:
+        return None
+    peak = float(position.get("peak_gain_pct", 0) or 0)
+    if peak >= rules.STALE_PEAK_THRESHOLD:
+        return None
+    ticker = position["ticker"]
+    msg = (
+        f"\U0001f4a4 STALE — {ticker} {days_open}d open, peak only "
+        f"+{peak:.1f}% · consider cutting (capital opportunity cost)"
+    )
+    position["stale_alerted_date"] = today_iso
+    return {
+        "kind": "stale_entry",
+        "ticker": ticker,
+        "days_open": days_open,
+        "peak_gain_pct": round(peak, 2),
+        "message": msg,
+    }
 
 
 def update_sizing_mode(trading_state: dict, market_state: str) -> list:
