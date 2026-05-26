@@ -509,6 +509,25 @@ if __name__ == "__main__":
         stop_price = stop_info.get("stop_price")
         sell_reason = None
 
+        # Stale cull — auto-sell positions that drifted flat for 14d with peak < +4%
+        is_stale, stale_days, stale_peak = check_stale_position(stop_info)
+        if is_stale and current > 0:
+            log.info("%s: STALE — %dd open, peak +%.1f%% — auto-cull",
+                     ticker, stale_days, stale_peak)
+            result = place_sell(ticker, qty)
+            if result:
+                sells_placed += 1
+                stop_info["pending_close"] = True
+                stop_info["close_source"] = "stale_cull"
+                slack_send(
+                    ":zzz: *[PAPER] STALE CULL* " + ticker
+                    + " — " + str(stale_days) + "d open, peak only +"
+                    + str(round(stale_peak, 1)) + "% · sold " + str(qty) + " sh "
+                    + "@ ~$" + str(round(current, 2))
+                    + " · freeing capital for next signal"
+                )
+                continue  # position will close-detect on next run
+
         # Check stop loss (now reflects any trailing raises applied above)
         if stop_price is not None and current > 0 and current <= float(stop_price):
             effective_atr_pct = stop_info.get("atr_pct", atr_pct)
