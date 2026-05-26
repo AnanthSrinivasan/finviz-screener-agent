@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 38.57,
-      "current_gain_pct": 2.04,
+      "current_gain_pct": 0.82,
       "first_entry_price": 37.74,
       "peak_gain_pct": 2.2
     },
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 128.91,
-      "current_gain_pct": 3.67,
+      "current_gain_pct": 3.82,
       "first_entry_price": 121.31,
       "peak_gain_pct": 4.72
     },
@@ -47,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 1631.39,
-      "current_gain_pct": 9.55,
+      "current_gain_pct": 9.52,
       "first_entry_price": 1427.84,
       "peak_gain_pct": 11.75
     },
@@ -64,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 66.96,
-      "current_gain_pct": 14.24,
+      "current_gain_pct": 14.21,
       "first_entry_price": 58.27,
       "peak_gain_pct": 14.91
     },
@@ -81,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 68.78,
-      "current_gain_pct": 11.53,
+      "current_gain_pct": 11.16,
       "first_entry_price": 61.48,
       "peak_gain_pct": 11.87
     },
@@ -98,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 61.39,
-      "current_gain_pct": 12.89,
+      "current_gain_pct": 13.06,
       "first_entry_price": 52.9,
       "peak_gain_pct": 16.05
     },
@@ -115,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 70.0,
-      "current_gain_pct": 10.88,
+      "current_gain_pct": 9.8,
       "first_entry_price": 62.97,
       "peak_gain_pct": 11.16
     },
@@ -132,7 +132,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 50.17,
-      "current_gain_pct": 5.78,
+      "current_gain_pct": 5.73,
       "first_entry_price": 46.63,
       "peak_gain_pct": 6.43
     },
@@ -149,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 322.47,
-      "current_gain_pct": 1.44,
+      "current_gain_pct": 1.36,
       "first_entry_price": 287.15,
       "peak_gain_pct": 12.3
     },
@@ -166,7 +166,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 1653.2,
-      "current_gain_pct": 4.41,
+      "current_gain_pct": 4.8,
       "first_entry_price": 1550.0,
       "peak_gain_pct": 6.66
     },
@@ -183,7 +183,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 269.75,
-      "current_gain_pct": -1.6,
+      "current_gain_pct": -2.15,
       "first_entry_price": 267.3,
       "peak_gain_pct": 0.82
     },
@@ -200,7 +200,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 194.94,
-      "current_gain_pct": 2.7,
+      "current_gain_pct": 2.07,
       "first_entry_price": 177.5,
       "peak_gain_pct": 9.83
     },
@@ -217,7 +217,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 199.92,
-      "current_gain_pct": 1.87,
+      "current_gain_pct": 1.68,
       "first_entry_price": 192.0,
       "peak_gain_pct": 2.79
     },
@@ -234,7 +234,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 220.98,
-      "current_gain_pct": -3.18,
+      "current_gain_pct": -2.95,
       "first_entry_price": 221.22,
       "peak_gain_pct": 0.27
     },
@@ -251,9 +251,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 26.82,
-      "current_gain_pct": 3.9,
+      "current_gain_pct": 3.43,
       "first_entry_price": 25.14,
       "peak_gain_pct": 5.76
+    },
+    {
+      "ticker": "XBI",
+      "shares": 50,
+      "entry_price": 132.93,
+      "entry_date": "2026-05-26",
+      "stop_price": 130.29,
+      "breakeven_activated": false,
+      "target1": 159.52,
+      "target1_hit": false,
+      "target2": 186.1,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 133.61,
+      "current_gain_pct": 0.18,
+      "first_entry_price": 132.93,
+      "peak_gain_pct": 0.51
     }
   ],
   "closed_positions": [
