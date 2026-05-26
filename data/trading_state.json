@@ -1,28 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 4,
+  "consecutive_losses": 7,
   "total_wins": 11,
-  "total_losses": 17,
+  "total_losses": 20,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-05-19",
+  "last_updated": "2026-05-26",
   "recent_trades": [
-    {
-      "ticker": "AMD",
-      "result": "win",
-      "result_pct": 19.11,
-      "date": "2026-04-22",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
-    {
-      "ticker": "FLY",
-      "result": "neutral",
-      "result_pct": 0.0,
-      "date": "2026-04-24",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
     {
       "ticker": "PL",
       "result": "win",
@@ -262,6 +246,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -339.0
+    },
+    {
+      "ticker": "SATS",
+      "result": "loss",
+      "result_pct": -9.59,
+      "date": "2026-05-26",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -330.5
+    },
+    {
+      "ticker": "SEDG",
+      "result": "loss",
+      "result_pct": -7.13,
+      "date": "2026-05-26",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -386.99
+    },
+    {
+      "ticker": "CRCL",
+      "result": "loss",
+      "result_pct": -1.16,
+      "date": "2026-05-26",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -133.0
     }
   ],
   "market_state": "TREND-FOLLOW",
