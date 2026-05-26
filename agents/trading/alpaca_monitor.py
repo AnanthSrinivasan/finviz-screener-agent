@@ -166,7 +166,105 @@ def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
     entry.setdefault("target1", round(ep * 1.20, 2))
     entry.setdefault("target2", round(ep * 1.40, 2))
     entry.setdefault("target1_hit", False)
+    entry.setdefault("t1_peeled", False)
+    entry.setdefault("t2_peeled", False)
     return entry
+
+
+# ----------------------------
+# Target peel + stale cull (paper auto-execute)
+# ----------------------------
+PEEL_MIN_NOTIONAL = 50.0  # don't pay commission on sub-$50 lots
+
+
+def process_target_peels(ticker: str, events: list, stop_info: dict,
+                         qty: int, current_price: float,
+                         sell_fn, slack_fn) -> tuple:
+    """Consume target1/target2 events; place SELL for half, mutate stop_info.
+
+    Returns (sells_placed, remaining_qty). Falls through to slack_fn(event['message'])
+    for non-peel events (so caller doesn't need to re-handle them).
+    """
+    remaining = int(qty)
+    sells = 0
+    for event in events:
+        kind = event.get("kind")
+        msg = event.get("message", "")
+        if kind == "target1" and not stop_info.get("t1_peeled"):
+            peel_qty = remaining // 2
+            if remaining <= 1 or peel_qty < 1:
+                slack_fn(msg)
+                continue
+            if peel_qty * current_price < PEEL_MIN_NOTIONAL:
+                log.info("%s: T1 peel skipped — notional $%.0f < $%.0f",
+                         ticker, peel_qty * current_price, PEEL_MIN_NOTIONAL)
+                slack_fn(msg)
+                continue
+            result = sell_fn(ticker, str(peel_qty))
+            if not result:
+                slack_fn(msg)
+                continue
+            stop_info["t1_peeled"] = True
+            entry_price = float(stop_info.get("entry_price", 0) or 0)
+            be_floor = round(entry_price * 1.005, 2)
+            if be_floor > float(stop_info.get("stop_price", 0) or 0):
+                stop_info["stop_price"] = be_floor
+            remaining -= peel_qty
+            sells += 1
+            slack_fn(
+                ":dart: *[PAPER] T1 AUTO-PEEL* " + ticker
+                + " — sold " + str(peel_qty) + " sh @ ~$" + str(round(current_price, 2))
+                + ", stop → $" + str(stop_info["stop_price"])
+                + " (breakeven), " + str(remaining) + " sh continue"
+            )
+        elif kind == "target2" and not stop_info.get("t2_peeled"):
+            peel_qty = remaining // 2
+            if remaining <= 1 or peel_qty < 1:
+                slack_fn(msg)
+                continue
+            if peel_qty * current_price < PEEL_MIN_NOTIONAL:
+                log.info("%s: T2 peel skipped — notional $%.0f < $%.0f",
+                         ticker, peel_qty * current_price, PEEL_MIN_NOTIONAL)
+                slack_fn(msg)
+                continue
+            result = sell_fn(ticker, str(peel_qty))
+            if not result:
+                slack_fn(msg)
+                continue
+            stop_info["t2_peeled"] = True
+            remaining -= peel_qty
+            sells += 1
+            slack_fn(
+                ":dart::dart: *[PAPER] T2 AUTO-PEEL* " + ticker
+                + " — sold " + str(peel_qty) + " sh @ ~$" + str(round(current_price, 2))
+                + ", " + str(remaining) + " sh runner"
+            )
+        else:
+            slack_fn(msg)
+    return sells, remaining
+
+
+def check_stale_position(stop_info: dict, today: datetime.date | None = None) -> tuple:
+    """Return (is_stale, days_open, peak_gain_pct).
+
+    Stale = days_open >= STALE_DAYS AND peak < STALE_PEAK_THRESHOLD AND not t1_peeled
+    AND not in a losing position (stops handle those). Used by paper auto-cull.
+    """
+    if stop_info.get("t1_peeled"):
+        return False, 0, 0.0
+    entry_date = stop_info.get("entry_date")
+    if not entry_date:
+        return False, 0, 0.0
+    try:
+        ed = datetime.datetime.strptime(entry_date, "%Y-%m-%d").date()
+    except Exception:
+        return False, 0, 0.0
+    today_d = today or datetime.date.today()
+    days_open = (today_d - ed).days
+    peak = float(stop_info.get("peak_gain_pct", 0) or 0)
+    if days_open >= rules.STALE_DAYS and peak < rules.STALE_PEAK_THRESHOLD:
+        return True, days_open, peak
+    return False, days_open, peak
 
 
 def apply_paper_rules(ticker: str, entry: dict, current_price: float,
@@ -376,8 +474,20 @@ if __name__ == "__main__":
             stop_info["atr_pct"] = atr_pct
         rule_events, _ = apply_paper_rules(ticker, stop_info, current, day_high,
                                            stop_info.get("atr_pct", atr_pct))
-        for event in rule_events:
-            slack_send(event["message"])
+        try:
+            qty_int = int(float(qty))
+        except (TypeError, ValueError):
+            qty_int = 0
+        peel_sells, qty_after_peel = process_target_peels(
+            ticker, rule_events, stop_info, qty_int, current,
+            sell_fn=place_sell, slack_fn=slack_send,
+        )
+        if peel_sells:
+            sells_placed += peel_sells
+            stop_info["pending_close"] = True
+            qty = str(qty_after_peel)
+            if qty_after_peel <= 0:
+                continue
 
         # Layer 1b — post-close MA trail alert (alert-only, human decides)
         if post_close:

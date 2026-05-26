@@ -40,7 +40,16 @@ CRITICAL_EVENT_KINDS = {
     "target1",
     "target2",
     "hard_stop",
+    "stale_entry",
 }
+
+
+# Stale-entry thresholds (paper auto-cull + live alert) — see
+# docs/specs/paper-auto-peel-and-live-dashboard.md.
+# After STALE_DAYS calendar days, if peak_gain_pct never crossed
+# STALE_PEAK_THRESHOLD, the setup didn't work — free the capital.
+STALE_DAYS = 14
+STALE_PEAK_THRESHOLD = 4.0
 
 
 # --- Per-tick rules -------------------------------------------------------
