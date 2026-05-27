@@ -61,6 +61,11 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 - `test_finviz_agent.py` — Unit tests (mocked, no API keys)
 - `test_integration.py` — Integration tests for signal merge pipeline
 - `test_archive.py` — Unit tests for `utils/archive_data.py` (mocked S3, no credentials needed)
+- `utils/generators/generate_live_portfolio.py` — Live SnapTrade dashboard. `write_page()` pulls SnapTrade account balances + Finviz live quote/ATR%/SMA20%/Stage; renders `data/live_portfolio.html` (light theme). Verdict logic mirrors `/pos-review` skill (🚨 CUT / 💰 PEEL ½ / 🟢 trail tighter / ⚠ peel ⅓ / ✅ working / 🟡 sleeping / 💀 dead weight). Non-fatal placeholder on fetch failure. Called from `position_monitor.py` on every run (3× daily book + 30-min critical). Linked from `index.html` as **Live Portfolio**.
+
+**Paper auto-peel + stale-cull (2026-05-27 — alpaca_monitor.py + rules.py):**
+- `process_target_peels()` consumes `target1`/`target2` rules-engine events: on T1 sells `qty//2` + raises stop to `entry × 1.005` + sets `t1_peeled=True`; on T2 sells `qty//2` of remaining + sets `t2_peeled=True`. Skips when qty≤1 or `peel_qty × price < $50`. Slack `[PAPER] T1/T2 AUTO-PEEL`. New `paper_stops.json` fields: `t1_peeled`, `t2_peeled` (default False, idempotent migration).
+- `check_stale_position()` / `check_live_stale_entry()` — paper auto-sells full qty; live emits `stale_entry` event (alert-only, never auto-sells — hard rule). Thresholds: `rules.STALE_DAYS = 14`, `rules.STALE_PEAK_THRESHOLD = 4.0`. Skipped when `t1_peeled` (already won). `stale_entry` added to `CRITICAL_EVENT_KINDS` → routes to immediate Slack. Dedup via `stale_alerted_date`. Slack `💤 [PAPER] STALE CULL` / `💤 STALE`.
 
 **Publishing layer (`agents/publishing/`):**
 - `agents/publishing/event_publisher.py` — Non-fatal EventBridge wrapper. Three functions:

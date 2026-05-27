@@ -990,6 +990,31 @@ Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflo
 
 **Commit fix (2026-04-27):** `data/claude_portfolio.html` was generated but missing from the `git add` in `position-monitor.yml` — so GitHub Pages never received updates. Fixed: added to the commit step. Now publishes 6× per trading day (12, 14, 16, 18, 20, 22 UTC).
 
+### 10.3b Live SnapTrade Portfolio (2026-05-27)
+
+Companion dashboard for the real-money book — pulls account balances from SnapTrade and live quote + ATR%/SMA20%/Stage from Finviz. Lives at `data/live_portfolio.html`, regenerated on every `position_monitor.py` invocation (3× daily book runs + every 30 min critical runs).
+
+**Generator:** `utils/generators/generate_live_portfolio.py` — `write_page()`. Non-fatal: writes a timestamped placeholder if SnapTrade or Finviz fetch fails.
+
+**Sections:** account header (equity / cash / BP / position MV / open P&L / leverage), action summary (peel/cut/dead-weight counts), positions table sorted by market value (TKR · Sh · Avg · Live · Δ% · $P/L · MV · %Bk · ATR% · S20% · Stage · Verdict). Verdict logic mirrors the `/pos-review` skill (🚨 CUT / 💰 PEEL ½ / 🟢 trail tighter / ⚠ peel ⅓ / ✅ working / 🟡 sleeping / 💀 dead weight). Light theme.
+
+Linked from `index.html` as **Live Portfolio** (emerald palette to distinguish from paper).
+
+### 10.3c Paper Auto-Peel + Stale-Cull (2026-05-27)
+
+Two additions to `alpaca_monitor.py`:
+
+- **T1/T2 auto-peel** — consumes `target1`/`target2` events from the shared rules engine. On T1, places SELL for `qty // 2`, sets `t1_peeled=True`, raises stop to `entry × 1.005` (breakeven). On T2, places SELL for `qty // 2` of remaining and sets `t2_peeled=True`. Skips when `qty <= 1` or `peel_qty × price < $50`. Slack alerts prefixed `[PAPER] T1/T2 AUTO-PEEL`. New `paper_stops.json` fields `t1_peeled` / `t2_peeled` (default `False`, idempotent migration).
+- **Stale-cull** — when `days_open >= 14` AND `peak_gain_pct < +4%` AND not `t1_peeled`, places SELL for full qty. Slack alert `💤 [PAPER] STALE CULL`. Thresholds in `rules.STALE_DAYS` / `rules.STALE_PEAK_THRESHOLD`. Frees buying power for the next signal — opportunity cost of dead capital is the biggest leak in a flying market.
+
+Helpers exported from `agents/trading/alpaca_monitor.py`: `process_target_peels()`, `check_stale_position()` (pure, unit-tested).
+
+### 10.3d Live Stale-Entry Alert (2026-05-27)
+
+`agents/trading/position_monitor.apply_minervini_rules` emits a `stale_entry` event with the same thresholds (14d / peak < +4%). Alert-only — live system NEVER places broker orders (hard rule). Added `stale_entry` to `rules.CRITICAL_EVENT_KINDS` so it routes to the immediate Slack post (every 30 min during market hours), not the book digest. Dedup via `stale_alerted_date` on position state. Message: `💤 STALE — {TKR} {N}d open, peak only +{X.X}% · consider cutting (capital opportunity cost)`.
+
+Spec: `docs/specs/paper-auto-peel-and-live-dashboard.md`.
+
 ### 10.4 Separation from Real System
 
 | Concern | Real (Robinhood) | Paper (Alpaca) |
