@@ -1931,6 +1931,14 @@ if __name__ == "__main__":
 
     book_table.save_digest_log(digest_path, digest_log)
 
+    # Regenerate live SnapTrade dashboard (non-fatal). Runs on every
+    # position-monitor invocation — book runs + 30-min critical runs.
+    try:
+        from utils.generators.generate_live_portfolio import write_page as _gen_live_portfolio
+        _gen_live_portfolio()
+    except Exception as e:
+        log.warning(f"Live portfolio page generation failed: {e}")
+
     # === EXISTING: Save snapshot ===
     snapshot_path = os.path.join(DATA_DIR, f"positions_{today}.json")
     with open(snapshot_path, "w") as f:

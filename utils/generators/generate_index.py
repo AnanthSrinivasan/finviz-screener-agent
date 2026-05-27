@@ -134,9 +134,11 @@ def generate_index(reports: dict, base_url: str) -> str:
     mae_url       = f"{base_url}/data/mae_analysis.html{CACHE_Q}"      if base_url else f"data/mae_analysis.html{CACHE_Q}"
     watchlist_url = f"{base_url}/watchlist.html{CACHE_Q}"              if base_url else f"watchlist.html{CACHE_Q}"
     portfolio_url = f"{base_url}/data/claude_portfolio.html{CACHE_Q}"  if base_url else f"data/claude_portfolio.html{CACHE_Q}"
+    live_portfolio_url = f"{base_url}/data/live_portfolio.html{CACHE_Q}" if base_url else f"data/live_portfolio.html{CACHE_Q}"
     etf_rotation_url = f"{base_url}/data/etf_rotation.html{CACHE_Q}"   if base_url else f"data/etf_rotation.html{CACHE_Q}"
 
     hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
+    hero_links += f'<a href="{live_portfolio_url}" class="hero-btn btn-live-portfolio">Live Portfolio</a>'
     hero_links += f'<a href="{portfolio_url}" class="hero-btn btn-portfolio">Claude Portfolio</a>'
     hero_links += f'<a href="{watchlist_url}" class="hero-btn btn-watchlist">Watchlist</a>'
     hero_links += f'<a href="{etf_rotation_url}" class="hero-btn btn-etf">ETF Rotation</a>'
@@ -181,6 +183,7 @@ def generate_index(reports: dict, base_url: str) -> str:
   .btn-mae       {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}
   .btn-watchlist {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
   .btn-portfolio {{ background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }}
+  .btn-live-portfolio {{ background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }}
   .btn-etf       {{ background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }}
 
   /* Stats bar */
