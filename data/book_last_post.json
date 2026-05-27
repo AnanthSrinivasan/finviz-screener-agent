@@ -1,4 +1,43 @@
 {
   "last_book_post_ts": "2026-05-27T17:42:14.294992Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_added",
+      "ticker": "USAR",
+      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: USAR\n   200 shares @ $27.08 (from SnapTrade)\n   Auto-stop: $21.00 | T1: $32.50 | T2: $37.91\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
+      "ts": "2026-05-27T19:37:40.839531Z"
+    },
+    {
+      "kind": "share_drift_avg_up",
+      "ticker": "NVDA",
+      "message": "\ud83d\udfe1 SHARES INCREASED: NVDA\n   70 \u2192 80 shares (avg cost $220.38 \u2192 $219.38)\n   T1 $263.26 | T2 $307.13 (recomputed)",
+      "old_shares": 70.0,
+      "new_shares": 80.0,
+      "new_avg": 219.38,
+      "ts": "2026-05-27T19:37:40.839531Z"
+    },
+    {
+      "kind": "share_drift_avg_up",
+      "ticker": "GLW",
+      "message": "\ud83d\udfe1 SHARES INCREASED: GLW\n   40 \u2192 50 shares (avg cost $194.50 \u2192 $193.45)\n   T1 $232.14 | T2 $270.83 (recomputed)",
+      "old_shares": 40.0,
+      "new_shares": 50.0,
+      "new_avg": 193.45,
+      "ts": "2026-05-27T19:37:40.839531Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "NVDA",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 NVDA ATR mult 2.05",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-27T19:37:40.839531Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "RXT",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 RXT ATR mult 4.88",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-27T19:37:40.839531Z"
+    }
+  ]
 }
