@@ -406,11 +406,12 @@
       "added": "2026-04-08",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "entry-ready",
       "archive_reason": null,
       "archived_date": "2026-04-23",
       "focus_promoted_date": "2026-05-06",
-      "reactivated_date": "2026-05-06"
+      "reactivated_date": "2026-05-06",
+      "entry_ready_date": "2026-05-28"
     },
     {
       "ticker": "CLS",
@@ -636,11 +637,11 @@
       "stop": null,
       "thesis": "Consumer Cyclical | Q=86 | VCP | ATR 5.4%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
       "priority": "focus",
-      "archive_reason": null,
-      "archived_date": "2026-04-24",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-28",
       "reactivated_date": "2026-04-24",
       "focus_promoted_date": "2026-04-24"
     },
@@ -1052,11 +1053,13 @@
       "stop": null,
       "thesis": "Technology | Q=84 | VCP | ATR 4.9%",
       "added": "2026-04-14",
-      "status": "archived",
-      "priority": "watching",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "archive_reason": "age_out",
-      "archived_date": "2026-04-29"
+      "archive_reason": null,
+      "archived_date": "2026-04-29",
+      "focus_promoted_date": "2026-05-28",
+      "reactivated_date": "2026-05-28"
     },
     {
       "ticker": "XP",
@@ -1615,10 +1618,12 @@
       "stop": null,
       "thesis": "Basic Materials | Q=95 | ATR 7.8%",
       "added": "2026-04-20",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-30"
+      "focus_promoted_date": "2026-04-30",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-28"
     },
     {
       "ticker": "GFS",
@@ -2407,10 +2412,12 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "hidden_growth_auto",
-      "focus_promoted_date": "2026-05-09"
+      "focus_promoted_date": "2026-05-09",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-28"
     },
     {
       "ticker": "AMN",
@@ -3009,6 +3016,75 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-27",
       "source": "rs_leader_auto"
+    },
+    {
+      "ticker": "ADTN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-28"
+    },
+    {
+      "ticker": "CRSR",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "DDD",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "ZVRA",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-28"
+    },
+    {
+      "ticker": "BHVN",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto"
+    },
+    {
+      "ticker": "EDIT",
+      "entry_note": "HTF Base Reclaim \u2014 tight against recent swing pivot, deeper 52w base",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "HTF Base Reclaim \u2014 recent swing-pivot reclaim",
+      "added": "2026-05-28",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-05-28",
+      "source": "htf_base_reclaim_auto"
     }
   ],
   "tickers": [
