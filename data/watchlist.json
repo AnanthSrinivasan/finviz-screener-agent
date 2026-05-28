@@ -921,9 +921,10 @@
       "thesis": "Technology | Q=89 | VCP | ATR 4.8%",
       "added": "2026-04-14",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-04-23"
+      "focus_promoted_date": "2026-04-23",
+      "entry_ready_date": "2026-05-29"
     },
     {
       "ticker": "AUPH",
@@ -1893,10 +1894,12 @@
       "stop": null,
       "thesis": "Technology | Q=107 | ATR 4.7%",
       "added": "2026-05-01",
-      "status": "watching",
+      "status": "archived",
       "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-05-01"
+      "focus_promoted_date": "2026-05-01",
+      "archive_reason": "entered_position",
+      "archived_date": "2026-05-29"
     },
     {
       "ticker": "MRAM",
@@ -2427,9 +2430,10 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "hidden_growth_auto",
-      "focus_promoted_date": "2026-05-09"
+      "focus_promoted_date": "2026-05-09",
+      "entry_ready_date": "2026-05-29"
     },
     {
       "ticker": "FROG",
@@ -3085,6 +3089,18 @@
       "priority": "focus",
       "focus_promoted_date": "2026-05-28",
       "source": "htf_base_reclaim_auto"
+    },
+    {
+      "ticker": "AMPX",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-05-29",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-05-29"
     }
   ],
   "tickers": [
