@@ -2635,6 +2635,90 @@ def _is_stage_transition(row, open_positions_tickers: set, exclude_tickers: set,
     return True
 
 
+# ── Rotation Catalyst (🌊 sector-tailwind setup — UMAC/ONDS class) ────────────
+
+def _is_rotation_catalyst(row, sector_snapshot: dict,
+                          open_positions_tickers: set,
+                          exclude_tickers: set,
+                          ticker_to_etf=None) -> bool:
+    """
+    🌊 Rotation Catalyst — name in a sector actively rotating IN, and the name
+    itself is a clean Stage 2 setup with reclaim confirmation. Wider bands than
+    HTF-BR by design; the sector-rotation tailwind is the proof-of-quality.
+
+    All must hold:
+      - parent ETF rotation is HOT (rank ≤ 5) OR strongly RISING (rank ≤ 10 AND Δ5d ≤ -5)
+      - Stage 2 (not strict perfect — drone names dip S20)
+      - dist52 in [-35%, 0%]
+      - close > SMA20 (i.e. SMA20% > 0) — reclaim confirmed
+      - RVol ≥ 1.0
+      - peel-safe (SMA50% / ATR% ≤ peel_warn)
+      - not held, not in earlier-priority callout
+
+    `ticker_to_etf` is injectable for tests; defaults to _resolve_ticker_etf(row).
+
+    Spec: docs/specs/rotation-catalyst-block.md §1.
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if not ticker:
+        return False
+    if ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    # Sector-rotation gate
+    if ticker_to_etf is None:
+        etf = _resolve_ticker_etf(row)
+    else:
+        etf = ticker_to_etf(ticker, row.get("Sector"), row.get("Industry"))
+    if not etf:
+        return False
+    sec = sector_snapshot.get(etf)
+    if not sec:
+        return False
+    rank = int(sec.get("rank", 99) or 99)
+    delta = int(sec.get("rank_delta_5d", 0) or 0)
+    sector_hot = rank <= 5 and delta <= 0
+    sector_rising = rank <= 10 and delta <= -5
+    if not (sector_hot or sector_rising):
+        return False
+
+    # Stage 2 (not strict perfect)
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist):
+        return False
+    dist = float(dist)
+    if dist < -35.0 or dist > 0.0:
+        return False
+
+    sma20 = row.get("SMA20%")
+    if sma20 is None or pd.isna(sma20) or float(sma20) <= 0:
+        return False  # close ≤ SMA20 — no reclaim
+
+    rvol = row.get("Rel Volume")
+    if rvol is None or pd.isna(rvol) or float(rvol) < 1.0:
+        return False
+
+    atr = row.get("ATR%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0:
+        return False
+    atr = float(atr)
+
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50):
+        return False
+    sma50 = float(sma50)
+
+    peel_warn = _peel_warn_for(ticker, atr)
+    if (sma50 / atr) > peel_warn:
+        return False
+
+    return True
+
+
 # ── RS Rating (Phase 2 — numeric relative strength score 0–99) ───────────────
 
 def _compute_rs_ratings(df) -> dict:
