@@ -811,6 +811,7 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             power_plays: list | None = None,
                             ema21_pullbacks: list | None = None,
                             recovery_leaders: list | None = None,
+                            rotation_catalyst: list | None = None,
                             episodic_pivots: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs("data", exist_ok=True)
@@ -933,6 +934,42 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     <span class="section-sub-inline">V-recovery, price above 50/200 MAs but 50/200 cross pending — watch only, size half</span>
   </summary>
   <div class="chart-grid" style="margin-top:12px">{"".join(rl_cards)}</div>
+</details>"""
+
+    # 🌊 Rotation Catalyst — sector-tailwind setups (spec §1). Collapsible.
+    rotation_catalyst_html = ""
+    if rotation_catalyst:
+        _row_lookup_rc: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_rc:
+                    _row_lookup_rc[_t] = _r
+        rc_cards = []
+        for e in rotation_catalyst:
+            t = e["ticker"]
+            _r = _row_lookup_rc.get(t)
+            if _r is None:
+                continue
+            card = _build_card(t, _r, FINVIZ_BASE, top_sectors)
+            rc_badge = (
+                f'<span style="font-size:9px;background:#2563eb;color:#fff;'
+                f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
+                f'{e["etf"]} {e["etf_label"]}</span>'
+            )
+            card = card.replace(
+                f'class="ticker-link">{t}</a>',
+                f'class="ticker-link">{t}</a>' + rc_badge,
+            )
+            rc_cards.append(card)
+        if rc_cards:
+            rotation_catalyst_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    🌊 Rotation Catalyst <span class="section-count">{len(rc_cards)}</span>
+    <span class="section-sub-inline">Stage 2 setups with parent ETF rotating IN (HOT/RISING) — wider bands than HTF-BR</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(rc_cards)}</div>
 </details>"""
 
     # ⚡ Episodic Pivot — Pradeep SB lane. Rendered via the helper in
@@ -1153,6 +1190,8 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
             _tp_add(_t, "HTF")
         for _r in (recovery_leaders or []):
             _tp_add(_r.get("ticker", ""), "RL")
+        for _r in (rotation_catalyst or []):
+            _tp_add(_r.get("ticker", ""), "RC")
 
         if _tp_sources:
             _tp_row_lookup: dict = {}
@@ -1394,6 +1433,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 {rs_leaders_html}
 {stage_transition_html}
 {recovery_leader_html}
+{rotation_catalyst_html}
 {episodic_pivot_html}
 {htf_base_reclaim_html}
 {base_building_html}
@@ -1533,6 +1573,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              ema21_pb: list | None = None,
                              stage_transition: list | None = None,
                              recovery_leaders: list | None = None,
+                             rotation_catalyst: list | None = None,
                              episodic_pivots: list | None = None):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack notification.")
@@ -1676,6 +1717,36 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {
                 "type": "mrkdwn",
                 "text": ":seedling: *Stage Transition* (early Stage 2 — sector rotating in):\n"
+                        + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # 🌊 Rotation Catalyst — sector-tailwind setups. Wider bands than HTF-BR.
+    # ETF companion line appears only when single-stock ATR ≥ 7% (spec §2).
+    # rotation_catalyst dicts: {ticker, q, dist, sma20, atr, rvol, etf,
+    # etf_rank, etf_delta, etf_rs, etf_label, etf_price, etf_atr}
+    if rotation_catalyst:
+        lines = []
+        for r in rotation_catalyst[:5]:
+            head = (
+                f"`{r['ticker']}` · {r['etf']} {r['etf_label']} #{r['etf_rank']}/28 · "
+                f"Q{r['q']:.0f} · dist {r['dist']:+.1f}% · S20 {r['sma20']:+.1f}% · "
+                f"RVol {r['rvol']:.2f}x · ATR {r['atr']:.1f}% · "
+                f"`/stock-research {r['ticker']}`"
+            )
+            if r['atr'] >= 7.0 and r.get('etf_price'):
+                etf_atr = r.get('etf_atr') or 0.0
+                head += (
+                    f"\n    └ ETF play: `{r['etf']}` @ ${r['etf_price']:.2f} · "
+                    f"ATR {etf_atr:.1f}% — same rotation, no idio risk"
+                )
+            lines.append(head)
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":ocean: *Rotation Catalyst* (sector tailwind setups):\n"
                         + "\n".join(lines),
             }
         })
@@ -2951,6 +3022,7 @@ def _update_watchlist(
     ema21_pb_tickers: list | None = None,
     stage_transition_tickers: list | None = None,
     recovery_leader_tickers: list | None = None,
+    rotation_catalyst_tickers: list | None = None,
     episodic_pivot_tickers: list | None = None,
 ):
     """
@@ -3338,6 +3410,39 @@ def _update_watchlist(
         by_ticker[st_ticker] = st_entry
         st_added.append(st_ticker)
         log.info("Watchlist: added %s via Stage Transition at focus tier (source=stage_transition_auto)", st_ticker)
+
+    # ── Rotation Catalyst entry path: focus tier (9th entry path). ──
+    # Parent ETF HOT/RISING gate already makes this high-confidence; lands at focus.
+    rc_added: list[str] = []
+    for rc_ticker in (rotation_catalyst_tickers or []):
+        if rc_ticker in by_ticker:
+            existing_entry = by_ticker[rc_ticker]
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "focus"
+                existing_entry["focus_promoted_date"] = today
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(rc_ticker)
+                log.info("Watchlist: reactivated %s via Rotation Catalyst at focus tier", rc_ticker)
+            continue
+        rc_entry = {
+            "ticker":               rc_ticker,
+            "entry_note":           "Rotation Catalyst — Stage 2 setup with sector tailwind",
+            "entry_price":          None,
+            "stop":                 None,
+            "thesis":               "Parent ETF rotating IN (HOT/RISING) — name setting up Stage 2 reclaim",
+            "added":                today,
+            "status":               "watching",
+            "priority":             "focus",
+            "focus_promoted_date":  today,
+            "source":               "rotation_catalyst_auto",
+        }
+        existing.append(rc_entry)
+        by_ticker[rc_ticker] = rc_entry
+        rc_added.append(rc_ticker)
+        log.info("Watchlist: added %s via Rotation Catalyst at focus tier (source=rotation_catalyst_auto)", rc_ticker)
 
     # ── 3d: auto-promote watching → focus (Stage 2 perfect + Q≥85, top 5 by Q). ──
     promoted_to_focus: list[str] = []
@@ -3882,6 +3987,65 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("Recovery Leader detection failed (non-fatal): %s", _e)
 
+    # 🌊 Rotation Catalyst — sector-tailwind setups (UMAC/ONDS class). Wider
+    # bands than HTF-BR by design; parent ETF must be HOT (rank ≤5 + delta ≤0)
+    # or strongly RISING (rank ≤10 + delta ≤-5). 9th entry path.
+    rotation_catalyst: list[dict] = []
+    try:
+        from agents.utils.rotation_label import rotation_label as _rot_label
+        sector_snapshot_rc = _load_sector_rotation_snapshot(today)
+        etf_rotation_meta = {}
+        try:
+            from agents.utils import episodic_pivot as _ep_mod
+            etf_rotation_meta = _ep_mod.load_etf_rotation().get("etfs_by_symbol", {})
+        except Exception:
+            etf_rotation_meta = {}
+        exclude_from_rc = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {r["ticker"] for r in ema21_pb}
+            | {r["ticker"] for r in stage_transition}
+            | {r["ticker"] for r in recovery_leaders}
+        )
+        if not summary_df.empty and sector_snapshot_rc:
+            for _, row in summary_df.iterrows():
+                if _is_rotation_catalyst(row, sector_snapshot_rc,
+                                         open_positions_tickers, exclude_from_rc):
+                    etf = _resolve_ticker_etf(row)
+                    sec = sector_snapshot_rc.get(etf, {})
+                    rank = int(sec.get("rank", 99) or 99)
+                    delta = int(sec.get("rank_delta_5d", 0) or 0)
+                    rs = int(sec.get("rs_score", 0) or 0)
+                    etf_meta = etf_rotation_meta.get(etf, {})
+                    etf_metrics = etf_meta.get("metrics", {}) if isinstance(etf_meta, dict) else {}
+                    rotation_catalyst.append({
+                        "ticker":     row["Ticker"],
+                        "q":          float(row.get("Quality Score") or 0),
+                        "dist":       float(row.get("Dist From High%") or 0),
+                        "sma20":      float(row.get("SMA20%") or 0),
+                        "atr":        float(row.get("ATR%") or 0),
+                        "rvol":       float(row.get("Rel Volume") or 0),
+                        "etf":        etf,
+                        "etf_rank":   rank,
+                        "etf_delta":  delta,
+                        "etf_rs":     rs,
+                        "etf_label":  _rot_label(rank, delta, rs),
+                        "etf_price":  float(etf_metrics.get("last") or 0),
+                        "etf_atr":    float(etf_metrics.get("atr_pct") or 0),
+                    })
+            rotation_catalyst.sort(key=lambda r: r["q"], reverse=True)
+            rotation_catalyst = rotation_catalyst[:5]
+        if rotation_catalyst:
+            log.info("Rotation Catalyst: %s",
+                     [(r["ticker"], r["etf"], r["etf_label"]) for r in rotation_catalyst])
+        elif not sector_snapshot_rc:
+            log.info("Rotation Catalyst: no sector snapshot — block skipped")
+    except Exception as _e:
+        log.error("Rotation Catalyst detection failed (non-fatal): %s", _e)
+
     # ⚡ Episodic Pivot — Pradeep SB lane (pullback-reversal on drying volume).
     # Scans tickers seen in any screener over last 20 trading days (~300-500 universe).
     # Two-stage filter: cheap Finviz pre-filter → Alpaca bars for bar-shape gate.
@@ -3905,6 +4069,7 @@ if __name__ == "__main__":
             | {r["ticker"] for r in ema21_pb}
             | {r["ticker"] for r in stage_transition}
             | {r["ticker"] for r in recovery_leaders}
+            | {r["ticker"] for r in rotation_catalyst}
             | {t for t, _, _ in (hidden_growth_candidates if 'hidden_growth_candidates' in dir() and hidden_growth_candidates else [])}
         )
 
@@ -4015,6 +4180,7 @@ if __name__ == "__main__":
         power_plays=power_plays,
         ema21_pullbacks=ema21_pb,
         recovery_leaders=recovery_leaders,
+        rotation_catalyst=rotation_catalyst,
         episodic_pivots=ep_fires,
     )
     log.info(f"Chart gallery: {gallery_path}")
@@ -4032,6 +4198,7 @@ if __name__ == "__main__":
         ema21_pb=ema21_pb,
         stage_transition=stage_transition,
         recovery_leaders=recovery_leaders,
+        rotation_catalyst=rotation_catalyst,
         episodic_pivots=ep_fires,
     )
 
@@ -4048,6 +4215,7 @@ if __name__ == "__main__":
         ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
         stage_transition_tickers=[r["ticker"] for r in stage_transition],
         recovery_leader_tickers=[r["ticker"] for r in recovery_leaders],
+        rotation_catalyst_tickers=[r["ticker"] for r in rotation_catalyst],
         episodic_pivot_tickers=[f.ticker for f in (ep_fires or [])],
     )
     promoted_to_focus       = wl_changes.get("promoted_to_focus", [])
