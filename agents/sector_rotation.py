@@ -564,25 +564,43 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     def _fv(tk: str) -> str:
         return f'https://finviz.com/quote.ashx?t={tk}'
 
-    def _rs_badge(e: dict) -> str:
+    def _rotation_hero(e: dict) -> str:
+        """Plain-English rotation label as the hero — Δrank/RS hidden behind
+        a `<details>` expander (spec §3 — full replace on hero row)."""
+        from agents.utils.rotation_label import rotation_label as _rot_label
         rs = e.get("rs_score")
         rk = e.get("rs_rank")
         d5 = e.get("rank_delta_5d")
-        if rs is None and rk is None:
+        if rk is None:
             return ""
-        bg = "#16a34a" if (rs or 0) >= 70 else ("#2563eb" if (rs or 0) >= 50 else ("#f59e0b" if (rs or 0) >= 30 else "#dc2626"))
-        rk_txt = f" #{rk}" if rk else ""
-        d5_txt = ""
-        if d5 is not None:
-            sign = "+" if d5 > 0 else ""
-            # Negative Δrank = rank improving = green; positive = rank worsening = red
-            d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
-            d5_txt = f' <span style="color:{d5_color};font-weight:700;margin-left:6px">Δrank {sign}{d5}</span>'
+        label = _rot_label(int(rk or 99), int(d5 or 0), int(rs or 0))
+        # Hero label background by emoji family
+        if label.startswith("🔥"):   bg = "#dc2626"
+        elif label.startswith("↗"):  bg = "#16a34a"
+        elif label.startswith("→"):  bg = "#6b7280"
+        elif label.startswith("↘"):  bg = "#f59e0b"
+        elif label.startswith("❄"): bg = "#2563eb"
+        else:                         bg = "#6b7280"
+        rk_txt = f" #{rk}/28"
+        d5_sign = "+" if (d5 or 0) > 0 else ""
+        d5_color = "#16a34a" if (d5 or 0) < 0 else ("#dc2626" if (d5 or 0) > 0 else "#6b7280")
+        details = (
+            f'<details class="rs-detail" style="display:inline-block;margin-left:6px">'
+            f'<summary style="font-size:10px;color:#6b7280;cursor:pointer">metrics</summary>'
+            f'<span style="font-size:11px;margin-left:6px">'
+            f'RS <b>{rs if rs is not None else "—"}</b> · '
+            f'<span style="color:{d5_color};font-weight:600">Δrank {d5_sign}{d5 if d5 is not None else 0}</span>'
+            f'</span></details>'
+        )
         return (
             f'<span class="rs-chip" style="background:{bg};color:#fff;font-size:11px;'
             f'font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px">'
-            f'RS {rs if rs is not None else "—"}{rk_txt}</span>{d5_txt}'
+            f'{label}{rk_txt}</span>{details}'
         )
+
+    # Back-compat alias — kept so the SMH/IGV pair banner and any other
+    # downstream consumers that imported _rs_badge keep working.
+    _rs_badge = _rotation_hero
 
     def _full_row(e: dict) -> str:
         """Shared schema for BOTH the RS leaderboard and the full metrics table."""
