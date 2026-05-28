@@ -1,4 +1,36 @@
 {
   "last_book_post_ts": "2026-05-28T17:04:18.273113Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "share_drift_avg_up",
+      "ticker": "DAVE",
+      "message": "\ud83d\udfe1 SHARES INCREASED: DAVE\n   30 \u2192 50 shares (avg cost $255.22 \u2192 $261.49)\n   T1 $313.79 | T2 $366.09 (recomputed)",
+      "old_shares": 30.0,
+      "new_shares": 50.0,
+      "new_avg": 261.49,
+      "ts": "2026-05-28T17:36:51.731784Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AAOI",
+      "message": "\ud83d\udea8 STOP HIT: AAOI @ $170.34 \u2014 exit immediately (stop $172.17)",
+      "current_price": 170.34,
+      "stop_price": 172.17,
+      "ts": "2026-05-28T17:36:51.731784Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "GLW",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 GLW ATR mult 1.82",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-28T17:36:51.731784Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "INDV",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 INDV ATR mult 2.17",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-05-28T17:36:51.731784Z"
+    }
+  ]
 }
