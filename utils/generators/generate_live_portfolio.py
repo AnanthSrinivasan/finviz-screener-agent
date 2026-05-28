@@ -157,7 +157,7 @@ def render_html(account: dict, rows: list) -> str:
     dead_count = sum(1 for r in rows if 0 <= r["gain"] < 1 and r["mv"] > 5000)
 
     pos_rows_html = ""
-    for r in rows:
+    for idx, r in enumerate(rows, 1):
         heat = _heat_class(r["gain"])
         verdict = verdict_for(r["gain"], r["atr"], r["s20"], r["stage"])
         pct_book = (r["mv"] / equity * 100) if equity > 0 else 0
@@ -165,6 +165,7 @@ def render_html(account: dict, rows: list) -> str:
         pct_sign = "+" if r["gain"] >= 0 else ""
         pos_rows_html += (
             "<tr>"
+            f"<td class='mono num'>{idx}</td>"
             f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={r['ticker']}' target='_blank'>{r['ticker']}</a></td>"
             f"<td class='mono'>{r['shares']:.0f}</td>"
             f"<td class='mono'>${r['avg']:.2f}</td>"
@@ -185,7 +186,7 @@ def render_html(account: dict, rows: list) -> str:
 
     table_html = (
         "<table class='pos-table'><thead><tr>"
-        "<th>TKR</th><th>Sh</th><th>Avg</th><th>Live</th><th>Δ%</th>"
+        "<th>No.</th><th>TKR</th><th>Sh</th><th>Avg</th><th>Live</th><th>Δ%</th>"
         "<th>$P/L</th><th>MV</th><th>%Bk</th><th>ATR%</th><th>S20%</th>"
         "<th>St</th><th>Verdict</th></tr></thead><tbody>"
         + pos_rows_html + "</tbody></table>"
@@ -223,6 +224,7 @@ h2 {{ font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: upper
 .pos-table tr:hover td {{ background: #f9fafb; }}
 .bold {{ font-weight: 700; }}
 .mono {{ font-variant-numeric: tabular-nums; }}
+.num  {{ color: #9ca3af; }}
 a {{ color: #2563eb; text-decoration: none; }}
 a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 .heat {{ border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block; }}
