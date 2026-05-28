@@ -1,28 +1,12 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 7,
-  "total_wins": 11,
+  "consecutive_wins": 2,
+  "consecutive_losses": 0,
+  "total_wins": 13,
   "total_losses": 20,
-  "current_sizing_mode": "suspended",
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-05-26",
+  "last_updated": "2026-05-28",
   "recent_trades": [
-    {
-      "ticker": "PL",
-      "result": "win",
-      "result_pct": 2.31,
-      "date": "2026-04-24",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
-    {
-      "ticker": "CORZ",
-      "result": "win",
-      "result_pct": 7.21,
-      "date": "2026-04-27",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
     {
       "ticker": "NBIS",
       "result": "loss",
@@ -273,6 +257,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -133.0
+    },
+    {
+      "ticker": "SNDK",
+      "result": "win",
+      "result_pct": 15.51,
+      "date": "2026-05-28",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 3395.7
+    },
+    {
+      "ticker": "RXT",
+      "result": "win",
+      "result_pct": 3.38,
+      "date": "2026-05-28",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 51.0
     }
   ],
   "market_state": "EXTENDED",
