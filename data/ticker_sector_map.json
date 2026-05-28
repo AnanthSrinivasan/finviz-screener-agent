@@ -1,6 +1,8 @@
 {
   "_comment": "Override-only map. Industry routing in agents/utils/sector_lookup.py handles semis/software/biotech/banks/homebuilders automatically. Add a row here ONLY when the Finviz industry maps wrong (e.g. AAOI is 'Communication Equipment' but revenue mix is semis-adjacent → SMH).",
   "AAOI": "SMH",
+  "UMAC": "UFO",
+  "ONDS": "UFO",
   "CRWV": "XLK",
   "REMX": "REMX",
   "TNA":  "IWM",
