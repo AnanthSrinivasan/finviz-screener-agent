@@ -38,7 +38,15 @@
     "WCLD": {"name": "Pure Cloud",        "theme": "growth-narrow"},
     "QTUM": {"name": "Quantum",           "theme": "speculative"},
     "IBIT": {"name": "Bitcoin",           "theme": "crypto"},
-    "NLR":  {"name": "Nuclear",           "theme": "energy-transition"}
+    "NLR":  {"name": "Nuclear",           "theme": "energy-transition"},
+    "PAVE": {"name": "US Infrastructure", "theme": "reshoring"},
+    "IHI":  {"name": "Medical Devices",   "theme": "healthcare"},
+    "DRIV": {"name": "Autonomous & EV",   "theme": "energy-transition"},
+    "ICLN": {"name": "Clean Energy",      "theme": "energy-transition"},
+    "JETS": {"name": "Airlines",          "theme": "cyclical"},
+    "URNM": {"name": "Uranium Pure",      "theme": "energy-transition"},
+    "BLOK": {"name": "Blockchain Stocks", "theme": "crypto"},
+    "EEM":  {"name": "Emerging Markets",  "theme": "international"}
   },
   "benchmarks": {
     "SPY": {"name": "S&P 500"},

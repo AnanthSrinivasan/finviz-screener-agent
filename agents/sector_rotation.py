@@ -670,6 +670,31 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         '<th>50/200 ↑</th><th>Bucket</th>'
         '</tr></thead>'
     )
+    # ⭐ Sweet Spot — the actionable intersection: high rank + climbing + clean bucket.
+    # Filter: rank ≤ 20 AND rank_delta_5d ≤ -3 (climbed 3+ spots) AND bucket ∈ {BASE, PRE-BREAKOUT}.
+    # Surfaces "rotating in AND chart-enterable" without forcing the reader to cross-check
+    # ranking against bucket manually. Spec rationale: with 45 ETFs the dashboard has two
+    # different lenses (rotation flow vs entry quality); the intersection is what's actionable.
+    sweet_spot = [
+        e for e in _ranked
+        if (e.get("rs_rank") or 99) <= 20
+        and (e.get("rank_delta_5d") or 0) <= -3
+        and e.get("bucket") in ("BASE", "PRE-BREAKOUT")
+    ]
+    sweet_spot.sort(key=lambda e: e.get("rs_rank") or 99)
+    sweet_spot_html = ""
+    if sweet_spot:
+        rows_html = "".join(_full_row(e) for e in sweet_spot)
+        sweet_spot_html = (
+            '<h2>⭐ Sweet Spot — rotating in AND chart-enterable</h2>'
+            '<div class="subtitle">Intersection of momentum + setup quality: '
+            '<b>rank ≤ 20</b> · <b>climbed ≥ 3 spots over 5d</b> · '
+            '<b>bucket ∈ {BASE, PRE-BREAKOUT}</b>. '
+            'These are the ETFs where money is flowing AND the chart is clean — '
+            'the actionable lane. EXTENDED / BROKEN excluded by design (no entry).</div>'
+            f'<table class="sortable">{SHARED_HEADER}<tbody>{rows_html}</tbody></table>'
+        )
+
     leaders_html = "".join(_full_row(e) for e in _ranked[:10])
     rs_leaderboard_html = ""
     if _ranked:
@@ -795,6 +820,7 @@ a{{color:#2563eb}}
 </div>
 
 {rotation_banner}
+{sweet_spot_html}
 {rs_leaderboard_html}
 
 <div class="subtitle" style="margin-top:18px">
