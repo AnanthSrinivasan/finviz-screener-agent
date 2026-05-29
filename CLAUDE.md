@@ -301,7 +301,7 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 3. Fallback to caller-provided Finviz `Sector` string via `FINVIZ_SECTOR_TO_ETF` (e.g. "Healthcare" → XLV).
 4. None → caller skips sector signal for that position.
 
-**ETF Rotation Dashboard (May 2026)** — `agents/sector_rotation.py` extended to compute per-ETF setup metrics (ATR%, mult50, dist52, range20, ret20, ema21d, RVol, MA stack) and bucket each ETF: `BASE` / `PRE-BREAKOUT` / `EXTENDED` / `BROKEN` / `NEUTRAL`. Bucket logic in `assign_bucket()`. Daily outputs: `data/etf_rotation.html` (one-page dashboard with regime banner + bucket cards + full metrics table) + `data/etf_rotation.json`. Linked from `index.html` "ETF Rotation" tile. Universe curated 35 → 28 ETFs (sectors 11 + thematics 17). Spec: [docs/specs/etf-rotation-dashboard.md](docs/specs/etf-rotation-dashboard.md). Same cron as sector_rotation.yml (21:15 UTC weekdays).
+**ETF Rotation Dashboard (May 2026)** — `agents/sector_rotation.py` extended to compute per-ETF setup metrics (ATR%, mult50, dist52, range20, ret20, ema21d, RVol, MA stack) and bucket each ETF: `BASE` / `PRE-BREAKOUT` / `EXTENDED` / `BROKEN` / `NEUTRAL`. Bucket logic in `assign_bucket()`. Daily outputs: `data/etf_rotation.html` (one-page dashboard with regime banner + bucket cards + full metrics table) + `data/etf_rotation.json`. Linked from `index.html` "ETF Rotation" tile. Universe curated 35 → 28 → **37** ETFs (sectors 11 + thematics 26). 2026-05-29 proactive theme audit added 8 thematics covering invisible-by-design baskets: KWEB (China internet) · ARKG (genomics) · ARKF (fintech) · REMX (rare earth — un-dropped, theme live again via China export-control narrative) · WCLD (pure cloud) · QTUM (quantum) · IBIT (bitcoin spot) · NLR (nuclear power). Above the prior 35-ETF "noisy percentile" cap but the additions are real concentration baskets, not redundant. Spec: [docs/specs/etf-rotation-dashboard.md](docs/specs/etf-rotation-dashboard.md). Same cron as sector_rotation.yml (21:15 UTC weekdays).
 
 **Weekly Sector Setup section (May 2026)** — Weekly review (`finviz_weekly_*.html` + Slack) now includes a `📊 Sector Setup This Week` block sourced from `data/etf_rotation.json` (Friday snapshot when weekly runs Saturday). HTML sits between macro snapshot and Top 5; Slack sits between Top Picks and 21 EMA pullback lane. Helper: `agents/utils/etf_rotation_summary.py` — pure `load_etf_rotation` / `summarize_etf_rotation` / `render_sector_setup_html` / `render_sector_setup_slack` + `REGIME_ADVICE` dict + `SECTOR_SETUP_CSS`. Top 5 per actionable bucket (BASE / PRE-BREAKOUT / EXTENDED / BROKEN); NEUTRAL filtered. Falls through gracefully when `etf_rotation.json` missing. Spec: [docs/specs/weekly-etf-rotation-section.md](docs/specs/weekly-etf-rotation-section.md).
 
@@ -347,10 +347,15 @@ Two actionable callouts in the daily Slack message, ordered by urgency:
 
 **🎯 Ready to Enter** — top-of-message, top 5 by Quality Score. All must pass:
 Stage 2 perfect · VCP conf ≥70 · Q ≥80 · dist from 52w high -1% to -12% ·
-ATR% ≤7% · RVol ≤1.2 · not in `positions.json` open positions.
-(Dist gate softened from -10% → -12% May 2026 — MTSI/RMBS class missed by 0.02-0.33pp.) Each line shows
+ATR% ≤7% · RVol ≤1.2 · **peel-safe (SMA50% / ATR% ≤ tier warn)** · not in `positions.json` open positions.
+(Dist gate softened from -10% → -12% May 2026 — MTSI/RMBS class missed by 0.02-0.33pp.
+Peel-safe gate added 2026-05-29 — AMD/DELL/STX class with sma50/atr 9-12× was promoted to
+Entry-Ready and stuck there; now hard-rejected and demoted.) Each line shows
 metrics + `/stock-research <ticker>`. Also drives the `focus → entry-ready`
-watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate).
+watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate). The
+inverse pass also runs: any entry-ready watchlist row that no longer satisfies
+`_is_ready_to_enter` on the current run is demoted back to `focus` and stamped
+`demoted_from_entry_ready_date` — prevents tier rot when a promoted name extends.
 
 **🔬 Hidden Growth (3+/6 or 4+/6 criteria)** — research prompt, **no cap** (score is the
 filter; count signals regime health). Scans `summary_df` (pre-10%-gate) so
