@@ -356,6 +356,17 @@ watchlist promotion (same criteria, pure `_is_ready_to_enter` predicate). The
 inverse pass also runs: any entry-ready watchlist row that no longer satisfies
 `_is_ready_to_enter` on the current run is demoted back to `focus` and stamped
 `demoted_from_entry_ready_date` — prevents tier rot when a promoted name extends.
+**Peel-warn calibration cap (2026-05-29 v2):** `_peel_warn_for` now returns
+`min(calibrated_warn, tier_warn(atr))`. Per-ticker calibration floors warn at
+7.5 for under-sampled tickers; that floor was masking the low-vol tier's
+warn=3.0 (caught ADI/TSM/LLY-class extended low-vol names). Calibration can no
+longer loosen tier discipline, only tighten it. **Stale-screener demotion
+(2026-05-29 v2):** Entry-Ready rows absent from the screener for ≥5 trading
+days are auto-demoted to focus with `demote_reason="stale — not in screener
+since <date>"`. Backfill uses `entry_ready_date` or `added` as start-of-clock
+so legacy stale rows demote immediately on the first run after deploy. Full
+05-29 tier audit went 26 survivors → 7 real entry-ready (16 stale + 2 cal-cap
++ 1 dist-creep removed).
 
 **🔬 Hidden Growth (3+/6 or 4+/6 criteria)** — research prompt, **no cap** (score is the
 filter; count signals regime health). Scans `summary_df` (pre-10%-gate) so
