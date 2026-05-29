@@ -30,7 +30,15 @@
     "TAN":  {"name": "Solar",             "theme": "energy-transition"},
     "UFO":  {"name": "Space (pure)",      "theme": "space-defense"},
     "ARKX": {"name": "ARK Space & Defense","theme": "space-defense"},
-    "ITA":  {"name": "Aerospace & Defense","theme": "space-defense"}
+    "ITA":  {"name": "Aerospace & Defense","theme": "space-defense"},
+    "KWEB": {"name": "China Internet",    "theme": "china"},
+    "ARKG": {"name": "Genomics",          "theme": "speculative"},
+    "ARKF": {"name": "Fintech",           "theme": "growth"},
+    "REMX": {"name": "Rare Earth",        "theme": "commodity"},
+    "WCLD": {"name": "Pure Cloud",        "theme": "growth-narrow"},
+    "QTUM": {"name": "Quantum",           "theme": "speculative"},
+    "IBIT": {"name": "Bitcoin",           "theme": "crypto"},
+    "NLR":  {"name": "Nuclear",           "theme": "energy-transition"}
   },
   "benchmarks": {
     "SPY": {"name": "S&P 500"},
