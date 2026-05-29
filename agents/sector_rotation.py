@@ -564,43 +564,34 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     def _fv(tk: str) -> str:
         return f'https://finviz.com/quote.ashx?t={tk}'
 
-    def _rotation_hero(e: dict) -> str:
-        """Plain-English rotation label as the hero — Δrank/RS hidden behind
-        a `<details>` expander (spec §3 — full replace on hero row)."""
-        from agents.utils.rotation_label import rotation_label as _rot_label
+    def _move_5d(d5) -> str:
+        """Plain-English 5d rank movement — 'up N' green / 'down N' red / '—' gray.
+        Rank improving (delta < 0) is UP (rotating in). Rank falling (delta > 0)
+        is DOWN (rotating out). One decoder ring, no sign confusion."""
+        if d5 is None:
+            return '<span style="color:#9ca3af">—</span>'
+        d5 = int(d5)
+        if d5 == 0:
+            return '<span style="color:#9ca3af">—</span>'
+        if d5 < 0:
+            return f'<span style="color:#16a34a;font-weight:700">up {-d5}</span>'
+        return f'<span style="color:#dc2626;font-weight:700">down {d5}</span>'
+
+    def _rs_badge(e: dict) -> str:
+        """RS chip + 5d-move pill for per-ETF cards."""
         rs = e.get("rs_score")
         rk = e.get("rs_rank")
         d5 = e.get("rank_delta_5d")
-        if rk is None:
+        if rs is None and rk is None:
             return ""
-        label = _rot_label(int(rk or 99), int(d5 or 0), int(rs or 0))
-        # Hero label background by emoji family
-        if label.startswith("🔥"):   bg = "#dc2626"
-        elif label.startswith("↗"):  bg = "#16a34a"
-        elif label.startswith("→"):  bg = "#6b7280"
-        elif label.startswith("↘"):  bg = "#f59e0b"
-        elif label.startswith("❄"): bg = "#2563eb"
-        else:                         bg = "#6b7280"
-        rk_txt = f" #{rk}/28"
-        d5_sign = "+" if (d5 or 0) > 0 else ""
-        d5_color = "#16a34a" if (d5 or 0) < 0 else ("#dc2626" if (d5 or 0) > 0 else "#6b7280")
-        details = (
-            f'<details class="rs-detail" style="display:inline-block;margin-left:6px">'
-            f'<summary style="font-size:10px;color:#6b7280;cursor:pointer">metrics</summary>'
-            f'<span style="font-size:11px;margin-left:6px">'
-            f'RS <b>{rs if rs is not None else "—"}</b> · '
-            f'<span style="color:{d5_color};font-weight:600">Δrank {d5_sign}{d5 if d5 is not None else 0}</span>'
-            f'</span></details>'
-        )
+        bg = "#16a34a" if (rs or 0) >= 70 else ("#2563eb" if (rs or 0) >= 50 else ("#f59e0b" if (rs or 0) >= 30 else "#dc2626"))
+        rk_txt = f" #{rk}/28" if rk else ""
+        move_txt = f' <span style="font-size:11px;margin-left:6px">5d {_move_5d(d5)}</span>'
         return (
             f'<span class="rs-chip" style="background:{bg};color:#fff;font-size:11px;'
             f'font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px">'
-            f'{label}{rk_txt}</span>{details}'
+            f'RS {rs if rs is not None else "—"}{rk_txt}</span>{move_txt}'
         )
-
-    # Back-compat alias — kept so the SMH/IGV pair banner and any other
-    # downstream consumers that imported _rs_badge keep working.
-    _rs_badge = _rotation_hero
 
     def _full_row(e: dict) -> str:
         """Shared schema for BOTH the RS leaderboard and the full metrics table."""
@@ -611,11 +602,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         d5 = e.get("rank_delta_5d")
         rs_cell = f'{rs}' if rs is not None else "—"
         rk_cell = f'#{rk}' if rk else "—"
-        d5_cell = "—"
-        if d5 is not None:
-            sign = "+" if d5 > 0 else ""
-            d5_color = "#16a34a" if d5 < 0 else ("#dc2626" if d5 > 0 else "#6b7280")
-            d5_cell = f'<span style="color:{d5_color};font-weight:600">{sign}{d5}</span>'
+        d5_cell = _move_5d(d5)
         # Momentum-sweet-spot row tint: RS 60-80 = "just being noticed" band (Qullamaggie zone)
         row_cls = ' class="row-momentum"' if (rs is not None and 60 <= rs <= 80) else ''
         if m is None:
@@ -677,7 +664,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         '<th title="Universe rank — #1 is strongest">Rank</th>'
         '<th>Ticker</th><th>Name</th>'
         '<th title="Relative Strength 0-99 vs SPY (20d-vs-SPY percentile)">RS</th>'
-        '<th title="Rank change vs 5 trading days ago — negative is BETTER (rotating in)">Δrank ↓=better</th>'
+        '<th title="Rank movement over the last 5 trading days. Green = climbed (rotating in). Red = fell (rotating out).">5d move</th>'
         '<th>ATR%</th><th>mult50</th><th>dist52</th><th>range20</th>'
         '<th>ret20</th><th>EMA21 dist</th><th>RVol</th>'
         '<th>50/200 ↑</th><th>Bucket</th>'
@@ -689,7 +676,8 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         rs_leaderboard_html = (
             '<h2>🏆 RS Leaderboard — top 10 by relative strength</h2>'
             '<div class="subtitle">Same columns as the full table below. '
-            '<b>Δrank ↓=better</b>: negative = rank improving (rotating in, green) · positive = rank deteriorating (rotating out, red). '
+            '<b>5d move</b>: <span style="color:#16a34a;font-weight:700">up N</span> = climbed N spots (rotating in) · '
+            '<span style="color:#dc2626;font-weight:700">down N</span> = fell N spots (rotating out) · — = stable. '
             'Amber row tint = RS 60–80 momentum sweet spot (just being noticed).</div>'
             f'<table class="sortable">{SHARED_HEADER}<tbody>{leaders_html}</tbody></table>'
         )
@@ -706,11 +694,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         igv_rk = igv.get("rs_rank"); igv_rs = igv.get("rs_score")
 
         def _delta_fmt(d):
-            if d == 0:
-                return '<span style="color:#6b7280">Δ0</span>'
-            sign = "+" if d > 0 else ""
-            color = "#16a34a" if d < 0 else "#dc2626"
-            return f'<span style="color:{color};font-weight:700">Δ{sign}{d}</span>'
+            return _move_5d(d)
 
         # Divergence detection — drives the colored banner
         is_smh_to_igv = smh_d5 >= 3 and igv_d5 <= -3
