@@ -2151,6 +2151,19 @@ def _is_ready_to_enter(row, open_positions_tickers: set) -> bool:
     if rvol is None or pd.isna(rvol) or float(rvol) > 1.2:
         return False
 
+    # Peel-safe gate (added 2026-05-29). Previously missing — names that ran
+    # away post-promotion got stuck in Entry-Ready (AMD/DELL/STX class on
+    # 05-29 with sma50/atr 9-12× vs mid-vol warn of 5). Mirrors the gate
+    # already present on _is_fresh_breakout / _is_htf_base_reclaim.
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    sma50 = row.get("SMA50%")
+    if sma50 is None or pd.isna(sma50):
+        return False
+    sma50 = float(sma50)
+    peel_warn = _peel_warn_for(ticker or "", float(atr))
+    if (sma50 / float(atr)) > peel_warn:
+        return False
+
     return True
 
 
@@ -3491,6 +3504,29 @@ def _update_watchlist(
             entry["entry_ready_date"] = today
             promoted_to_entry_ready.append(t)
             log.info("Watchlist: auto-promoted %s to entry-ready (Ready-to-Enter criteria met)", t)
+
+    # ── 3f: auto-demote entry-ready → focus when name no longer qualifies. ──
+    # Added 2026-05-29: previously a name promoted to entry-ready stayed there
+    # forever; AMD/DELL/STX were stuck in Entry-Ready with sma50/atr 9-12× even
+    # though dist had gone positive (above 52w high) and peel-warn was blown.
+    # Re-evaluate every run; demote back to focus if criteria no longer hold.
+    demoted_from_entry_ready: list[str] = []
+    for entry in existing:
+        if entry.get("priority") != "entry-ready" or entry.get("status") == "archived":
+            continue
+        t = entry.get("ticker", "")
+        if t not in screener_tickers:
+            continue  # not in today's universe — leave tier alone (data gap, not a real change)
+        rows = filter_df[filter_df['Ticker'] == t]
+        if rows.empty:
+            continue
+        row = rows.iloc[0]
+        if not _is_ready_to_enter(row, open_positions):
+            entry["priority"] = "focus"
+            entry["entry_ready_date"] = None
+            entry["demoted_from_entry_ready_date"] = today
+            demoted_from_entry_ready.append(t)
+            log.info("Watchlist: demoted %s entry-ready → focus (no longer meets Ready-to-Enter criteria)", t)
 
     wl_data["watchlist"] = existing
     with open(watchlist_path, "w") as f:

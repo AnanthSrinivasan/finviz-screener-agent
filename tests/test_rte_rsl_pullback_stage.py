@@ -75,6 +75,38 @@ class TestRtePullbackStage(unittest.TestCase):
         row = _rte_row(**{"SMA50%": -1.0})
         self.assertFalse(_is_ready_to_enter(row, set()))
 
+    def test_amd_class_rejected_by_peel_warn(self):
+        # AMD 2026-05-29 class: Q91, dist -11%, ATR 5.1, but sma50 = +61%
+        # → sma50/atr = 11.96 vs mid-vol warn 5.0. Must reject as extended.
+        row = _rte_row(**{
+            "Ticker":          "AMD",
+            "Stage":           {"stage": 2, "perfect": True},
+            "Dist From High%": -2.0,  # back in -1..-12 band
+            "SMA20%":          19.9,
+            "SMA50%":          61.0,
+            "ATR%":            5.1,
+            "Rel Volume":      0.8,
+            "VCP":             {"confidence": 75.0},
+        })
+        self.assertFalse(
+            _is_ready_to_enter(row, set()),
+            "AMD-class extended setup (sma50/atr = 11.96) must be rejected by peel-warn gate",
+        )
+
+    def test_dell_class_rejected_by_peel_warn(self):
+        # DELL 2026-05-29: sma50 +50.7 / ATR 4.9 = 10.35 — mid-vol warn 5.0.
+        row = _rte_row(**{
+            "Ticker":          "DELL",
+            "Stage":           {"stage": 2, "perfect": True},
+            "Dist From High%": -2.0,
+            "SMA20%":          27.1,
+            "SMA50%":          50.7,
+            "ATR%":             4.9,
+            "Rel Volume":       1.0,
+            "VCP":             {"confidence": 75.0},
+        })
+        self.assertFalse(_is_ready_to_enter(row, set()))
+
 
 class TestRsLeaderPullbackStage(unittest.TestCase):
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
