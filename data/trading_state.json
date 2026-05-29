@@ -1,47 +1,12 @@
 {
-  "consecutive_wins": 2,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 2,
   "total_wins": 13,
-  "total_losses": 20,
-  "current_sizing_mode": "normal",
+  "total_losses": 24,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-05-28",
+  "last_updated": "2026-05-29",
   "recent_trades": [
-    {
-      "ticker": "NBIS",
-      "result": "loss",
-      "result_pct": -13.94,
-      "date": "2026-04-27",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
-    {
-      "ticker": "MU",
-      "result": "win",
-      "result_pct": 1.15,
-      "profit_loss_usd": 64.8,
-      "date": "2026-04-29",
-      "side": "SELL",
-      "source": "auto_detected"
-    },
-    {
-      "ticker": "NVDA",
-      "result": "loss",
-      "result_pct": -4.24,
-      "date": "2026-04-30",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -635.0
-    },
-    {
-      "ticker": "PL",
-      "result": "loss",
-      "result_pct": -7.0,
-      "date": "2026-05-05",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -534.0
-    },
     {
       "ticker": "REMX",
       "result": "loss",
@@ -261,7 +226,7 @@
     {
       "ticker": "SNDK",
       "result": "win",
-      "result_pct": 15.51,
+      "result_pct": 15.88,
       "date": "2026-05-28",
       "side": "SELL",
       "source": "auto_detected",
@@ -269,12 +234,48 @@
     },
     {
       "ticker": "RXT",
-      "result": "win",
-      "result_pct": 3.38,
+      "result": "loss",
+      "result_pct": -7.36,
       "date": "2026-05-28",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 51.0
+    },
+    {
+      "ticker": "INDV",
+      "result": "loss",
+      "result_pct": -1.7,
+      "date": "2026-05-29",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -64.0
+    },
+    {
+      "ticker": "TAN",
+      "result": "win",
+      "result_pct": 14.21,
+      "date": "2026-05-29",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 223.75
+    },
+    {
+      "ticker": "AAOI",
+      "result": "loss",
+      "result_pct": -5.68,
+      "date": "2026-05-29",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -603.0
+    },
+    {
+      "ticker": "GLW",
+      "result": "loss",
+      "result_pct": -6.91,
+      "date": "2026-05-29",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -801.0
     }
   ],
   "market_state": "EXTENDED",
