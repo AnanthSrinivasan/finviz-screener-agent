@@ -50,22 +50,6 @@
       }
     },
     {
-      "ticker": "SNDK",
-      "signal_score": 5,
-      "eps_yy_ttm": 395.16,
-      "eps_qq": 272.72,
-      "inst_trans": -3.33,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
       "ticker": "UMAC",
       "signal_score": 5,
       "eps_yy_ttm": 91.33,
@@ -253,22 +237,6 @@
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "VELO",
-      "signal_score": 4,
-      "eps_yy_ttm": 94.28,
-      "eps_qq": 85.25,
-      "inst_trans": 1.58,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
