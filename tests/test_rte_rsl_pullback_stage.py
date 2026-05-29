@@ -107,6 +107,26 @@ class TestRtePullbackStage(unittest.TestCase):
         })
         self.assertFalse(_is_ready_to_enter(row, set()))
 
+    def test_adi_class_rejected_by_calibration_cap(self):
+        # ADI 2026-05-29: ATR 3.7 (low-vol tier → warn 3.0), sma50 +12.8 →
+        # sma50/atr = 3.46. Per-ticker calibration would float warn to 7.5
+        # (floor); the cap ensures tier wins for low-vol names. Must reject.
+        row = _rte_row(**{
+            "Ticker":          "ADI",
+            "Stage":           {"stage": 2, "perfect": True},
+            "Dist From High%": -3.8,
+            "SMA20%":          1.8,
+            "SMA50%":          12.8,
+            "ATR%":             3.7,
+            "Rel Volume":       1.2,
+            "VCP":             {"confidence": 75.0},
+        })
+        self.assertFalse(
+            _is_ready_to_enter(row, set()),
+            "ADI-class (low-vol, mid-extended) must be caught by tier warn — "
+            "calibration floor 7.5 must NOT mask tier warn 3.0",
+        )
+
 
 class TestRsLeaderPullbackStage(unittest.TestCase):
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)

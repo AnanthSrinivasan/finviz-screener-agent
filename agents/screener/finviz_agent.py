@@ -2048,9 +2048,24 @@ _PEEL_TIER_WARN = (
 )
 
 
+def _tier_peel_warn(atr_pct: float) -> float:
+    """ATR%-tier peel-warn (low-vol stricter, extreme-vol loosest)."""
+    for max_atr, warn in _PEEL_TIER_WARN:
+        if atr_pct <= max_atr:
+            return warn
+    return 7.0
+
+
 def _peel_warn_for(ticker: str, atr_pct: float) -> float:
-    """Return peel-warn threshold for a ticker. Uses per-ticker calibration
-    from data/peel_calibration.json when available, else ATR% tier fallback."""
+    """Return peel-warn threshold for a ticker.
+
+    Uses per-ticker calibration from data/peel_calibration.json when available,
+    BUT capped by the ATR%-tier table so the calibration floor (warn≥7.5)
+    can't mask genuinely extended low-vol names. Catch from 2026-05-29 audit:
+    ADI (ATR 3.7 / S50 12.8 → S50/ATR 3.46) was passing because calibration
+    warn=7.5; tier warn for ATR≤4 is 3.0 — the right discipline. Same fix
+    rescues TSM/LLY-class from Entry-Ready tier rot.
+    """
     import json
     global _PEEL_CAL_CACHE
     if _PEEL_CAL_CACHE is None:
@@ -2060,12 +2075,10 @@ def _peel_warn_for(ticker: str, atr_pct: float) -> float:
         except Exception:
             _PEEL_CAL_CACHE = {}
     entry = _PEEL_CAL_CACHE.get(ticker, {}) if isinstance(_PEEL_CAL_CACHE, dict) else {}
+    tier = _tier_peel_warn(atr_pct)
     if entry.get("calibrated"):
-        return float(entry["warn"])
-    for max_atr, warn in _PEEL_TIER_WARN:
-        if atr_pct <= max_atr:
-            return warn
-    return 7.0
+        return min(float(entry["warn"]), tier)
+    return tier
 
 
 # ── Watchlist lifecycle helpers (pure, unit-tested) ───────────────────────────
@@ -3505,18 +3518,59 @@ def _update_watchlist(
             promoted_to_entry_ready.append(t)
             log.info("Watchlist: auto-promoted %s to entry-ready (Ready-to-Enter criteria met)", t)
 
-    # ── 3f: auto-demote entry-ready → focus when name no longer qualifies. ──
-    # Added 2026-05-29: previously a name promoted to entry-ready stayed there
-    # forever; AMD/DELL/STX were stuck in Entry-Ready with sma50/atr 9-12× even
-    # though dist had gone positive (above 52w high) and peel-warn was blown.
-    # Re-evaluate every run; demote back to focus if criteria no longer hold.
+    # ── 3f: track last-seen-in-screener date (drives stale-demotion below). ──
+    for entry in existing:
+        if entry.get("ticker") in screener_tickers:
+            entry["last_seen_in_screener"] = today
+
+    # ── 3g: auto-demote entry-ready → focus when name no longer qualifies. ──
+    # Added 2026-05-29 (v1): catch names that ran away post-promotion (AMD/STX/DELL
+    # class with sma50/atr 9-12×). Re-evaluate _is_ready_to_enter every run.
+    # Extended 2026-05-29 (v2 — full-tier audit): also demote entries that have
+    # been absent from the screener for ≥5 trading days (was: silently kept tier
+    # forever). Full audit on 05-29 found 16 of 26 entry-ready survivors were
+    # stale (NVT/KEYS/CTRI/ANET/MCHP/AUPH/FRO/CAT/STNG/AMKR/ALB/RELY/FIVE/FLYW/
+    # TGTX/NESR) — none had been in the screener for weeks.
+    import datetime as _dt
+    def _trading_days_between(d1_str: str, d2_str: str) -> int:
+        try:
+            d1 = _dt.date.fromisoformat(d1_str); d2 = _dt.date.fromisoformat(d2_str)
+        except Exception:
+            return 0
+        if d2 < d1: d1, d2 = d2, d1
+        days, cur = 0, d1
+        while cur < d2:
+            cur += _dt.timedelta(days=1)
+            if cur.weekday() < 5: days += 1
+        return days
+
     demoted_from_entry_ready: list[str] = []
+    demoted_stale: list[str] = []
     for entry in existing:
         if entry.get("priority") != "entry-ready" or entry.get("status") == "archived":
             continue
         t = entry.get("ticker", "")
+
+        # Path A: name absent from today's screener — apply stale-demotion timer.
         if t not in screener_tickers:
-            continue  # not in today's universe — leave tier alone (data gap, not a real change)
+            last_seen = entry.get("last_seen_in_screener")
+            if not last_seen:
+                # Backfill: use entry_ready_date as the start-of-clock if available
+                # (we knew the ticker was in the screener when promoted), else
+                # fall back to `added`. Means truly stale legacy entries get
+                # demoted immediately on first run after this fix deploys.
+                last_seen = entry.get("entry_ready_date") or entry.get("added") or today
+                entry["last_seen_in_screener"] = last_seen
+            if _trading_days_between(last_seen, today) >= 5:
+                entry["priority"] = "focus"
+                entry["entry_ready_date"] = None
+                entry["demoted_from_entry_ready_date"] = today
+                entry["demote_reason"] = f"stale — not in screener since {last_seen}"
+                demoted_stale.append(t)
+                log.info("Watchlist: demoted %s entry-ready → focus (stale — not in screener since %s)", t, last_seen)
+            continue
+
+        # Path B: name in today's screener — re-evaluate _is_ready_to_enter.
         rows = filter_df[filter_df['Ticker'] == t]
         if rows.empty:
             continue
@@ -3525,6 +3579,7 @@ def _update_watchlist(
             entry["priority"] = "focus"
             entry["entry_ready_date"] = None
             entry["demoted_from_entry_ready_date"] = today
+            entry["demote_reason"] = "no longer meets Ready-to-Enter criteria"
             demoted_from_entry_ready.append(t)
             log.info("Watchlist: demoted %s entry-ready → focus (no longer meets Ready-to-Enter criteria)", t)
 
