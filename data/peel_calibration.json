@@ -35,7 +35,7 @@
     "runs": 5,
     "atr_pct_avg": 7.41,
     "calibrated": true,
-    "updated": "2026-05-29",
+    "updated": "2026-05-30",
     "gap_trimmed": true,
     "bars_start": "2024-01-24"
   },
@@ -531,7 +531,7 @@
     "runs": 4,
     "atr_pct_avg": 3.73,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "DAN": {
     "signal": 10.0,
@@ -591,7 +591,7 @@
     "runs": 8,
     "atr_pct_avg": 5.22,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "NBIS": {
     "signal": 10.0,
@@ -689,7 +689,7 @@
     "runs": 8,
     "atr_pct_avg": 6.85,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "BEAM": {
     "signal": 10.0,
@@ -735,9 +735,9 @@
     "p90": 16.4,
     "max_seen": 18.4,
     "runs": 9,
-    "atr_pct_avg": 9.95,
+    "atr_pct_avg": 9.94,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "RVMD": {
     "signal": 10.0,
@@ -1427,7 +1427,7 @@
     "runs": 8,
     "atr_pct_avg": 5.21,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "GFS": {
     "signal": 10.0,
@@ -1590,7 +1590,7 @@
     "runs": 7,
     "atr_pct_avg": 5.36,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "CECO": {
     "signal": 10.5,
@@ -1686,7 +1686,7 @@
     "runs": 6,
     "atr_pct_avg": 4.58,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "MRAM": {
     "signal": 13.1,
@@ -1722,7 +1722,7 @@
     "runs": 10,
     "atr_pct_avg": 5.79,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "REMX": {
     "signal": 10.4,
@@ -1744,9 +1744,9 @@
     "p90": 10.1,
     "max_seen": 10.9,
     "runs": 6,
-    "atr_pct_avg": 4.78,
+    "atr_pct_avg": 4.79,
     "calibrated": true,
-    "updated": "2026-05-14"
+    "updated": "2026-05-30"
   },
   "APLD": {
     "signal": 12.7,
@@ -1758,7 +1758,7 @@
     "runs": 8,
     "atr_pct_avg": 10.09,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "BAND": {
     "signal": 10.0,
@@ -2336,7 +2336,7 @@
     "runs": 4,
     "atr_pct_avg": 2.81,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "ROKU": {
     "signal": 10.0,
@@ -2346,9 +2346,9 @@
     "p90": 9.6,
     "max_seen": 10.7,
     "runs": 6,
-    "atr_pct_avg": 5.5,
+    "atr_pct_avg": 5.49,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "UMAC": {
     "signal": 10.0,
@@ -2420,7 +2420,7 @@
     "runs": 8,
     "atr_pct_avg": 3.1,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "NESR": {
     "signal": 16.7,
@@ -2543,8 +2543,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 1,
-    "atr_pct_avg": 7.13,
-    "updated": "2026-05-29"
+    "atr_pct_avg": 7.11,
+    "updated": "2026-05-30"
   },
   "NXT": {
     "signal": 10.0,
@@ -2580,7 +2580,7 @@
     "runs": 11,
     "atr_pct_avg": 1.47,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "TAN": {
     "signal": 10.0,
@@ -2604,7 +2604,7 @@
     "runs": 6,
     "atr_pct_avg": 5.96,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "RAMP": {
     "signal": 10.0,
@@ -2870,14 +2870,14 @@
     "runs": 9,
     "atr_pct_avg": 7.87,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
   },
   "KLAR": {
     "calibrated": false,
     "reason": "insufficient_runs",
-    "runs": 0,
-    "atr_pct_avg": 6.64,
-    "updated": "2026-05-29"
+    "runs": 1,
+    "atr_pct_avg": 6.63,
+    "updated": "2026-05-30"
   },
   "DAVE": {
     "signal": 24.2,
@@ -2887,8 +2887,32 @@
     "p90": 103.5,
     "max_seen": 220.7,
     "runs": 7,
-    "atr_pct_avg": 13.02,
+    "atr_pct_avg": 13.01,
     "calibrated": true,
-    "updated": "2026-05-29"
+    "updated": "2026-05-30"
+  },
+  "ARKX": {
+    "signal": 12.1,
+    "warn": 9.1,
+    "p50": 9.5,
+    "p75": 12.1,
+    "p90": 12.9,
+    "max_seen": 13.6,
+    "runs": 10,
+    "atr_pct_avg": 1.9,
+    "calibrated": true,
+    "updated": "2026-05-30"
+  },
+  "ARKK": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 8.8,
+    "p75": 8.8,
+    "p90": 9.0,
+    "max_seen": 9.1,
+    "runs": 5,
+    "atr_pct_avg": 3.96,
+    "calibrated": true,
+    "updated": "2026-05-30"
   }
 }
