@@ -157,11 +157,26 @@ flowchart TB
 
 | Name | What it catches |
 |------|----------------|
-| 10% Change | Gap/surge moves — EP candidates |
+| 10% Change | Gap/surge moves — EP candidates (price floor $2, avg-vol 1M — 2026-05-30) |
 | Growth | EPS 20%+, Sales 20%+, above all MAs |
 | IPO | Mid-cap+, listed within 3 years, above 20-day |
 | 52 Week High | Making new highs — price leadership |
 | Week 20%+ Gain | Significant weekly moves — momentum |
+| Power Move | 9M+ vol + 10%+ daily (institutional). Price floor $2, avg-vol 1M — 2026-05-30 |
+
+**Screener price/volume floors (2026-05-30):** `10% Change` + `Power Move` use
+`sh_price_o2` + `sh_avgvol_o1000` (was `sh_price_o5` + `sh_avgvol_o500`). Price
+floor dropped $5→$2 so sub-$5 movers at the base are visible (HYLN ~$2 on its
+best 5/5 & 5/11 entries was filtered out by the old $5 floor, only appeared
+5/13+ after +150%). Avg-vol raised 500k→1M as a penny-junk liquidity guard.
+
+**🔥 Big Movers (top-of-Slack, 2026-05-30):** Power Move tickers passing the 9M+
+share-volume post-filter (`_parse_vol`, since Finviz `sh_vol_o*` URL params are
+silently ignored) are surfaced as a compact one-line block at the TOP of the
+daily Slack message (above Ready-to-Enter), enriched with %change + volume and
+sorted by volume desc — e.g. `🔥 Big Movers: *ONDS* (+83.1%, 248M)`. Prevents an
+ONDS-class blow-off candle getting buried in the 200-row table. Replaces the
+prior buried mid-message "Power Moves" line.
 
 **Quality Score components:**
 - Market cap (0–30 pts) — institutional grade filter

@@ -186,6 +186,76 @@ class TestReadyToEnterSlackBlock(unittest.TestCase):
 
     @patch("agents.screener.finviz_agent.requests.post")
     @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
+    def test_big_movers_9m_volume_surfaced(self, mock_post):
+        """Power Move + 9M+ volume → 🔥 Big Movers block, enriched w/ %chg + vol."""
+        mock_post.return_value.ok = True
+        send_slack_notification(
+            summary_df=pd.DataFrame([{"Ticker": "ONDS"}]),
+            filter_df=pd.DataFrame([{"Ticker": "ONDS", "Quality Score": 70,
+                                     "Market Cap": "1B", "ATR%": 8, "Screeners": "Power Move",
+                                     "Volume": "248000000", "Change": "+83.1%",
+                                     "EPS Y/Y TTM": 0, "EPS Q/Q": 0, "Inst Trans": 0, "Sector": "Tech"}]),
+            gallery_html="/tmp/g.html",
+            today="2026-05-28",
+            ai_summary="",
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        joined = "\n".join(
+            b.get("text", {}).get("text", "") for b in payload["blocks"]
+            if b.get("type") == "section"
+        )
+        self.assertIn("Big Movers", joined)
+        self.assertIn("ONDS", joined)
+        self.assertIn("+83.1%", joined)
+        self.assertIn("248M", joined)
+
+    @patch("agents.screener.finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
+    def test_big_movers_sub9m_excluded(self, mock_post):
+        """Sub-9M volume Power Move must NOT appear in Big Movers."""
+        mock_post.return_value.ok = True
+        send_slack_notification(
+            summary_df=pd.DataFrame([{"Ticker": "SMALLV"}]),
+            filter_df=pd.DataFrame([{"Ticker": "SMALLV", "Quality Score": 70,
+                                     "Market Cap": "1B", "ATR%": 8, "Screeners": "Power Move",
+                                     "Volume": "2000000", "Change": "+11.0%",
+                                     "EPS Y/Y TTM": 0, "EPS Q/Q": 0, "Inst Trans": 0, "Sector": "Tech"}]),
+            gallery_html="/tmp/g.html",
+            today="2026-05-28",
+            ai_summary="",
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        joined = "\n".join(
+            b.get("text", {}).get("text", "") for b in payload["blocks"]
+            if b.get("type") == "section"
+        )
+        self.assertNotIn("Big Movers", joined)
+
+    @patch("agents.screener.finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
+    def test_big_movers_above_ready_to_enter(self, mock_post):
+        """Big Movers block must render before the Ready-to-Enter block."""
+        mock_post.return_value.ok = True
+        send_slack_notification(
+            summary_df=pd.DataFrame([{"Ticker": "ONDS"}]),
+            filter_df=pd.DataFrame([{"Ticker": "ONDS", "Quality Score": 70,
+                                     "Market Cap": "1B", "ATR%": 8, "Screeners": "Power Move",
+                                     "Volume": "248000000", "Change": "+83.1%",
+                                     "EPS Y/Y TTM": 0, "EPS Q/Q": 0, "Inst Trans": 0, "Sector": "Tech"}]),
+            gallery_html="/tmp/g.html",
+            today="2026-05-28",
+            ai_summary="",
+            ready_to_enter=[{"ticker": "MU", "q": 100, "vcp": 85, "dist": -5, "atr": 5.5, "rvol": 0.66}],
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        joined = "\n".join(
+            b.get("text", {}).get("text", "") for b in payload["blocks"]
+            if b.get("type") == "section"
+        )
+        self.assertLess(joined.find("Big Movers"), joined.find("Ready to Enter"))
+
+    @patch("agents.screener.finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
     def test_hidden_growth_uncapped_shows_all_tickers(self, mock_post):
         """Hidden Growth block must render all candidates (no top-3 cap).
         Uses 12 candidates — ticker list shows all, research_cmd caps at 10."""

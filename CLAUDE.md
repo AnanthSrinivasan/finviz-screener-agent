@@ -343,6 +343,23 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 
 ## Daily Screener Signals (Slack blocks)
 
+**Screener price/volume floors (2026-05-30):** `10% Change` and `Power Move`
+screeners use `sh_price_o2` + `sh_avgvol_o1000` (was `sh_price_o5` + `sh_avgvol_o500`).
+Dropped the price floor $5→$2 so sub-$5 movers at the base are visible (HYLN was
+~$2 on its best 5/5 & 5/11 entries, filtered out by the old $5 floor and only
+appeared 5/13+ after +150%). Raised the avg-vol floor 500k→1M as a penny-junk
+guard so a $2 name still needs real liquidity. Other screeners (Growth/IPO/52WHigh)
+keep `sh_price_o10`; Week 20%+ has no price floor.
+
+**🔥 Big Movers (top-of-message, 2026-05-30):** Power Move tickers (9M+ share
+volume + 10%+ day = Bonde institutional-conviction signal) surfaced FIRST in the
+Slack message, above Ready-to-Enter, so an ONDS-class +83%/248M-vol candle can't
+get buried in the 200-row table. Compact one-liner enriched with %change + volume
+(e.g. `*ONDS* (+83.1%, 248M)`), sorted by volume desc. Replaces the old buried
+"Power Moves" block that sat mid-message. Still gated on the 9M+ post-filter
+(`_parse_vol`, since Finviz `sh_vol_o*` URL params are silently ignored). The HTML
+gallery `🔥 Power Moves` section (via `_classify_ticker`) is unchanged.
+
 Two actionable callouts in the daily Slack message, ordered by urgency:
 
 **🎯 Ready to Enter** — top-of-message, top 5 by Quality Score. All must pass:

@@ -44,7 +44,7 @@ session = make_session()
 screener_urls = {
     "10% Change": (
         f"{FINVIZ_BASE}/screener.ashx?v=151"
-        f"&f=cap_smallover,ind_stocksonly,sh_avgvol_o500,sh_price_o5,"
+        f"&f=cap_smallover,ind_stocksonly,sh_avgvol_o1000,sh_price_o2,"
         f"ta_changeopen_u10"
         f"&ft=4&o=-relativevolume&"
         f"c=0,1,2,3,4,5,6,64,67,65,66"
@@ -75,7 +75,7 @@ screener_urls = {
     # post-filter in send_slack_notification() after the Volume column is parsed.
     "Power Move": (
         f"{FINVIZ_BASE}/screener.ashx?v=151"
-        f"&f=ind_stocksonly,sh_price_o5,sh_avgvol_o500,"
+        f"&f=ind_stocksonly,sh_price_o2,sh_avgvol_o1000,"
         f"ta_change_u10"
         f"&ft=4&o=-volume&"
         f"c=0,1,2,3,4,5,6,64,67,65,66"
@@ -1621,6 +1621,26 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":brain: *Today's take:*\n{ai_summary}"}})
         blocks.append({"type": "divider"})
 
+    # 🔥 Big Movers — Power Move tickers (9M+ share vol + 10%+ day = Bonde
+    # institutional conviction) surfaced FIRST so an ONDS-class +83%/248M candle
+    # can't get buried in the table. Compact one line, enriched w/ %chg + vol.
+    big_movers = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
+    if not big_movers.empty and 'Volume' in big_movers.columns:
+        big_movers = big_movers[big_movers['Volume'].apply(_parse_vol) >= 9_000_000]
+    if not big_movers.empty:
+        bm = big_movers.copy()
+        bm['_vol'] = bm['Volume'].apply(_parse_vol)
+        bm = bm.sort_values('_vol', ascending=False)
+        parts = []
+        for _, r in bm.iterrows():
+            chg = r.get('Change', '') or ''
+            parts.append(f"*{r['Ticker']}* ({chg}, {r['_vol'] / 1_000_000:.0f}M)")
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": ":fire: *Big Movers (9M+ vol, 10%+):* " + "  ·  ".join(parts)}
+        })
+        blocks.append({"type": "divider"})
+
     # Ready to Enter — top of message, most actionable signal.
     # ready_to_enter is a list of dicts: {ticker, q, vcp, dist, atr, rvol}
     if ready_to_enter:
@@ -1848,20 +1868,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             "text": {"type": "mrkdwn", "text": ":bar_chart: *Sector rotation:* " + "  ·  ".join(sector_parts)}
         })
 
-    # Power move tickers — post-filter to actual 9M+ share volume
-    # (Finviz sh_vol_o* URL param is silently ignored, so we enforce it ourselves)
-    # _parse_vol is defined at module level — shared with _classify_ticker
-    power_moves = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
-    if not power_moves.empty and 'Volume' in power_moves.columns:
-        before = len(power_moves)
-        power_moves = power_moves[power_moves['Volume'].apply(_parse_vol) >= 9_000_000]
-        log.info(f"Power Move post-filter: {before} → {len(power_moves)} tickers after 9M volume gate")
-    if not power_moves.empty:
-        pm_tickers = ", ".join(f"*{t}*" for t in power_moves['Ticker'].tolist())
-        blocks.append({
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f":fire: *Power Moves (9M+ vol, 10%+):* {pm_tickers}"}
-        })
+    # (Big Movers / Power Move surfacing moved to top-of-message — see "Big Movers" block above)
 
     # Hidden Growth — research prompts. No cap: 4+/6 score is the quality filter,
     # count also signals regime health. Large lists are capped in the research_cmd
