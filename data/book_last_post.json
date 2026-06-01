@@ -1,34 +1,4 @@
 {
-  "last_book_post_ts": "2026-06-01T19:01:17.674477Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "BE",
-      "message": "\ud83d\udea8 STOP HIT: BE @ $283.95 \u2014 exit immediately (stop $294.73)",
-      "current_price": 283.95,
-      "stop_price": 294.73,
-      "ts": "2026-06-01T19:22:37.096600Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "BE",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 BE ATR mult 3.15, P&L $-565",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-06-01T19:22:37.096600Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "FPS",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 FPS ATR mult 7.78x",
-      "alert_type": "PEEL",
-      "ts": "2026-06-01T19:22:37.096600Z"
-    },
-    {
-      "kind": "peel_warn",
-      "ticker": "INGM",
-      "message": "\ud83d\udd35 PEEL WARN \u2014 INGM ATR mult 3.10x",
-      "alert_type": "PEEL_WARN",
-      "ts": "2026-06-01T19:22:37.096600Z"
-    }
-  ]
+  "last_book_post_ts": "2026-06-01T19:29:46.814566Z",
+  "events_since_last": []
 }
