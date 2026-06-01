@@ -1,66 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 2,
-  "total_wins": 13,
-  "total_losses": 24,
-  "current_sizing_mode": "reduced",
+  "consecutive_losses": 1,
+  "total_wins": 16,
+  "total_losses": 25,
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-05-29",
+  "last_updated": "2026-06-01",
   "recent_trades": [
-    {
-      "ticker": "REMX",
-      "result": "loss",
-      "result_pct": -1.91,
-      "date": "2026-05-07",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -258.0
-    },
-    {
-      "ticker": "AMAT",
-      "result": "loss",
-      "result_pct": -4.35,
-      "date": "2026-05-07",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -192.6
-    },
-    {
-      "ticker": "LSCC",
-      "result": "loss",
-      "result_pct": -4.89,
-      "date": "2026-05-07",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -254.0
-    },
-    {
-      "ticker": "FIGS",
-      "result": "loss",
-      "result_pct": -32.13,
-      "date": "2026-05-08",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -1719.0
-    },
-    {
-      "ticker": "TNA",
-      "result": "loss",
-      "result_pct": -1.57,
-      "date": "2026-05-12",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -170.0
-    },
-    {
-      "ticker": "COHR",
-      "result": "win",
-      "result_pct": 18.25,
-      "date": "2026-05-13",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 631.6
-    },
     {
       "ticker": "XBI",
       "result": "loss",
@@ -276,6 +222,60 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -801.0
+    },
+    {
+      "ticker": "ROKU",
+      "result": "neutral",
+      "result_pct": -0.97,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -120.0
+    },
+    {
+      "ticker": "UFO",
+      "result": "win",
+      "result_pct": 5.8,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 338.0
+    },
+    {
+      "ticker": "TNA",
+      "result": "win",
+      "result_pct": 11.53,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 709.0
+    },
+    {
+      "ticker": "XBI",
+      "result": "neutral",
+      "result_pct": 0.33,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 44.0
+    },
+    {
+      "ticker": "TWLO",
+      "result": "win",
+      "result_pct": 20.93,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1954.0
+    },
+    {
+      "ticker": "ARKX",
+      "result": "loss",
+      "result_pct": -3.47,
+      "date": "2026-06-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -132.0
     }
   ],
   "market_state": "EXTENDED",

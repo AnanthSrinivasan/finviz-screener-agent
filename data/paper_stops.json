@@ -36,18 +36,19 @@
     "atr_pct": 4.0,
     "stop_price": 694.9,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "SNDK": {
     "entry_price": 1314.993333,
-    "highest_price_seen": 1707.9,
-    "peak_gain_pct": 29.88,
+    "highest_price_seen": 1801.42,
+    "peak_gain_pct": 36.99,
     "breakeven_activated": true,
     "target1": 1577.99,
     "target2": 1840.99,
     "target1_hit": true,
     "atr_pct": 7.63,
-    "stop_price": 1607.57,
+    "stop_price": 1701.09,
     "t1_peeled": false,
     "t2_peeled": false
   },
@@ -89,6 +90,7 @@
     "target2": 70.81,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   }
 }

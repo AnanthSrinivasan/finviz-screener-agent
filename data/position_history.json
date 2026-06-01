@@ -1,6 +1,398 @@
 {
-  "updated": "2026-05-29T22:39:37.074961Z",
+  "updated": "2026-06-01T19:01:08.935492Z",
   "history": {
+    "FPS": [
+      {
+        "date": "2026-05-21T14:12:11Z",
+        "action": "BUY",
+        "shares": 150.0,
+        "price": 46.63
+      },
+      {
+        "date": "2026-05-26T11:23:11Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 49.14
+      },
+      {
+        "date": "2026-05-29T16:30:46Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 52.36
+      }
+    ],
+    "ARKK": [
+      {
+        "date": "2026-05-29T16:29:58Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 82.0597
+      }
+    ],
+    "GLW": [
+      {
+        "date": "2026-04-17T14:05:52Z",
+        "action": "BUY",
+        "shares": 30.0,
+        "price": 167.105
+      },
+      {
+        "date": "2026-04-20T16:06:25Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 166.53
+      },
+      {
+        "date": "2026-04-23T20:19:05Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 169.75
+      },
+      {
+        "date": "2026-05-01T14:13:10Z",
+        "action": "BUY",
+        "shares": 25.0,
+        "price": 162.6675
+      },
+      {
+        "date": "2026-05-04T14:43:59Z",
+        "action": "BUY",
+        "shares": 15.0,
+        "price": 161.04
+      },
+      {
+        "date": "2026-05-11T16:17:05Z",
+        "action": "SELL",
+        "shares": 40.0,
+        "price": 206.7088
+      },
+      {
+        "date": "2026-05-13T18:50:56Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 208.8151
+      },
+      {
+        "date": "2026-05-18T16:05:09Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 179.71
+      },
+      {
+        "date": "2026-05-22T10:07:29Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 192.0
+      },
+      {
+        "date": "2026-05-26T09:20:59Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 197.0
+      },
+      {
+        "date": "2026-05-27T17:48:21Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 189.255
+      },
+      {
+        "date": "2026-05-28T14:20:57Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 191.105
+      },
+      {
+        "date": "2026-05-29T09:30:39Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 185.031
+      },
+      {
+        "date": "2026-05-29T15:19:28Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 176.6
+      }
+    ],
+    "AAOI": [
+      {
+        "date": "2026-04-07T15:33:44Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 113.5999
+      },
+      {
+        "date": "2026-04-07T17:38:38Z",
+        "action": "BUY",
+        "shares": 25.0,
+        "price": 115.8457
+      },
+      {
+        "date": "2026-04-16T12:11:00Z",
+        "action": "BUY",
+        "shares": 5.0,
+        "price": 140.73
+      },
+      {
+        "date": "2026-04-30T13:52:27Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 159.76
+      },
+      {
+        "date": "2026-05-11T16:17:30Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 182.7677
+      },
+      {
+        "date": "2026-05-13T10:34:24Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 201.1288
+      },
+      {
+        "date": "2026-05-13T13:31:16Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 206.6899
+      },
+      {
+        "date": "2026-05-13T18:03:59Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 225.1195
+      },
+      {
+        "date": "2026-05-13T18:49:23Z",
+        "action": "SELL",
+        "shares": 5.0,
+        "price": 232.155
+      },
+      {
+        "date": "2026-05-18T16:05:22Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 166.9
+      },
+      {
+        "date": "2026-05-22T10:05:43Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 177.5
+      },
+      {
+        "date": "2026-05-28T14:21:09Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 174.205
+      },
+      {
+        "date": "2026-05-29T09:30:19Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 171.03
+      },
+      {
+        "date": "2026-05-29T15:17:23Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 154.56
+      }
+    ],
+    "NVDA": [
+      {
+        "date": "2026-04-28T19:02:07Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 213.97
+      },
+      {
+        "date": "2026-04-30T13:52:51Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 204.8851
+      },
+      {
+        "date": "2026-05-06T13:59:30Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 204.315
+      },
+      {
+        "date": "2026-05-15T20:46:04Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 225.1261
+      },
+      {
+        "date": "2026-05-22T13:27:34Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 221.2194
+      },
+      {
+        "date": "2026-05-26T11:21:54Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 218.27
+      },
+      {
+        "date": "2026-05-27T17:48:02Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 212.39
+      },
+      {
+        "date": "2026-05-28T14:19:31Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 213.96
+      },
+      {
+        "date": "2026-05-29T13:48:02Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 215.615
+      }
+    ],
+    "TAN": [
+      {
+        "date": "2026-05-20T20:42:46Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 62.9701
+      },
+      {
+        "date": "2026-05-28T14:24:26Z",
+        "action": "SELL",
+        "shares": 75.0,
+        "price": 71.9201
+      },
+      {
+        "date": "2026-05-29T13:34:39Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 74.77
+      }
+    ],
+    "ZVRA": [
+      {
+        "date": "2026-05-08T13:56:34Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 11.425
+      },
+      {
+        "date": "2026-05-11T12:05:06Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 11.4482
+      },
+      {
+        "date": "2026-05-12T19:36:16Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 11.02
+      },
+      {
+        "date": "2026-05-15T17:40:53Z",
+        "action": "SELL",
+        "shares": 500.0,
+        "price": 11.0994
+      },
+      {
+        "date": "2026-05-29T11:07:48Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 11.6197
+      },
+      {
+        "date": "2026-05-29T11:08:07Z",
+        "action": "BUY",
+        "shares": 500.0,
+        "price": 11.45
+      }
+    ],
+    "ARKX": [
+      {
+        "date": "2026-05-29T09:32:47Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 37.99
+      }
+    ],
+    "BE": [
+      {
+        "date": "2026-05-21T11:46:17Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 287.15
+      },
+      {
+        "date": "2026-05-26T09:20:18Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 311.0
+      },
+      {
+        "date": "2026-05-26T11:23:22Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 313.4
+      },
+      {
+        "date": "2026-05-29T09:31:21Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 282.76
+      }
+    ],
+    "INDV": [
+      {
+        "date": "2026-04-27T16:47:23Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 34.205
+      },
+      {
+        "date": "2026-04-27T19:13:32Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 33.94
+      },
+      {
+        "date": "2026-05-14T11:33:05Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 39.0
+      },
+      {
+        "date": "2026-05-15T20:45:25Z",
+        "action": "SELL",
+        "shares": 300.0,
+        "price": 36.0464
+      },
+      {
+        "date": "2026-05-20T13:45:16Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 37.735
+      },
+      {
+        "date": "2026-05-28T09:13:17Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 37.1
+      },
+      {
+        "date": "2026-05-29T07:45:04Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 36.5
+      }
+    ],
     "TWLO": [
       {
         "date": "2026-05-28T18:28:05Z",
@@ -145,218 +537,6 @@
         "price": 1691.6666
       }
     ],
-    "TAN": [
-      {
-        "date": "2026-05-20T20:42:46Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 62.9701
-      },
-      {
-        "date": "2026-05-28T14:24:26Z",
-        "action": "SELL",
-        "shares": 75.0,
-        "price": 71.9201
-      }
-    ],
-    "AAOI": [
-      {
-        "date": "2026-04-07T15:33:44Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 113.5999
-      },
-      {
-        "date": "2026-04-07T17:38:38Z",
-        "action": "BUY",
-        "shares": 25.0,
-        "price": 115.8457
-      },
-      {
-        "date": "2026-04-16T12:11:00Z",
-        "action": "BUY",
-        "shares": 5.0,
-        "price": 140.73
-      },
-      {
-        "date": "2026-04-30T13:52:27Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 159.76
-      },
-      {
-        "date": "2026-05-11T16:17:30Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 182.7677
-      },
-      {
-        "date": "2026-05-13T10:34:24Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 201.1288
-      },
-      {
-        "date": "2026-05-13T13:31:16Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 206.6899
-      },
-      {
-        "date": "2026-05-13T18:03:59Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 225.1195
-      },
-      {
-        "date": "2026-05-13T18:49:23Z",
-        "action": "SELL",
-        "shares": 5.0,
-        "price": 232.155
-      },
-      {
-        "date": "2026-05-18T16:05:22Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 166.9
-      },
-      {
-        "date": "2026-05-22T10:05:43Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 177.5
-      },
-      {
-        "date": "2026-05-28T14:21:09Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 174.205
-      }
-    ],
-    "GLW": [
-      {
-        "date": "2026-04-17T14:05:52Z",
-        "action": "BUY",
-        "shares": 30.0,
-        "price": 167.105
-      },
-      {
-        "date": "2026-04-20T16:06:25Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 166.53
-      },
-      {
-        "date": "2026-04-23T20:19:05Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 169.75
-      },
-      {
-        "date": "2026-05-01T14:13:10Z",
-        "action": "BUY",
-        "shares": 25.0,
-        "price": 162.6675
-      },
-      {
-        "date": "2026-05-04T14:43:59Z",
-        "action": "BUY",
-        "shares": 15.0,
-        "price": 161.04
-      },
-      {
-        "date": "2026-05-11T16:17:05Z",
-        "action": "SELL",
-        "shares": 40.0,
-        "price": 206.7088
-      },
-      {
-        "date": "2026-05-13T18:50:56Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 208.8151
-      },
-      {
-        "date": "2026-05-18T16:05:09Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 179.71
-      },
-      {
-        "date": "2026-05-22T10:07:29Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 192.0
-      },
-      {
-        "date": "2026-05-26T09:20:59Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 197.0
-      },
-      {
-        "date": "2026-05-27T17:48:21Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 189.255
-      },
-      {
-        "date": "2026-05-28T14:20:57Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 191.105
-      }
-    ],
-    "NVDA": [
-      {
-        "date": "2026-04-28T19:02:07Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 213.97
-      },
-      {
-        "date": "2026-04-30T13:52:51Z",
-        "action": "SELL",
-        "shares": 50.0,
-        "price": 204.8851
-      },
-      {
-        "date": "2026-05-06T13:59:30Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 204.315
-      },
-      {
-        "date": "2026-05-15T20:46:04Z",
-        "action": "SELL",
-        "shares": 50.0,
-        "price": 225.1261
-      },
-      {
-        "date": "2026-05-22T13:27:34Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 221.2194
-      },
-      {
-        "date": "2026-05-26T11:21:54Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 218.27
-      },
-      {
-        "date": "2026-05-27T17:48:02Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 212.39
-      },
-      {
-        "date": "2026-05-28T14:19:31Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 213.96
-      }
-    ],
     "RXT": [
       {
         "date": "2026-05-27T06:47:27Z",
@@ -383,44 +563,6 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 26.21
-      }
-    ],
-    "INDV": [
-      {
-        "date": "2026-04-27T16:47:23Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 34.205
-      },
-      {
-        "date": "2026-04-27T19:13:32Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 33.94
-      },
-      {
-        "date": "2026-05-14T11:33:05Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 39.0
-      },
-      {
-        "date": "2026-05-15T20:45:25Z",
-        "action": "SELL",
-        "shares": 300.0,
-        "price": 36.0464
-      },
-      {
-        "date": "2026-05-20T13:45:16Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 37.735
-      },
-      {
-        "date": "2026-05-28T09:13:17Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 37.1
       }
     ],
     "APLD": [
@@ -579,40 +721,6 @@
         "action": "SELL",
         "shares": 50.0,
         "price": 67.78
-      }
-    ],
-    "BE": [
-      {
-        "date": "2026-05-21T11:46:17Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 287.15
-      },
-      {
-        "date": "2026-05-26T09:20:18Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 311.0
-      },
-      {
-        "date": "2026-05-26T11:23:22Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 313.4
-      }
-    ],
-    "FPS": [
-      {
-        "date": "2026-05-21T14:12:11Z",
-        "action": "BUY",
-        "shares": 150.0,
-        "price": 46.63
-      },
-      {
-        "date": "2026-05-26T11:23:11Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 49.14
       }
     ],
     "CORZ": [
@@ -931,32 +1039,6 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 95.85
-      }
-    ],
-    "ZVRA": [
-      {
-        "date": "2026-05-08T13:56:34Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 11.425
-      },
-      {
-        "date": "2026-05-11T12:05:06Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 11.4482
-      },
-      {
-        "date": "2026-05-12T19:36:16Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 11.02
-      },
-      {
-        "date": "2026-05-15T17:40:53Z",
-        "action": "SELL",
-        "shares": 500.0,
-        "price": 11.0994
       }
     ],
     "COHR": [
