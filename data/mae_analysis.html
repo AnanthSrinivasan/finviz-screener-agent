@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>MAE/MFE Analysis — 2024–2025</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,10 +35,10 @@ tr:hover td { background: #f9fafb; }
   <h2>Summary</h2>
   <div class="stat-row">
     <div class="stat"><div class="label">Trades Analysed</div><div class="value">206</div></div>
-    <div class="stat"><div class="label">Avg MAE (all trades)</div><div class="value" style="color:#dc2626">-12.9%</div></div>
-    <div class="stat"><div class="label">Avg MAE (winners only)</div><div class="value" style="color:#d97706">-9.4%</div></div>
+    <div class="stat"><div class="label">Avg MAE (all trades)</div><div class="value" style="color:#dc2626">-13.3%</div></div>
+    <div class="stat"><div class="label">Avg MAE (winners only)</div><div class="value" style="color:#d97706">-10.5%</div></div>
     <div class="stat"><div class="label">Avg MAE (losers)</div><div class="value" style="color:#dc2626">-14.5%</div></div>
-    <div class="stat"><div class="label">Avg MFE (all trades)</div><div class="value" style="color:#16a34a">8.1%</div></div>
+    <div class="stat"><div class="label">Avg MFE (all trades)</div><div class="value" style="color:#16a34a">7.7%</div></div>
     <div class="stat"><div class="label">Avg Hold Period</div><div class="value">24.8d</div></div>
     <div class="stat"><div class="label">Win Rate</div><div class="value" style="color:#16a34a">32%</div></div>
   </div>
@@ -46,7 +49,7 @@ tr:hover td { background: #f9fafb; }
   <h2>MAE Distribution — How Deep Did Trades Dip?</h2>
   <table>
     <tr><th>MAE Range</th><th>Trades</th><th>Frequency</th></tr>
-    <tr><td>0% to −2%</td><td>18</td><td>9%</td></tr><tr><td>−2% to −5%</td><td>54</td><td>26%</td></tr><tr><td>−5% to −10%</td><td>54</td><td>26%</td></tr><tr><td>−10% to −15%</td><td>27</td><td>13%</td></tr><tr><td>−15% to −20%</td><td>16</td><td>8%</td></tr><tr><td>−20% to −30%</td><td>17</td><td>8%</td></tr><tr><td>Beyond −30%</td><td>20</td><td>10%</td></tr>
+    <tr><td>0% to −2%</td><td>18</td><td>9%</td></tr><tr><td>−2% to −5%</td><td>54</td><td>26%</td></tr><tr><td>−5% to −10%</td><td>53</td><td>26%</td></tr><tr><td>−10% to −15%</td><td>26</td><td>13%</td></tr><tr><td>−15% to −20%</td><td>17</td><td>8%</td></tr><tr><td>−20% to −30%</td><td>17</td><td>8%</td></tr><tr><td>Beyond −30%</td><td>21</td><td>10%</td></tr>
   </table>
   <p class="note">
     <strong>0% to −2% (9%):</strong> Trade barely moved against you — bought the breakout and it ran. Rare.<br>
@@ -62,11 +65,11 @@ tr:hover td { background: #f9fafb; }
   <table>
     <tr><th>Situation</th><th>What history says</th></tr>
     <tr><td>Your position is down 5–10%</td><td style="color:#d97706;font-weight:600">Normal — happens in 52% of all trades. Stay in.</td></tr>
-    <tr><td>Winners before they won</td><td style="color:#d97706;font-weight:600">Dipped -9.4% on average first. Give it room.</td></tr>
-    <tr><td>Every trade's best moment (MFE)</td><td style="color:#16a34a;font-weight:600">+8.1% avg peak — most trades give you a window to exit in profit.</td></tr>
+    <tr><td>Winners before they won</td><td style="color:#d97706;font-weight:600">Dipped -10.5% on average first. Give it room.</td></tr>
+    <tr><td>Every trade's best moment (MFE)</td><td style="color:#16a34a;font-weight:600">+7.7% avg peak — most trades give you a window to exit in profit.</td></tr>
     <tr><td>When to actually worry</td><td style="color:#dc2626;font-weight:600">Position down &gt;20% with no recovery — that's outside normal range (only 18% of trades).</td></tr>
   </table>
-  <p class="note">When a current position is down -12.9% from entry — that is normal historical behaviour, not a system failure. The $4,500 hard stop and dynamic ATR stop exist to catch structural breakdowns, not routine 5–10% dips.</p>
+  <p class="note">When a current position is down -13.3% from entry — that is normal historical behaviour, not a system failure. The $4,500 hard stop and dynamic ATR stop exist to catch structural breakdowns, not routine 5–10% dips.</p>
 </div>
 
 <div class="card full">
@@ -102,6 +105,15 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-4.9%</td>
         </tr>
         <tr>
+          <td>CVNA</td>
+          <td>2024-02-23</td>
+          <td>2024-03-04</td>
+          <td>10d</td>
+          <td style="color:#dc2626;font-weight:600">-81.9%</td>
+          <td style="color:#16a34a;font-weight:600">-77.1%</td>
+          <td style="color:#16a34a;font-weight:600">+10.3%</td>
+        </tr>
+        <tr>
           <td>NOW</td>
           <td>2025-06-30</td>
           <td>2025-07-11</td>
@@ -115,8 +127,8 @@ tr:hover td { background: #f9fafb; }
           <td>2022-07-29</td>
           <td>2024-01-22</td>
           <td>542d</td>
-          <td style="color:#dc2626;font-weight:600">-68.0%</td>
-          <td style="color:#16a34a;font-weight:600">-12.2%</td>
+          <td style="color:#dc2626;font-weight:600">-68.4%</td>
+          <td style="color:#16a34a;font-weight:600">-13.3%</td>
           <td style="color:#dc2626;font-weight:600">-59.0%</td>
         </tr>
         <tr>
@@ -228,6 +240,15 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-27.8%</td>
         </tr>
         <tr>
+          <td>FUTU</td>
+          <td>2025-03-14</td>
+          <td>2025-04-04</td>
+          <td>21d</td>
+          <td style="color:#dc2626;font-weight:600">-32.3%</td>
+          <td style="color:#16a34a;font-weight:600">3.6%</td>
+          <td style="color:#dc2626;font-weight:600">-26.2%</td>
+        </tr>
+        <tr>
           <td>CEP</td>
           <td>2025-06-03</td>
           <td>2025-06-10</td>
@@ -235,15 +256,6 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-31.8%</td>
           <td style="color:#16a34a;font-weight:600">-9.0%</td>
           <td style="color:#dc2626;font-weight:600">-28.3%</td>
-        </tr>
-        <tr>
-          <td>FUTU</td>
-          <td>2025-03-14</td>
-          <td>2025-04-04</td>
-          <td>21d</td>
-          <td style="color:#dc2626;font-weight:600">-31.3%</td>
-          <td style="color:#16a34a;font-weight:600">5.2%</td>
-          <td style="color:#dc2626;font-weight:600">-26.2%</td>
         </tr>
         <tr>
           <td>MSTR</td>
@@ -525,6 +537,15 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-12.4%</td>
         </tr>
         <tr>
+          <td>FUTU</td>
+          <td>2025-05-29</td>
+          <td>2025-05-30</td>
+          <td>1d</td>
+          <td style="color:#dc2626;font-weight:600">-15.9%</td>
+          <td style="color:#16a34a;font-weight:600">-1.1%</td>
+          <td style="color:#dc2626;font-weight:600">-12.6%</td>
+        </tr>
+        <tr>
           <td>SPOT</td>
           <td>2025-03-19</td>
           <td>2025-04-04</td>
@@ -586,15 +607,6 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-14.5%</td>
           <td style="color:#16a34a;font-weight:600">-1.7%</td>
           <td style="color:#dc2626;font-weight:600">-11.1%</td>
-        </tr>
-        <tr>
-          <td>FUTU</td>
-          <td>2025-05-29</td>
-          <td>2025-05-30</td>
-          <td>1d</td>
-          <td style="color:#dc2626;font-weight:600">-14.5%</td>
-          <td style="color:#16a34a;font-weight:600">0.4%</td>
-          <td style="color:#dc2626;font-weight:600">-12.6%</td>
         </tr>
         <tr>
           <td>GME</td>
@@ -802,15 +814,6 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-9.9%</td>
           <td style="color:#16a34a;font-weight:600">2.3%</td>
           <td style="color:#dc2626;font-weight:600">-7.9%</td>
-        </tr>
-        <tr>
-          <td>CVNA</td>
-          <td>2024-02-23</td>
-          <td>2024-03-04</td>
-          <td>10d</td>
-          <td style="color:#dc2626;font-weight:600">-9.8%</td>
-          <td style="color:#16a34a;font-weight:600">14.6%</td>
-          <td style="color:#16a34a;font-weight:600">+10.3%</td>
         </tr>
         <tr>
           <td>CORZ</td>
@@ -1227,6 +1230,15 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-5.1%</td>
         </tr>
         <tr>
+          <td>CDE</td>
+          <td>2025-05-20</td>
+          <td>2025-07-30</td>
+          <td>71d</td>
+          <td style="color:#dc2626;font-weight:600">-5.3%</td>
+          <td style="color:#16a34a;font-weight:600">27.1%</td>
+          <td style="color:#16a34a;font-weight:600">+16.1%</td>
+        </tr>
+        <tr>
           <td>QLD</td>
           <td>2025-12-24</td>
           <td>2025-12-29</td>
@@ -1243,15 +1255,6 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-5.2%</td>
           <td style="color:#16a34a;font-weight:600">14.0%</td>
           <td style="color:#16a34a;font-weight:600">+0.2%</td>
-        </tr>
-        <tr>
-          <td>CDE</td>
-          <td>2025-05-20</td>
-          <td>2025-07-30</td>
-          <td>71d</td>
-          <td style="color:#dc2626;font-weight:600">-5.2%</td>
-          <td style="color:#16a34a;font-weight:600">27.3%</td>
-          <td style="color:#16a34a;font-weight:600">+16.1%</td>
         </tr>
         <tr>
           <td>APP</td>
@@ -1533,6 +1536,15 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-4.1%</td>
         </tr>
         <tr>
+          <td>FUTU</td>
+          <td>2025-01-27</td>
+          <td>2025-01-27</td>
+          <td>0d</td>
+          <td style="color:#dc2626;font-weight:600">-3.6%</td>
+          <td style="color:#16a34a;font-weight:600">-1.2%</td>
+          <td style="color:#dc2626;font-weight:600">-2.1%</td>
+        </tr>
+        <tr>
           <td>SERV</td>
           <td>2025-08-28</td>
           <td>2025-08-28</td>
@@ -1747,15 +1759,6 @@ tr:hover td { background: #f9fafb; }
           <td style="color:#dc2626;font-weight:600">-2.2%</td>
           <td style="color:#16a34a;font-weight:600">5.7%</td>
           <td style="color:#16a34a;font-weight:600">+2.2%</td>
-        </tr>
-        <tr>
-          <td>FUTU</td>
-          <td>2025-01-27</td>
-          <td>2025-01-27</td>
-          <td>0d</td>
-          <td style="color:#dc2626;font-weight:600">-2.1%</td>
-          <td style="color:#16a34a;font-weight:600">0.3%</td>
-          <td style="color:#dc2626;font-weight:600">-2.1%</td>
         </tr>
         <tr>
           <td>ZS</td>
