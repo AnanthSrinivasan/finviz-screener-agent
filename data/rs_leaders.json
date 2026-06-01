@@ -16,22 +16,6 @@
     "days_tracked": 9,
     "rs_rating": 61
   },
-  "KEYS": {
-    "first_triggered": "2026-05-06",
-    "trigger_state": "CAUTION",
-    "trigger_q": 101.0,
-    "trigger_dist": 0.47991418005250974,
-    "trigger_atr_mult": 5.3,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-05-15",
-    "pullback_started": "2026-05-18",
-    "reacquired_dates": [
-      "2026-05-07",
-      "2026-05-13"
-    ],
-    "days_tracked": 6,
-    "rs_rating": 60
-  },
   "DELL": {
     "first_triggered": "2026-05-06",
     "trigger_state": "CAUTION",
@@ -181,13 +165,13 @@
     "trigger_dist": -7.711809243208057,
     "trigger_atr_mult": 3.9,
     "rs_rating": 90,
-    "current_status": "reacquired",
-    "last_active_date": "2026-05-19",
+    "current_status": "active",
+    "last_active_date": "2026-06-02",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-05-19"
     ],
-    "days_tracked": 9
+    "days_tracked": 10
   },
   "COHR": {
     "first_triggered": "2026-05-08",
@@ -418,9 +402,9 @@
     "trigger_dist": -3.1617678517948056,
     "trigger_atr_mult": 5.6,
     "rs_rating": 94,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-06-01",
-    "pullback_started": null,
+    "pullback_started": "2026-06-02",
     "reacquired_dates": [],
     "days_tracked": 6
   },
@@ -444,10 +428,23 @@
     "trigger_dist": -8.414464534075117,
     "trigger_atr_mult": 3.8,
     "rs_rating": 60,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-06-01",
-    "pullback_started": null,
+    "pullback_started": "2026-06-02",
     "reacquired_dates": [],
     "days_tracked": 3
+  },
+  "RNG": {
+    "first_triggered": "2026-06-02",
+    "trigger_state": "EXTENDED",
+    "trigger_q": 94.0,
+    "trigger_dist": 1.0891272570052069,
+    "trigger_atr_mult": 3.7,
+    "rs_rating": 72,
+    "current_status": "active",
+    "last_active_date": "2026-06-02",
+    "pullback_started": null,
+    "reacquired_dates": [],
+    "days_tracked": 1
   }
 }
