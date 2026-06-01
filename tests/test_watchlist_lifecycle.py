@@ -192,17 +192,39 @@ class TestUpdateWatchlist(unittest.TestCase):
         self.assertEqual(e["priority"], "focus")
 
     def test_age_out_skips_entry_ready_priority(self):
+        """Entry-ready is never *aged out* (archived) — but it IS demoted to focus
+        when stale in the screener ≥5 trading days (2026-05-29 stale-demotion).
+        Use a recent last_seen so the stale timer hasn't tripped: stays entry-ready."""
+        old_date = (date.today() - timedelta(days=30)).isoformat()
+        recent = (date.today() - timedelta(days=1)).isoformat()
+        self._write_watchlist([
+            {
+                "ticker": "MU", "status": "watching", "priority": "entry-ready",
+                "added": old_date, "source": "screener_auto",
+                "last_seen_in_screener": recent,
+            }
+        ])
+        _update_watchlist(_df([]), date.today().isoformat())
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "watching", "entry-ready must not be archived/aged out")
+        self.assertEqual(e["priority"], "entry-ready", "fresh entry-ready (recent last_seen) stays")
+
+    def test_entry_ready_demoted_when_stale_in_screener(self):
+        """Entry-ready absent from the screener ≥5 trading days → demoted to focus
+        with a stale reason (2026-05-29 tier-rot guard). Not archived."""
         old_date = (date.today() - timedelta(days=30)).isoformat()
         self._write_watchlist([
             {
                 "ticker": "MU", "status": "watching", "priority": "entry-ready",
                 "added": old_date, "source": "screener_auto",
+                "last_seen_in_screener": old_date,
             }
         ])
-        _update_watchlist(_df([]), "2026-04-23")
+        _update_watchlist(_df([]), date.today().isoformat())
         e = self._read_watchlist()[0]
-        self.assertEqual(e["status"], "watching")
-        self.assertEqual(e["priority"], "entry-ready")
+        self.assertEqual(e["status"], "watching", "still watching — demoted, not archived")
+        self.assertEqual(e["priority"], "focus", "stale entry-ready demotes to focus")
+        self.assertIn("stale", e.get("demote_reason", ""))
 
     def test_age_out_archives_watching_priority(self):
         old_date = (date.today() - timedelta(days=20)).isoformat()
