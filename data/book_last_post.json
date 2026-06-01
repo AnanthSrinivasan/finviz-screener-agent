@@ -1,4 +1,55 @@
 {
   "last_book_post_ts": "2026-06-01T21:08:32.342400Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_added",
+      "ticker": "INFQ",
+      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: INFQ\n   100 shares @ $17.86 (from SnapTrade)\n   Auto-stop: $12.81 | T1: $21.43 | T2: $25.00\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "BE",
+      "message": "\ud83d\udea8 STOP HIT: BE @ $273.51 \u2014 exit immediately (stop $294.73)",
+      "current_price": 273.51,
+      "stop_price": 294.73,
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AMZN",
+      "message": "\ud83d\udea8 STOP HIT: AMZN @ $261.26 \u2014 exit immediately (stop $261.54)",
+      "current_price": 261.26,
+      "stop_price": 261.54,
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "AMZN",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 AMZN ATR mult 2.08",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "BE",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 BE ATR mult 2.50, P&L $-774",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "FPS",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 FPS ATR mult 7.27x",
+      "alert_type": "PEEL",
+      "ts": "2026-06-01T22:21:37.181148Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "INGM",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 INGM ATR mult 3.19x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-06-01T22:21:37.181148Z"
+    }
+  ]
 }

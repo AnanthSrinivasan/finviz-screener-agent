@@ -339,6 +339,23 @@
       "current_gain_pct": 5.83,
       "first_entry_price": 117.94,
       "peak_gain_pct": 8.32
+    },
+    {
+      "ticker": "INFQ",
+      "shares": 100,
+      "entry_price": 17.86,
+      "entry_date": "2026-06-02",
+      "stop_price": 14.74,
+      "breakeven_activated": false,
+      "target1": 21.43,
+      "target1_hit": false,
+      "target2": 25.0,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 18.56,
+      "current_gain_pct": -0.95,
+      "first_entry_price": 17.86,
+      "peak_gain_pct": 3.92
     }
   ],
   "closed_positions": [
