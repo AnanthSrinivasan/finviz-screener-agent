@@ -1063,36 +1063,12 @@ Runs 9am ET Mon–Fri. For each `priority=focus` watchlist ticker, reports setup
 
 ---
 
-## 11. Agent 2 + 3 Implementation (completed 2026-03-21)
+## 11. Weekly AI layer — Strategist's Note (Feature D, 2026-06-02)
 
-### Agent 2 — Catalyst Research ✅
+**Superseded:** the old two-agent weekly AI (`research_catalysts()` per-top-3 web-search + `generate_weekly_ai_brief()` market-state-gated essay) was **removed** in the Feature D rebuild. Both functions and their 6 tests are deleted. The essay had no decision in it and the catalyst search burned tokens on the rear-view Top-5.
 
-**Location:** `finviz_weekly_agent.py` → `research_catalysts()`
+**Replacement:** `finviz_weekly_agent.py` → `generate_strategist_note(positioning_summary, shortlist_cards, market_state, fng_data, etf_regime)`.
 
-After persistence scores are built, takes the top 5 tickers and for each calls the Claude API (`claude-sonnet-4-6`) with `web_search_20250305` tool enabled (max 3 searches per ticker).
+Single token-capped Claude call (`claude-sonnet-4-6`, `max_tokens=350`) returning EXACTLY 3 one-line bullets: (1) regime insight, (2) best setup + why (drawn from the §2 shortlist), (3) the one risk to the book. Fed the §1 positioning summary (positions vs cap, book health, leak) + the §2 shortlist cards + regime + F&G. Deterministic data-driven fallback (`_fallback()`) renders the same 3 bullets with no API key or on any API failure — the note always ships. Two terse-prose helpers also live in `agents/utils/week_ahead_shortlist.py` (`build_ai_notes_prompt` / `_parse_ai_notes` / `enrich_shortlist_notes_ai`) for optional per-card Setup/Invalidation enrichment.
 
-**Prompt per ticker:**
-```
-Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.
-[Signal context injected: EP, IPO, MULTI, HIGH badges if present]
-Find: recent earnings beats or misses, analyst upgrades/downgrades,
-sector tailwinds, any catalyst in the past 2 weeks that explains
-why this stock appeared in momentum screeners all week.
-Be specific. 3-4 sentences max. No fluff.
-```
-
-Returns `{ticker: research_summary}`. Handles 429s with exponential backoff.
-
-### Agent 3 — Synthesiser ✅
-
-**Location:** `finviz_weekly_agent.py` → `generate_weekly_ai_brief(research=None)`
-
-Takes Agent 2's research dict + macro + Fear & Greed + crypto and injects catalyst context into the prompt. The AI brief explains *why* tickers rank where they do using real-world catalysts, not just screener appearances.
-
-**Prompt structure (market-state-gated):**
-- RED/BLACKOUT: 3 paragraphs — re-entry trigger + 1-2 first-in-queue names + macro. No per-ticker analysis for non-actionable names.
-- CAUTION: 4 paragraphs — state + GREEN trigger, 1-2 setups at half size, macro, Monday plan.
-- GREEN/THRUST: 4 paragraphs — backdrop, actionable names with catalyst + entry, macro, Monday plan.
-- Watch-only names: one sentence max in all states. Never given their own paragraph.
-
-**Test coverage:** 6 tests (4 catalyst, 2 synthesiser) in `test_finviz_agent.py`.
+Spec: [docs/specs/weekly-review-rebuild.md](docs/specs/weekly-review-rebuild.md).
