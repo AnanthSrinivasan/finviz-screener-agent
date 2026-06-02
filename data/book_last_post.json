@@ -1,4 +1,34 @@
 {
   "last_book_post_ts": "2026-06-02T17:50:49.962651Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "AMZN",
+      "message": "\ud83d\udea8 STOP HIT: AMZN @ $258.30 \u2014 exit immediately (stop $261.54)",
+      "current_price": 258.3,
+      "stop_price": 261.54,
+      "ts": "2026-06-02T18:07:30.105855Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "AMZN",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 AMZN ATR mult 1.44",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-02T18:07:30.105855Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "FPS",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 FPS ATR mult 7.00x",
+      "alert_type": "PEEL",
+      "ts": "2026-06-02T18:07:30.105855Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "INGM",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 INGM ATR mult 4.81x",
+      "alert_type": "PEEL",
+      "ts": "2026-06-02T18:07:30.105855Z"
+    }
+  ]
 }
