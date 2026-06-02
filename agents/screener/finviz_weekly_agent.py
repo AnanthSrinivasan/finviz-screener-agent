@@ -11,13 +11,32 @@ import requests
 import pandas as pd
 from collections import defaultdict
 
-from agents.utils.pullback_setup import build_pullback_rows
 from agents.utils.etf_rotation_summary import (
     load_etf_rotation,
     summarize_etf_rotation,
     render_sector_setup_html,
     render_sector_setup_slack,
     SECTOR_SETUP_CSS,
+)
+from agents.utils.weekly_positioning import (
+    build_positioning_summary,
+    render_positioning_html,
+    render_positioning_slack,
+    POSITIONING_CSS,
+)
+from agents.utils.week_ahead_shortlist import (
+    select_shortlist_candidates,
+    build_shortlist_cards,
+    enrich_shortlist_notes_ai,
+    render_shortlist_html,
+    render_shortlist_slack,
+    SHORTLIST_CSS,
+)
+from agents.utils.book_weekend_review import (
+    build_book_review_rows,
+    render_book_review_html,
+    render_book_review_slack,
+    BOOK_REVIEW_CSS,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -913,159 +932,20 @@ def _fng_context(score: float, prev_month: float) -> str:
 # Part 3: HTML Report
 # ----------------------------
 
-def _render_pullback_section(buckets: dict) -> str:
-    """Render the four-bucket pullback re-entry HTML block. Returns empty
-    string when every bucket is empty."""
-    total = sum(len(v) for v in buckets.values())
-    entry_zone = buckets.get("entry_zone", [])
-    watching   = buckets.get("watching", [])[:5]
-    extended   = buckets.get("extended", [])[:5]
-    mid_flight = buckets.get("mid_flight", [])[:10]
-
-    def _row(r: dict, badge: str) -> str:
-        fv = f"{FINVIZ_BASE}/quote.ashx?t={r['ticker']}"
-        ema_str = f"${r['ema21']:.2f}" if r.get("ema21") is not None else "—"
-        gap_cls = "pos" if r["gap_pct"] >= 0 else "neg"
-        peel_note = (
-            f"peel {r['peel_mult']:.1f}x / warn {r['peel_warn']:.1f}x"
-            if badge == "extended"
-            else "peel-safe"
-        )
-        return (
-            "<tr>"
-            f"<td class='pb-badge pb-{badge}'>{_BUCKET_LABEL[badge]}</td>"
-            f"<td class='bold'><a href='{fv}' target='_blank'>{r['ticker']}</a></td>"
-            f"<td class='mono'>${r['price']:.2f}</td>"
-            f"<td class='mono'>{ema_str}</td>"
-            f"<td class='mono {gap_cls}'>{r['gap_pct']:+.1f}%</td>"
-            f"<td class='mono'>Q{r['q']}</td>"
-            f"<td class='mono'>RS{r['rs']}</td>"
-            f"<td class='mono'>{r['atr_pct']:.1f}%</td>"
-            f"<td class='mono'>{r['dist_from_high']:+.1f}%</td>"
-            f"<td class='dim'>{peel_note}</td>"
-            "</tr>"
-        )
-
-    rows_entry    = "".join(_row(r, "entry_zone") for r in entry_zone[:5])
-    rows_watching = "".join(_row(r, "watching") for r in watching)
-    rows_extended = "".join(_row(r, "extended") for r in extended)
-    rows_midflight = "".join(_row(r, "mid_flight") for r in mid_flight)
-
-    if total == 0:
-        return (
-            "<h2>🎯 Re-entry Setup — 21 EMA lane</h2>"
-            "<p class='lb-note'>No recurring names within reach of the 21 EMA "
-            "this week. Wait for a pullback.</p>"
-        )
-
-    body  = "<h2>🎯 Re-entry Setup — 21 EMA lane</h2>"
-    body += (
-        "<p class='lb-note'>"
-        "Filters Q≥80 · RS≥60 · ATR ∈ [3, 6] · dist [-12%, 0]. Buckets the "
-        "recurring-names list by distance from the 21 EMA. Entry zone is "
-        "where Qullamaggie buys — the rest is a status board, not a list to "
-        "act on."
-        "</p>"
-    )
-
-    if rows_entry or not (rows_watching or rows_extended or rows_midflight):
-        body += "<h3 class='pb-h3'>🎯 Entry zone — at 21 EMA (actionable)</h3>"
-        if rows_entry:
-            body += _PB_TABLE.format(rows=rows_entry)
-        else:
-            body += (
-                "<p class='lb-note'>0 names sitting at 21 EMA this week — "
-                "wait for a pullback.</p>"
-            )
-
-    if rows_watching:
-        body += "<h3 class='pb-h3'>⏳ Watching — pulled back, not yet at 21 EMA</h3>"
-        body += _PB_TABLE.format(rows=rows_watching)
-
-    if rows_extended:
-        body += "<h3 class='pb-h3'>🚫 Extended — past peel-warn (no action)</h3>"
-        body += _PB_TABLE.format(rows=rows_extended)
-
-    if rows_midflight:
-        body += (
-            "<details class='pb-details'>"
-            "<summary>🟡 Mid-flight — above 21 EMA but below peel-warn "
-            f"({len(buckets.get('mid_flight', []))})</summary>"
-            f"{_PB_TABLE.format(rows=rows_midflight)}"
-            "</details>"
-        )
-    return body
-
-
-_BUCKET_LABEL = {
-    "entry_zone": "🎯 Entry",
-    "watching":   "⏳ Watch",
-    "mid_flight": "🟡 Mid",
-    "extended":   "🚫 Ext",
-}
-
-_PB_TABLE = (
-    "<table class='pb-table'><thead><tr>"
-    "<th>Bucket</th><th>Ticker</th><th>Price</th><th>21 EMA</th>"
-    "<th>Gap</th><th>Q</th><th>RS</th><th>ATR%</th><th>Dist Hi</th>"
-    "<th>Peel</th>"
-    "</tr></thead><tbody>{rows}</tbody></table>"
-)
-
-
 def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
-                          dates_found: list, ai_brief: str,
+                          dates_found: list, strategist_note: str = "",
                           fng_data: dict = None, crypto_data: dict = None,
                           cc_results: dict = None,
-                          pullback_buckets: dict = None,
-                          etf_rotation_summary: dict = None) -> str:
+                          etf_rotation_summary: dict = None,
+                          positioning_html: str = "",
+                          shortlist_html: str = "",
+                          book_review_html: str = "") -> str:
     today      = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
     week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else today
 
-    # --- TOP 5: unified signal score ranking (Watch List excluded) ---
-    actionable  = persistence_df[~persistence_df["Watch"]].copy()
-    top5         = actionable.head(5)
-    rank_colors  = ["#facc15", "#94a3b8", "#b45309", "#4f6ef7", "#4f6ef7"]
-    focus_cards  = ""
-
-    for i, (_, row) in enumerate(top5.iterrows()):
-        rank_color = rank_colors[i] if i < len(rank_colors) else "#334155"
-        days       = row["Days Seen"]
-        total      = row["Total Days"]
-        atr        = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
-        eps        = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "—"
-        q_rank     = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
-        stage      = row.get("Stage", "—")
-        badges     = _build_badges(row)
-        chart_url  = f"{FINVIZ_BASE}/chart.ashx?t={row['Ticker']}&ty=c&ta=1&p=w&s=m"
-        fv_url     = f"{FINVIZ_BASE}/quote.ashx?t={row['Ticker']}"
-        base_sc    = row["Base Score"]
-        sig_sc     = row["Signal Score"]
-        bonus      = int(sig_sc - base_sc)
-        score_note = f"score {sig_sc:.0f}" + (f" (+{bonus} signal)" if bonus > 0 else "")
-
-        focus_cards += (
-            "<div class='focus-card'>"
-            f"<div class='focus-rank' style='color:{rank_color}'>#{i+1}</div>"
-            "<div class='focus-header'>"
-            f"<a href='{fv_url}' target='_blank' class='focus-ticker'>{row['Ticker']}</a>"
-            f"<span class='focus-sector'>{row['Sector']}</span>"
-            "</div>"
-            f"<div class='focus-company'>{row['Company']}</div>"
-            f"<div class='focus-badges'>{badges}</div>"
-            f"<div class='focus-persist'>{days}/{total} days · {score_note}</div>"
-            f"<div class='focus-quality'>{q_rank} · {stage}</div>"
-            f"<div class='focus-meta'>ATR {atr} · EPS {eps}</div>"
-            f"<div class='focus-screeners'>{row['Screeners Hit']}</div>"
-            f"<a href='{chart_url}' target='_blank'>"
-            f"<img src='{chart_url}' class='focus-chart' alt='{row['Ticker']}'>"
-            "</a>"
-            "</div>"
-        )
-
-    # --- NEXT ON RADAR: emerging candidates not yet in Top 5 (and not held) ---
+    # --- NEXT ON RADAR: emerging candidates (promoted into Leadership Map) ---
     held_tickers = set()
     try:
         positions_path = os.path.join(DATA_DIR, "positions.json")
@@ -1188,12 +1068,14 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
             "</tr>"
         )
 
-    # --- AI BRIEF ---
+    # --- STRATEGIST'S NOTE (demoted — max 3 bullets, no essay) ---
     ai_html = ""
-    if ai_brief:
-        paras  = [p.strip() for p in ai_brief.split("\n") if p.strip()]
-        inner  = "".join(f"<p>{p}</p>" for p in paras)
-        ai_html = "<h2>Weekly Intelligence Brief</h2><div class='ai-brief'>" + inner + "</div>"
+    if strategist_note:
+        bullets = [b.strip().lstrip("•-").strip()
+                   for b in strategist_note.split("\n") if b.strip()]
+        inner = "".join(f"<li>{b}</li>" for b in bullets[:3])
+        ai_html = ("<h2>🧠 Strategist's Note</h2>"
+                   "<ul class='strat-note'>" + inner + "</ul>")
 
     # --- CRYPTO ---
     crypto_html = ""
@@ -1390,21 +1272,11 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
 .cc-trend      { font-size: 0.75rem; color: #374151; margin-bottom: 4px; line-height: 1.5; }
 .cc-conditions { font-size: 0.7rem; color: #16a34a; margin-top: 6px; line-height: 1.6; }
 .cc-note       { font-size: 0.7rem; color: #c2410c; margin-top: 4px; font-style: italic; }
-/* Pullback re-entry */
-.pb-h3       { font-size: 0.78rem; font-weight: 600; color: #111827; margin: 18px 0 6px; }
-.pb-table    { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 8px; }
-.pb-table th { text-align: left; padding: 6px 9px; color: #6b7280; font-weight: 500;
-               border-bottom: 1px solid #e5e7eb; text-transform: uppercase; font-size: 0.62rem; letter-spacing: .05em; }
-.pb-table td { padding: 6px 9px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; color: #111827; }
-.pb-table tr:hover td { background: #f9fafb; }
-.pb-table a  { color: #2563eb; text-decoration: none; }
-.pb-badge    { font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
-.pb-entry_zone { background: #dcfce7; color: #166534; }
-.pb-watching   { background: #fef3c7; color: #92400e; }
-.pb-mid_flight { background: #fff7ed; color: #c2410c; }
-.pb-extended   { background: #fee2e2; color: #b91c1c; }
-.pb-details    { margin: 10px 0 18px; }
-.pb-details summary { cursor: pointer; color: #6b7280; font-size: 0.74rem; padding: 4px 0; }
+/* Strategist's Note (demoted 3-bullet) */
+.strat-note { background: #eff6ff; border-left: 3px solid #2563eb; border-radius: 0 8px 8px 0;
+              padding: 14px 20px 14px 36px; margin-bottom: 8px; }
+.strat-note li { line-height: 1.65; color: #1e3a5f; font-size: 0.86rem; margin-bottom: 6px; }
+.strat-note li:last-child { margin-bottom: 0; }
 /* Leaderboard */
 .lb-table    { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
 .lb-table th { text-align: left; padding: 6px 9px; color: #6b7280; font-weight: 500;
@@ -1468,7 +1340,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-""" + SECTOR_SETUP_CSS
+""" + SECTOR_SETUP_CSS + POSITIONING_CSS + SHORTLIST_CSS + BOOK_REVIEW_CSS
 
     html = (
         "<!DOCTYPE html><html lang='en'><head>"
@@ -1482,15 +1354,22 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         "<button class='pdf-btn' onclick='window.print()' title='Export PDF'>⬇</button>"
         "<h1>Finviz Weekly Review</h1>"
         f"<p class='subtitle'>{week_range} · {len(persistence_df)} tickers scanned · {len(dates_found)} trading days</p>"
+        # §1 Positioning & Book Risk — am I positioned right?
+        + positioning_html
+        # §2 Week-Ahead Shortlist — what to do next week (replaces Top 5)
+        + shortlist_html
+        # §3 Book Weekend Review — what to do with what I hold
+        + book_review_html
+        # §4 Leadership Map — what is leadership doing
+        + "<h2>📊 Leadership Map <span class='h2-sub'>— sectors, emerging names, macro</span></h2>"
+        + render_sector_setup_html(etf_rotation_summary)
+        + emerging_html
+        + macro_html
         + crypto_html
         + fng_html
-        + macro_html
-        + render_sector_setup_html(etf_rotation_summary)
+        # §5 Strategist's Note — 3 bullets, demoted
         + ai_html
-        + "<h2>Top 5 This Week <span class='h2-sub'>— already broken out</span></h2>"
-        + "<div class='focus-grid'>" + focus_cards + "</div>"
-        + emerging_html
-        + (_render_pullback_section(pullback_buckets) if pullback_buckets is not None else "")
+        # Reference (demoted): character-change alerts + recurring-names board
         + cc_html
         + leaderboard_html
         + """<script>
@@ -1566,313 +1445,118 @@ function downloadLeaderboard(kind){
 
 
 # ----------------------------
-# Part 4: AI Brief
+# Part 4: Strategist's Note (3 bullets — replaces the AI essay)
 # ----------------------------
 
-# ----------------------------
-# Part 4a: Agent 2 — Catalyst Research
-# ----------------------------
+def generate_strategist_note(positioning_summary: dict, shortlist_cards: list,
+                             market_state: str, fng_data: dict = None,
+                             etf_regime: str = None) -> str:
+    """Produce the demoted weekly take: MAX 3 terse bullets —
+    (a) regime insight, (b) best setup + why, (c) the one risk.
 
-def research_catalysts(persistence_df: pd.DataFrame) -> dict:
-    """
-    Agent 2: For each of the top 3 tickers by signal score, call Claude API
-    with web_search tool to find real catalysts that explain the screener activity.
-    Returns {ticker: research_summary_string}.
-    """
-    if not ANTHROPIC_API_KEY:
-        log.info("ANTHROPIC_API_KEY not set — skipping catalyst research.")
-        return {}
+    Token-capped Claude call with a deterministic 3-bullet fallback so the
+    note always renders (no API key / API down). Returns a newline-joined
+    string of up to 3 bullets (no leading bullet glyphs)."""
 
-    top3 = persistence_df.head(3)
-    research = {}
-
-    for _, row in top3.iterrows():
-        ticker = row["Ticker"]
-        sector = row.get("Sector", "")
-        industry = row.get("Industry", "")
-        sig_tags = []
-        if row.get("EP"):    sig_tags.append("episodic pivot (gap + new high)")
-        if row.get("IPO"):   sig_tags.append("IPO lifecycle")
-        if row.get("MULTI"): sig_tags.append("3+ screeners same day")
-        if row.get("HIGH") and not row.get("EP"): sig_tags.append("52w high")
-        signal_ctx = (" Signals: " + ", ".join(sig_tags) + ".") if sig_tags else ""
-
-        # Quality context from daily chart grid
-        q_rank = row.get("Q Rank")
-        stage_label = row.get("Stage", "—")
-        days_seen = row.get("Days Seen", "?")
-        total_days = row.get("Total Days", "?")
-        is_watch = row.get("Watch", False)
-        is_char = row.get("CHAR", False)
-        quality_ctx = ""
-        if pd.notna(q_rank) and q_rank:
-            category = "WATCH LIST — not actionable" if is_watch else "ACTIONABLE"
-            quality_ctx = (
-                f"\nQ-RANK: {int(q_rank)} · STAGE: {stage_label} · CATEGORY: {category}"
-                f" · PERSISTENCE: {days_seen}/{total_days} days"
-            )
-            if row.get("CC_DEEP"):
-                quality_ctx += " · CHARACTER CHANGE CONFIRMED (fundamental reversal: 3+ qtrs improving EPS + sales accelerating + 200MA cleared + volume)"
-            elif row.get("CC_WATCH"):
-                quality_ctx += " · CHARACTER CHANGE WATCH (EPS improving + volume confirming — sales need confirmation)"
-            elif is_char:
-                quality_ctx += " · CHARACTER CHANGE (200d gain >50%, RVol >2.5x)"
-
-        prompt = (
-            f"Research {ticker} ({sector} / {industry}) for a momentum trader weekly review.{signal_ctx}{quality_ctx}\n"
-            f"Find: recent earnings beats or misses, analyst upgrades/downgrades, "
-            f"sector tailwinds, any catalyst in the past 2 weeks that explains "
-            f"why this stock appeared in momentum screeners all week.\n"
-            f"Be specific. 3-4 sentences max. No fluff."
-        )
-
-        for attempt in range(3):
-            try:
-                resp = requests.post(
-                    ANTHROPIC_API_URL,
-                    headers={
-                        "x-api-key": ANTHROPIC_API_KEY,
-                        "anthropic-version": "2023-06-01",
-                        "content-type": "application/json",
-                    },
-                    json={
-                        "model": "claude-sonnet-4-6",
-                        "max_tokens": 600,
-                        "tools": [
-                            {
-                                "type": "web_search_20250305",
-                                "name": "web_search",
-                                "max_uses": 3,
-                            }
-                        ],
-                        "messages": [{"role": "user", "content": prompt}],
-                    },
-                    timeout=90,
-                )
-                if resp.status_code in (429, 529):
-                    wait = 30 * (attempt + 1)
-                    reason = "rate limited" if resp.status_code == 429 else "overloaded"
-                    log.warning(f"Catalyst research {reason} for {ticker}, retrying in {wait}s ({attempt + 1}/3)...")
-                    time.sleep(wait)
-                    continue
-                if not resp.ok:
-                    log.error(f"Catalyst research HTTP {resp.status_code} for {ticker}: {resp.text}")
-                    research[ticker] = ""
-                    break
-
-                # Extract text blocks from the response (skip tool_use / search_result blocks)
-                content_blocks = resp.json().get("content", [])
-                text_parts = [b["text"] for b in content_blocks if b.get("type") == "text" and b.get("text")]
-                summary = " ".join(text_parts).strip()
-
-                if summary:
-                    research[ticker] = summary
-                    log.info(f"Catalyst research for {ticker}: {summary[:80]}...")
-                else:
-                    research[ticker] = ""
-                    log.warning(f"No catalyst text returned for {ticker}")
-                break
-
-            except Exception as e:
-                log.error(f"Catalyst research failed for {ticker}: {e}")
-                research[ticker] = ""
-                break
+    def _fallback() -> str:
+        bullets = []
+        regime = market_state or "UNKNOWN"
+        rb = f"Regime: {regime}"
+        if etf_regime:
+            rb += f" · rotation {etf_regime}"
+        if fng_data:
+            rb += f" · F&G {fng_data.get('score')} ({fng_data.get('rating')})"
+        if market_state in ("EXTENDED", "RED", "DANGER", "BLACKOUT"):
+            rb += " — no new entries; protect the book."
+        elif market_state in ("CAUTION", "COOLING", "STEADY-UPTREND"):
+            rb += " — half size, be selective."
         else:
-            log.error(f"Catalyst research failed for {ticker} after 3 rate-limit retries.")
-            research[ticker] = ""
-
-        # Delay between tickers to stay within rate limits
-        time.sleep(15)
-
-    found = sum(1 for v in research.values() if v)
-    log.info(f"Catalyst research complete: {found}/{len(research)} tickers with results.")
-    return research
-
-
-# ----------------------------
-# Part 4b: Agent 3 — Synthesiser (enhanced AI brief)
-# ----------------------------
-
-def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
-                              dates_found: list, fng_data: dict = None,
-                              crypto_data: dict = None, research: dict = None,
-                              market_state: dict = None) -> str:
-    if not ANTHROPIC_API_KEY:
-        log.info("ANTHROPIC_API_KEY not set — skipping AI brief.")
-        return ""
-
-    top5         = persistence_df.head(5)
-    newline      = "\n"
-    ticker_lines = []
-
-    for _, row in top5.iterrows():
-        atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "n/a"
-        eps      = f"{row['Max EPS%']:.1f}%"  if pd.notna(row.get("Max EPS%"))  else "n/a"
-        q_rank   = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
-        stage    = row.get("Stage", "—")
-        sig_tags = []
-        if row.get("EP"):    sig_tags.append("EPISODIC PIVOT (gap+high+multi-screen)")
-        if row.get("IPO"):   sig_tags.append("IPO LIFECYCLE")
-        if row.get("MULTI"): sig_tags.append("3+ SCREENERS SAME DAY")
-        if row.get("HIGH") and not row.get("EP"): sig_tags.append("52W HIGH")
-        if row.get("CC_DEEP"):
-            sig_tags.append("CHARACTER CHANGE CONFIRMED (fundamental reversal: improving EPS + accelerating sales + 200MA cleared)")
-        elif row.get("CC_WATCH"):
-            sig_tags.append("CHARACTER CHANGE WATCH (EPS improving, sales need confirmation)")
-        elif row.get("CHAR"):
-            sig_tags.append("CHARACTER CHANGE (200d gain >50%, RVol >2.5x)")
-        sig_str = " | " + " + ".join(sig_tags) if sig_tags else ""
-        bonus   = int(row["Signal Score"] - row["Base Score"])
-        ticker_lines.append(
-            f"{row['Ticker']} ({row['Sector']} / {row['Industry']}) "
-            f"| {q_rank} · {stage} "
-            f"| {row['Days Seen']}/{row['Total Days']} days "
-            f"| signal score {row['Signal Score']:.0f} (base {row['Base Score']:.0f}, +{bonus} bonus) "
-            f"| ATR {atr} | EPS {eps} "
-            f"| screeners: {row['Screeners Hit']}{sig_str}"
-        )
-
-    macro_lines = [
-        f"{sym} ({m['name']}): {m['price']} | week {m['perf_week']} | month {m['perf_month']}"
-        for sym, m in macro_data.items()
-    ]
-
-    week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
-
-    fng_ctx = ""
-    if fng_data:
-        fng_ctx = (
-            f"\nFear & Greed: {fng_data['score']} ({fng_data['rating']}) | "
-            f"1wk ago: {fng_data['prev_1_week']} | 1mo ago: {fng_data['prev_1_month']}\n"
-        )
-
-    crypto_ctx = ""
-    if crypto_data:
-        lines = [
-            f"{d['name']}: {d['price']} | 24h {d['chg_24h']} | 7d {d['chg_7d']} | MCap {d['mcap']}"
-            for d in crypto_data.values()
-        ]
-        crypto_ctx = "\nCrypto: " + " | ".join(lines) + "\n"
-
-    # Agent 3 — build catalyst context from Agent 2 research
-    research_ctx = ""
-    if research:
-        catalyst_lines = []
-        for ticker, summary in research.items():
-            if summary:
-                catalyst_lines.append(f"{ticker}: {summary}")
-        if catalyst_lines:
-            research_ctx = (
-                "\n\nCatalyst research (web-sourced for each top name):\n"
-                + "\n".join(catalyst_lines) + "\n"
+            rb += " — full size on confirmed setups."
+        bullets.append(rb)
+        if shortlist_cards:
+            c = shortlist_cards[0]
+            bullets.append(
+                f"Best setup: {c['ticker']} ({c.get('sector','')}) — "
+                f"{c.get('source_label','')} Q{int(c.get('q',0))} RS{c.get('rs',0)}, "
+                f"{c.get('trigger','')}."
             )
+        else:
+            bullets.append("Best setup: none cleared the gate — patience is the trade.")
+        risk = "The one risk: "
+        ps = positioning_summary or {}
+        health = ps.get("health", {})
+        if health.get("past_stop_held"):
+            risk += (f"{health['past_stop_held']} held past stop "
+                     f"({', '.join(health.get('leak_names', [])[:3])}) — cut the leak.")
+        elif ps.get("over_cap"):
+            risk += f"over cap at {ps.get('n_positions')}/{ps.get('position_cap')} — trim before adding."
+        elif market_state == "EXTENDED":
+            risk += "parabolic tape — chasing extension is the round-trip trap."
+        else:
+            risk += "forcing a trade in a thin week. Cash is a position."
+        bullets.append(risk)
+        return "\n".join(bullets[:3])
 
-    # Market monitor context
-    market_ctx = ""
-    if market_state:
-        thrust_recent = any_thrust_in_history()
-        market_ctx = (
-            f"\n\nCURRENT MARKET STATE: {market_state.get('market_state', 'UNKNOWN')}\n"
-            f"5-DAY RATIO: {market_state.get('ratio_5day', 'n/a')}\n"
-            f"10-DAY RATIO: {market_state.get('ratio_10day', 'n/a')}\n"
-            f"T2108: {market_state.get('t2108_equiv', 'n/a')}%\n"
-            f"SPY ABOVE 200D MA: {market_state.get('spy_above_200d', 'n/a')}\n"
-            f"THRUST LAST 30 DAYS: {thrust_recent}\n"
-        )
+    if not ANTHROPIC_API_KEY:
+        log.info("ANTHROPIC_API_KEY not set — strategist note uses deterministic fallback.")
+        return _fallback()
 
-    current_state = market_state.get("market_state", "UNKNOWN") if market_state else "UNKNOWN"
-
-    if current_state in ("RED", "BLACKOUT"):
-        structure_rules = (
-            "STRUCTURE — RED/BLACKOUT market. Write exactly 3 paragraphs, no more:\n"
-            "Para 1: Market state in one sentence. Then the EXACT re-entry trigger: which breadth "
-            "metric must clear what level (e.g. 5-day ratio reclaims 1.5, or a thrust day). "
-            "What does the tape need to show before the trigger is valid?\n"
-            "Para 2: Name the 1-2 setups that are FIRST in queue when the trigger fires — "
-            "why those specifically (catalyst, setup quality, where entry is). Be specific: "
-            "price level, what to watch for. Nothing else.\n"
-            "Para 3: Macro/sector one sentence. Done.\n"
-            "DO NOT write per-ticker analysis for the other names. DO NOT explain why watch-only "
-            "names rank where they do. If a name is not in the first-in-queue shortlist, skip it.\n"
+    ps = positioning_summary or {}
+    health = ps.get("health", {})
+    setup_lines = []
+    for c in (shortlist_cards or [])[:5]:
+        setup_lines.append(
+            f"{c['ticker']} ({c.get('sector','')}) {c.get('source_label','')} "
+            f"Q{int(c.get('q',0))} RS{c.get('rs',0)} ATR{c.get('atr_pct',0):.1f}% "
+            f"dist {c.get('dist52',0):+.0f}% trigger='{c.get('trigger','')}'"
         )
-    elif current_state == "CAUTION":
-        structure_rules = (
-            "STRUCTURE — CAUTION market. Write 4 paragraphs:\n"
-            "Para 1: Market state and what's needed for full GREEN confirmation.\n"
-            "Para 2: The 1-2 highest-conviction setups only — real-world catalyst (from research), "
-            "specific entry trigger, HALF SIZE. Skip any watch-only or extended names entirely.\n"
-            "Para 3: Macro/sector one sentence.\n"
-            "Para 4: Monday plan — name, trigger, size. One line per name.\n"
-            "Watch-only names: one sentence each max — '[TICKER]: watch-only, needs [condition].' "
-            "Do not give them their own paragraph.\n"
-        )
-    else:  # GREEN / THRUST / UNKNOWN
-        structure_rules = (
-            "STRUCTURE — write 4 paragraphs:\n"
-            "Para 1: Market backdrop in 2 sentences.\n"
-            "Para 2: Top actionable names — for each, 2 sentences: real-world catalyst (from research) "
-            "and specific entry trigger/level. Skip any watch-only or extended names.\n"
-            "Para 3: Macro/sector in 2 sentences.\n"
-            "Para 4: Monday plan — name, trigger, size. One line per name. "
-            "Only names where both setup quality and screener persistence agree.\n"
-            "Watch-only names: one sentence each max. Do not give them their own paragraph.\n"
-        )
-
-    quality_rules = (
-        "QUALITY RULES:\n"
-        "- Actionable = Stage 2 (Uptrend) + Q > 60. Anything else is watch-only.\n"
-        "- Watch-only names get ONE sentence max: '[TICKER]: watch-only — [one specific reason why not yet].' "
-        "No paragraph. No 'why it ranks here.' Skip it if there's nothing actionable to say.\n"
-        "- CC CONFIRMED (⚡ CC): highest-conviction — improving EPS, accelerating sales, 200MA cleared. "
-        "Lead with the fundamental turnaround, not the screener count.\n"
-        "- CC WATCH (⚡ CC Watch): promising but sales need confirmation. Flag the caveat in one clause.\n"
-        "- Extended names (up >30% in a month, far above 50MA): flag as extended, not a valid entry point.\n"
-        "Be direct. Name names. No disclaimers. Plain paragraphs."
+    fng_ctx = (f"F&G {fng_data.get('score')} ({fng_data.get('rating')})"
+               if fng_data else "F&G n/a")
+    book_ctx = (
+        f"{ps.get('n_positions')}/{ps.get('position_cap')} positions"
+        f"{' (OVER CAP)' if ps.get('over_cap') else ''}; "
+        f"book {health.get('green',0)} green / {health.get('underwater',0)} underwater / "
+        f"{health.get('past_stop_held',0)} past stop"
     )
 
     prompt = (
-        f"You are an experienced momentum trader doing a weekly review ({week_range}).\n\n"
-        "Top 5 names this week (ranked by unified signal score):\n"
-        f"{newline.join(ticker_lines)}\n\n"
-        f"Macro: {newline.join(macro_lines) if macro_lines else 'unavailable'}"
-        f"{fng_ctx}{crypto_ctx}{research_ctx}{market_ctx}\n\n"
-        f"{structure_rules}\n"
-        f"{quality_rules}"
+        "You are a momentum swing trader writing the Saturday weekly take for "
+        "your OWN book. Output EXACTLY 3 bullets, one line each, no preamble, "
+        "no markdown bullets — just 3 lines:\n"
+        "Line 1 — REGIME insight (market state + rotation): one decisive sentence.\n"
+        "Line 2 — BEST setup for next week and WHY (pick from the shortlist).\n"
+        "Line 3 — THE ONE risk to the book right now.\n"
+        "Max ~22 words per line. No disclaimers.\n\n"
+        f"Market state: {market_state} · rotation regime: {etf_regime} · {fng_ctx}\n"
+        f"My book: {book_ctx}\n"
+        f"Shortlist:\n" + ("\n".join(setup_lines) if setup_lines else "(empty)")
     )
 
     for attempt in range(3):
         try:
             resp = requests.post(
                 ANTHROPIC_API_URL,
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model":      "claude-sonnet-4-6",
-                    "max_tokens": 2000,
-                    "messages":   [{"role": "user", "content": prompt}],
-                },
+                headers={"x-api-key": ANTHROPIC_API_KEY,
+                         "anthropic-version": "2023-06-01",
+                         "content-type": "application/json"},
+                json={"model": "claude-sonnet-4-6", "max_tokens": 350,
+                      "messages": [{"role": "user", "content": prompt}]},
                 timeout=60,
             )
             if resp.status_code in (429, 529):
-                wait = 30 * (attempt + 1)
-                reason = "rate limited" if resp.status_code == 429 else "overloaded"
-                log.warning(f"AI brief {reason} ({resp.status_code}), retrying in {wait}s (attempt {attempt + 1}/3)...")
-                time.sleep(wait)
+                time.sleep(20 * (attempt + 1))
                 continue
             if not resp.ok:
-                log.error(f"AI brief HTTP {resp.status_code}: {resp.text}")
-                return ""
-            brief = resp.json()["content"][0]["text"].strip()
-            log.info("Weekly AI brief generated.")
-            return brief
+                log.error(f"Strategist note HTTP {resp.status_code}: {resp.text}")
+                return _fallback()
+            note = resp.json()["content"][0]["text"].strip()
+            log.info("Weekly strategist note generated.")
+            return note or _fallback()
         except Exception as e:
-            log.error(f"Weekly AI brief failed: {e}")
-            return ""
-    log.warning("AI brief unavailable this week — exhausted 3 retries (429/529).")
-    return "AI synthesis unavailable due to API load — see individual catalyst notes below."
+            log.error(f"Strategist note failed: {e}")
+            return _fallback()
+    log.warning("Strategist note exhausted retries — using fallback.")
+    return _fallback()
 
 
 # ----------------------------
@@ -1880,37 +1564,18 @@ def generate_weekly_ai_brief(persistence_df: pd.DataFrame, macro_data: dict,
 # ----------------------------
 
 def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
-                       ai_brief: str, weekly_html: str,
+                       strategist_note: str, weekly_html: str,
                        dates_found: list, fng_data: dict = None,
                        crypto_data: dict = None,
-                       pullback_buckets: dict = None,
-                       etf_rotation_summary: dict = None):
+                       etf_rotation_summary: dict = None,
+                       positioning_text: str = "",
+                       shortlist_text: str = "",
+                       book_review_text: str = ""):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
 
-    week_range   = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
-    actionable   = persistence_df[~persistence_df["Watch"]].copy() if "Watch" in persistence_df.columns else persistence_df
-    top5         = actionable.head(5)
-    ticker_lines = []
-
-    for _, row in top5.iterrows():
-        atr      = f"{row['Max ATR%']:.1f}%" if pd.notna(row.get("Max ATR%")) else "—"
-        q_rank   = f"Q{int(row['Q Rank'])}" if pd.notna(row.get("Q Rank")) else "Q?"
-        stage    = row.get("Stage", "—")
-        tags     = []
-        if row.get("EP"):       tags.append("⚡EP")
-        if row.get("IPO"):      tags.append("🚀IPO")
-        if row.get("MULTI"):    tags.append("x3")
-        if row.get("CC_DEEP"):  tags.append("⚡CC")
-        elif row.get("CC_WATCH"): tags.append("⚡CCw")
-        elif row.get("CHAR"):   tags.append("🔄")
-        tag_str  = " " + " ".join(tags) if tags else ""
-        ticker_lines.append(
-            f"*{row['Ticker']}*{tag_str} · {q_rank} · {stage} · {row['Sector']} · "
-            f"{row['Days Seen']}/{row['Total Days']}d · score {row['Signal Score']:.0f}\n"
-            f" _{row['Screeners Hit']}_"
-        )
+    week_range = f"{dates_found[0]} to {dates_found[-1]}" if dates_found else "this week"
 
     macro_movers = []
     for sym, m in macro_data.items():
@@ -1921,14 +1586,6 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                 macro_movers.append(f"{sym} {arrow} {m['perf_week']} wk")
         except Exception:
             pass
-
-    fng_line = ""
-    if fng_data:
-        emoji    = _fng_emoji(fng_data["score"])
-        fng_line = (
-            f"\n*F&G:* {emoji} {fng_data['score']} ({fng_data['rating']}) "
-            f"· 1wk {fng_data['prev_1_week']} · 1mo {fng_data['prev_1_month']}"
-        )
 
     crypto_line = ""
     if crypto_data:
@@ -1943,44 +1600,53 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
         fname        = os.path.basename(weekly_html)
         gallery_link = f"\n\n:page_facing_up: <{GITHUB_PAGES_BASE}/data/{fname}|Full weekly report>"
 
+    def _section(text: str):
+        # Slack section text hard-limit is ~3000 chars
+        if len(text) > 2900:
+            text = text[:2900] + "…"
+        return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
     blocks = [
         {"type": "header", "text": {"type": "plain_text", "text": f"📊 Weekly Review — {week_range}"}},
     ]
 
-    if ai_brief:
-        short = " ".join(ai_brief.split("\n\n")[:2])
-        if len(short) > 2900:
-            short = short[:2900] + "…"
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":brain: *Weekly take:*\n{short}"}})
+    # Decision-first order: §1 Positioning → §2 Shortlist → §3 Book → §4
+    # Leadership → §5 Strategist's Note.
+    if positioning_text:
+        blocks.append(_section(positioning_text))
         blocks.append({"type": "divider"})
 
-    macro_str = " · ".join(macro_movers) if macro_movers else ""
-    body = (
-        "*Top 5 this week:*\n"
-        + "\n".join(ticker_lines)
-        + (f"\n\n*Macro movers:* {macro_str}" if macro_str else "")
-        + fng_line + crypto_line + gallery_link
-    )
-    blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": body}})
-    blocks.append({"type": "divider"})
+    if shortlist_text:
+        blocks.append(_section(shortlist_text))
+        blocks.append({"type": "divider"})
 
+    if book_review_text:
+        blocks.append(_section(book_review_text))
+        blocks.append({"type": "divider"})
+
+    # §4 Leadership Map — ETF rotation + macro/crypto context
     sector_setup_text = render_sector_setup_slack(etf_rotation_summary)
+    macro_str = " · ".join(macro_movers) if macro_movers else ""
+    lead_parts = []
     if sector_setup_text:
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": sector_setup_text}})
+        lead_parts.append(sector_setup_text)
+    ctx = ""
+    if macro_str:
+        ctx += f"*Macro movers:* {macro_str}"
+    ctx += crypto_line
+    if ctx.strip():
+        lead_parts.append(ctx.strip())
+    if lead_parts:
+        blocks.append(_section("\n\n".join(lead_parts)))
         blocks.append({"type": "divider"})
 
-    if pullback_buckets:
-        entry_rows = pullback_buckets.get("entry_zone", [])[:5]
-        if entry_rows:
-            pb_lines = ["🎯 *Re-entry Setup — at 21 EMA*"]
-            for r in entry_rows:
-                pb_lines.append(
-                    f"*{r['ticker']}*  ${r['price']:.2f}  21EMA ${r['ema21']:.2f}  "
-                    f"gap {r['gap_pct']:+.1f}%  ·  Q{r['q']} RS{r['rs']} ATR {r['atr_pct']:.1f}%  ·  peel-safe"
-                )
-            pb_lines.append("_Filters: Q≥80 · RS≥60 · ATR ∈ [3, 6] · within ±1.5% of 21 EMA._")
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(pb_lines)}})
-            blocks.append({"type": "divider"})
+    # §5 Strategist's Note — 3 bullets
+    if strategist_note:
+        bullets = [b.strip() for b in strategist_note.split("\n") if b.strip()][:3]
+        note_txt = ":brain: *Strategist's Note*\n" + "\n".join(f"• {b}" for b in bullets)
+        blocks.append(_section(note_txt + gallery_link))
+    elif gallery_link:
+        blocks.append(_section(gallery_link.strip()))
 
     try:
         resp = requests.post(SLACK_WEBHOOK_URL, json={"blocks": blocks}, timeout=10)
@@ -2143,45 +1809,17 @@ if __name__ == "__main__":
     log.info("Fetching crypto...")
     crypto_data = fetch_crypto_data()
 
-    log.info("Running Agent 2 — catalyst research for top 3 (actionable only)...")
-    research    = research_catalysts(actionable_df)
-
-    # Load market monitor state for Agent 3
+    # Load market monitor state (regime context for all sections)
     market_state = load_market_state()
+    state_str = market_state.get("market_state", "UNKNOWN") if market_state else "UNKNOWN"
     if market_state:
-        log.info(f"Market state: {market_state['market_state']} | 5d ratio: {market_state.get('ratio_5day')}")
+        log.info(f"Market state: {state_str} | 5d ratio: {market_state.get('ratio_5day')}")
     else:
-        log.info("Market monitor data not available — Agent 3 will run without market context")
+        log.info("Market monitor data not available — sections run without market context")
 
-    # Cooldown — Agent 2 exhausts token bucket; give it time to refill before Agent 3
-    log.info("Cooldown 45s before Agent 3...")
-    time.sleep(45)
-
-    log.info("Running Agent 3 — synthesised AI brief...")
-    ai_brief    = generate_weekly_ai_brief(actionable_df, macro_data, dates_found, fng_data, crypto_data, research, market_state)
-
-    # Pullback re-entry buckets — actionable subset of recurring names
-    log.info("Building 21 EMA pullback re-entry buckets...")
-    pullback_buckets = {"entry_zone": [], "watching": [], "mid_flight": [], "extended": []}
-    try:
-        from agents.trading.position_monitor import fetch_alpaca_daily_bars
-        from agents.trading.alpaca_executor import get_entry_peel_warn
-        latest_daily = daily_dfs.get(dates_found[-1]) if dates_found else None
-        leaderboard = select_leaderboard(persistence_df)
-        pullback_buckets = build_pullback_rows(
-            leaderboard, latest_daily, fetch_alpaca_daily_bars, get_entry_peel_warn,
-        )
-        log.info(
-            "Pullback buckets: entry=%d watching=%d mid=%d extended=%d",
-            len(pullback_buckets["entry_zone"]),
-            len(pullback_buckets["watching"]),
-            len(pullback_buckets["mid_flight"]),
-            len(pullback_buckets["extended"]),
-        )
-    except Exception as e:
-        log.warning("Pullback bucket build failed (non-fatal): %s", e)
-
+    # ETF rotation summary (drives Leadership Map + regime label)
     etf_rotation_summary = None
+    etf_regime = None
     try:
         from agents.sector_rotation import regime_action as _regime_action
         rotation = load_etf_rotation(DATA_DIR)
@@ -2189,14 +1827,95 @@ if __name__ == "__main__":
             etf_rotation_summary = summarize_etf_rotation(
                 rotation, top_n=5, regime_actions_lookup=_regime_action,
             )
+            etf_regime = etf_rotation_summary.get("regime")
             log.info("ETF rotation summary loaded: regime=%s, buckets=%s",
-                     etf_rotation_summary.get("regime"),
+                     etf_regime,
                      {b: len(rows) for b, rows in etf_rotation_summary.get("buckets", {}).items()})
     except Exception as e:
         log.warning("ETF rotation summary build failed (non-fatal): %s", e)
 
-    weekly_html = generate_weekly_html(persistence_df, macro_data, dates_found, ai_brief, fng_data, crypto_data, cc_results, pullback_buckets, etf_rotation_summary)
+    # ── Load book data (positions.json + position_history.json) ──
+    open_positions, position_history, held_tickers = [], {}, set()
+    try:
+        with open(os.path.join(DATA_DIR, "positions.json")) as f:
+            open_positions = json.load(f).get("open_positions", [])
+        held_tickers = {p.get("ticker") for p in open_positions if p.get("ticker")}
+    except Exception as e:
+        log.warning("Could not load positions.json (non-fatal): %s", e)
+    try:
+        with open(os.path.join(DATA_DIR, "position_history.json")) as f:
+            position_history = json.load(f).get("history", {})
+    except Exception as e:
+        log.warning("Could not load position_history.json (non-fatal): %s", e)
+
+    # ── §1 Positioning & Book Risk ──
+    from agents.trading.alpaca_executor import effective_max_positions
+    week_start = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    positioning_summary = build_positioning_summary(
+        open_positions, position_history, state_str, etf_regime,
+        position_cap=effective_max_positions(state_str),
+        week_start=week_start, week_end=datetime.date.today().isoformat(),
+    )
+    positioning_html = render_positioning_html(positioning_summary)
+    positioning_text = render_positioning_slack(positioning_summary)
+    log.info("§1 Positioning: %d positions, realized %.0f",
+             positioning_summary["n_positions"], positioning_summary["realized"]["total"])
+
+    # ── §2 Week-Ahead Shortlist (forward funnel) ──
+    shortlist_cards = []
+    try:
+        latest_daily = daily_dfs.get(dates_found[-1]) if dates_found else None
+        daily_lookup = {}
+        if latest_daily is not None:
+            for _, drow in latest_daily.iterrows():
+                t = str(drow.get("Ticker", "")).strip().upper()
+                if t and t not in daily_lookup:
+                    daily_lookup[t] = drow.to_dict()
+        emerging_for_shortlist = select_emerging_candidates(
+            persistence_df, top_n=8, excluded_tickers=held_tickers)
+        try:
+            with open(os.path.join(DATA_DIR, "watchlist.json")) as f:
+                wl_data = json.load(f)
+        except Exception:
+            wl_data = {}
+        try:
+            with open(os.path.join(DATA_DIR, "rs_leaders.json")) as f:
+                rs_data = json.load(f)
+        except Exception:
+            rs_data = {}
+        cands = select_shortlist_candidates(
+            emerging_for_shortlist, wl_data, rs_data, held_tickers,
+            daily_lookup, datetime.date.today().isoformat(), max_n=8)
+        shortlist_cards = build_shortlist_cards(cands, state_str)
+        # Terse AI setup/invalidation prose (non-fatal)
+        enrich_shortlist_notes_ai(shortlist_cards, state_str, api_key=ANTHROPIC_API_KEY)
+        log.info("§2 Shortlist: %d cards", len(shortlist_cards))
+    except Exception as e:
+        log.warning("Shortlist build failed (non-fatal): %s", e)
+    shortlist_html = render_shortlist_html(shortlist_cards)
+    shortlist_text = render_shortlist_slack(shortlist_cards)
+
+    # ── §3 Book Weekend Review ──
+    book_review_rows = build_book_review_rows(open_positions)
+    book_review_html = render_book_review_html(book_review_rows)
+    book_review_text = render_book_review_slack(book_review_rows)
+    log.info("§3 Book Weekend Review: %d positions", len(book_review_rows))
+
+    # ── §5 Strategist's Note (3 bullets, demoted) ──
+    log.info("Generating strategist note (3 bullets)...")
+    strategist_note = generate_strategist_note(
+        positioning_summary, shortlist_cards, state_str, fng_data, etf_regime)
+
+    weekly_html = generate_weekly_html(
+        persistence_df, macro_data, dates_found, strategist_note, fng_data,
+        crypto_data, cc_results, etf_rotation_summary,
+        positioning_html=positioning_html, shortlist_html=shortlist_html,
+        book_review_html=book_review_html)
     log.info(f"Report: {weekly_html}")
 
-    send_weekly_slack(persistence_df, macro_data, ai_brief, weekly_html, dates_found, fng_data, crypto_data, pullback_buckets, etf_rotation_summary)
+    send_weekly_slack(
+        persistence_df, macro_data, strategist_note, weekly_html, dates_found,
+        fng_data, crypto_data, etf_rotation_summary,
+        positioning_text=positioning_text, shortlist_text=shortlist_text,
+        book_review_text=book_review_text)
     log.info("=== Done ===")
