@@ -44,7 +44,7 @@ flowchart TB
     subgraph AGENTS["Python Agents"]
         direction LR
         A1["<b>finviz_agent.py</b><br/>5 screeners · Quality Score<br/>Stage analysis · VCP detection<br/>Sector badge · AI summary"]
-        A2["<b>finviz_weekly_agent.py</b><br/>Signal merge + persistence scoring<br/>Character change deep check (yfinance)<br/>Agent 2: catalyst research 🔍<br/>Agent 3: synthesised brief 🧠"]
+        A2["<b>finviz_weekly_agent.py</b><br/>§1 Positioning & Book Risk<br/>§2 Week-Ahead Shortlist (trade-plan cards)<br/>§3 Book Weekend Review<br/>§4 Leadership Map · §5 Strategist's Note 🧠"]
         A3["<b>finviz_earnings_alert.py</b><br/>Quality &gt; 50 filter<br/>Sector filter<br/>7-day earnings window"]
         A4["<b>finviz_position_monitor.py</b><br/>$4,500 hard stop 🚨<br/>ATR exit system<br/>Peel levels"]
         A5["<b>finviz_market_monitor.py</b><br/>Alpaca 4pct breadth · F&amp;G<br/>7-state classification (COOLING new)<br/>State change alerts"]
@@ -203,7 +203,17 @@ Tickers outside core sectors get `⚠️ Outside Edge` and drop to Watch List.
 **Schedule:** 10:00 UTC Saturday  
 **Slack:** `#weekly-alerts` via `SLACK_WEBHOOK_WEEKLY`
 
-**📊 Sector Setup This Week block (added 2026-05-17).** Weekly HTML and Slack now render a sector setup block sourced from `data/etf_rotation.json` (Friday snapshot). HTML sits between macro snapshot and Top 5; Slack sits between Top Picks and the 21 EMA pullback re-entry block. Helper module: `agents/utils/etf_rotation_summary.py` — pure functions `load_etf_rotation`, `summarize_etf_rotation`, `render_sector_setup_html`, `render_sector_setup_slack`, plus `REGIME_ADVICE` dict (regime tag → one-sentence "what this means for you this week") and `SECTOR_SETUP_CSS`. Top 5 ETFs per actionable bucket (BASE / PRE-BREAKOUT / EXTENDED / BROKEN); NEUTRAL filtered. Empty buckets omitted. Sort keys: BASE by ret20 desc, PRE-BREAKOUT by closest-to-highs, EXTENDED by mult50 desc, BROKEN by most-broken first. Falls through gracefully when `etf_rotation.json` is missing or invalid — weekly review still ships, just without the block. Tests: `tests/test_etf_rotation_summary.py` (15 unit tests). Spec: [docs/specs/weekly-etf-rotation-section.md](docs/specs/weekly-etf-rotation-section.md). Rationale: sector rotation moves on weeks, not days — weekly is the correct consumption cadence; daily dashboard remains for ad-hoc lookup.
+**Decision-first rebuild (Feature D, 2026-06-02).** The weekly was rear-view — it answered "what happened?" (which the daily does better) instead of "what do I do next week?". Rebuilt around the 4 jobs of a Saturday weekly for real capital. New section order in `generate_weekly_html` + `send_weekly_slack` + `main()`:
+
+1. **§1 Positioning & Book Risk** (`agents/utils/weekly_positioning.py`) — opens with USER state: market_state + ETF rotation regime + "N positions vs cap M" (🚨 over cap via `effective_max_positions`). Realized P&L this week computed FIFO over `data/position_history.json` (real broker fills — the proven-correct source, NOT `trading_state.json`), W/L count, biggest winner/loser. Book health: green / underwater / past-stop-held + `$`-quantified leak for names held past stop. `build_positioning_summary` + `render_positioning_html`/`_slack` + `POSITIONING_CSS`. Tests: `tests/test_weekly_positioning.py` (11).
+2. **§2 Week-Ahead Shortlist** (`agents/utils/week_ahead_shortlist.py`) — REPLACES the old Top 5. Forward funnel: entry-ready watchlist (status active) + emerging candidates + recent RS leaders (active/reacquired, last_active within 7d), deduped (entry-ready > emerging > rs-leader on ties), enriched with current screener metrics, gated Stage 2 + peel-safe (`_peel_warn_for`), ranked by Quality Score. Each name = full trade-plan card: **Setup · Trigger · Stop · Size · Invalidation**. Stop floor **−8%** (MAE-derived — see §MAE; `data/mae_analysis.json` 2024-25 winners' MAE median −4.8%, mean −10.5%), widened to 2×ATR% for volatile names. Size from regime (Full / Half / No-new-entries) with high-vol (>7% ATR) downgrade. Trigger keyed off SMA20% (reclaim 21 EMA on pullback / hold-and-add / wait-for-pullback when extended). `enrich_shortlist_notes_ai` adds optional terse setup/invalidation prose (single batched Claude call, non-fatal, deterministic fallback). Normalizes the serialized `compute_stage()` dict in the CSV `Stage` column via `_parse_stage`. Tests: `tests/test_week_ahead_shortlist.py` (27).
+3. **§3 Book Weekend Review** (`agents/utils/book_weekend_review.py`) — per-open-position verdict (cur% / peak% / dist-to-stop / verdict) reusing `utils/generators/generate_live_portfolio.verdict_for` (the /pos-review ladder — single source of truth). Rows sorted action-first (cut → trim → trail → dead-weight → working). Optional Finviz technicals lookup feeds ext/stage annotations. Tests: `tests/test_book_weekend_review.py` (12).
+4. **§4 Leadership Map** — ETF Sector Setup block (below) + promoted Emerging "Next on Radar" cards + macro / crypto / F&G snapshot.
+5. **§5 Strategist's Note** — `generate_strategist_note` (replaces the old `generate_weekly_ai_brief` essay + `research_catalysts` web-search, both deleted). MAX 3 bullets — regime insight / best setup + why / the one risk — token-capped Claude call (max_tokens 350) with a deterministic data-driven fallback so it always renders.
+
+**Removed:** the 🎯 Re-entry Setup 21 EMA pullback lane (`agents/utils/pullback_setup.py` + test deleted — was structurally empty ~90% of weeks; pullback detection folded into §2 via the Finviz SMA20% EMA proxy), the rear-view "Top 5 This Week" focus cards, and the per-top-3 catalyst web-search. The persistence/Signal-Score machinery (below) still computes — it now feeds the §4 Emerging cards and the demoted reference leaderboard, not the headline. Spec: [docs/specs/weekly-review-rebuild.md](docs/specs/weekly-review-rebuild.md).
+
+**📊 Sector Setup This Week block (added 2026-05-17).** Weekly HTML and Slack render a sector setup block sourced from `data/etf_rotation.json` (Friday snapshot). After the Feature D rebuild it lives inside §4 Leadership Map. Helper module: `agents/utils/etf_rotation_summary.py` — pure functions `load_etf_rotation`, `summarize_etf_rotation`, `render_sector_setup_html`, `render_sector_setup_slack`, plus `REGIME_ADVICE` dict (regime tag → one-sentence "what this means for you this week") and `SECTOR_SETUP_CSS`. Top 5 ETFs per actionable bucket (BASE / PRE-BREAKOUT / EXTENDED / BROKEN); NEUTRAL filtered. Empty buckets omitted. Sort keys: BASE by ret20 desc, PRE-BREAKOUT by closest-to-highs, EXTENDED by mult50 desc, BROKEN by most-broken first. Falls through gracefully when `etf_rotation.json` is missing or invalid — weekly review still ships, just without the block. Tests: `tests/test_etf_rotation_summary.py` (15 unit tests). Spec: [docs/specs/weekly-etf-rotation-section.md](docs/specs/weekly-etf-rotation-section.md). Rationale: sector rotation moves on weeks, not days — weekly is the correct consumption cadence; daily dashboard remains for ad-hoc lookup.
 
 **Unified Signal Score:**
 
@@ -235,13 +245,7 @@ Quality Modifier (from daily quality JSON):
 
 EP/IPO names compete in the same ranking as persistence leaders. A 3/7 day EP with score 123 ranks above a passive 7/7 single-screener name at 110. Badges explain *why* a name ranks where it does.
 
-**🎯 Re-entry Setup — 21 EMA pullback lane** (`agents/utils/pullback_setup.py`): the recurring-names list is bucketed by distance from the 21 EMA. Pre-filter Q≥80 · RS≥60 · ATR ∈ [3, 6] · dist [-12%, 0]. ATR floor 3 cuts dead/quiet names; ceiling 6 cuts FLEX/POET-class whippers where 21 EMA noise band > entry precision. Fetches last 30 daily bars from Alpaca per ticker, computes 21 EMA via `_ema` from `agents/trading/rules.py`. Buckets:
-- **🎯 Entry zone** — gap within ±1.5% of 21 EMA. Top 5 in HTML + Slack `#weekly-alerts` block (only when non-empty).
-- **⏳ Watching** — 1.5%–4% above 21 EMA (radar, 5 rows max).
-- **🚫 Extended** — peel multiple > per-ticker peel-warn (replaces the FLEX-ATR-10 class with a labeled "no action" view; 5 rows max).
-- **🟡 Mid-flight** — collapsed `<details>` tail (>4% above EMA but below peel-warn, up to 10 rows).
-
-Peel-warn threshold uses the same `get_entry_peel_warn` loader as `alpaca_executor.py` (`data/peel_calibration.json` → tier fallback). Slack block fires only when 🎯 Entry zone has rows; HTML always renders the section so the user can read it as a status board.
+**🎯 Re-entry Setup — 21 EMA pullback lane — REMOVED (Feature D, 2026-06-02).** This block (`agents/utils/pullback_setup.py`) was deleted. It bucketed the ≤35-name recurring leaderboard by distance from the 21 EMA behind a 6-way AND (Q≥80 · RS≥60 · ATR ∈ [3,6] · dist [-12%,0] · peel-safe · within ±1.5% of 21 EMA on Fri close) → empty ~90% of weeks ("such a waste" — user). Pullback detection is folded into §2 Week-Ahead Shortlist via the Finviz SMA20% EMA proxy (no per-ticker Alpaca bar fetch).
 
 **EP criteria (Stockbee/Qullamaggie):**
 - Gap/surge screener fired: `10% Change` OR `Week 20%+ Gain`
@@ -293,14 +297,13 @@ Takes Agent 2 research + macro data + Fear & Greed + crypto data + **market moni
   - GREEN/THRUST → 4 paragraphs: backdrop, actionable names with catalyst + entry level, macro, Monday plan.
 
 **Report structure:**
-1. Crypto snapshot (BTC, ETH)
-2. Fear & Greed
-3. Macro snapshot (pastel heat-map cells, magnitude-binned at ±2%; Month cell also shows the prior 30-day return in brackets) — *moved up from #5 so environment reads first*
-4. Weekly AI intelligence brief (catalyst-informed via Agent 2 + 3, market-state-conditioned)
-5. **Top 5 this week** (focus cards — Watch List excluded, shows Q-rank, stage, signal badges incl. ⚡CC/🔄 CHAR) — labeled "already broken out" to emphasize this is coincident, not predictive
-6. **🔭 Next on the Radar** (emerging candidates — `select_emerging_candidates`): Stage 2 + Q≥70 + at least one fresh-catalyst signal (**EP / IPO / MULTI / CC_WATCH only** — HIGH alone no longer qualifies; 52w-high screener means already broken out) + **SMA50% ≤ 20%** (extension guard — names >20% above 50MA have already made their move). Excludes current Top 5 AND currently held positions (loaded from `positions.json`). Ranked by emergence score: Q rank base + 20 (CC_WATCH) + 15 (EP/IPO) + 8 (pre-breakout: HIGH=False) + 8 (MULTI) − 3·(Days Seen − 1). HIGH is NOT a score bonus — names already at 52w highs have shown their move; pre-breakout coils (not yet at 52w high) get +8 instead. `Last SMA50%` tracked per ticker in `build_persistence_scores` from weekly combined_df. Predictive setup, not coincident. **Stage 2 detection accepts both "Stage 2 perfect" and Weinstein word label "Uptrend"** (the persistence CSV uses Uptrend/Downtrend/Basing/Transitional, while `daily_quality.json` uses "Stage 2 perfect").
-7. ⚡ Character Change Alerts (EPS trends, sales growth, condition checklist)
-8. Recurring names leaderboard (score > 50% of max, cap 30 — shows Q, Stage, [Watch] tags, ⚡CC/🔄 badges). Two download buttons above the table: **CSV** (full columns) and **TradingView list** (tickers-only, one per line) for fast TV watchlist import.
+HTML body order (Feature D rebuild — decision-density first):
+1. **§1 Positioning & Book Risk** (`render_positioning_html`) — regime / positions-vs-cap / realized-this-week / book health + leak callout
+2. **§2 Week-Ahead Shortlist** (`render_shortlist_html`) — trade-plan cards (Setup · Trigger · Stop · Size · Invalidation); empty-state "Cash is a position"
+3. **§3 Book Weekend Review** (`render_book_review_html`) — per-position verdict table, action-first sort
+4. **§4 Leadership Map** — ETF Sector Setup (`render_sector_setup_html`) + **🔭 Next on the Radar** emerging cards (`select_emerging_candidates`: Stage 2 + Q≥70 + a fresh-catalyst signal EP/IPO/MULTI/CC_WATCH + SMA50% ≤ 20% extension guard; excludes held + current shortlist; emergence score Q + 20·CC_WATCH + 15·EP/IPO + 8·pre-breakout + 8·MULTI − 3·(days−1)) + macro / crypto / F&G snapshot
+5. **§5 Strategist's Note** (`generate_strategist_note`) — 3 bullets (regime / best setup / the one risk)
+6. *Reference (demoted to bottom):* ⚡ Character Change Alerts (EPS/sales/condition checklist) + Recurring-names leaderboard (score > 50% of max, cap 30; CSV + TradingView-list download buttons).
 
 ---
 
