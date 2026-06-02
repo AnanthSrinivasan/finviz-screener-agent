@@ -1,0 +1,1824 @@
+{
+  "ALAB": {
+    "q_rank": 99,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "COHR": {
+    "q_rank": 107,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "XLK",
+    "excluded_reason": "RVol 1.2x < 1.5x"
+  },
+  "HPE": {
+    "q_rank": 118,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "MRVL": {
+    "q_rank": 122,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "TE": {
+    "q_rank": 87,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "UMAC": {
+    "q_rank": 98,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "UFO"
+  },
+  "AEHR": {
+    "q_rank": 66,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "SMH",
+    "excluded_reason": "RVol 0.9x < 1.5x"
+  },
+  "ARM": {
+    "q_rank": 100,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "CIEN": {
+    "q_rank": 97,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CLS": {
+    "q_rank": 103,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "LEGN": {
+    "q_rank": 72,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "OCTV": {
+    "q_rank": 55,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "momentum",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "PENG": {
+    "q_rank": 104,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "RMBS": {
+    "q_rank": 86,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "SMH",
+    "excluded_reason": "RVol 1.4x < 1.5x"
+  },
+  "SWMR": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "IGV",
+    "excluded_reason": "RVol 0.8x < 1.5x"
+  },
+  "VSXY": {
+    "q_rank": 106,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "ABAT": {
+    "q_rank": 38,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "AMPX": {
+    "q_rank": 84,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "ASML": {
+    "q_rank": 98,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "AVGO": {
+    "q_rank": 101,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "BE": {
+    "q_rank": 37,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "BTSG": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "COHU": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "CORZ": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "CRDO": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "CSIQ": {
+    "q_rank": 15,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CSTM": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "DELL": {
+    "q_rank": 40,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ELMT": {
+    "q_rank": 15,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "ENPH": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "FCEL": {
+    "q_rank": 15,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "FROG": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "GLW": {
+    "q_rank": 102,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "HBM": {
+    "q_rank": 92,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "INGM": {
+    "q_rank": 77,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "INOD": {
+    "q_rank": 71,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "INV": {
+    "q_rank": 77,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "XLF",
+    "excluded_reason": "RVol 1.4x < 1.5x"
+  },
+  "LITE": {
+    "q_rank": 99,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "LRCX": {
+    "q_rank": 83,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "LSCC": {
+    "q_rank": 92,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "MU": {
+    "q_rank": 95,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "NBIS": {
+    "q_rank": 117,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "NET": {
+    "q_rank": 85,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "NUE": {
+    "q_rank": 99,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "ONDS": {
+    "q_rank": 91,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "UFO"
+  },
+  "OPTX": {
+    "q_rank": 68,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "OUST": {
+    "q_rank": 76,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "RAL": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "RBRK": {
+    "q_rank": 56,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "RLAY": {
+    "q_rank": 89,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "SAIL": {
+    "q_rank": 66,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "SNDK": {
+    "q_rank": 110,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "SNOW": {
+    "q_rank": 37,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "STM": {
+    "q_rank": 37,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "STX": {
+    "q_rank": 40,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "UAMY": {
+    "q_rank": 15,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "UEC": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLE"
+  },
+  "URG": {
+    "q_rank": 15,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLE"
+  },
+  "UUUU": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLE"
+  },
+  "VSH": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "WDC": {
+    "q_rank": 40,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ZETA": {
+    "q_rank": 24,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "AA": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "AAON": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XHB"
+  },
+  "AAPL": {
+    "q_rank": 80,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ABTS": {
+    "q_rank": -5,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "ACMR": {
+    "q_rank": 54,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "ADI": {
+    "q_rank": 86,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "AFRM": {
+    "q_rank": 39,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLF"
+  },
+  "AGPU": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "ALM": {
+    "q_rank": 79,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "AMAT": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "AMC": {
+    "q_rank": 25,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "AMD": {
+    "q_rank": 96,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "AMKR": {
+    "q_rank": 89,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "AMN": {
+    "q_rank": 83,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "ANET": {
+    "q_rank": 80,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "APH": {
+    "q_rank": 101,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "APP": {
+    "q_rank": 51,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "APPS": {
+    "q_rank": 36,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "momentum",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "ARMK": {
+    "q_rank": 74,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "AS": {
+    "q_rank": 8,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "ASAN": {
+    "q_rank": 9,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "ASTC": {
+    "q_rank": 62,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ASTI": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ASTS": {
+    "q_rank": 68,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "ASX": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "ATEN": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "AVT": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "BB": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "BBGI": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "BIRK": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "BNY": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KBE"
+  },
+  "BRZE": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "BWA": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "CAI": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "CART": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "CAT": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "CBRS": {
+    "q_rank": 19,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "CDNS": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "CENX": {
+    "q_rank": 79,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "CGNX": {
+    "q_rank": 97,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CHYM": {
+    "q_rank": -7,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "CIFR": {
+    "q_rank": 64,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CMC": {
+    "q_rank": 88,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "CNH": {
+    "q_rank": 22,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "CRSR": {
+    "q_rank": 74,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CRWD": {
+    "q_rank": 86,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "CRWV": {
+    "q_rank": 80,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CSCO": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "CXW": {
+    "q_rank": 78,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "DDOG": {
+    "q_rank": 105,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "DOCN": {
+    "q_rank": 81,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "DXST": {
+    "q_rank": 3,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "EFC": {
+    "q_rank": 16,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "ERO": {
+    "q_rank": 96,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "ETOR": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "EXTR": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "FCX": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "FJET": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "FLEX": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "FLNC": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLU"
+  },
+  "FPS": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "FSLR": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "FSLY": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "FTNT": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "GEN": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "GNTA": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "GS": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "HIMX": {
+    "q_rank": 54,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "HNGE": {
+    "q_rank": 23,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "HPP": {
+    "q_rank": 32,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "HPQ": {
+    "q_rank": 38,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "HST": {
+    "q_rank": 88,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "HUT": {
+    "q_rank": 59,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "IBM": {
+    "q_rank": 57,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "INFQ": {
+    "q_rank": 38,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "IONQ": {
+    "q_rank": 49,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "IOT": {
+    "q_rank": 65,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "IRM": {
+    "q_rank": 94,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "JBL": {
+    "q_rank": 74,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "KNX": {
+    "q_rank": 72,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "KULR": {
+    "q_rank": 25,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "KVYO": {
+    "q_rank": 12,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "LASE": {
+    "q_rank": 25,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "LASR": {
+    "q_rank": 87,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "LC": {
+    "q_rank": 36,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KBE"
+  },
+  "LIF": {
+    "q_rank": 12,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "LINE": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "LLY": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "LOAR": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "LOGI": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "LTM": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "LWLG": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "MCHP": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "MDB": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "MNST": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLP"
+  },
+  "MNTS": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "MOD": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "MP": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "MS": {
+    "q_rank": 30,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "MT": {
+    "q_rank": 83,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "MTSI": {
+    "q_rank": 109,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "MX": {
+    "q_rank": 72,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "NAMM": {
+    "q_rank": 27,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "NBIX": {
+    "q_rank": 94,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "NOK": {
+    "q_rank": 89,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "NUAI": {
+    "q_rank": 76,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "NVDA": {
+    "q_rank": 109,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "NVT": {
+    "q_rank": 72,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "OKTA": {
+    "q_rank": 49,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "OMDA": {
+    "q_rank": 15,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "ON": {
+    "q_rank": 79,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "OPTU": {
+    "q_rank": -3,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "ORCL": {
+    "q_rank": 48,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "OSS": {
+    "q_rank": 56,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "P": {
+    "q_rank": 52,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "PD": {
+    "q_rank": 0,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "PEB": {
+    "q_rank": 65,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "PK": {
+    "q_rank": 70,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "PONY": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "PTRN": {
+    "q_rank": 76,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "PUSA": {
+    "q_rank": 33,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "momentum",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "QFIN": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLF"
+  },
+  "RCAT": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "RDDT": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "FDN"
+  },
+  "REPL": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "RIOT": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "RKLB": {
+    "q_rank": 27,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "RKTO": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "RLJ": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLRE"
+  },
+  "ROKU": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "RXO": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "RZLT": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XBI"
+  },
+  "S": {
+    "q_rank": 36,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "SBLK": {
+    "q_rank": 92,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "SIDU": {
+    "q_rank": 67,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "power_move",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "SKLZ": {
+    "q_rank": 16,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLC"
+  },
+  "SKYT": {
+    "q_rank": 73,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "SMCI": {
+    "q_rank": 54,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "SMTC": {
+    "q_rank": 74,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "SN": {
+    "q_rank": 88,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "SNDR": {
+    "q_rank": 69,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "SOLV": {
+    "q_rank": 41,
+    "stage": 1,
+    "stage_label": "Basing",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "SPCE": {
+    "q_rank": 52,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "ST": {
+    "q_rank": 67,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "STLD": {
+    "q_rank": 86,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "STT": {
+    "q_rank": 80,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLF"
+  },
+  "SVM": {
+    "q_rank": 81,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "TEM": {
+    "q_rank": 3,
+    "stage": 4,
+    "stage_label": "Downtrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "TENB": {
+    "q_rank": 42,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "excluded",
+    "textbook_vcp": false,
+    "etf": "IGV",
+    "excluded_reason": "RVol 1.4x < 1.5x"
+  },
+  "TER": {
+    "q_rank": 99,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "TSM": {
+    "q_rank": 100,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "TTMI": {
+    "q_rank": 80,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "TXG": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLV"
+  },
+  "USAR": {
+    "q_rank": 70,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLB"
+  },
+  "VCIG": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "VELO": {
+    "q_rank": 5,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "VIAV": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLK"
+  },
+  "VIDA": {
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  },
+  "VIK": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLY"
+  },
+  "VIST": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLE"
+  },
+  "VOYG": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "WERN": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "XLI"
+  },
+  "WOLF": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "SMH"
+  },
+  "WULF": {
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
+    "textbook_vcp": false,
+    "etf": "KCE"
+  },
+  "XNDU": {
+    "q_rank": 14,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "ipo",
+    "textbook_vcp": false,
+    "etf": "IGV"
+  }
+}
