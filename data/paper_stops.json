@@ -1,19 +1,4 @@
 {
-  "LSCC": {
-    "entry_price": 122.145447,
-    "highest_price_seen": 151.16,
-    "peak_gain_pct": 23.75,
-    "breakeven_activated": true,
-    "target1": 146.57,
-    "target2": 171.0,
-    "target1_hit": true,
-    "atr_pct": 4.96,
-    "stop_price": 143.59,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "last_fade_alert_gain_pct": 15.32,
-    "pending_close": true
-  },
   "BTSG": {
     "entry_price": 55.856072,
     "highest_price_seen": 62.11,
@@ -25,7 +10,8 @@
     "atr_pct": 3.6,
     "stop_price": 59.09,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "SNDK": {
     "entry_price": 1314.993333,
@@ -55,14 +41,14 @@
   },
   "VRT": {
     "entry_price": 329.98,
-    "highest_price_seen": 343.08,
-    "peak_gain_pct": 3.97,
+    "highest_price_seen": 344.96,
+    "peak_gain_pct": 4.54,
     "breakeven_activated": false,
     "target1": 395.98,
     "target2": 461.97,
     "target1_hit": false,
     "atr_pct": 5.89,
-    "stop_price": 304.21,
+    "stop_price": 306.09,
     "t1_peeled": false,
     "t2_peeled": false
   }

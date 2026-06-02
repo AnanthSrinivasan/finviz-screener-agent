@@ -1,30 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 1,
+  "consecutive_losses": 2,
   "total_wins": 16,
-  "total_losses": 25,
-  "current_sizing_mode": "normal",
+  "total_losses": 26,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-06-01",
+  "last_updated": "2026-06-02",
   "recent_trades": [
-    {
-      "ticker": "XBI",
-      "result": "loss",
-      "result_pct": -3.03,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -338.1
-    },
-    {
-      "ticker": "APLD",
-      "result": "win",
-      "result_pct": 4.99,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 190.0
-    },
     {
       "ticker": "ARWR",
       "result": "loss",
@@ -235,7 +217,7 @@
     {
       "ticker": "UFO",
       "result": "win",
-      "result_pct": 5.8,
+      "result_pct": 6.32,
       "date": "2026-06-01",
       "side": "SELL",
       "source": "auto_detected",
@@ -244,7 +226,7 @@
     {
       "ticker": "TNA",
       "result": "win",
-      "result_pct": 11.53,
+      "result_pct": 7.99,
       "date": "2026-06-01",
       "side": "SELL",
       "source": "auto_detected",
@@ -253,7 +235,7 @@
     {
       "ticker": "XBI",
       "result": "neutral",
-      "result_pct": 0.33,
+      "result_pct": -0.48,
       "date": "2026-06-01",
       "side": "SELL",
       "source": "auto_detected",
@@ -262,7 +244,7 @@
     {
       "ticker": "TWLO",
       "result": "win",
-      "result_pct": 20.93,
+      "result_pct": 16.01,
       "date": "2026-06-01",
       "side": "SELL",
       "source": "auto_detected",
@@ -271,11 +253,29 @@
     {
       "ticker": "ARKX",
       "result": "loss",
-      "result_pct": -3.47,
+      "result_pct": -4.21,
       "date": "2026-06-01",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -132.0
+    },
+    {
+      "ticker": "ARWR",
+      "result": "loss",
+      "result_pct": -7.55,
+      "date": "2026-06-02",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -578.0
+    },
+    {
+      "ticker": "ZVRA",
+      "result": "neutral",
+      "result_pct": -0.22,
+      "date": "2026-06-02",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -7.68
     }
   ],
   "market_state": "EXTENDED",
