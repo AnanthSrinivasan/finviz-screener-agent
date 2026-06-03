@@ -1,30 +1,12 @@
 {
-  "consecutive_wins": 1,
+  "consecutive_wins": 2,
   "consecutive_losses": 0,
-  "total_wins": 19,
+  "total_wins": 20,
   "total_losses": 29,
   "current_sizing_mode": "normal",
   "sizing_override": null,
   "last_updated": "2026-06-03",
   "recent_trades": [
-    {
-      "ticker": "CORZ",
-      "result": "loss",
-      "result_pct": -1.54,
-      "date": "2026-05-18",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -57.0
-    },
-    {
-      "ticker": "CRWV",
-      "result": "loss",
-      "result_pct": -7.0,
-      "date": "2026-05-19",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -805.0
-    },
     {
       "ticker": "IREN",
       "result": "loss",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -9.0
+    },
+    {
+      "ticker": "FPS",
+      "result": "win",
+      "result_pct": 10.79,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 255.0
+    },
+    {
+      "ticker": "COPX",
+      "result": "neutral",
+      "result_pct": 0.2,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 9.0
     }
   ],
   "market_state": "EXTENDED",

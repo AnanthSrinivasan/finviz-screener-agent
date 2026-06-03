@@ -1,23 +1,6 @@
 {
   "open_positions": [
     {
-      "ticker": "FPS",
-      "shares": 50,
-      "entry_price": 47.26,
-      "entry_date": "2026-05-21",
-      "stop_price": 56.24,
-      "breakeven_activated": true,
-      "target1": 56.71,
-      "target1_hit": true,
-      "target2": 66.16,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 59.92,
-      "current_gain_pct": 25.52,
-      "first_entry_price": 46.63,
-      "peak_gain_pct": 26.79
-    },
-    {
       "ticker": "BE",
       "shares": 30,
       "entry_price": 301.8,
@@ -30,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 322.47,
-      "current_gain_pct": -5.9,
+      "current_gain_pct": -4.8,
       "first_entry_price": 287.15,
       "peak_gain_pct": 12.3
     },
@@ -39,17 +22,17 @@
       "shares": 15,
       "entry_price": 1572.51,
       "entry_date": "2026-05-21",
-      "stop_price": 1645.7,
+      "stop_price": 1650.62,
       "breakeven_activated": false,
       "target1": 1887.01,
       "target1_hit": false,
       "target2": 2201.51,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 1736.9,
-      "current_gain_pct": 10.12,
+      "highest_price_seen": 1743.01,
+      "current_gain_pct": 9.78,
       "first_entry_price": 1550.0,
-      "peak_gain_pct": 10.45
+      "peak_gain_pct": 10.84
     },
     {
       "ticker": "AMZN",
@@ -64,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 274.68,
-      "current_gain_pct": -7.26,
+      "current_gain_pct": -6.83,
       "first_entry_price": 267.3,
       "peak_gain_pct": 2.36
     },
@@ -81,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 232.28,
-      "current_gain_pct": -1.25,
+      "current_gain_pct": -1.7,
       "first_entry_price": 221.22,
       "peak_gain_pct": 6.33
     },
@@ -98,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 123.47,
-      "current_gain_pct": 4.02,
+      "current_gain_pct": 2.97,
       "first_entry_price": 117.43,
       "peak_gain_pct": 4.85
     },
@@ -115,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 288.87,
-      "current_gain_pct": -7.6,
+      "current_gain_pct": -5.91,
       "first_entry_price": 252.84,
       "peak_gain_pct": 10.47
     },
@@ -132,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 82.41,
-      "current_gain_pct": -4.14,
+      "current_gain_pct": -4.33,
       "first_entry_price": 82.06,
       "peak_gain_pct": 0.87
     },
@@ -149,26 +132,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 14.16,
-      "current_gain_pct": -8.31,
+      "current_gain_pct": -10.69,
       "first_entry_price": 13.0,
       "peak_gain_pct": 8.92
-    },
-    {
-      "ticker": "COPX",
-      "shares": 50,
-      "entry_price": 90.07,
-      "entry_date": "2026-06-01",
-      "stop_price": 87.19,
-      "breakeven_activated": false,
-      "target1": 108.08,
-      "target1_hit": false,
-      "target2": 126.1,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 93.87,
-      "current_gain_pct": 0.67,
-      "first_entry_price": 89.36,
-      "peak_gain_pct": 4.22
     },
     {
       "ticker": "CRWV",
@@ -183,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 132.0,
-      "current_gain_pct": -7.46,
+      "current_gain_pct": -8.13,
       "first_entry_price": 117.94,
       "peak_gain_pct": 9.32
     }
@@ -1329,6 +1295,48 @@
       "close_price": 17.77,
       "close_source": "live_quote",
       "result_pct": -0.5
+    },
+    {
+      "ticker": "FPS",
+      "shares": 50,
+      "entry_price": 47.26,
+      "entry_date": "2026-05-21",
+      "stop_price": 56.24,
+      "breakeven_activated": true,
+      "target1": 56.71,
+      "target1_hit": true,
+      "target2": 66.16,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 59.92,
+      "current_gain_pct": 25.52,
+      "first_entry_price": 46.63,
+      "peak_gain_pct": 26.79,
+      "close_date": "2026-06-03",
+      "close_price": 52.36,
+      "close_source": "snaptrade_fill",
+      "result_pct": 10.79
+    },
+    {
+      "ticker": "COPX",
+      "shares": 50,
+      "entry_price": 90.07,
+      "entry_date": "2026-06-01",
+      "stop_price": 87.19,
+      "breakeven_activated": false,
+      "target1": 108.08,
+      "target1_hit": false,
+      "target2": 126.1,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 93.87,
+      "current_gain_pct": 0.67,
+      "first_entry_price": 89.36,
+      "peak_gain_pct": 4.22,
+      "close_date": "2026-06-03",
+      "close_price": 90.25,
+      "close_source": "live_quote",
+      "result_pct": 0.2
     }
   ]
 }
