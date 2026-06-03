@@ -1,84 +1,12 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 2,
-  "total_wins": 16,
-  "total_losses": 26,
-  "current_sizing_mode": "reduced",
+  "consecutive_wins": 1,
+  "consecutive_losses": 0,
+  "total_wins": 19,
+  "total_losses": 29,
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-06-02",
+  "last_updated": "2026-06-03",
   "recent_trades": [
-    {
-      "ticker": "ARWR",
-      "result": "loss",
-      "result_pct": -2.28,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -160.0
-    },
-    {
-      "ticker": "FLY",
-      "result": "loss",
-      "result_pct": -8.41,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -616.0
-    },
-    {
-      "ticker": "ZVRA",
-      "result": "loss",
-      "result_pct": -2.2,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -100.0
-    },
-    {
-      "ticker": "INDV",
-      "result": "win",
-      "result_pct": 3.12,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 540.0
-    },
-    {
-      "ticker": "NVDA",
-      "result": "win",
-      "result_pct": 10.19,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1050.0
-    },
-    {
-      "ticker": "TNA",
-      "result": "win",
-      "result_pct": 1.69,
-      "date": "2026-05-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 154.5
-    },
-    {
-      "ticker": "AAOI",
-      "result": "win",
-      "result_pct": 86.1,
-      "date": "2026-05-18",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1074.05
-    },
-    {
-      "ticker": "GLW",
-      "result": "win",
-      "result_pct": 26.49,
-      "date": "2026-05-18",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1093.13
-    },
     {
       "ticker": "CORZ",
       "result": "loss",
@@ -262,7 +190,7 @@
     {
       "ticker": "ARWR",
       "result": "loss",
-      "result_pct": -7.55,
+      "result_pct": -6.24,
       "date": "2026-06-02",
       "side": "SELL",
       "source": "auto_detected",
@@ -276,6 +204,78 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -7.68
+    },
+    {
+      "ticker": "IREN",
+      "result": "win",
+      "result_pct": 23.95,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1267.0
+    },
+    {
+      "ticker": "CORZ",
+      "result": "win",
+      "result_pct": 14.94,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1137.0
+    },
+    {
+      "ticker": "AFRM",
+      "result": "loss",
+      "result_pct": -4.66,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -322.0
+    },
+    {
+      "ticker": "KLAR",
+      "result": "neutral",
+      "result_pct": 0.29,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 10.0
+    },
+    {
+      "ticker": "APLD",
+      "result": "loss",
+      "result_pct": -2.38,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -112.0
+    },
+    {
+      "ticker": "USAR",
+      "result": "loss",
+      "result_pct": -3.21,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -87.0
+    },
+    {
+      "ticker": "INGM",
+      "result": "win",
+      "result_pct": 7.92,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 226.0
+    },
+    {
+      "ticker": "INFQ",
+      "result": "neutral",
+      "result_pct": -0.5,
+      "date": "2026-06-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -9.0
     }
   ],
   "market_state": "EXTENDED",
