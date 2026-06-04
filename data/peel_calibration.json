@@ -303,7 +303,7 @@
     "reason": "insufficient_runs",
     "runs": 2,
     "atr_pct_avg": 9.15,
-    "updated": "2026-06-04"
+    "updated": "2026-06-05"
   },
   "ALHC": {
     "signal": 10.0,
@@ -2336,7 +2336,7 @@
     "runs": 4,
     "atr_pct_avg": 2.81,
     "calibrated": true,
-    "updated": "2026-06-01"
+    "updated": "2026-06-05"
   },
   "ROKU": {
     "signal": 10.0,
@@ -2604,7 +2604,7 @@
     "runs": 6,
     "atr_pct_avg": 5.95,
     "calibrated": true,
-    "updated": "2026-06-04"
+    "updated": "2026-06-05"
   },
   "RAMP": {
     "signal": 10.0,
@@ -2887,9 +2887,9 @@
     "p90": 103.5,
     "max_seen": 220.7,
     "runs": 7,
-    "atr_pct_avg": 12.99,
+    "atr_pct_avg": 12.98,
     "calibrated": true,
-    "updated": "2026-06-04"
+    "updated": "2026-06-05"
   },
   "ARKX": {
     "signal": 12.1,
@@ -3163,5 +3163,17 @@
     "atr_pct_avg": 3.22,
     "calibrated": true,
     "updated": "2026-06-02"
+  },
+  "ARKG": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 6.8,
+    "p75": 7.6,
+    "p90": 7.9,
+    "max_seen": 8.1,
+    "runs": 4,
+    "atr_pct_avg": 3.95,
+    "calibrated": true,
+    "updated": "2026-06-05"
   }
 }
