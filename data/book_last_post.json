@@ -1,4 +1,43 @@
 {
   "last_book_post_ts": "2026-06-04T16:30:14.396485Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "AMZN",
+      "message": "\ud83d\udea8 STOP HIT: AMZN @ $253.79 \u2014 exit immediately (stop $261.54)",
+      "current_price": 253.79,
+      "stop_price": 261.54,
+      "ts": "2026-06-04T16:56:17.320372Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $258.68 \u2014 exit immediately (stop $262.81)",
+      "current_price": 258.68,
+      "stop_price": 262.81,
+      "ts": "2026-06-04T16:56:17.320372Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $108.38 \u2014 exit immediately (stop $117.13)",
+      "current_price": 108.38,
+      "stop_price": 117.13,
+      "ts": "2026-06-04T16:56:17.320372Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "AMZN",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 AMZN ATR mult 0.48, P&L $-1,455",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-04T16:56:17.320372Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "CRWV",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 CRWV ATR mult 0.22, P&L $-990",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-04T16:56:17.320372Z"
+    }
+  ]
 }
