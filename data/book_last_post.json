@@ -1,4 +1,66 @@
 {
   "last_book_post_ts": "2026-06-04T19:38:04.831919Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_closed",
+      "ticker": "NVDA",
+      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: NVDA\n   Entry $218.46 \u2192 $218.66 (quote) (+0.1%) \u2014 BREAKEVEN\n   Streak: 0W / 2L",
+      "result_pct": 0.09,
+      "close_price": 218.66,
+      "close_source": "live_quote",
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AMZN",
+      "message": "\ud83d\udea8 STOP HIT: AMZN @ $253.79 \u2014 exit immediately (stop $261.54)",
+      "current_price": 253.79,
+      "stop_price": 261.54,
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $261.69 \u2014 exit immediately (stop $262.81)",
+      "current_price": 261.69,
+      "stop_price": 262.81,
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWV",
+      "message": "\ud83d\udea8 STOP HIT: CRWV @ $108.03 \u2014 exit immediately (stop $117.13)",
+      "current_price": 108.03,
+      "stop_price": 117.13,
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "AMZN",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 AMZN ATR mult 0.48, P&L $-1,455",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "DAVE",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 DAVE ATR mult 1.63, P&L $-208",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "CRWV",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 CRWV ATR mult 0.18, P&L $-1,018",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-04T21:12:44.018736Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 5.81x",
+      "alert_type": "PEEL",
+      "ts": "2026-06-04T21:12:44.018736Z"
+    }
+  ]
 }

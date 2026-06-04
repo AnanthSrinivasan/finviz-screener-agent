@@ -8,15 +8,6 @@
   "last_updated": "2026-06-04",
   "recent_trades": [
     {
-      "ticker": "CRCL",
-      "result": "loss",
-      "result_pct": -1.16,
-      "date": "2026-05-26",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -133.0
-    },
-    {
       "ticker": "SNDK",
       "result": "win",
       "result_pct": 15.88,
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -300.0
+    },
+    {
+      "ticker": "NVDA",
+      "result": "neutral",
+      "result_pct": 0.09,
+      "date": "2026-06-04",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 4.0
     }
   ],
   "market_state": "EXTENDED",
