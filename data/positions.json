@@ -1,40 +1,6 @@
 {
   "open_positions": [
     {
-      "ticker": "BE",
-      "shares": 30,
-      "entry_price": 301.8,
-      "entry_date": "2026-05-21",
-      "stop_price": 294.73,
-      "breakeven_activated": false,
-      "target1": 362.16,
-      "target1_hit": false,
-      "target2": 422.52,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 322.47,
-      "current_gain_pct": -4.8,
-      "first_entry_price": 287.15,
-      "peak_gain_pct": 12.3
-    },
-    {
-      "ticker": "ASML",
-      "shares": 15,
-      "entry_price": 1572.51,
-      "entry_date": "2026-05-21",
-      "stop_price": 1650.62,
-      "breakeven_activated": false,
-      "target1": 1887.01,
-      "target1_hit": false,
-      "target2": 2201.51,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 1743.01,
-      "current_gain_pct": 9.78,
-      "first_entry_price": 1550.0,
-      "peak_gain_pct": 10.84
-    },
-    {
       "ticker": "AMZN",
       "shares": 100,
       "entry_price": 268.34,
@@ -47,9 +13,10 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 274.68,
-      "current_gain_pct": -6.83,
+      "current_gain_pct": -5.32,
       "first_entry_price": 267.3,
-      "peak_gain_pct": 2.36
+      "peak_gain_pct": 2.36,
+      "stale_alerted_date": "2026-06-04"
     },
     {
       "ticker": "NVDA",
@@ -64,26 +31,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 232.28,
-      "current_gain_pct": -1.7,
+      "current_gain_pct": -0.31,
       "first_entry_price": 221.22,
       "peak_gain_pct": 6.33
-    },
-    {
-      "ticker": "SN",
-      "shares": 60,
-      "entry_price": 117.76,
-      "entry_date": "2026-05-27",
-      "stop_price": 113.89,
-      "breakeven_activated": false,
-      "target1": 141.31,
-      "target1_hit": false,
-      "target2": 164.86,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 123.47,
-      "current_gain_pct": 2.97,
-      "first_entry_price": 117.43,
-      "peak_gain_pct": 4.85
     },
     {
       "ticker": "DAVE",
@@ -98,43 +48,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 288.87,
-      "current_gain_pct": -5.91,
+      "current_gain_pct": -2.55,
       "first_entry_price": 252.84,
       "peak_gain_pct": 10.47
-    },
-    {
-      "ticker": "ARKK",
-      "shares": 100,
-      "entry_price": 81.7,
-      "entry_date": "2026-05-29",
-      "stop_price": 77.81,
-      "breakeven_activated": false,
-      "target1": 98.04,
-      "target1_hit": false,
-      "target2": 114.38,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 82.41,
-      "current_gain_pct": -4.33,
-      "first_entry_price": 82.06,
-      "peak_gain_pct": 0.87
-    },
-    {
-      "ticker": "ONDS",
-      "shares": 300,
-      "entry_price": 13.0,
-      "entry_date": "2026-06-01",
-      "stop_price": 12.61,
-      "breakeven_activated": false,
-      "target1": 15.6,
-      "target1_hit": false,
-      "target2": 18.2,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 14.16,
-      "current_gain_pct": -10.69,
-      "first_entry_price": 13.0,
-      "peak_gain_pct": 8.92
     },
     {
       "ticker": "CRWV",
@@ -149,7 +65,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 132.0,
-      "current_gain_pct": -8.13,
+      "current_gain_pct": -11.88,
       "first_entry_price": 117.94,
       "peak_gain_pct": 9.32
     }
@@ -1145,9 +1061,9 @@
       "first_entry_price": 52.9,
       "peak_gain_pct": 31.44,
       "close_date": "2026-06-03",
-      "close_price": 65.57,
-      "close_source": "live_quote",
-      "result_pct": 23.95
+      "close_price": 65.98,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 24.73
     },
     {
       "ticker": "CORZ",
@@ -1166,9 +1082,9 @@
       "first_entry_price": 25.14,
       "peak_gain_pct": 20.11,
       "close_date": "2026-06-03",
-      "close_price": 29.15,
-      "close_source": "live_quote",
-      "result_pct": 14.94
+      "close_price": 28.96,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 14.2
     },
     {
       "ticker": "AFRM",
@@ -1187,9 +1103,9 @@
       "first_entry_price": 69.14,
       "peak_gain_pct": 8.76,
       "close_date": "2026-06-03",
-      "close_price": 65.92,
-      "close_source": "live_quote",
-      "result_pct": -4.66
+      "close_price": 65.84,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -4.77
     },
     {
       "ticker": "KLAR",
@@ -1208,9 +1124,9 @@
       "first_entry_price": 16.98,
       "peak_gain_pct": 9.19,
       "close_date": "2026-06-03",
-      "close_price": 17.03,
-      "close_source": "live_quote",
-      "result_pct": 0.29
+      "close_price": 16.8,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.06
     },
     {
       "ticker": "APLD",
@@ -1229,9 +1145,9 @@
       "first_entry_price": 47.11,
       "peak_gain_pct": 7.68,
       "close_date": "2026-06-03",
-      "close_price": 45.99,
-      "close_source": "live_quote",
-      "result_pct": -2.38
+      "close_price": 46.63,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.02
     },
     {
       "ticker": "USAR",
@@ -1271,9 +1187,9 @@
       "first_entry_price": 28.55,
       "peak_gain_pct": 10.93,
       "close_date": "2026-06-03",
-      "close_price": 30.81,
-      "close_source": "live_quote",
-      "result_pct": 7.92
+      "close_price": 30.73,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 7.64
     },
     {
       "ticker": "INFQ",
@@ -1292,9 +1208,9 @@
       "first_entry_price": 17.86,
       "peak_gain_pct": 16.18,
       "close_date": "2026-06-03",
-      "close_price": 17.77,
-      "close_source": "live_quote",
-      "result_pct": -0.5
+      "close_price": 18.19,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 1.85
     },
     {
       "ticker": "FPS",
@@ -1334,9 +1250,114 @@
       "first_entry_price": 89.36,
       "peak_gain_pct": 4.22,
       "close_date": "2026-06-03",
-      "close_price": 90.25,
+      "close_price": 90.56,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 0.54
+    },
+    {
+      "ticker": "BE",
+      "shares": 30,
+      "entry_price": 301.8,
+      "entry_date": "2026-05-21",
+      "stop_price": 294.73,
+      "breakeven_activated": false,
+      "target1": 362.16,
+      "target1_hit": false,
+      "target2": 422.52,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 322.47,
+      "current_gain_pct": -4.8,
+      "first_entry_price": 287.15,
+      "peak_gain_pct": 12.3,
+      "close_date": "2026-06-04",
+      "close_price": 282.76,
+      "close_source": "snaptrade_fill",
+      "result_pct": -6.31
+    },
+    {
+      "ticker": "ASML",
+      "shares": 15,
+      "entry_price": 1572.51,
+      "entry_date": "2026-05-21",
+      "stop_price": 1650.62,
+      "breakeven_activated": false,
+      "target1": 1887.01,
+      "target1_hit": false,
+      "target2": 2201.51,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 1743.01,
+      "current_gain_pct": 9.78,
+      "first_entry_price": 1550.0,
+      "peak_gain_pct": 10.84,
+      "close_date": "2026-06-04",
+      "close_price": 1730.81,
       "close_source": "live_quote",
-      "result_pct": 0.2
+      "result_pct": 10.07
+    },
+    {
+      "ticker": "SN",
+      "shares": 60,
+      "entry_price": 117.76,
+      "entry_date": "2026-05-27",
+      "stop_price": 113.89,
+      "breakeven_activated": false,
+      "target1": 141.31,
+      "target1_hit": false,
+      "target2": 164.86,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 123.47,
+      "current_gain_pct": 2.97,
+      "first_entry_price": 117.43,
+      "peak_gain_pct": 4.85,
+      "close_date": "2026-06-04",
+      "close_price": 121.48,
+      "close_source": "live_quote",
+      "result_pct": 3.16
+    },
+    {
+      "ticker": "ARKK",
+      "shares": 100,
+      "entry_price": 81.7,
+      "entry_date": "2026-05-29",
+      "stop_price": 77.81,
+      "breakeven_activated": false,
+      "target1": 98.04,
+      "target1_hit": false,
+      "target2": 114.38,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 82.41,
+      "current_gain_pct": -4.33,
+      "first_entry_price": 82.06,
+      "peak_gain_pct": 0.87,
+      "close_date": "2026-06-04",
+      "close_price": 80.1,
+      "close_source": "live_quote",
+      "result_pct": -1.96
+    },
+    {
+      "ticker": "ONDS",
+      "shares": 300,
+      "entry_price": 13.0,
+      "entry_date": "2026-06-01",
+      "stop_price": 12.61,
+      "breakeven_activated": false,
+      "target1": 15.6,
+      "target1_hit": false,
+      "target2": 18.2,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 14.16,
+      "current_gain_pct": -10.69,
+      "first_entry_price": 13.0,
+      "peak_gain_pct": 8.92,
+      "close_date": "2026-06-04",
+      "close_price": 12.0,
+      "close_source": "live_quote",
+      "result_pct": -7.69
     }
   ]
 }
