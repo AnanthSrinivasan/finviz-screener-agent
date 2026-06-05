@@ -1,4 +1,20 @@
 {
   "last_book_post_ts": "2026-06-05T16:10:02.621507Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "AMZN",
+      "message": "\ud83d\udea8 STOP HIT: AMZN @ $252.53 \u2014 exit immediately (stop $261.54)",
+      "current_price": 252.53,
+      "stop_price": 261.54,
+      "ts": "2026-06-05T16:31:31.563811Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "AMZN",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 AMZN ATR mult 0.18, P&L $-1,581",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-05T16:31:31.563811Z"
+    }
+  ]
 }
