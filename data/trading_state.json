@@ -1,48 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 2,
+  "consecutive_losses": 5,
   "total_wins": 23,
-  "total_losses": 33,
-  "current_sizing_mode": "reduced",
+  "total_losses": 35,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-06-04",
+  "last_updated": "2026-06-05",
   "recent_trades": [
-    {
-      "ticker": "SNDK",
-      "result": "win",
-      "result_pct": 15.88,
-      "date": "2026-05-28",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 3395.7
-    },
-    {
-      "ticker": "RXT",
-      "result": "loss",
-      "result_pct": -7.36,
-      "date": "2026-05-28",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 51.0
-    },
-    {
-      "ticker": "INDV",
-      "result": "loss",
-      "result_pct": -1.7,
-      "date": "2026-05-29",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -64.0
-    },
-    {
-      "ticker": "TAN",
-      "result": "win",
-      "result_pct": 14.21,
-      "date": "2026-05-29",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 223.75
-    },
     {
       "ticker": "AAOI",
       "result": "loss",
@@ -235,7 +199,7 @@
     {
       "ticker": "ASML",
       "result": "win",
-      "result_pct": 10.07,
+      "result_pct": 10.25,
       "date": "2026-06-04",
       "side": "SELL",
       "source": "auto_detected",
@@ -244,7 +208,7 @@
     {
       "ticker": "SN",
       "result": "win",
-      "result_pct": 3.16,
+      "result_pct": 2.12,
       "date": "2026-06-04",
       "side": "SELL",
       "source": "auto_detected",
@@ -252,8 +216,8 @@
     },
     {
       "ticker": "ARKK",
-      "result": "loss",
-      "result_pct": -1.96,
+      "result": "neutral",
+      "result_pct": -0.93,
       "date": "2026-06-04",
       "side": "SELL",
       "source": "auto_detected",
@@ -262,7 +226,7 @@
     {
       "ticker": "ONDS",
       "result": "loss",
-      "result_pct": -7.69,
+      "result_pct": -11.69,
       "date": "2026-06-04",
       "side": "SELL",
       "source": "auto_detected",
@@ -271,11 +235,47 @@
     {
       "ticker": "NVDA",
       "result": "neutral",
-      "result_pct": 0.09,
+      "result_pct": -0.29,
       "date": "2026-06-04",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 4.0
+    },
+    {
+      "ticker": "DAVE",
+      "result": "loss",
+      "result_pct": -1.23,
+      "date": "2026-06-05",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -32.6
+    },
+    {
+      "ticker": "CRWV",
+      "result": "loss",
+      "result_pct": -16.53,
+      "date": "2026-06-05",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -1596.8
+    },
+    {
+      "ticker": "ARKG",
+      "result": "loss",
+      "result_pct": -6.06,
+      "date": "2026-06-05",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -550.0
+    },
+    {
+      "ticker": "XBI",
+      "result": "neutral",
+      "result_pct": -0.39,
+      "date": "2026-06-05",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -36.75
     }
   ],
   "market_state": "EXTENDED",
