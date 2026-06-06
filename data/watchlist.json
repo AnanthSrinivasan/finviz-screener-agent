@@ -3725,7 +3725,12 @@
     "IMSR",
     "AMPL",
     "MWC",
-    "QFIN"
+    "QFIN",
+    "HPE",
+    "ALOY",
+    "KVYO",
+    "FLNC",
+    "RZLT"
   ],
   "auto_promoted": [
     {
@@ -4704,6 +4709,36 @@
       "ticker": "QFIN",
       "added": "2026-06-02",
       "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "HPE",
+      "added": "2026-06-06",
+      "days_seen": 6,
+      "screens": 4
+    },
+    {
+      "ticker": "ALOY",
+      "added": "2026-06-06",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "KVYO",
+      "added": "2026-06-06",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "FLNC",
+      "added": "2026-06-06",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "RZLT",
+      "added": "2026-06-06",
+      "days_seen": 3,
       "screens": 3
     }
   ]
