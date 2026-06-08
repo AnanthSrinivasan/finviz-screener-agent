@@ -2511,7 +2511,7 @@ def _is_recovery_leader(row, open_positions_tickers: set, exclude_tickers: set) 
       - sma20 > 0    (price above 20MA — short-term confirmed)
       - Perf Quarter ≥ 50 (recovery has momentum)
       - RS Rating ≥ 65
-      - Q ≥ 65
+      - Q ≥ 40 (pre-Stage-2 names can't earn the Stage-2 Q bonus; 65 was unreachable)
       - ATR% ≤ 9 (don't catch already-blown-off tapes)
       - RVol ≥ 1.0
       - peel-safe (sma50 / atr ≤ peel_warn)
@@ -2547,7 +2547,7 @@ def _is_recovery_leader(row, open_positions_tickers: set, exclude_tickers: set) 
         return False
 
     qs = row.get("Quality Score")
-    if qs is None or pd.isna(qs) or float(qs) < 65:
+    if qs is None or pd.isna(qs) or float(qs) < 40:
         return False
 
     atr = row.get("ATR%")
@@ -2836,6 +2836,13 @@ def _compute_rs_ratings(df) -> dict:
     Simplified:
       composite = (perf_3m × 0.4) + (perf_6m × 0.3) + (perf_12m × 0.3)
 
+    Perf-Quarter top-quintile override (OSCR/QBTS fix, 2026-06-08): a name
+    whose 90-day move is explosive can be dragged under by a stale 1-year base
+    (OSCR +89% quarter but +44% year → composite RS 61). We also rank the
+    quarter-only series; when a ticker's quarter percentile is top-quintile
+    (≥80), we floor its final RS at that quarter rank. Mid-quarter names
+    (quarter percentile <80) keep their composite rating untouched.
+
     Tickers with missing data get composite = 0.0 and will rank at the bottom.
     Returns {ticker: int 0-99}.
     """
@@ -2848,7 +2855,8 @@ def _compute_rs_ratings(df) -> dict:
         except (TypeError, ValueError):
             return 0.0
 
-    records = []
+    comp = []   # (ticker, composite)
+    q3   = []   # (ticker, perf_quarter)
     for _, row in df.iterrows():
         ticker = row.get("Ticker", "")
         if not ticker:
@@ -2857,17 +2865,25 @@ def _compute_rs_ratings(df) -> dict:
         p6  = _safe(row.get("Perf Half Y"))
         p12 = _safe(row.get("Perf Year"))
         # 9M approx = (p6 + p12) / 2  →  weights simplify to 0.4 + 0.3 + 0.3
-        composite = p3 * 0.4 + p6 * 0.3 + p12 * 0.3
-        records.append((ticker, composite))
+        comp.append((ticker, p3 * 0.4 + p6 * 0.3 + p12 * 0.3))
+        q3.append((ticker, p3))
 
-    if not records:
+    if not comp:
         return {}
 
-    n = len(records)
-    records.sort(key=lambda x: x[1])
+    def _pctile(rows):
+        n = len(rows)
+        rows = sorted(rows, key=lambda x: x[1])
+        return {t: (int(round(rank / (n - 1) * 99)) if n > 1 else 99)
+                for rank, (t, _) in enumerate(rows)}
+
+    comp_p = _pctile(comp)
+    q_p    = _pctile(q3)
     ratings: dict[str, int] = {}
-    for rank, (ticker, _) in enumerate(records):
-        ratings[ticker] = int(round(rank / (n - 1) * 99)) if n > 1 else 99
+    for t in comp_p:
+        qr = q_p[t]
+        # top-quintile quarter movers floor at their quarter rank (OSCR/QBTS fix)
+        ratings[t] = max(comp_p[t], qr) if qr >= 80 else comp_p[t]
     return ratings
 
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Daily Cockpit</title><style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fc;color:#111827;padding:28px;max-width:1100px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:800}
+.sub{color:#6b7280;font-size:.8rem;margin-bottom:18px}
+.block{margin:22px 0}
+.block-h{font-size:.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
+.banner{background:#111827;color:#f9fafb;border-radius:12px;padding:18px 20px}
+.banner-line{font-size:1.02rem;font-weight:600}
+.banner-meta{font-size:.78rem;color:#9ca3af;margin-top:6px}
+.gate{border-radius:12px;padding:18px 20px;color:#fff}
+.gate-green{background:#15803d}.gate-amber{background:#b45309}.gate-red{background:#b91c1c}
+.gate-top{display:flex;justify-content:space-between;align-items:baseline}
+.gate-state{font-size:.8rem;font-weight:700;opacity:.85;letter-spacing:.05em}
+.gate-action{font-size:1.5rem;font-weight:800}
+.gate-headline{font-size:.95rem;margin-top:6px}
+.gate-detail{font-size:.8rem;opacity:.9;margin-top:6px}
+.gate-foot{font-size:.74rem;opacity:.8;margin-top:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.tbl th{text-align:left;padding:9px 11px;color:#6b7280;font-weight:500;border-bottom:1px solid #e5e7eb;text-transform:uppercase;font-size:.64rem;letter-spacing:.05em;background:#f9fafb}
+.tbl td{padding:9px 11px;border-bottom:1px solid #f3f4f6}
+.tbl tr:last-child td{border-bottom:none}
+.bold{font-weight:700}.mono{font-variant-numeric:tabular-nums}
+a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
+.heat-pos{color:#15803d;font-weight:600}.heat-neg{color:#b91c1c;font-weight:600}.heat-zero{color:#6b7280}
+.flagbar{margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}
+.flag{font-size:.78rem;font-weight:600;padding:6px 10px;border-radius:8px}
+.flag-cut{background:#fee2e2;color:#991b1b}.flag-scale{background:#fef3c7;color:#92400e}
+.empty{color:#6b7280;font-size:.86rem;padding:18px;text-align:center;background:#fff;border:1px dashed #e5e7eb;border-radius:10px}
+.empty.win{color:#15803d;border-color:#bbf7d0;background:#f0fdf4}
+.watchonly{font-size:.8rem;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
+.card-h{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem}
+.card-q{color:#15803d}
+.card-sub{font-size:.74rem;color:#6b7280;margin:4px 0 10px}
+.card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:#374151}
+.tier{margin-bottom:8px;font-size:.82rem}
+.tier-name{font-weight:700;text-transform:uppercase;font-size:.66rem;color:#6b7280;margin-right:8px}
+.chip{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 8px;margin:2px;font-size:.78rem;font-weight:600}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
+.stat-l{font-size:.66rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
+.stat-v{font-size:1.3rem;font-weight:800;margin-top:4px}
+.stat-s{font-size:.72rem;color:#6b7280;margin-top:4px}
+.lead-regime{font-size:.84rem;color:#374151;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
+.lead-group{background:#fff;border:1px solid #e5e7eb;border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.lead-base{border-left-color:#16a34a}.lead-pre{border-left-color:#2563eb}.lead-ext{border-left-color:#d97706}.lead-broken{border-left-color:#dc2626}
+.lead-label{font-size:.82rem;font-weight:700;color:#111827;margin-bottom:9px}
+.lead-meaning{font-weight:400;color:#6b7280;font-size:.76rem}
+.lead-chips{display:flex;flex-wrap:wrap;gap:7px}
+.lchip{display:inline-block;border-radius:6px;padding:4px 10px;font-size:.78rem;font-weight:700}
+.lchip-base{background:#dcfce7;color:#15803d}.lchip-pre{background:#dbeafe;color:#1d4ed8}.lchip-ext{background:#fef3c7;color:#92400e}.lchip-broken{background:#fee2e2;color:#b91c1c}
+.lead-foot{font-size:.74rem;margin-top:6px}
+.footer{margin-top:30px;font-size:.7rem;color:#9ca3af}
+</style></head><body>
+<h1>☀️ Daily Cockpit</h1>
+<p class="sub">One pane, one decision · Sun 07 Jun 2026 · 16:33 UTC</p>
+<div class='banner'><div class='banner-line'>Capital preservation mode — today, NOT trading is the winning trade. Cash is a position.</div><div class='banner-meta'>REDUCED mode · 2L streak · $92,115 · 61% of $150,000 goal</div></div>
+<div class='block'><div class='block-h'>🚦 1 · The Gate — can I trade today?</div><div class='gate gate-red'><div class='gate-top'><span class='gate-state'>EXTENDED</span><span class='gate-action'>NO NEW ENTRIES</span></div><div class='gate-headline'>Gate closed. Manage the book — do not add risk.</div><div class='gate-detail'>ETF regime blow-off-risk · reduced mode — max 5% size</div><div class='gate-foot'>Position cap 5 · SPY 758 (+7.5% vs 50MA) · as of 2026-06-01</div></div></div>
+<div class='block'><div class='block-h'>📓 2 · The Book — what do I do with what I hold?</div><div class='empty'>0 positions — 100% cash. Nothing to manage; wait for the gate to open.</div></div>
+<div class='block'><div class='block-h'>🎯 3 · Qualified Today — names that clear every gate</div><div class='empty win'>0 setups clear every gate today. Nothing meets the standard — that's patience, not a miss.</div></div>
+<div class='block'><div class='block-h'>👀 4 · On Deck — watchlist</div><div class='empty'>Watchlist flushed — rebuilding from scratch after the correction. New names populate from the next screener run.</div></div>
+<div class='block'><div class='block-h'>🗺 5 · Leadership — where money is flowing</div><div class='lead-regime'>Regime: <b>blow-off-risk</b>. parabolic tape. No new entries. Tighten stops, trim aggressively, cash is a position. The next clean trade is on the other side.</div><div class='lead-group lead-base'><div class='lead-label'>🎯 BASE <span class='lead-meaning'>tight — next leadership likely starts here. Screen these.</span></div><div class='lead-chips'><span class='lchip lchip-base' title='Biotech'>XBI</span> <span class='lchip lchip-base' title='Industrials'>XLI</span> <span class='lchip lchip-base' title='Cons Disc'>XLY</span> <span class='lchip lchip-base' title='Materials'>XLB</span> <span class='lchip lchip-base' title='Comm Services'>XLC</span> <span class='lchip lchip-base' title='US Infrastructure'>PAVE</span> <span class='lchip lchip-base' title='Regional Banks'>KRE</span> <span class='lchip lchip-base' title='Real Estate'>XLRE</span> <span class='lchip lchip-base' title='Energy'>XLE</span></div></div><div class='lead-group lead-pre'><div class='lead-label'>🔵 PRE-BREAKOUT <span class='lead-meaning'>approaching highs with room. Trigger on a volume breakout.</span></div><div class='lead-chips'><span class='lchip lchip-pre' title='Copper Miners'>COPX</span> <span class='lchip lchip-pre' title='Airlines'>JETS</span> <span class='lchip lchip-pre' title='ARK Space & Defense'>ARKX</span> <span class='lchip lchip-pre' title='Lithium'>LIT</span></div></div><div class='lead-group lead-ext'><div class='lead-label'>🚀 EXTENDED <span class='lead-meaning'>already run — don't chase. Wait for a 21 EMA pullback.</span></div><div class='lead-chips'><span class='lchip lchip-ext' title='Cybersecurity'>HACK</span> <span class='lchip lchip-ext' title='Technology'>XLK</span> <span class='lchip lchip-ext' title='Quantum'>QTUM</span> <span class='lchip lchip-ext' title='Solar'>TAN</span> <span class='lchip lchip-ext' title='Semiconductors'>SMH</span> <span class='lchip lchip-ext' title='Genomics'>ARKG</span> <span class='lchip lchip-ext' title='Blockchain Stocks'>BLOK</span> <span class='lchip lchip-ext' title='Autonomous & EV'>DRIV</span> <span class='lchip lchip-ext' title='Emerging Markets'>EEM</span> <span class='lchip lchip-ext' title='Internet Content'>FDN</span></div></div><div class='lead-group lead-broken'><div class='lead-label'>❌ BROKEN <span class='lead-meaning'>downtrend — if a name here screens well, the group's wrong. Skip.</span></div><div class='lead-chips'><span class='lchip lchip-broken' title='Pure Cloud'>WCLD</span> <span class='lchip lchip-broken' title='Software'>IGV</span> <span class='lchip lchip-broken' title='Fintech'>ARKF</span> <span class='lchip lchip-broken' title='Gold Miners'>GDX</span> <span class='lchip lchip-broken' title='Financials'>XLF</span> <span class='lchip lchip-broken' title='Homebuilders'>ITB</span> <span class='lchip lchip-broken' title='Medical Devices'>IHI</span> <span class='lchip lchip-broken' title='China Internet'>KWEB</span> <span class='lchip lchip-broken' title='NatGas'>FCG</span> <span class='lchip lchip-broken' title='Utilities'>XLU</span> <span class='lchip lchip-broken' title='Nuclear'>NLR</span> <span class='lchip lchip-broken' title='Bitcoin'>IBIT</span></div></div><div class='lead-foot'><a href='etf_rotation.html'>Full rotation dashboard →</a></div></div>
+<div class='block'><div class='block-h'>📊 6 · The Record — am I improving?</div><div class='stat-grid'><div class='stat'><div class='stat-l'>Win rate</div><div class='stat-v'>38%</div><div class='stat-s'>16W / 26L</div></div><div class='stat'><div class='stat-l'>Avg win vs loss</div><div class='stat-v'>+15.1% / -5.9%</div><div class='stat-s'>payoff 2.6× — ✅ winners outrun losers — the math works</div></div><div class='stat'><div class='stat-l'>Sizing mode</div><div class='stat-v'>REDUCED</div><div class='stat-s'>0W / 2L streak</div></div></div></div>
+<div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode · spec: docs/specs/daily-cockpit.md</div>
+</body></html>

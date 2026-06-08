@@ -47,6 +47,15 @@ jobs:
           DATA_DIR: data
         run: python utils/generators/generate_index.py
 
+      - name: Regenerate daily cockpit
+        env:
+          DATA_DIR: data
+          SNAPTRADE_CLIENT_ID: ${{ secrets.SNAPTRADE_CLIENT_ID }}
+          SNAPTRADE_CONSUMER_KEY: ${{ secrets.SNAPTRADE_CONSUMER_KEY }}
+          SNAPTRADE_USER_ID: ${{ vars.SNAPTRADE_USER_ID }}
+          SNAPTRADE_USER_SECRET: ${{ secrets.SNAPTRADE_USER_SECRET }}
+        run: python -m utils.generators.generate_daily_cockpit
+
       - name: Regenerate dashboard
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}

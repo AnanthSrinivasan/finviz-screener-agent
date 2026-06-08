@@ -90,3 +90,36 @@ class TestComputeRsRatings(unittest.TestCase):
         ratings = _compute_rs_ratings(df)
         for t, r in ratings.items():
             self.assertIsInstance(r, int, f"{t} rating is not int: {type(r)}")
+
+    def test_quarter_override_floors_hot_quarter_name(self):
+        """
+        OSCR/QBTS fix: an explosive 90-day mover with a stale 1-year base must
+        not be dragged under by composite. Universe of 11 uniformly-mid names +
+        one HOT-quarter / weak-year name. The hot name's quarter percentile is
+        top-quintile (≥80), so its RS floors at the quarter rank and exceeds its
+        composite rank.
+        """
+        rows = [
+            {"Ticker": f"MID{i}", "Perf Quarter": float(i), "Perf Half Y": 40.0, "Perf Year": 80.0}
+            for i in range(10)
+        ]
+        # HOT: biggest quarter by far, but tiny half/year → composite dragged down
+        rows.append({"Ticker": "HOT", "Perf Quarter": 200.0, "Perf Half Y": 5.0, "Perf Year": 5.0})
+        df = _df(*rows)
+        ratings = _compute_rs_ratings(df)
+        # HOT has the single largest quarter → quarter percentile == 99 (top-quintile)
+        self.assertEqual(ratings["HOT"], 99)
+
+    def test_quarter_override_noop_when_not_top_quintile(self):
+        """A mid-quarter name (quarter percentile <80) keeps its composite rating."""
+        rows = [
+            {"Ticker": f"T{i}", "Perf Quarter": float(i), "Perf Half Y": float(i), "Perf Year": float(i)}
+            for i in range(10)
+        ]
+        df = _df(*rows)
+        ratings = _compute_rs_ratings(df)
+        # T0 is lowest on every window → quarter percentile 0 (<80), composite 0.
+        # Override must not lift it. Bottom name stays 0.
+        self.assertEqual(ratings["T0"], 0)
+        # A clearly-mid name (T4) keeps a mid composite, untouched by override.
+        self.assertLess(ratings["T4"], 80)

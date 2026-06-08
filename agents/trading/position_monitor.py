@@ -1939,6 +1939,14 @@ if __name__ == "__main__":
     except Exception as e:
         log.warning(f"Live portfolio page generation failed: {e}")
 
+    # Regenerate Daily Cockpit (non-fatal). Reuses live SnapTrade book here +
+    # reads latest screener/market/etf data. See docs/specs/daily-cockpit.md.
+    try:
+        from utils.generators.generate_daily_cockpit import write_page as _gen_cockpit
+        _gen_cockpit()
+    except Exception as e:
+        log.warning(f"Daily cockpit page generation failed: {e}")
+
     # === EXISTING: Save snapshot ===
     snapshot_path = os.path.join(DATA_DIR, f"positions_{today}.json")
     with open(snapshot_path, "w") as f:

@@ -136,8 +136,10 @@ def generate_index(reports: dict, base_url: str) -> str:
     portfolio_url = f"{base_url}/data/claude_portfolio.html{CACHE_Q}"  if base_url else f"data/claude_portfolio.html{CACHE_Q}"
     live_portfolio_url = f"{base_url}/data/live_portfolio.html{CACHE_Q}" if base_url else f"data/live_portfolio.html{CACHE_Q}"
     etf_rotation_url = f"{base_url}/data/etf_rotation.html{CACHE_Q}"   if base_url else f"data/etf_rotation.html{CACHE_Q}"
+    cockpit_url   = f"{base_url}/data/daily.html{CACHE_Q}"             if base_url else f"data/daily.html{CACHE_Q}"
 
-    hero_links = f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
+    hero_links = f'<a href="{cockpit_url}" class="hero-btn btn-cockpit">☀️ Daily Cockpit</a>'
+    hero_links += f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
     hero_links += f'<a href="{live_portfolio_url}" class="hero-btn btn-live-portfolio">Live Portfolio</a>'
     hero_links += f'<a href="{portfolio_url}" class="hero-btn btn-portfolio">Claude Portfolio</a>'
     hero_links += f'<a href="{watchlist_url}" class="hero-btn btn-watchlist">Watchlist</a>'
@@ -178,6 +180,7 @@ def generate_index(reports: dict, base_url: str) -> str:
   .hero-btn:hover {{ opacity: .85; }}
   .btn-weekly {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
   .btn-daily  {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
+  .btn-cockpit {{ background: #111827; color: #fff; border: 1px solid #111827; font-weight: 700; }}
   .btn-dash   {{ background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }}
   .btn-perf   {{ background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }}
   .btn-mae       {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}

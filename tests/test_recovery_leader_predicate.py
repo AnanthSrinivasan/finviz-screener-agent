@@ -82,9 +82,55 @@ class TestRecoveryLeader(unittest.TestCase):
     def test_rejects_rs_rating_below_65(self):
         self.assertFalse(_is_recovery_leader(_row(**{"RS Rating": 60}), set(), set()))
 
+    # OSCR-class fixture, peel-safe point in the recovery.
+    #
+    # NB: the literal OSCR 2026-05-18 row (SMA50% 58.6 / ATR 4.86 = 12.05×) is
+    # blown-off and correctly fails the unchanged peel-safe gate — surfacing it
+    # there would be chasing a 12-ATR extension. The Q 65→40 and RS-override
+    # fixes are what let an OSCR-class name flag on an EARLIER, less-extended,
+    # peel-safe day (SMA50% ~30 / ATR ~5 = 6×, like ALAB's 6.3×). The peel gate
+    # stays honest; these fixtures pin that earlier day.
+    @staticmethod
+    def _oscr_class(**over):
+        base = {
+            "Ticker":          "OSCR",
+            "Quality Score":   45.0,   # pre-Stage-2 → Q structurally capped, old 65 gate unreachable
+            "RS Rating":       90,     # post-Fix#2 quarter-override lift
+            "Stage":           {"stage": 0, "perfect": False},
+            "SMA20%":          12.0,
+            "SMA50%":          30.0,   # 30 / 5 = 6.0× → peel-safe
+            "SMA200%":         22.0,
+            "ATR%":            5.0,
+            "Rel Volume":      1.87,
+            "Perf Quarter":    88.95,
+            "Dist From High%": -4.0,
+            "Sector":          "Healthcare",
+        }
+        base.update(over)
+        return pd.Series(base)
+
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
-    def test_rejects_q_below_65(self):
-        self.assertFalse(_is_recovery_leader(_row(**{"Quality Score": 60.0}), set(), set()))
+    def test_admits_oscr_class_low_q(self):
+        # Q=45 pre-cross V-recovery now admitted (Q gate lowered 65→40).
+        self.assertTrue(_is_recovery_leader(self._oscr_class(), set(), set()))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_q_floor_still_bites_below_40(self):
+        # Floor still rejects genuine junk below 40.
+        self.assertFalse(_is_recovery_leader(self._oscr_class(**{"Quality Score": 35.0}), set(), set()))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_oscr_still_needs_rs(self):
+        # Fix#1 alone isn't enough — OSCR's raw composite RS 61 still fails the
+        # unchanged RS≥65 gate. Fix#2 (quarter override) is what lifts it to ~90.
+        self.assertFalse(_is_recovery_leader(self._oscr_class(**{"RS Rating": 61}), set(), set()))
+
+    @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
+    def test_rejects_blown_off_oscr_5_18_literal(self):
+        # The literal 5/18 row (12.05× ATR above 50MA) must stay rejected —
+        # peel discipline holds even for an OSCR-class recovery.
+        self.assertFalse(_is_recovery_leader(
+            self._oscr_class(**{"SMA50%": 58.57, "ATR%": 4.86}), set(), set()))
 
     @patch("agents.screener.finviz_agent._peel_warn_for", _permissive_peel)
     def test_rejects_atr_above_9(self):
