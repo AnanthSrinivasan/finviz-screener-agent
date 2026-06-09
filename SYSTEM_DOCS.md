@@ -615,6 +615,19 @@ Real exit price priority for `close_price`:
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
+**Flat-book reconcile (2026-06-09 — AMZN ghost fix):** previously `main()` did
+`exit(0)` the moment SnapTrade returned 0 holdings (`if not positions and not
+has_trade_input`), which happened *before* the auto-close step — so any position
+left in `positions.json` when the user went **fully flat** never closed and lingered
+as a dashboard ghost (AMZN, shown owned while the live book was empty). Fix:
+`fetch_positions()` records `LAST_SNAPTRADE_ACCOUNTS`; on a **confirmed**-flat book
+(accounts reachable, 0 holdings) with lingering open positions, `main()` now runs
+`sync_snaptrade_with_rules([], …)` to auto-close them, persists, Slack-alerts, and
+regenerates the dashboards via the new `_regenerate_dashboards()` helper. **API-blip
+guard:** only closes when accounts were actually reachable, so an unreachable-API
+empty can never wipe the book on a false "flat." Test:
+`test_position_monitor.py::test_fully_flat_closes_all_lingering_positions`.
+
 **Recent events feed (`data/recent_events.json`):** rolling last 50 dashboard-surfaced events. Schema: `{updated, events: [{ts, date, category, title, severity, detail?}]}`. **Market events only** — categories: `market_state` (market_monitor) and other regime/breadth events. Position events (stop_hit, breakeven, target_hit, position_close) deliberately do NOT write here — they go to Slack only. The Apr 29 2026 port removed all position-event writes from `apply_minervini_rules` and the auto-close branch per spec. Helper `_append_recent_event` lives in `utils/events.py` (shared, DATA_DIR-aware); called only from `market_monitor.py` on state change. The dashboard "Recent Alerts" widget reads this file (newest 10) and falls back to legacy `alerts_state.last_alerts_sent` only if empty. Severity values: `low` (green), `med` (amber), `high` (red) → CSS left-border color.
 
 Per-position transaction timeline is filtered to events at or after the position's `entry_date` AND a global system floor of `2026-04-01` — so prior trade cycles on the same ticker (e.g. an old FIGS round-trip on Mar 24/27 before the current 2026-04-24 entry) don't pollute the view.

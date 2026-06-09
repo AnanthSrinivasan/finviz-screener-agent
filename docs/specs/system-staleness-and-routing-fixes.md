@@ -5,12 +5,59 @@
 captures the remaining issues found while diagnosing. Read `MEMORY.md` + CLAUDE.md
 first. Each item below has a confirmed root cause with `file:line` anchors.
 
-Priority order: **1 (AMZN ghost) → 2 (executor date) → 5 (routing) → 3 (paper growth panel)**.
-Item 4 is NOT a bug (downgraded — see below).
+Priority order: **2 (executor date) → 6 (screener runtime) → 5 (routing) → 3 (paper growth panel)**.
+Item 1 (AMZN ghost) was **FIXED this session** (commit `d28456d`). Item 4 is NOT a
+bug (downgraded). See each section.
+
+> **Session update 2026-06-09:** the screener fix shipped (`c406796`), the AMZN
+> ghost fix shipped (`d28456d`), and verification revealed the user re-entered live
+> (DAVE 30 @ 282.76, ZVRA 300 @ 13.52) — the dashboard now correctly reflects the
+> live book. Remaining open: items 2, 3, 5, 6.
 
 ---
 
-## 1. AMZN ghost — dashboard shows a position the user no longer holds  🔴 confirmed
+## 6. Screener runtime — universe doubled, run time ~2×  🟡 new (perf)
+
+**Symptom:** After the 2026-06-09 screener fix (`c406796`), the daily run went from
+~4–5 min to **9m41s**, and the universe grew **133 → 254 rows**.
+
+**Root cause (NOT "screening everything" — still only the 7 Finviz screens):**
+- Dominant: **lowering the share-vol floor 5× (1M → 200K)** on Growth/52WH/IPO
+  admits the entire 200K–1M avg-share band that was previously excluded.
+- The new Base/Near-High screen adds ~79 tagged names (much overlapping).
+- Each admitted ticker costs a **snapshot fetch (network) + Claude commentary** —
+  the slow part. The `$30M` dollar-vol gate runs **AFTER** the snapshot
+  ([finviz_agent.py, post-enrichment block](agents/screener/finviz_agent.py)),
+  so it cleans the output but does NOT save scrape time — we snapshot names we
+  then drop.
+
+**Proposed fix:** add a **cheap dollar-volume PRE-filter** using the screener
+table's own `Volume × Price` (already scraped in `aggregate_and_save`, available
+before snapshots) to drop obviously-illiquid names *before* the snapshot fetch.
+Keeps the DAVE-class (high $-vol passes), cuts runtime back toward baseline. Keep
+the existing post-snapshot gate as the precise final cut (uses true avg volume).
+Watch the Actions timeout if the universe keeps growing.
+
+---
+
+## 1. AMZN ghost — FIXED 2026-06-09 (commit `d28456d`)  ✅
+
+**Was:** [position_monitor.py:1599](agents/trading/position_monitor.py#L1599) `exit(0)`
+when SnapTrade returned empty, *before* the Step 9 auto-close — so a position left
+in positions.json when the user went fully flat lingered forever (AMZN shown owned
+while the live book was empty).
+
+**Fix shipped:** `fetch_positions()` records `LAST_SNAPTRADE_ACCOUNTS`; on a
+*confirmed*-flat book (accounts reachable, 0 holdings) with lingering open
+positions, `main()` now runs `sync_snaptrade_with_rules([], …)` to auto-close them,
+persists, Slack-alerts, and regenerates the dashboards via `_regenerate_dashboards()`.
+API-blip guard: only closes when accounts were actually reachable. Test:
+`tests/test_position_monitor.py::test_fully_flat_closes_all_lingering_positions`.
+(In practice AMZN cleared via the *normal* reconcile once the user re-entered DAVE/
+ZVRA — the book became non-empty — but the flat-path fix prevents recurrence when
+genuinely flat.)
+
+### (historical) Original AMZN ghost analysis — for reference
 
 **Symptom:** Dashboard / `data/positions.json` shows AMZN as an open position
 (100 sh, entry 268.34, entry_date 2026-05-21). The user's **live SnapTrade book is
