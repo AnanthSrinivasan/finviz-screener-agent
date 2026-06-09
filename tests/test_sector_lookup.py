@@ -132,6 +132,19 @@ class SectorLookupTests(unittest.TestCase):
             "XLK",
         )
 
+    def test_credit_services_routes_to_arkf(self):
+        # Fintech / consumer-finance industries → ARKF (DAVE/SoFi/AFRM class).
+        self.assertEqual(
+            self.sl.lookup("SOFI", finviz_sector="Financial",
+                           finviz_industry="Credit Services"),
+            "ARKF",
+        )
+        self.assertEqual(
+            self.sl.lookup("AFRM", finviz_sector="Financial",
+                           finviz_industry="Financial - Credit Services"),
+            "ARKF",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

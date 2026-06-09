@@ -57,6 +57,35 @@ class EquityCurveTests(unittest.TestCase):
         self.assertEqual(out[0]["y"], 100.0)
 
 
+class InceptionEquityTests(unittest.TestCase):
+    def test_first_nonzero(self):
+        self.assertEqual(gp.inception_equity({"equity": [100000.0, 105000.0]}), 100000.0)
+
+    def test_skips_leading_none_and_zero(self):
+        self.assertEqual(gp.inception_equity({"equity": [None, 0, 90000.0, 95000.0]}), 90000.0)
+
+    def test_empty(self):
+        self.assertEqual(gp.inception_equity({}), 0.0)
+        self.assertEqual(gp.inception_equity(None), 0.0)
+        self.assertEqual(gp.inception_equity({"equity": []}), 0.0)
+
+
+class TotalReturnTests(unittest.TestCase):
+    def test_gain(self):
+        start, abs_ret, pct = gp.compute_total_return({"equity": [100000.0, 110000.0]}, 110000.0)
+        self.assertEqual(start, 100000.0)
+        self.assertEqual(abs_ret, 10000.0)
+        self.assertAlmostEqual(pct, 10.0)
+
+    def test_loss(self):
+        start, abs_ret, pct = gp.compute_total_return({"equity": [100000.0]}, 92000.0)
+        self.assertEqual(abs_ret, -8000.0)
+        self.assertAlmostEqual(pct, -8.0)
+
+    def test_no_history_zeroed(self):
+        self.assertEqual(gp.compute_total_return({}, 50000.0), (0.0, 0.0, 0.0))
+
+
 class GenerateHtmlTests(unittest.TestCase):
     def test_smoke_with_position(self):
         account = {"equity": "100000", "last_equity": "99500",
@@ -67,13 +96,22 @@ class GenerateHtmlTests(unittest.TestCase):
             "market_value": "1100", "cost_basis": "1000",
             "unrealized_pl": "100", "unrealized_plpc": "0.10",
         }]
-        html = gp.generate_html(account, positions, {})
+        history = {"timestamp": [1704067200, 1704153600], "equity": [90000.0, 100000.0]}
+        html = gp.generate_html(account, positions, history)
         self.assertIn("Claude Model Portfolio", html)
         self.assertIn("Equity Curve", html)
+        self.assertIn("Total Return", html)
+        self.assertIn("since $90,000 start", html)
         self.assertIn("NVDA", html)
         self.assertIn("heat-pos", html)
         self.assertIn("1.1%", html)
         self.assertIn("$500", html)
+
+    def test_total_return_unavailable_without_history(self):
+        account = {"equity": "100000", "last_equity": "99500",
+                   "cash": "20000", "buying_power": "20000"}
+        html = gp.generate_html(account, [], {})
+        self.assertIn("history unavailable", html)
 
     def test_empty_positions(self):
         account = {"equity": "100000", "last_equity": "100000",

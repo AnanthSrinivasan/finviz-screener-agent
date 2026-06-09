@@ -99,5 +99,67 @@ class EffectiveMaxPositionsTests(unittest.TestCase):
         self.assertEqual(ae.effective_max_positions("BLACKOUT"), 5)
 
 
+class ScreenerCsvFallbackTests(unittest.TestCase):
+    """Off-cycle executor runs (manual retry, late workflow_run) can fire before
+    today's screener CSV exists — fall back to the most recent CSV ≤ today, but
+    refuse data staler than MAX_SCREENER_STALE_DAYS."""
+
+    HEADER = "Ticker,Quality Score,ATR%,SMA50%,Stage,VCP\n"
+    ROW = "DAVE,85,4.0,5.0,{},{}\n"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self._patcher = patch.object(ae, "DATA_DIR", self.tmp.name)
+        self._patcher.start()
+        self.addCleanup(self._patcher.stop)
+
+    def _write_csv(self, date_str: str):
+        path = os.path.join(self.tmp.name, f"finviz_screeners_{date_str}.csv")
+        with open(path, "w") as f:
+            f.write(self.HEADER)
+            f.write(self.ROW)
+        return path
+
+    def test_today_present_uses_today(self):
+        self._write_csv("2026-06-09")
+        self.assertEqual(
+            ae._resolve_screener_csv("2026-06-09"),
+            os.path.join(self.tmp.name, "finviz_screeners_2026-06-09.csv"),
+        )
+
+    def test_today_absent_falls_back_to_recent(self):
+        self._write_csv("2026-06-04")
+        self._write_csv("2026-06-08")
+        # 2026-06-09 absent → newest ≤ today is 06-08
+        self.assertEqual(
+            ae._resolve_screener_csv("2026-06-09"),
+            os.path.join(self.tmp.name, "finviz_screeners_2026-06-08.csv"),
+        )
+
+    def test_future_dated_files_ignored(self):
+        self._write_csv("2026-06-08")
+        self._write_csv("2026-06-15")  # future — must not be picked
+        self.assertEqual(
+            ae._resolve_screener_csv("2026-06-09"),
+            os.path.join(self.tmp.name, "finviz_screeners_2026-06-08.csv"),
+        )
+
+    def test_all_absent_returns_empty(self):
+        self.assertEqual(ae._resolve_screener_csv("2026-06-09"), "")
+        self.assertEqual(ae.load_screener_csv("2026-06-09"), [])
+
+    def test_stale_data_refused(self):
+        # Newest CSV more than MAX_SCREENER_STALE_DAYS old → refuse.
+        self._write_csv("2026-05-01")
+        self.assertEqual(ae._resolve_screener_csv("2026-06-09"), "")
+
+    def test_load_returns_rows_from_fallback(self):
+        self._write_csv("2026-06-08")
+        rows = ae.load_screener_csv("2026-06-09")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["Ticker"], "DAVE")
+
+
 if __name__ == "__main__":
     unittest.main()

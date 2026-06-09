@@ -332,6 +332,7 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
 | Initial stop (paper) | `alpaca_executor.py` sets stop = `entry − 2×ATR$` at buy time |
+| Screener CSV fallback (executor) | `_resolve_screener_csv()` falls back to the most recent `finviz_screeners_*.csv` with date ≤ today when today's is absent (off-cycle/manual/late-`workflow_run` runs fire before the 20:30 UTC screener — the 2026-06-05 00:07 UTC failure). Refuses data > `MAX_SCREENER_STALE_DAYS` (7) old so it never trades on badly stale data. |
 | Loss-cap floor | At peak ≥ +5%: stop ≥ `max(entry × 0.97, entry − 0.5×ATR$)` — hybrid α/β. Caps fade-back-to-loss after any meaningful win |
 | ATR-tiered trail | Continuous, ratchets off `highest_price_seen`. Tiers by `peak_gain_pct`: <10% → 2.0×ATR, ≥10% → 1.5×ATR, ≥20% → **1.25×ATR if atr_pct ≤ 5% else 1.0×ATR**. No freeze, no dead zone |
 | Breakeven crossover | At peak ≥ +20%: `breakeven_activated` flag set (Slack/dashboard `BE` indicator). Floor `entry × 1.005` applies when ATR data missing — otherwise the 1.25/1.0×ATR trail is already above entry |
@@ -383,8 +384,22 @@ break a ceiling BEFORE it pops (DAVE coiling at 270 under the 293 wall) — the 
 R/R entry that new-high/10%-move screens can only catch after the fact. Auto-flows
 into every downstream block (Ready-to-Enter, RS Leader, HTF-BR, 21 EMA PB) since
 they all scan `summary_df`. Tests: `tests/test_dollar_volume_gate.py`.
-**Still open (specced separately):** DAVE→ARKF/fintech industry routing fix; the
-4 staleness bugs — see [docs/specs/system-staleness-and-routing-fixes.md].
+
+**Dollar-volume PRE-filter (2026-06-09 perf — universe doubled 133→254, run 9m41s):**
+the $30M gate above runs AFTER the per-ticker snapshot (the slow part), so it
+cleans output but doesn't save scrape time. `passes_dollar_volume_prefilter()`
+(module-level, tested) runs in `main()` BEFORE `fetch_snapshots_concurrent` using
+the screener table's own raw `Volume × Price` (already scraped, no extra network),
+dropping obviously-illiquid names at a looser **$20M** floor (`PREFILTER_MIN_DOLLAR_VOL`)
+so a single quiet-volume day can't drop a genuine DAVE-class name. Movers still
+exempt. The precise $30M avg-volume gate stays as the final cut. Tests:
+`tests/test_dollar_volume_gate.py::TestDollarVolumePrefilter`.
+
+**Routing fix shipped (2026-06-09):** `Credit Services` / `Financial - Credit
+Services` → **ARKF** (fintech) in `INDUSTRY_TO_ETF` + explicit `DAVE → ARKF`
+override in `ticker_sector_map.json` (DAVE's Finviz industry "Software -
+Application" was mis-routing it to IGV). See
+[docs/specs/system-staleness-and-routing-fixes.md] §5.
 
 **🔥 Big Movers (top-of-message, 2026-05-30):** Power Move tickers (9M+ share
 volume + 10%+ day = Bonde institutional-conviction signal) surfaced FIRST in the

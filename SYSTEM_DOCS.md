@@ -189,6 +189,28 @@ scoring/CSV. The `an_recom_buybetter` analyst gate was also dropped from Growth
 screen flows into every downstream block (Ready-to-Enter, RS Leader, HTF-BR, 21 EMA
 PB) since they all scan `summary_df`. Tests: `tests/test_dollar_volume_gate.py`.
 
+**Dollar-volume PRE-filter (2026-06-09 perf fix):** the 200K share-vol floor doubled
+the universe (133→254 rows, run 4–5min → 9m41s). Because the $30M gate above runs
+*after* the per-ticker snapshot fetch (the slow part), it cleans output but doesn't
+save scrape time. `passes_dollar_volume_prefilter()` runs in `main()` *before*
+`fetch_snapshots_concurrent` using the screener table's own raw `Volume × Price`
+(already scraped — no extra network), dropping obviously-illiquid names at a looser
+**$20M** floor (`PREFILTER_MIN_DOLLAR_VOL`) so a single quiet-volume day can't drop
+a real DAVE-class name. Movers exempt; the $30M avg gate stays as the final cut.
+Tests: `tests/test_dollar_volume_gate.py::TestDollarVolumePrefilter`.
+
+**Executor screener-CSV fallback (2026-06-09):** `alpaca_executor._resolve_screener_csv()`
+falls back to the most recent `finviz_screeners_*.csv` with date ≤ today when today's
+is absent (off-cycle / manual / late-`workflow_run` runs fire before the 20:30 UTC
+screener — the 2026-06-05 00:07 UTC `no screener data` failure). Refuses data older
+than `MAX_SCREENER_STALE_DAYS` (7) so it never trades on badly stale data. Tests:
+`tests/test_alpaca_executor.py::ScreenerCsvFallbackTests`.
+
+**DAVE → ARKF routing (2026-06-09):** `Credit Services` / `Financial - Credit
+Services` → ARKF (fintech) in `INDUSTRY_TO_ETF` + explicit `DAVE → ARKF` override in
+`ticker_sector_map.json` (DAVE's Finviz industry "Software - Application" was
+mis-routing to IGV). Tests: `tests/test_sector_lookup.py`.
+
 **🔥 Big Movers (top-of-Slack, 2026-05-30):** Power Move tickers passing the 9M+
 share-volume post-filter (`_parse_vol`, since Finviz `sh_vol_o*` URL params are
 silently ignored) are surfaced as a compact one-line block at the TOP of the
@@ -1044,9 +1066,9 @@ This makes the data freshness honest: a SnapTrade fill is broker truth, not a pl
 
 Public dashboard of the Alpaca paper account — regenerated hourly inside `position-monitor.yml` so Pages stays current during market hours.
 
-**Inputs (Alpaca paper):** `/account`, `/positions`, `/account/portfolio/history?period=3M&timeframe=1D`.
+**Inputs (Alpaca paper):** `/account`, `/positions`, `/account/portfolio/history?period=all&timeframe=1D` (2026-06-09: was `3M` — now full account span, falls back `all → 1A → 3M`).
 
-**Output:** `data/claude_portfolio.html` (light theme, Chart.js equity curve). Sections: stat cards (equity, today P&L, open P&L, position count, cash), equity curve (3M daily), open-positions heat table (ticker, qty, entry, price, mkt value, allocation %, unrealized $ / %).
+**Output:** `data/claude_portfolio.html` (light theme, Chart.js equity curve). Sections: stat cards (equity, **Total Return since inception** — $ and %, added 2026-06-09 via `compute_total_return`/`inception_equity`; today P&L, open P&L, position count, cash), full-span equity curve, open-positions heat table (ticker, qty, entry, price, mkt value, allocation %, unrealized $ / %). Total Return is "how the account grew" — first history point → current equity. Tests: `tests/test_generate_portfolio.py`.
 
 Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflow and no new secrets — reuses the Alpaca paper credentials already in `position-monitor.yml`.
 

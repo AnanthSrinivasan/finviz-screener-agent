@@ -16,6 +16,7 @@
 import argparse
 import ast
 import csv
+import glob
 import json
 import math
 import os
@@ -201,14 +202,65 @@ def get_spy_regime() -> tuple:
 # ----------------------------
 # Step 2: Load screener CSV
 # ----------------------------
+# Off-cycle runs (manual retry, late workflow_run) can fire before today's
+# screener has produced a CSV — e.g. the 2026-06-05 00:07 UTC failure that hit
+# the gap before the 20:30 UTC screener. Fall back to the most recent CSV with
+# date ≤ today rather than hard-failing, but refuse data staler than this many
+# trading days (~1 week of calendar days) so we never trade on badly stale data.
+MAX_SCREENER_STALE_DAYS = 7
+
+
+def _resolve_screener_csv(today: str) -> str:
+    """
+    Return the path to the screener CSV to use: today's file if present,
+    else the most recent finviz_screeners_<date>.csv with date ≤ today.
+    Returns "" if none exists or the newest is staler than
+    MAX_SCREENER_STALE_DAYS calendar days.
+    """
+    exact = os.path.join(DATA_DIR, "finviz_screeners_" + today + ".csv")
+    if os.path.exists(exact):
+        return exact
+
+    pattern = os.path.join(DATA_DIR, "finviz_screeners_*.csv")
+    candidates = []
+    for p in glob.glob(pattern):
+        m = re.search(r"finviz_screeners_(\d{4}-\d{2}-\d{2})\.csv$", os.path.basename(p))
+        if not m:
+            continue
+        d = m.group(1)
+        if d <= today:  # ISO dates sort lexicographically
+            candidates.append((d, p))
+    if not candidates:
+        return ""
+
+    candidates.sort(reverse=True)
+    newest_date, newest_path = candidates[0]
+
+    try:
+        d0 = datetime.date.fromisoformat(today)
+        d1 = datetime.date.fromisoformat(newest_date)
+        if (d0 - d1).days > MAX_SCREENER_STALE_DAYS:
+            log.error(
+                "Most recent screener CSV (%s) is > %d days older than %s — refusing stale data.",
+                newest_date, MAX_SCREENER_STALE_DAYS, today,
+            )
+            return ""
+    except ValueError:
+        pass
+
+    log.warning("No screener CSV for %s — falling back to most recent: %s", today, newest_date)
+    return newest_path
+
+
 def load_screener_csv(today: str) -> list:
     """
     Load today's enriched CSV. Returns list of row dicts with parsed
     Stage (dict), VCP (dict), and numeric fields as floats.
+    Falls back to the most recent CSV with date ≤ today when today's is absent.
     """
-    path = os.path.join(DATA_DIR, "finviz_screeners_" + today + ".csv")
-    if not os.path.exists(path):
-        log.error("Screener CSV not found: %s", path)
+    path = _resolve_screener_csv(today)
+    if not path:
+        log.error("No usable screener CSV found for %s (or newest is too stale)", today)
         return []
 
     rows = []

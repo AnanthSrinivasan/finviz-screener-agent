@@ -33,6 +33,8 @@ INDUSTRY_TO_ETF = {
     "Banks":                           "KBE",   # "Banks - Regional", "Banks - Diversified"
     "Capital Markets":                 "KCE",
     "Insurance":                       "KIE",
+    "Credit Services":                 "ARKF",  # fintech / consumer-finance (DAVE, SoFi, AFRM class)
+    "Financial - Credit Services":     "ARKF",
     # Healthcare subsectors — biotech vs broad healthcare
     "Biotechnology":                   "XBI",
     "Drug Manufacturers":              "XBI",   # "Drug Manufacturers - Specialty & Generic" included

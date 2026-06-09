@@ -108,6 +108,27 @@ screener_urls = {
 MOVER_SCREENS  = ("10% Change", "Power Move", "Week 20%+ Gain")
 MIN_DOLLAR_VOL = 30_000_000  # $30M/day avg dollar volume floor for quality screens
 
+# Cheap PRE-filter (2026-06-09 perf fix): the precise $30M gate above runs AFTER
+# the per-ticker snapshot fetch (the slow part), so it cleans output but doesn't
+# save scrape time. This pre-filter uses the screener table's own raw Volume ×
+# Price (already scraped in aggregate_and_save, no extra network) to drop
+# obviously-illiquid names BEFORE snapshotting. Set well below the $30M final cut
+# so a single quiet-volume day can't drop a genuine DAVE-class name — the precise
+# avg-volume gate is still the final word.
+PREFILTER_MIN_DOLLAR_VOL = 20_000_000
+
+
+def passes_dollar_volume_prefilter(screeners, volume, price,
+                                   min_dollar_vol: int = PREFILTER_MIN_DOLLAR_VOL) -> bool:
+    """Cheap pre-snapshot liquidity gate on raw screener-table Volume × Price.
+
+    Same contract as passes_dollar_volume_gate (mover screens exempt, missing
+    data keeps the row), but uses the day's raw Volume from the screener table
+    rather than true Avg Volume, and a looser threshold. Returns True to KEEP.
+    """
+    return passes_dollar_volume_gate(screeners, volume, price,
+                                     min_dollar_vol=min_dollar_vol)
+
 
 def passes_dollar_volume_gate(screeners, avg_vol, price,
                               min_dollar_vol: int = MIN_DOLLAR_VOL) -> bool:
@@ -3700,6 +3721,28 @@ if __name__ == "__main__":
     if summary_df.empty:
         log.error("No tickers — aborting.")
         exit(1)
+
+    # ── Cheap dollar-volume PRE-filter (2026-06-09 perf) — drop obviously-illiquid
+    # names before the expensive snapshot fetch, using the screener table's own
+    # raw Volume × Price. Mover screens exempt. Precise $30M avg gate still runs
+    # after snapshots as the final cut. ──
+    if {'Volume', 'Price'}.issubset(summary_df.columns):
+        _pre = len(summary_df)
+        summary_df = summary_df[
+            summary_df.apply(
+                lambda r: passes_dollar_volume_prefilter(
+                    r.get("Screeners", ""), r.get("Volume"), r.get("Price")
+                ),
+                axis=1,
+            )
+        ].reset_index(drop=True)
+        _pre_dropped = _pre - len(summary_df)
+        if _pre_dropped:
+            log.info(
+                "Dollar-volume PRE-filter (>= $%dM raw, quality screens only): "
+                "skipped %d illiquid name(s) before snapshot — %d remain",
+                PREFILTER_MIN_DOLLAR_VOL // 1_000_000, _pre_dropped, len(summary_df),
+            )
 
     # Step 2: Concurrent snapshot metrics
     log.info(f"Fetching snapshots with {SNAPSHOT_WORKERS} workers...")

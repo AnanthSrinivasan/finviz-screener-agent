@@ -59,6 +59,37 @@ def _heat_class(pct: float) -> str:
     return "heat-neg-strong"
 
 
+def inception_equity(history: dict) -> float:
+    """First non-null equity point in the portfolio history (account start).
+
+    Alpaca seeds a paper account at a known starting equity; the first history
+    point is that starting value. Returns 0.0 when history is empty/unusable.
+    """
+    if not history:
+        return 0.0
+    for eq in (history.get("equity") or []):
+        if eq is None:
+            continue
+        try:
+            val = float(eq)
+        except (TypeError, ValueError):
+            continue
+        if val > 0:
+            return val
+    return 0.0
+
+
+def compute_total_return(history: dict, current_equity: float) -> tuple:
+    """(start_equity, abs_return, pct_return) since the account's first history
+    point. abs/pct are 0 when no usable starting equity exists."""
+    start = inception_equity(history)
+    if start <= 0:
+        return 0.0, 0.0, 0.0
+    abs_ret = current_equity - start
+    pct_ret = (abs_ret / start * 100) if start else 0.0
+    return start, abs_ret, pct_ret
+
+
 def build_equity_curve_js(history: dict) -> str:
     if not history:
         return "[]"
@@ -122,9 +153,12 @@ def generate_html(account: dict, positions: list, history: dict) -> str:
             "</tr>"
         )
 
+    start_equity, total_ret, total_ret_pct = compute_total_return(history, equity)
+
     equity_points = build_equity_curve_js(history)
     day_heat  = _heat_class(day_pl_pct)
     unr_heat  = _heat_class(total_unr_pct)
+    tot_heat  = _heat_class(total_ret_pct)
     updated   = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
 
     return f"""<!DOCTYPE html>
@@ -188,6 +222,13 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
     <div class="stat-label">Equity</div>
     <div class="stat-val">{_fmt_money(equity)}</div>
     <div class="stat-sub">Buying power {_fmt_money(bp)}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Return</div>
+    <div class="stat-val heat {tot_heat}" style="display:inline-block;padding:2px 8px;">
+      {"+" if total_ret >= 0 else ""}{_fmt_money(total_ret)} ({_fmt_pct(total_ret_pct)})
+    </div>
+    <div class="stat-sub">{"since " + _fmt_money(start_equity) + " start" if start_equity > 0 else "history unavailable"}</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Today P&amp;L</div>
@@ -267,8 +308,15 @@ def main() -> str | None:
 
     account   = _get("/account") or {}
     positions = _get("/positions") or []
-    history   = _get("/account/portfolio/history",
-                     {"period": "3M", "timeframe": "1D"}) or {}
+    # period=all so the curve + Total Return reflect the full account growth
+    # since inception, not just the trailing 3 months. Fall back to 1A then 3M
+    # if a longer window returns nothing.
+    history = {}
+    for period in ("all", "1A", "3M"):
+        history = _get("/account/portfolio/history",
+                       {"period": period, "timeframe": "1D"}) or {}
+        if history.get("equity"):
+            break
 
     if not account:
         log.warning("Skipping portfolio page — account fetch failed.")

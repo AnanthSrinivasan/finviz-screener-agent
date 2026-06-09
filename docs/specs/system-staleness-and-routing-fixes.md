@@ -9,6 +9,23 @@ Priority order: **2 (executor date) → 6 (screener runtime) → 5 (routing) →
 Item 1 (AMZN ghost) was **FIXED this session** (commit `d28456d`). Item 4 is NOT a
 bug (downgraded). See each section.
 
+> **Session 2 update 2026-06-09:** items **2, 5, 6, 3 all SHIPPED** this session.
+> - **2 (executor CSV fallback):** `_resolve_screener_csv()` in `alpaca_executor.py`
+>   falls back to most recent CSV ≤ today, refuses > `MAX_SCREENER_STALE_DAYS` (7)
+>   old. Tests in `tests/test_alpaca_executor.py::ScreenerCsvFallbackTests`.
+> - **6 (screener runtime):** `passes_dollar_volume_prefilter()` ($20M raw
+>   Volume×Price, movers exempt) runs in `main()` BEFORE the snapshot fetch to cut
+>   the slow scrape; the precise $30M avg gate stays as the final cut. Tests in
+>   `tests/test_dollar_volume_gate.py::TestDollarVolumePrefilter`.
+> - **5 (DAVE routing):** `Credit Services` / `Financial - Credit Services` → ARKF
+>   in `INDUSTRY_TO_ETF`; explicit `DAVE → ARKF` override in `ticker_sector_map.json`.
+> - **3 (paper growth):** the `claude_portfolio.html` page already existed + was
+>   linked from index (spec findings were stale). Added a **Total Return since
+>   inception** card (`compute_total_return`/`inception_equity`) and extended the
+>   history fetch to `period=all` so the curve shows full growth, not trailing 3M.
+>   No separate equity-history log needed — Alpaca's portfolio-history API IS the
+>   source. Tests in `tests/test_generate_portfolio.py`.
+
 > **Session update 2026-06-09:** the screener fix shipped (`c406796`), the AMZN
 > ghost fix shipped (`d28456d`), and verification revealed the user re-entered live
 > (DAVE 30 @ 282.76, ZVRA 300 @ 13.52) — the dashboard now correctly reflects the
