@@ -50,20 +50,41 @@ screener_urls = {
         f"c=0,1,2,3,4,5,6,64,67,65,66"
     ),
     "Growth": (
+        # NOTE: dropped `an_recom_buybetter` (2026-06-09). The analyst buy-or-better
+        # gate silently discarded high-quality, under-covered small/mid growth names.
+        # DAVE (+311% EPS Y/Y, +104% EPS Q/Q, +58% sales, Stage 2, above all MAs)
+        # cleared every growth/trend filter here but was knocked out solely by the
+        # analyst rating. Remaining filters (EPS Q/Q>20 + Sales Q/Q>20 + above
+        # 20/50/200 SMA + 4wk & 13wk up + vol/price floors) keep the quality bar high.
+        # Share floor lowered 1M -> 200K (2026-06-09); real liquidity now enforced
+        # by the $30M/day dollar-volume gate in main() so high-priced names aren't
+        # penalized by a crude share count (DAVE: ~573K shares but ~$155M/day).
         f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f=an_recom_buybetter,fa_epsqoq_o20,fa_salesqoq_o20,"
-        f"ind_stocksonly,sh_avgvol_o1000,sh_price_o10,ta_perf_4wup,"
+        f"&f=fa_epsqoq_o20,fa_salesqoq_o20,"
+        f"ind_stocksonly,sh_avgvol_o200,sh_price_o10,ta_perf_4wup,"
         f"ta_perf2_13wup,ta_sma20_pa,ta_sma200_pa,ta_sma50_pa&ft=4"
     ),
     "IPO": (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f=cap_midover,ind_stocksonly,ipodate_prev3yrs,sh_avgvol_o1000,"
+        f"&f=cap_midover,ind_stocksonly,ipodate_prev3yrs,sh_avgvol_o200,"
         f"sh_price_o10,ta_beta_o0.5,ta_sma20_pa&ft=4"
     ),
     "52 Week High": (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
-        f"&f=ind_stocksonly,sh_avgvol_o1000,sh_price_o10,ta_beta_o1,"
+        f"&f=ind_stocksonly,sh_avgvol_o200,sh_price_o10,ta_beta_o1,"
         f"ta_highlow52w_nh&ft=4"
+    ),
+    # Base / Near-High (2026-06-09 — the DAVE-class). Pre-breakout growth bases
+    # the mover-screens miss: Stage 2 (above all 3 MAs) + coiling 0-15% under the
+    # 52w high (NOT requiring a new high) + EPS Q/Q & Sales Q/Q > 20. Catches the
+    # high-quality name about to break a ceiling BEFORE it pops — the best R/R
+    # entry the new-high/10%-move screens can only catch after the fact. Liquid
+    # via o200 share floor + the $30M/day dollar-volume gate.
+    "Base / Near-High": (
+        f"{FINVIZ_BASE}/screener.ashx?v=111"
+        f"&f=cap_smallover,ind_stocksonly,sh_avgvol_o200,sh_price_o10,"
+        f"fa_epsqoq_o20,fa_salesqoq_o20,"
+        f"ta_sma20_pa,ta_sma50_pa,ta_sma200_pa,ta_highlow52w_b0to10h&ft=4"
     ),
     "Week 20%+ Gain": (
         f"{FINVIZ_BASE}/screener.ashx?v=111"
@@ -81,6 +102,37 @@ screener_urls = {
         f"c=0,1,2,3,4,5,6,64,67,65,66"
     ),
 }
+
+# Mover screens trade on raw volume — they are exempt from the dollar-volume gate
+# so sub-$5 rockets (e.g. HYLN ~$2) are never filtered out on dollar liquidity.
+MOVER_SCREENS  = ("10% Change", "Power Move", "Week 20%+ Gain")
+MIN_DOLLAR_VOL = 30_000_000  # $30M/day avg dollar volume floor for quality screens
+
+
+def passes_dollar_volume_gate(screeners, avg_vol, price,
+                              min_dollar_vol: int = MIN_DOLLAR_VOL) -> bool:
+    """Quality-screen liquidity gate by avg DOLLAR volume (avg_vol * price).
+
+    The Finviz `sh_avgvol` floor is a crude SHARE count that penalizes high-priced
+    liquid names (DAVE: ~573K shares but ~$155M/day). This enforces real liquidity
+    instead. Mover screens are exempt; incomplete data keeps the row (don't drop on
+    missing info). Returns True to KEEP the ticker.
+    """
+    screeners = str(screeners or "")
+    if any(m in screeners for m in MOVER_SCREENS):
+        return True
+    try:
+        av = float(avg_vol or 0)
+    except (TypeError, ValueError):
+        av = 0.0
+    try:
+        px = float(str(price).replace(",", "").replace("$", "").strip())
+    except (TypeError, ValueError):
+        px = 0.0
+    if av <= 0 or px <= 0:
+        return True
+    return av * px >= min_dollar_vol
+
 
 def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
     combined = []
@@ -115,6 +167,9 @@ def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
                     'Country':    cols[5].text.strip(),
                     'Market Cap': cols[6].text.strip(),
                     'Volume':     cols[8].text.strip() if len(cols) > 8 else '',
+                    # Price lands at index 9 in both the v=111 default layout and the
+                    # v=151 custom layout (c=...,65,66) — used for the dollar-volume gate.
+                    'Price':      cols[9].text.strip() if len(cols) > 9 else '',
                 }
         if not new_data:
             break
@@ -157,6 +212,7 @@ def aggregate_and_save(screener_map: dict) -> tuple:
             'Country':    m.get('Country', ''),
             'Market Cap': m.get('Market Cap', ''),
             'Volume':     m.get('Volume', ''),
+            'Price':      m.get('Price', ''),
         })
 
     summary_df = pd.DataFrame(data).sort_values(['Appearances', 'Ticker'], ascending=[False, True])
@@ -3664,6 +3720,23 @@ if __name__ == "__main__":
     summary_df['Perf Quarter']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[13])
     summary_df['Perf Half Y']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[14])
     summary_df['Perf Year']      = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[15])
+
+    # ── Dollar-volume liquidity gate (2026-06-09) — see passes_dollar_volume_gate() ──
+    _before = len(summary_df)
+    summary_df = summary_df[
+        summary_df.apply(
+            lambda r: passes_dollar_volume_gate(
+                r.get("Screeners", ""), r.get("Avg Volume"), r.get("Price")
+            ),
+            axis=1,
+        )
+    ].reset_index(drop=True)
+    _dropped = _before - len(summary_df)
+    if _dropped:
+        log.info(
+            "Dollar-volume gate (>= $%dM, quality screens only): dropped %d illiquid name(s)",
+            MIN_DOLLAR_VOL // 1_000_000, _dropped,
+        )
 
     # Step 3: Stage, VCP, Quality Score
     log.info("Computing Weinstein Stage analysis...")

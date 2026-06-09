@@ -360,6 +360,32 @@ appeared 5/13+ after +150%). Raised the avg-vol floor 500k→1M as a penny-junk
 guard so a $2 name still needs real liquidity. Other screeners (Growth/IPO/52WHigh)
 keep `sh_price_o10`; Week 20%+ has no price floor.
 
+**Dollar-volume liquidity gate + Base/Near-High screen (2026-06-09 — DAVE-class):**
+The 1M-*share* avg-vol floor (`sh_avgvol_o1000`) is a crude share count that hid
+high-priced liquid names — DAVE (Dave Inc, +311% EPS Y/Y, +104% Q/Q, +58% sales,
+Stage 2, −8% from high) trades ~573K shares but ~$155M/day and was invisible to the
+*entire* system (0 of last 30 screener CSVs; the 5/27 paper position came from a
+live SnapTrade auto-detect, not the screener). Fix: (1) **quality screens
+(Growth/52WHigh/IPO/Base) lowered to `sh_avgvol_o200`**; (2) real liquidity now
+enforced by `passes_dollar_volume_gate()` (module-level, tested) — drops a row when
+avg **dollar** volume (`Avg Volume × Price`) < **$30M/day**, but **only** for
+quality-screen names. **Mover screens (`10% Change`/`Power Move`/`Week 20%+`) are
+exempt** so sub-$5 rockets (HYLN ~$2 × 1M = $2M/day) are never dropped. Price is
+carried from the Finviz screener table (`cols[9]`, index 9 in both v=111 and v=151
+layouts) into `summary_df['Price']`. Gate runs in `main()` after snapshot
+enrichment, before scoring/CSV save. Also **dropped the `an_recom_buybetter`
+analyst gate** from the Growth screen (was discarding ~4 under-covered quality
+growth names; not DAVE's blocker but a real loss). **New 7th screen "Base /
+Near-High"** = the pre-breakout growth base the mover-screens miss: Stage 2 (above
+all 3 MAs) + coiling **0–10% under** the 52w high (NOT a new-high requirement) +
+EPS Q/Q & Sales Q/Q > 20 + o200 share floor. Catches the high-quality name about to
+break a ceiling BEFORE it pops (DAVE coiling at 270 under the 293 wall) — the best
+R/R entry that new-high/10%-move screens can only catch after the fact. Auto-flows
+into every downstream block (Ready-to-Enter, RS Leader, HTF-BR, 21 EMA PB) since
+they all scan `summary_df`. Tests: `tests/test_dollar_volume_gate.py`.
+**Still open (specced separately):** DAVE→ARKF/fintech industry routing fix; the
+4 staleness bugs — see [docs/specs/system-staleness-and-routing-fixes.md].
+
 **🔥 Big Movers (top-of-message, 2026-05-30):** Power Move tickers (9M+ share
 volume + 10%+ day = Bonde institutional-conviction signal) surfaced FIRST in the
 Slack message, above Ready-to-Enter, so an ONDS-class +83%/248M-vol candle can't
