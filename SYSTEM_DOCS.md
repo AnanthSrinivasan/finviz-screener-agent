@@ -153,22 +153,41 @@ flowchart TB
 8. Re-saves enriched CSV (with ATR%, Quality Score) so earnings alert reads it correctly
 9. Fires Slack to `#daily-alerts`
 
-**5 Screeners:**
+**7 Screeners:**
 
 | Name | What it catches |
 |------|----------------|
 | 10% Change | Gap/surge moves — EP candidates (price floor $2, avg-vol 1M — 2026-05-30) |
-| Growth | EPS 20%+, Sales 20%+, above all MAs |
+| Growth | EPS 20%+, Sales 20%+, above all MAs (analyst-recom gate dropped 2026-06-09) |
 | IPO | Mid-cap+, listed within 3 years, above 20-day |
 | 52 Week High | Making new highs — price leadership |
 | Week 20%+ Gain | Significant weekly moves — momentum |
 | Power Move | 9M+ vol + 10%+ daily (institutional). Price floor $2, avg-vol 1M — 2026-05-30 |
+| **Base / Near-High** | **Pre-breakout growth base (2026-06-09): Stage 2 + 0–10% below 52w high + EPS Q/Q & Sales Q/Q >20 — the DAVE-class the mover-screens miss** |
 
 **Screener price/volume floors (2026-05-30):** `10% Change` + `Power Move` use
 `sh_price_o2` + `sh_avgvol_o1000` (was `sh_price_o5` + `sh_avgvol_o500`). Price
 floor dropped $5→$2 so sub-$5 movers at the base are visible (HYLN ~$2 on its
 best 5/5 & 5/11 entries was filtered out by the old $5 floor, only appeared
 5/13+ after +150%). Avg-vol raised 500k→1M as a penny-junk liquidity guard.
+
+**Dollar-volume liquidity gate + Base/Near-High screen (2026-06-09 — DAVE-class):**
+The 1M-*share* avg-vol floor was a crude share count that hid high-priced liquid
+names. DAVE (Dave Inc — +311% EPS Y/Y, +104% Q/Q, +58% sales, Stage 2, −8% from
+high) trades ~573K shares but ~$155M/day and was invisible to the *whole* system
+(0 of last 30 screener CSVs; its 5/27 paper position came from a live SnapTrade
+auto-detect, not the screener). Fixes: (1) quality screens (Growth/52WHigh/IPO/Base)
+lowered to `sh_avgvol_o200`; (2) real liquidity enforced by
+`passes_dollar_volume_gate()` (module-level in `finviz_agent.py`, unit-tested) —
+drops a quality-screen name when avg **dollar** volume (`Avg Volume × Price`) <
+**$30M/day**. **Mover screens (10% Change / Power Move / Week 20%+) are exempt** so
+sub-$5 rockets (HYLN ~$2 × 1M = $2M/day) survive. Price is carried from the Finviz
+screener table (`cols[9]`, index 9 in both v=111 and v=151 layouts) into
+`summary_df['Price']`; the gate runs in `main()` after snapshot enrichment, before
+scoring/CSV. The `an_recom_buybetter` analyst gate was also dropped from Growth
+(was discarding ~4 under-covered quality growth names). The new **Base / Near-High**
+screen flows into every downstream block (Ready-to-Enter, RS Leader, HTF-BR, 21 EMA
+PB) since they all scan `summary_df`. Tests: `tests/test_dollar_volume_gate.py`.
 
 **🔥 Big Movers (top-of-Slack, 2026-05-30):** Power Move tickers passing the 9M+
 share-volume post-filter (`_parse_vol`, since Finviz `sh_vol_o*` URL params are
