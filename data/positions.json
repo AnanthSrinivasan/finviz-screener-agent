@@ -1,40 +1,5 @@
 {
-  "open_positions": [
-    {
-      "ticker": "DAVE",
-      "shares": 30,
-      "entry_price": 282.76,
-      "entry_date": "2026-06-09",
-      "stop_price": 249.47,
-      "breakeven_activated": false,
-      "target1": 339.31,
-      "target1_hit": false,
-      "target2": 395.86,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 285.53,
-      "current_gain_pct": -0.11,
-      "first_entry_price": 282.76,
-      "peak_gain_pct": 0.98
-    },
-    {
-      "ticker": "ZVRA",
-      "shares": 300,
-      "entry_price": 13.52,
-      "entry_date": "2026-06-09",
-      "stop_price": 12.29,
-      "breakeven_activated": false,
-      "target1": 16.22,
-      "target1_hit": false,
-      "target2": 18.93,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 13.75,
-      "current_gain_pct": -0.22,
-      "first_entry_price": 13.52,
-      "peak_gain_pct": 1.7
-    }
-  ],
+  "open_positions": [],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -1450,6 +1415,48 @@
       "close_price": 248.19,
       "close_source": "snaptrade_fill",
       "result_pct": -7.51
+    },
+    {
+      "ticker": "DAVE",
+      "shares": 30,
+      "entry_price": 282.76,
+      "entry_date": "2026-06-09",
+      "stop_price": 249.47,
+      "breakeven_activated": false,
+      "target1": 339.31,
+      "target1_hit": false,
+      "target2": 395.86,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 285.53,
+      "current_gain_pct": -0.11,
+      "first_entry_price": 282.76,
+      "peak_gain_pct": 0.98,
+      "close_date": "2026-06-09",
+      "close_price": 268.29,
+      "close_source": "live_quote",
+      "result_pct": -5.12
+    },
+    {
+      "ticker": "ZVRA",
+      "shares": 300,
+      "entry_price": 13.52,
+      "entry_date": "2026-06-09",
+      "stop_price": 12.29,
+      "breakeven_activated": false,
+      "target1": 16.22,
+      "target1_hit": false,
+      "target2": 18.93,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 13.75,
+      "current_gain_pct": -0.22,
+      "first_entry_price": 13.52,
+      "peak_gain_pct": 1.7,
+      "close_date": "2026-06-09",
+      "close_price": 13.03,
+      "close_source": "live_quote",
+      "result_pct": -3.62
     }
   ]
 }

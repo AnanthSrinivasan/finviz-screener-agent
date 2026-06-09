@@ -1,30 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 6,
+  "consecutive_losses": 8,
   "total_wins": 23,
-  "total_losses": 36,
+  "total_losses": 38,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
   "last_updated": "2026-06-09",
   "recent_trades": [
-    {
-      "ticker": "GLW",
-      "result": "loss",
-      "result_pct": -6.91,
-      "date": "2026-05-29",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -801.0
-    },
-    {
-      "ticker": "ROKU",
-      "result": "neutral",
-      "result_pct": -0.97,
-      "date": "2026-06-01",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -120.0
-    },
     {
       "ticker": "UFO",
       "result": "win",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -2014.5
+    },
+    {
+      "ticker": "DAVE",
+      "result": "loss",
+      "result_pct": -5.12,
+      "date": "2026-06-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -434.1
+    },
+    {
+      "ticker": "ZVRA",
+      "result": "loss",
+      "result_pct": -3.62,
+      "date": "2026-06-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -147.0
     }
   ],
   "market_state": "RED",
