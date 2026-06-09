@@ -389,6 +389,28 @@ class AutoCloseTests(unittest.TestCase):
         self.assertEqual(ts["consecutive_losses"], 1)
         self.assertEqual(ts["consecutive_wins"], 0)
 
+    def test_fully_flat_closes_all_lingering_positions(self):
+        # User went fully flat — SnapTrade returns []; every open position in
+        # positions.json must be auto-closed so none linger as dashboard ghosts
+        # (the AMZN regression). Uses sell fills so no network/quote is needed.
+        p1 = {"ticker": "AMZN", "shares": 100, "entry_price": 268.34,
+              "highest_price_seen": 274.68, "stop_price": 261.54, "status": "active"}
+        p2 = {"ticker": "QQQ", "shares": 10, "entry_price": 500.0,
+              "highest_price_seen": 520.0, "stop_price": 480.0, "status": "active"}
+        positions_data = self._state(open_positions=[p1, p2])
+        ts = self._trading()
+        sell_fills = {
+            "AMZN": {"price": 270.0, "date": "2026-06-06", "units": 100},
+            "QQQ":  {"price": 510.0, "date": "2026-06-06", "units": 10},
+        }
+        pm.sync_snaptrade_with_rules(
+            snaptrade_positions=[], positions_data=positions_data,
+            trading_state=ts, market_state="GREEN", sell_fills=sell_fills,
+        )
+        self.assertEqual(positions_data["open_positions"], [])
+        closed_tickers = {c["ticker"] for c in positions_data["closed_positions"]}
+        self.assertEqual(closed_tickers, {"AMZN", "QQQ"})
+
     def test_falls_back_to_quote_when_no_fill(self):
         pos = {"ticker": "Z", "shares": 10, "entry_price": 100.0,
                "highest_price_seen": 150.0, "stop_price": 95.0, "status": "active"}

@@ -150,9 +150,18 @@ def get_peel_thresholds(atr_pct: float, ticker: str = None) -> tuple:
 # Part 1: Fetch Live Positions
 # ----------------------------
 
+# Set by fetch_positions(): the /accounts response from the most recent SnapTrade
+# pull. Lets callers distinguish a CONFIRMED-flat book (accounts reachable, 0
+# holdings) from an API blip (accounts unreachable) before auto-closing lingering
+# positions — see the flat-book reconcile in main().
+LAST_SNAPTRADE_ACCOUNTS = None
+
+
 def fetch_positions() -> list:
+    global LAST_SNAPTRADE_ACCOUNTS
     log.info("Fetching positions from SnapTrade...")
     accounts = snaptrade_get("/accounts")
+    LAST_SNAPTRADE_ACCOUNTS = accounts
     if not accounts:
         log.error("No accounts returned from SnapTrade.")
         return []
@@ -736,6 +745,22 @@ def save_trading_state(trading_state: dict):
     with open(path, "w") as f:
         json.dump(trading_state, f, indent=2)
     log.info(f"Saved trading_state.json (sizing: {trading_state['current_sizing_mode']})")
+
+
+def _regenerate_dashboards():
+    """Regenerate the live SnapTrade portfolio + Daily Cockpit pages (both
+    non-fatal). Called from the normal end-of-run path AND the flat-book
+    reconcile path so the dashboards never linger on a stale/closed position."""
+    try:
+        from utils.generators.generate_live_portfolio import write_page as _gen_live_portfolio
+        _gen_live_portfolio()
+    except Exception as e:
+        log.warning(f"Live portfolio page generation failed: {e}")
+    try:
+        from utils.generators.generate_daily_cockpit import write_page as _gen_cockpit
+        _gen_cockpit()
+    except Exception as e:
+        log.warning(f"Daily cockpit page generation failed: {e}")
 
 
 def load_latest_market_state() -> str:
@@ -1573,7 +1598,32 @@ if __name__ == "__main__":
 
     positions = fetch_positions()
     if not positions and not has_trade_input:
-        log.info("No open positions found — nothing to monitor.")
+        # Flat-book reconcile (2026-06-09): when SnapTrade returns 0 holdings but
+        # positions.json still has open positions, auto-close them so they don't
+        # linger as dashboard ghosts (the AMZN case — user went fully flat and the
+        # last position never cleared). Guarded on LAST_SNAPTRADE_ACCOUNTS so an API
+        # blip (accounts unreachable) can never wipe the book on a false "flat".
+        positions_data = load_positions_json()
+        if LAST_SNAPTRADE_ACCOUNTS and positions_data.get("open_positions"):
+            log.info(
+                "Flat book confirmed (accounts reachable, 0 holdings) — closing %d "
+                "lingering position(s).", len(positions_data["open_positions"]),
+            )
+            trading_state = load_trading_state()
+            market_state  = load_latest_market_state()
+            sync_alerts, sync_events = sync_snaptrade_with_rules(
+                [], positions_data, trading_state, market_state, sell_fills={},
+            )
+            save_positions(positions_data)
+            save_trading_state(trading_state)
+            for _msg in sync_alerts:
+                try:
+                    requests.post(SLACK_WEBHOOK_URL, json={"text": _msg}, timeout=10)
+                except Exception as e:
+                    log.error(f"Flat-book reconcile Slack failed: {e}")
+            _regenerate_dashboards()  # refresh cockpit/live page to the now-flat state
+        else:
+            log.info("No open positions found — nothing to monitor.")
         exit(0)
 
     market_state = load_latest_market_state()
@@ -1931,21 +1981,9 @@ if __name__ == "__main__":
 
     book_table.save_digest_log(digest_path, digest_log)
 
-    # Regenerate live SnapTrade dashboard (non-fatal). Runs on every
-    # position-monitor invocation — book runs + 30-min critical runs.
-    try:
-        from utils.generators.generate_live_portfolio import write_page as _gen_live_portfolio
-        _gen_live_portfolio()
-    except Exception as e:
-        log.warning(f"Live portfolio page generation failed: {e}")
-
-    # Regenerate Daily Cockpit (non-fatal). Reuses live SnapTrade book here +
-    # reads latest screener/market/etf data. See docs/specs/daily-cockpit.md.
-    try:
-        from utils.generators.generate_daily_cockpit import write_page as _gen_cockpit
-        _gen_cockpit()
-    except Exception as e:
-        log.warning(f"Daily cockpit page generation failed: {e}")
+    # Regenerate live SnapTrade dashboard + Daily Cockpit (both non-fatal). Runs on
+    # every position-monitor invocation — book runs + 30-min critical runs.
+    _regenerate_dashboards()
 
     # === EXISTING: Save snapshot ===
     snapshot_path = os.path.join(DATA_DIR, f"positions_{today}.json")
