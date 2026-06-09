@@ -143,7 +143,10 @@ def passes_dollar_volume_gate(screeners, avg_vol, price,
     if any(m in screeners for m in MOVER_SCREENS):
         return True
     try:
-        av = float(avg_vol or 0)
+        # avg_vol may be a clean float (post-snapshot Avg Volume) OR a
+        # comma-formatted screener-table string like "1,234,567" (pre-filter
+        # path) — strip commas so the raw Volume parses instead of failing to 0.
+        av = float(str(avg_vol if avg_vol is not None else 0).replace(",", "").replace("$", "").strip() or 0)
     except (TypeError, ValueError):
         av = 0.0
     try:

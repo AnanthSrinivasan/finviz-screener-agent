@@ -42,6 +42,14 @@ class TestDollarVolumeGate(unittest.TestCase):
     def test_price_with_formatting(self):
         self.assertTrue(passes_dollar_volume_gate("52 Week High", 600_000, "$1,234.50"))
 
+    def test_comma_formatted_volume_string_parses(self):
+        # Screener-table Volume arrives comma-formatted ("1,234,567"). It must
+        # parse, not silently fall back to 0 (which would keep every name and
+        # make the pre-filter a no-op). 100K @ $12 = $1.2M → DROP.
+        self.assertFalse(passes_dollar_volume_gate("Growth", "100,000", "12.00"))
+        # 2M shares @ $20 = $40M → KEEP.
+        self.assertTrue(passes_dollar_volume_gate("Growth", "2,000,000", "20.00"))
+
 
 class TestDollarVolumePrefilter(unittest.TestCase):
     """Cheap pre-snapshot gate on raw screener Volume × Price. Looser threshold
