@@ -1,22 +1,38 @@
 {
   "open_positions": [
     {
-      "ticker": "AMZN",
-      "shares": 100,
-      "entry_price": 268.34,
-      "entry_date": "2026-05-21",
-      "stop_price": 261.54,
+      "ticker": "DAVE",
+      "shares": 30,
+      "entry_price": 282.76,
+      "entry_date": "2026-06-09",
+      "stop_price": 249.47,
       "breakeven_activated": false,
-      "target1": 322.01,
+      "target1": 339.31,
       "target1_hit": false,
-      "target2": 375.68,
+      "target2": 395.86,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 274.68,
-      "current_gain_pct": -7.36,
-      "first_entry_price": 267.3,
-      "peak_gain_pct": 2.36,
-      "stale_alerted_date": "2026-06-05"
+      "highest_price_seen": 285.53,
+      "current_gain_pct": -0.11,
+      "first_entry_price": 282.76,
+      "peak_gain_pct": 0.98
+    },
+    {
+      "ticker": "ZVRA",
+      "shares": 300,
+      "entry_price": 13.52,
+      "entry_date": "2026-06-09",
+      "stop_price": 12.29,
+      "breakeven_activated": false,
+      "target1": 16.22,
+      "target1_hit": false,
+      "target2": 18.93,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 13.75,
+      "current_gain_pct": -0.22,
+      "first_entry_price": 13.52,
+      "peak_gain_pct": 1.7
     }
   ],
   "closed_positions": [
@@ -1367,9 +1383,9 @@
       "first_entry_price": 117.94,
       "peak_gain_pct": 9.32,
       "close_date": "2026-06-05",
-      "close_price": 100.79,
-      "close_source": "live_quote",
-      "result_pct": -16.53
+      "close_price": 101.7,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -15.78
     },
     {
       "ticker": "ARKG",
@@ -1388,9 +1404,9 @@
       "first_entry_price": 36.33,
       "peak_gain_pct": 2.59,
       "close_date": "2026-06-05",
-      "close_price": 34.13,
-      "close_source": "live_quote",
-      "result_pct": -6.06
+      "close_price": 34.51,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -5.01
     },
     {
       "ticker": "XBI",
@@ -1412,6 +1428,28 @@
       "close_price": 133.28,
       "close_source": "snaptrade_fill",
       "result_pct": -0.39
+    },
+    {
+      "ticker": "AMZN",
+      "shares": 100,
+      "entry_price": 268.34,
+      "entry_date": "2026-05-21",
+      "stop_price": 261.54,
+      "breakeven_activated": false,
+      "target1": 322.01,
+      "target1_hit": false,
+      "target2": 375.68,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 274.68,
+      "current_gain_pct": -7.36,
+      "first_entry_price": 267.3,
+      "peak_gain_pct": 2.36,
+      "stale_alerted_date": "2026-06-05",
+      "close_date": "2026-06-09",
+      "close_price": 248.19,
+      "close_source": "snaptrade_fill",
+      "result_pct": -7.51
     }
   ]
 }
