@@ -1068,7 +1068,7 @@ Public dashboard of the Alpaca paper account — regenerated hourly inside `posi
 
 **Inputs (Alpaca paper):** `/account`, `/positions`, `/account/portfolio/history?period=all&timeframe=1D` (2026-06-09: was `3M` — now full account span, falls back `all → 1A → 3M`).
 
-**Output:** `data/claude_portfolio.html` (light theme, Chart.js equity curve). Sections: stat cards (equity, **Total Return since inception** — $ and %, added 2026-06-09 via `compute_total_return`/`inception_equity`; today P&L, open P&L, position count, cash), full-span equity curve, open-positions heat table (ticker, qty, entry, price, mkt value, allocation %, unrealized $ / %). Total Return is "how the account grew" — first history point → current equity. Tests: `tests/test_generate_portfolio.py`.
+**Output:** `data/claude_portfolio.html` (light theme, Chart.js equity curve). Sections: stat cards (equity, **Total Return since inception** — $ and %, added 2026-06-09 via `compute_total_return`/`inception_equity`; today P&L, open P&L, position count, cash), full-span equity curve, **Month-over-Month Performance** (bar chart + table, added 2026-06-10 via `monthly_performance()` — derived from the daily equity series, flat no-activity months filtered from the display so the 2022-2025 dormant stretch doesn't bury the active 2026 months), open-positions heat table (ticker, qty, entry, price, mkt value, allocation %, unrealized $ / %). Total Return is "how the account grew" — first history point → current equity. Tests: `tests/test_generate_portfolio.py`.
 
 Linked from the hero bar in `index.html` as **Claude Portfolio**. No new workflow and no new secrets — reuses the Alpaca paper credentials already in `position-monitor.yml`.
 
