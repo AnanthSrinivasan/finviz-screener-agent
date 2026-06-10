@@ -86,6 +86,39 @@ class TotalReturnTests(unittest.TestCase):
         self.assertEqual(gp.compute_total_return({}, 50000.0), (0.0, 0.0, 0.0))
 
 
+class MonthlyPerformanceTests(unittest.TestCase):
+    # 2026-01-31, 2026-02-28, 2026-03-31 (UTC) daily-bar timestamps
+    JAN = 1769817600  # 2026-01-31
+    FEB = 1772236800  # 2026-02-28
+    MAR = 1774915200  # 2026-03-31
+
+    def test_month_over_month_pnl_and_pct(self):
+        hist = {"timestamp": [self.JAN, self.FEB, self.MAR],
+                "equity":    [100000.0, 110000.0, 104500.0]}
+        out = gp.monthly_performance(hist)
+        self.assertEqual([m["month"] for m in out], ["Jan 2026", "Feb 2026", "Mar 2026"])
+        # First month: start = its own first point → pnl 0
+        self.assertEqual(out[0]["pnl"], 0.0)
+        # Feb: 110k vs Jan-end 100k = +10k / +10%
+        self.assertEqual(out[1]["pnl"], 10000.0)
+        self.assertAlmostEqual(out[1]["pct"], 10.0)
+        # Mar: 104.5k vs Feb-end 110k = -5.5k / -5%
+        self.assertEqual(out[2]["pnl"], -5500.0)
+        self.assertAlmostEqual(out[2]["pct"], -5.0)
+
+    def test_multiple_points_per_month_uses_month_end(self):
+        # two Jan points + one Feb point → Jan end is the later Jan value
+        hist = {"timestamp": [self.JAN - 86400, self.JAN, self.FEB],
+                "equity":    [100000.0, 102000.0, 108000.0]}
+        out = gp.monthly_performance(hist)
+        self.assertEqual(out[0]["end"], 102000.0)
+        self.assertEqual(out[1]["pnl"], 6000.0)  # 108k - 102k
+
+    def test_empty(self):
+        self.assertEqual(gp.monthly_performance({}), [])
+        self.assertEqual(gp.monthly_performance({"equity": []}), [])
+
+
 class GenerateHtmlTests(unittest.TestCase):
     def test_smoke_with_position(self):
         account = {"equity": "100000", "last_equity": "99500",
@@ -102,6 +135,7 @@ class GenerateHtmlTests(unittest.TestCase):
         self.assertIn("Equity Curve", html)
         self.assertIn("Total Return", html)
         self.assertIn("since $90,000 start", html)
+        self.assertIn("Month-over-Month Performance", html)
         self.assertIn("NVDA", html)
         self.assertIn("heat-pos", html)
         self.assertIn("1.1%", html)

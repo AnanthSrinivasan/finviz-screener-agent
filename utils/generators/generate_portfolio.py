@@ -104,6 +104,61 @@ def build_equity_curve_js(history: dict) -> str:
     return json.dumps(points)
 
 
+def monthly_performance(history: dict) -> list:
+    """Month-over-month equity change derived from the daily equity series.
+
+    Returns [{"month": "Jan 2026", "start": .., "end": .., "pnl": .., "pct": ..}, ...]
+    oldest→newest. Each month's pnl is end-of-month equity minus the prior
+    month's end (the first month uses its own first equity point as the start).
+    Mirrors the Monthly P&L bar on the Performance 2026 page, but for the paper
+    account where the source of truth is Alpaca's portfolio-history equity curve.
+    """
+    if not history:
+        return []
+    timestamps = history.get("timestamp") or []
+    equity     = history.get("equity") or []
+    # collect (date, equity) skipping nulls
+    series = []
+    for ts, eq in zip(timestamps, equity):
+        if eq is None:
+            continue
+        try:
+            val = float(eq)
+        except (TypeError, ValueError):
+            continue
+        dt = datetime.datetime.fromtimestamp(int(ts), datetime.timezone.utc)
+        series.append((dt, val))
+    if not series:
+        return []
+
+    # last equity seen within each calendar month, in chronological order
+    month_end: dict[str, tuple] = {}
+    order: list[str] = []
+    first_equity = series[0][1]
+    for dt, val in series:
+        key = dt.strftime("%Y-%m")
+        if key not in month_end:
+            order.append(key)
+        month_end[key] = (dt, val)
+
+    out = []
+    prev_end = first_equity
+    for key in order:
+        dt, end = month_end[key]
+        start = prev_end
+        pnl = end - start
+        pct = (pnl / start * 100) if start else 0.0
+        out.append({
+            "month": dt.strftime("%b %Y"),
+            "start": round(start, 2),
+            "end": round(end, 2),
+            "pnl": round(pnl, 2),
+            "pct": round(pct, 2),
+        })
+        prev_end = end
+    return out
+
+
 def generate_html(account: dict, positions: list, history: dict) -> str:
     equity      = float(account.get("equity", 0) or 0)
     last_equity = float(account.get("last_equity", 0) or 0)
@@ -154,6 +209,27 @@ def generate_html(account: dict, positions: list, history: dict) -> str:
         )
 
     start_equity, total_ret, total_ret_pct = compute_total_return(history, equity)
+
+    # Drop fully-flat (no-activity) months so a long dormant stretch doesn't
+    # bury the active trading months — mirrors the active-period view on the
+    # Performance 2026 page.
+    months = [m for m in monthly_performance(history) if m["pnl"] != 0]
+    mo_labels = json.dumps([m["month"] for m in months])
+    mo_pnl    = json.dumps([m["pnl"] for m in months])
+    mo_colors = json.dumps(["#16a34a" if m["pnl"] >= 0 else "#dc2626" for m in months])
+    mo_rows = ""
+    for m in reversed(months):  # newest first in the table
+        h = _heat_class(m["pct"])
+        ps = "+" if m["pnl"] >= 0 else ""
+        mo_rows += (
+            "<tr>"
+            f"<td class='bold'>{m['month']}</td>"
+            f"<td class='mono'>{_fmt_money(m['start'])}</td>"
+            f"<td class='mono'>{_fmt_money(m['end'])}</td>"
+            f"<td class='mono heat {h}'>{ps}{_fmt_money(m['pnl'])}</td>"
+            f"<td class='mono heat {h}'>{_fmt_pct(m['pct'])}</td>"
+            "</tr>"
+        )
 
     equity_points = build_equity_curve_js(history)
     day_heat  = _heat_class(day_pl_pct)
@@ -261,6 +337,12 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
   <div class="chart-wrap"><canvas id="eqchart"></canvas></div>
 </div>
 
+<div class="chart-card">
+  <h2 style="margin-top:0">Month-over-Month Performance</h2>
+  {'<div class="chart-wrap" style="height:240px"><canvas id="mochart"></canvas></div>' if months else '<div class="empty">Not enough history yet for monthly performance.</div>'}
+  {("<table class='pos-table' style='margin-top:16px'><thead><tr><th>Month</th><th>Start Equity</th><th>End Equity</th><th>P&amp;L</th><th>Return</th></tr></thead><tbody>" + mo_rows + "</tbody></table>") if months else ""}
+</div>
+
 <h2>Open Positions</h2>
 {"<table class='pos-table'><thead><tr><th>Ticker</th><th>Qty</th><th>Entry</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody>" + pos_rows + "</tbody></table>" if pos_rows else "<div class='empty'>No open positions.</div>"}
 
@@ -290,6 +372,27 @@ if (points.length > 0) {{
       plugins: {{ legend: {{ display: false }} }},
       scales: {{
         x: {{ type: 'category', grid: {{ display: false }}, ticks: {{ color: '#6b7280', maxTicksLimit: 8 }} }},
+        y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
+               callback: function(v){{ return '$' + v.toLocaleString(); }} }} }}
+      }}
+    }}
+  }});
+}}
+
+const moLabels = {mo_labels};
+const moPnl    = {mo_pnl};
+const moColors = {mo_colors};
+const moCanvas = document.getElementById('mochart');
+if (moCanvas && moLabels.length > 0) {{
+  new Chart(moCanvas.getContext('2d'), {{
+    type: 'bar',
+    data: {{ labels: moLabels, datasets: [{{ label: 'Monthly P&L', data: moPnl, backgroundColor: moColors }}] }},
+    options: {{
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {{ legend: {{ display: false }} }},
+      scales: {{
+        x: {{ grid: {{ display: false }}, ticks: {{ color: '#6b7280' }} }},
         y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
                callback: function(v){{ return '$' + v.toLocaleString(); }} }} }}
       }}
