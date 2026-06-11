@@ -1,4 +1,13 @@
 {
   "last_book_post_ts": "2026-06-11T19:58:44.737969Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $206.62 \u2014 exit immediately (stop $208.06)",
+      "current_price": 206.62,
+      "stop_price": 208.06,
+      "ts": "2026-06-11T22:23:40.180285Z"
+    }
+  ]
 }
