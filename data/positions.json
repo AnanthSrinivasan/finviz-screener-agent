@@ -5,7 +5,7 @@
       "shares": 50,
       "entry_price": 279.69,
       "entry_date": "2026-06-11",
-      "stop_price": 247.25,
+      "stop_price": 279.69,
       "breakeven_activated": false,
       "target1": 335.63,
       "target1_hit": false,
@@ -16,6 +16,23 @@
       "current_gain_pct": 2.05,
       "first_entry_price": 279.69,
       "peak_gain_pct": 2.05
+    },
+    {
+      "ticker": "TWLO",
+      "shares": 100,
+      "entry_price": 208.06,
+      "entry_date": "2026-06-11",
+      "stop_price": 208.06,
+      "breakeven_activated": false,
+      "target1": 249.67,
+      "target1_hit": false,
+      "target2": 291.28,
+      "thesis": "User manual entry 2026-06-11 (after hours) \u2014 stop at entry per user instruction, alert-only",
+      "status": "active",
+      "highest_price_seen": 208.06,
+      "current_gain_pct": 0.0,
+      "first_entry_price": 208.06,
+      "peak_gain_pct": 0.0
     }
   ],
   "closed_positions": [
