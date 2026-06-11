@@ -227,8 +227,8 @@
 
 <div class="dash-header">
   <h1>Dashboard</h1>
-  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html?v=bac5c8d" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 11 Jun 2026 19:50 UTC</div>
+  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html?v=b15c59b" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 11 Jun 2026 21:58 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -238,7 +238,755 @@
 
 <div class="section">
   <div class="section-title">Open Positions & P&L</div>
-  <div class="empty-state">No open positions</div>
+  
+    <div class="positions-summary">
+      <div class="summary-item">
+        <span class="summary-label">Exposure</span>
+        <span class="summary-val">$13,984.50</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Unrealized P&L</span>
+        <span class="summary-val pos">$225.15 (+1.6%)</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Positions</span>
+        <span class="summary-val">1 open</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+    <table class="positions-table">
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Shares</th><th>First Entry</th><th>Avg Price</th><th>Stop</th><th>Gain %</th><th>P&L</th><th>Risk</th><th>Targets</th><th>Peel (p90)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="position-row" data-ticker-row="DAVE">
+          <td class="ticker-cell">
+            <button type="button" class="hist-toggle" data-target="DAVE" aria-expanded="false">▸</button>
+            <span class="ticker">DAVE</span>
+            <span class="entry-date">Thu 11 Jun</span>
+          </td>
+          <td>50</td>
+          <td>$279.69</td>
+          <td>$279.69</td>
+          <td>$246.94</td>
+          <td class="pos">+1.6%</td>
+          <td class="pos">$225.15</td>
+          <td class="risk-cell neg">-11.7%</td>
+          <td class="targets-cell"><span class="target-pending">T1 $336</span> <span class="target-pending">T2 $392</span></td>
+          <td class="peel-cell"><span class="peel-thresholds">warn 18.1x · sig 24.2x · p90 103.5x</span></td>
+        </tr><tr class="history-row" data-ticker="DAVE" hidden><td colspan="10"><em class="history-empty">No SnapTrade activity found for DAVE in last 90 days.</em></td></tr></tbody>
+    </table>
+    </div>
+    
+        <h3 class="closed-heading">Closed Positions <span class="closed-count">(69 total · last 12 shown)</span></h3>
+        <div class="table-wrap">
+        <table class="positions-table closed-table">
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Shares</th><th>Entry</th><th>Close</th><th>Result</th><th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="position-row closed-row" data-ticker-row="ZVRA-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="ZVRA-c" aria-expanded="false">▸</button>
+                <span class="ticker">ZVRA</span>
+                <span class="entry-date">Tue 09 Jun</span>
+              </td>
+              <td>300</td>
+              <td>$13.52</td>
+              <td>$13.00</td>
+              <td class="neg">-3.85%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="ZVRA-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>9 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>300</td>
+            <td>$13.52</td>
+            <td>$13.52</td>
+            <td>300</td>
+          </tr>
+          <tr>
+            <td>9 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>300</td>
+            <td>$13.00</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -3.85% (LOSS) at $13.00
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$156.00</span> (bought 300 / sold 300)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="DAVE-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="DAVE-c" aria-expanded="false">▸</button>
+                <span class="ticker">DAVE</span>
+                <span class="entry-date">Tue 09 Jun</span>
+              </td>
+              <td>30</td>
+              <td>$282.76</td>
+              <td>$269.59</td>
+              <td class="neg">-4.66%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="DAVE-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>9 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>20</td>
+            <td>$281.99</td>
+            <td>$281.99</td>
+            <td>20</td>
+          </tr>
+          <tr>
+            <td>9 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$284.29</td>
+            <td>$282.76</td>
+            <td>30</td>
+          </tr>
+          <tr>
+            <td>9 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>30</td>
+            <td>$269.59</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -4.66% (LOSS) at $269.59
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$395.06</span> (bought 30 / sold 30)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="AMZN-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="AMZN-c" aria-expanded="false">▸</button>
+                <span class="ticker">AMZN</span>
+                <span class="entry-date">Tue 09 Jun</span>
+              </td>
+              <td>100</td>
+              <td>$268.34</td>
+              <td>$248.19</td>
+              <td class="neg">-7.51%</td>
+              <td class="history-src">snaptrade_fill</td>
+            </tr>
+      <tr class="history-row" data-ticker="AMZN-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>21 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$267.30</td>
+            <td>$267.30</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>22 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$269.38</td>
+            <td>$268.34</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>5 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$248.19</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -7.51% (LOSS) at $248.19
+            · <span class="history-src">source: snaptrade_fill</span> · <strong>Realized $:</strong> <span class="neg">-$2,014.25</span> (bought 100 / sold 100)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="XBI-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="XBI-c" aria-expanded="false">▸</button>
+                <span class="ticker">XBI</span>
+                <span class="entry-date">Fri 05 Jun</span>
+              </td>
+              <td>70</td>
+              <td>$133.81</td>
+              <td>$133.28</td>
+              <td class="neg">-0.39%</td>
+              <td class="history-src">snaptrade_fill</td>
+            </tr>
+      <tr class="history-row" data-ticker="XBI-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>70</td>
+            <td>$133.81</td>
+            <td>$133.81</td>
+            <td>70</td>
+          </tr>
+          <tr>
+            <td>5 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>70</td>
+            <td>$132.32</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neutral">
+            <strong>Result:</strong> -0.39% (BREAKEVEN) at $133.28
+            · <span class="history-src">source: snaptrade_fill</span> · <strong>Realized $:</strong> <span class="neg">-$104.30</span> (bought 70 / sold 70)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="ARKG-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="ARKG-c" aria-expanded="false">▸</button>
+                <span class="ticker">ARKG</span>
+                <span class="entry-date">Fri 05 Jun</span>
+              </td>
+              <td>250</td>
+              <td>$36.33</td>
+              <td>$34.51</td>
+              <td class="neg">-5.01%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="ARKG-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>250</td>
+            <td>$36.33</td>
+            <td>$36.33</td>
+            <td>250</td>
+          </tr>
+          <tr>
+            <td>5 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>250</td>
+            <td>$34.51</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -5.01% (LOSS) at $34.51
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$454.77</span> (bought 250 / sold 250)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="CRWV-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="CRWV-c" aria-expanded="false">▸</button>
+                <span class="ticker">CRWV</span>
+                <span class="entry-date">Fri 05 Jun</span>
+              </td>
+              <td>80</td>
+              <td>$120.75</td>
+              <td>$101.70</td>
+              <td class="neg">-15.78%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="CRWV-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>1 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$117.94</td>
+            <td>$117.94</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>2 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>20</td>
+            <td>$125.00</td>
+            <td>$119.95</td>
+            <td>70</td>
+          </tr>
+          <tr>
+            <td>2 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$126.31</td>
+            <td>$120.75</td>
+            <td>80</td>
+          </tr>
+          <tr>
+            <td>5 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>80</td>
+            <td>$101.70</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -15.78% (LOSS) at $101.70
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$1,523.80</span> (bought 80 / sold 80)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="DAVE-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="DAVE-c" aria-expanded="false">▸</button>
+                <span class="ticker">DAVE</span>
+                <span class="entry-date">Fri 05 Jun</span>
+              </td>
+              <td>10</td>
+              <td>$264.99</td>
+              <td>$261.73</td>
+              <td class="neg">-1.23%</td>
+              <td class="history-src">snaptrade_fill</td>
+            </tr>
+      <tr class="history-row" data-ticker="DAVE-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>27 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$253.18</td>
+            <td>$253.18</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>27 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$252.50</td>
+            <td>$252.84</td>
+            <td>20</td>
+          </tr>
+          <tr>
+            <td>27 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$260.00</td>
+            <td>$255.22</td>
+            <td>30</td>
+          </tr>
+          <tr>
+            <td>28 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>20</td>
+            <td>$270.89</td>
+            <td>$261.49</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>2 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$282.50</td>
+            <td>$264.99</td>
+            <td>60</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>50</td>
+            <td>$261.73</td>
+            <td>$264.99</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>5 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>10</td>
+            <td>$257.74</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -1.23% (LOSS) at $261.73
+            · <span class="history-src">source: snaptrade_fill</span> · <strong>Realized $:</strong> <span class="neg">-$235.65</span> (bought 60 / sold 60)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="NVDA-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="NVDA-c" aria-expanded="false">▸</button>
+                <span class="ticker">NVDA</span>
+                <span class="entry-date">Thu 04 Jun</span>
+              </td>
+              <td>20</td>
+              <td>$218.46</td>
+              <td>$217.82</td>
+              <td class="neg">-0.29%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="NVDA-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>22 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$221.22</td>
+            <td>$221.22</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>26 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>20</td>
+            <td>$218.27</td>
+            <td>$220.38</td>
+            <td>70</td>
+          </tr>
+          <tr>
+            <td>27 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$212.39</td>
+            <td>$219.38</td>
+            <td>80</td>
+          </tr>
+          <tr>
+            <td>28 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$213.96</td>
+            <td>$218.78</td>
+            <td>90</td>
+          </tr>
+          <tr>
+            <td>29 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$215.62</td>
+            <td>$218.46</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>80</td>
+            <td>$220.21</td>
+            <td>$218.46</td>
+            <td>20</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>20</td>
+            <td>$217.82</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neutral">
+            <strong>Result:</strong> -0.29% (BREAKEVEN) at $217.82
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="pos">$127.18</span> (bought 100 / sold 100)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="ONDS-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="ONDS-c" aria-expanded="false">▸</button>
+                <span class="ticker">ONDS</span>
+                <span class="entry-date">Thu 04 Jun</span>
+              </td>
+              <td>300</td>
+              <td>$13.00</td>
+              <td>$11.48</td>
+              <td class="neg">-11.69%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="ONDS-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>1 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>300</td>
+            <td>$13.00</td>
+            <td>$13.00</td>
+            <td>300</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>300</td>
+            <td>$11.48</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neg">
+            <strong>Result:</strong> -11.69% (LOSS) at $11.48
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$456.00</span> (bought 300 / sold 300)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="ARKK-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="ARKK-c" aria-expanded="false">▸</button>
+                <span class="ticker">ARKK</span>
+                <span class="entry-date">Thu 04 Jun</span>
+              </td>
+              <td>100</td>
+              <td>$81.70</td>
+              <td>$80.94</td>
+              <td class="neg">-0.93%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="ARKK-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>29 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$82.06</td>
+            <td>$82.06</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>1 Jun</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>50</td>
+            <td>$81.34</td>
+            <td>$81.70</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>50</td>
+            <td>$80.00</td>
+            <td>$81.70</td>
+            <td>50</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>50</td>
+            <td>$80.94</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary neutral">
+            <strong>Result:</strong> -0.93% (BREAKEVEN) at $80.94
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$122.74</span> (bought 100 / sold 100)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="SN-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="SN-c" aria-expanded="false">▸</button>
+                <span class="ticker">SN</span>
+                <span class="entry-date">Thu 04 Jun</span>
+              </td>
+              <td>60</td>
+              <td>$117.76</td>
+              <td>$120.26</td>
+              <td class="pos">+2.12%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="SN-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>27 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>40</td>
+            <td>$117.43</td>
+            <td>$117.43</td>
+            <td>40</td>
+          </tr>
+          <tr>
+            <td>28 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>20</td>
+            <td>$118.43</td>
+            <td>$117.76</td>
+            <td>60</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>60</td>
+            <td>$120.26</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +2.12% (WIN) at $120.26
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="pos">$149.80</span> (bought 60 / sold 60)
+          </div>
+        </td>
+      </tr>
+            <tr class="position-row closed-row" data-ticker-row="ASML-c">
+              <td class="ticker-cell">
+                <button type="button" class="hist-toggle" data-target="ASML-c" aria-expanded="false">▸</button>
+                <span class="ticker">ASML</span>
+                <span class="entry-date">Thu 04 Jun</span>
+              </td>
+              <td>15</td>
+              <td>$1572.51</td>
+              <td>$1733.69</td>
+              <td class="pos">+10.25%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="ASML-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>21 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>10</td>
+            <td>$1550.00</td>
+            <td>$1550.00</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>28 May</td>
+            <td><span class="action-buy">BUY</span></td>
+            <td>5</td>
+            <td>$1617.52</td>
+            <td>$1572.51</td>
+            <td>15</td>
+          </tr>
+          <tr>
+            <td>4 Jun</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>15</td>
+            <td>$1733.69</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +10.25% (WIN) at $1733.69
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="pos">$2,417.75</span> (bought 15 / sold 15)
+          </div>
+        </td>
+      </tr></tbody>
+        </table>
+        </div>
 </div>
 
 <div class="section">
@@ -275,20 +1023,20 @@
     </div>
   <div class="idx-row"><div class="idx-tile">
           <div class="idx-name">SPY</div>
-          <div class="idx-price">$734.03 <span class="idx-chg pos">+1.2%</span></div>
-          <div class="idx-sub"><span class="idx-week neg">Wk -3.0%</span> <span class="idx-ma pos">+1.8% Above 50d</span></div>
+          <div class="idx-price">$739.49 <span class="idx-chg pos">+1.9%</span></div>
+          <div class="idx-sub"><span class="idx-week neg">Wk -2.3%</span> <span class="idx-ma pos">+2.5% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">QQQ</div>
-          <div class="idx-price">$709.49 <span class="idx-chg pos">+2.3%</span></div>
-          <div class="idx-sub"><span class="idx-week neg">Wk -4.2%</span> <span class="idx-ma pos">+4.5% Above 50d</span></div>
+          <div class="idx-price">$717.51 <span class="idx-chg pos">+3.4%</span></div>
+          <div class="idx-sub"><span class="idx-week neg">Wk -3.1%</span> <span class="idx-ma pos">+5.7% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">IWM</div>
-          <div class="idx-price">$288.52 <span class="idx-chg pos">+2.3%</span></div>
-          <div class="idx-sub"><span class="idx-week neg">Wk -1.2%</span> <span class="idx-ma pos">+4.0% Above 50d</span></div>
+          <div class="idx-price">$290.75 <span class="idx-chg pos">+3.1%</span></div>
+          <div class="idx-sub"><span class="idx-week neg">Wk -0.4%</span> <span class="idx-ma pos">+4.8% Above 50d</span></div>
         </div><div class="idx-tile">
           <div class="idx-name">TNA</div>
-          <div class="idx-price">$66.71 <span class="idx-chg pos">+6.9%</span></div>
-          <div class="idx-sub"><span class="idx-week neg">Wk -4.3%</span> <span class="idx-ma pos">+9.7% Above 50d</span></div>
+          <div class="idx-price">$68.21 <span class="idx-chg pos">+9.3%</span></div>
+          <div class="idx-sub"><span class="idx-week neg">Wk -2.1%</span> <span class="idx-ma pos">+12.1% Above 50d</span></div>
         </div></div>
 </div>
 
@@ -302,7 +1050,7 @@
         <div><span style="font-size:1.4rem;font-weight:700;color:#111827">60</span><br>
           <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Watching</span></div>
       </div>
-      <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html?v=bac5c8d" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
+      <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html?v=b15c59b" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
          border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
         Open Watchlist →
       </a>
@@ -369,13 +1117,13 @@
     </div>
     <div class="streak-row">
       <span class="sub-label">Recent trades</span>
-      <div class="streak-dots"><span class="streak-dot dot-flat" title="ARKK neutral -160 (-0.9%)"></span><span class="streak-dot dot-loss" title="ONDS loss -300 (-11.7%)"></span><span class="streak-dot dot-flat" title="NVDA neutral +4 (-0.3%)"></span><span class="streak-dot dot-loss" title="DAVE loss -33 (-1.2%)"></span><span class="streak-dot dot-loss" title="CRWV loss -1,597 (-15.8%)"></span><span class="streak-dot dot-loss" title="ARKG loss -550 (-5.0%)"></span><span class="streak-dot dot-flat" title="XBI neutral -37 (-0.4%)"></span><span class="streak-dot dot-loss" title="AMZN loss -2,014 (-7.5%)"></span><span class="streak-dot dot-loss" title="DAVE loss -434 (-5.1%)"></span><span class="streak-dot dot-loss" title="ZVRA loss -147 (-3.6%)"></span></div>
+      <div class="streak-dots"><span class="streak-dot dot-flat" title="ARKK neutral -160 (-0.9%)"></span><span class="streak-dot dot-loss" title="ONDS loss -300 (-11.7%)"></span><span class="streak-dot dot-flat" title="NVDA neutral +4 (-0.3%)"></span><span class="streak-dot dot-loss" title="DAVE loss -33 (-1.2%)"></span><span class="streak-dot dot-loss" title="CRWV loss -1,597 (-15.8%)"></span><span class="streak-dot dot-loss" title="ARKG loss -550 (-5.0%)"></span><span class="streak-dot dot-flat" title="XBI neutral -37 (-0.4%)"></span><span class="streak-dot dot-loss" title="AMZN loss -2,014 (-7.5%)"></span><span class="streak-dot dot-loss" title="DAVE loss -434 (-4.7%)"></span><span class="streak-dot dot-loss" title="ZVRA loss -147 (-3.9%)"></span></div>
       <span class="ts-updated">Updated Tue 09 Jun</span>
     </div>
 </div>
 
 <div class="footer">
-  Generated 11 Jun 2026 19:50 UTC &middot;
+  Generated 11 Jun 2026 21:58 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>
