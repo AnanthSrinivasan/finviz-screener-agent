@@ -23,6 +23,10 @@ ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
 OUTPUT_PATH       = os.path.join(DATA_DIR, "claude_portfolio.html")
 
+# Only show trades from 2026 — the account has older manual fills (2023) that
+# predate the automated screener/executor and would pollute the trade log.
+TRADES_SINCE = "2026-01-01"
+
 
 def _headers() -> dict:
     return {
@@ -159,7 +163,113 @@ def monthly_performance(history: dict) -> list:
     return out
 
 
-def generate_html(account: dict, positions: list, history: dict) -> str:
+def fetch_fills() -> list:
+    """All FILL activities for the account, oldest→newest (paginated)."""
+    fills = []
+    token = None
+    while True:
+        params = {"activity_types": "FILL", "page_size": 100}
+        if token:
+            params["page_token"] = token
+        batch = _get("/account/activities", params)
+        if not batch or not isinstance(batch, list):
+            break
+        fills.extend(batch)
+        token = batch[-1].get("id")
+        if len(batch) < 100:
+            break
+    fills.sort(key=lambda f: f.get("transaction_time", ""))
+    return fills
+
+
+def closed_trades(fills: list, since: str = None) -> list:
+    """FIFO round-trip trades from FILL activities, aggregated to one row per
+    (symbol, exit date) so partial fills of the same order collapse together.
+
+    Returns newest-first: [{symbol, entry_date, exit_date, qty, avg_entry,
+    avg_exit, pnl, pct, hold_days}]. `since` (YYYY-MM-DD) drops trades whose
+    exit predates it.
+    """
+    lots: dict[str, list] = {}   # symbol -> FIFO list of [qty, price, date]
+    legs = []
+    for f in sorted(fills or [], key=lambda f: f.get("transaction_time", "")):
+        sym  = f.get("symbol")
+        side = f.get("side")
+        try:
+            qty   = float(f.get("qty", 0) or 0)
+            price = float(f.get("price", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if not sym or qty <= 0:
+            continue
+        date = (f.get("transaction_time") or "")[:10]
+        if side == "buy":
+            lots.setdefault(sym, []).append([qty, price, date])
+            continue
+        # sell: consume FIFO lots; a sell with no recorded buy lot is skipped
+        remaining = qty
+        while remaining > 1e-9 and lots.get(sym):
+            lot = lots[sym][0]
+            take = min(lot[0], remaining)
+            legs.append((sym, lot[2], date, take, lot[1], price))
+            lot[0] -= take
+            remaining -= take
+            if lot[0] <= 1e-9:
+                lots[sym].pop(0)
+
+    agg: dict[tuple, dict] = {}
+    for sym, entry_date, exit_date, qty, entry_px, exit_px in legs:
+        if since and exit_date < since:
+            continue
+        row = agg.setdefault((sym, exit_date), {
+            "symbol": sym, "entry_date": entry_date, "exit_date": exit_date,
+            "qty": 0.0, "entry_cost": 0.0, "exit_value": 0.0,
+        })
+        row["entry_date"] = min(row["entry_date"], entry_date)
+        row["qty"]        += qty
+        row["entry_cost"] += qty * entry_px
+        row["exit_value"] += qty * exit_px
+
+    out = []
+    for row in agg.values():
+        qty       = row["qty"]
+        avg_entry = row["entry_cost"] / qty if qty else 0.0
+        avg_exit  = row["exit_value"] / qty if qty else 0.0
+        pnl       = row["exit_value"] - row["entry_cost"]
+        pct       = ((avg_exit / avg_entry - 1) * 100) if avg_entry else 0.0
+        d0 = datetime.date.fromisoformat(row["entry_date"])
+        d1 = datetime.date.fromisoformat(row["exit_date"])
+        out.append({
+            "symbol": row["symbol"], "entry_date": row["entry_date"],
+            "exit_date": row["exit_date"], "qty": round(qty),
+            "avg_entry": round(avg_entry, 2), "avg_exit": round(avg_exit, 2),
+            "pnl": round(pnl, 2), "pct": round(pct, 2),
+            "hold_days": (d1 - d0).days,
+        })
+    out.sort(key=lambda t: (t["exit_date"], t["symbol"]), reverse=True)
+    return out
+
+
+def trade_stats(trades: list) -> dict:
+    """Win/loss summary over a closed-trades list."""
+    wins   = [t for t in trades if t["pnl"] > 0]
+    losses = [t for t in trades if t["pnl"] <= 0]
+    n = len(trades)
+    gross_w = sum(t["pnl"] for t in wins)
+    gross_l = sum(t["pnl"] for t in losses)
+    avg_w = (gross_w / len(wins)) if wins else 0.0
+    avg_l = (gross_l / len(losses)) if losses else 0.0
+    return {
+        "count": n, "wins": len(wins), "losses": len(losses),
+        "win_rate": round(len(wins) / n * 100, 1) if n else 0.0,
+        "net": round(gross_w + gross_l, 2),
+        "avg_win": round(avg_w, 2), "avg_loss": round(avg_l, 2),
+        "payoff": round(abs(avg_w / avg_l), 2) if avg_l else 0.0,
+    }
+
+
+def generate_html(account: dict, positions: list, history: dict,
+                  trades: list = None) -> str:
     equity      = float(account.get("equity", 0) or 0)
     last_equity = float(account.get("last_equity", 0) or 0)
     cash        = float(account.get("cash", 0) or 0)
@@ -229,6 +339,35 @@ def generate_html(account: dict, positions: list, history: dict) -> str:
             f"<td class='mono heat {h}'>{ps}{_fmt_money(m['pnl'])}</td>"
             f"<td class='mono heat {h}'>{_fmt_pct(m['pct'])}</td>"
             "</tr>"
+        )
+
+    trades = trades or []
+    stats = trade_stats(trades)
+    trade_rows = ""
+    for t in trades:
+        h  = _heat_class(t["pct"])
+        ps = "+" if t["pnl"] >= 0 else ""
+        trade_rows += (
+            "<tr>"
+            f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={t['symbol']}' target='_blank'>{t['symbol']}</a></td>"
+            f"<td class='mono'>{t['entry_date']}</td>"
+            f"<td class='mono'>{t['exit_date']}</td>"
+            f"<td class='mono'>{t['hold_days']}d</td>"
+            f"<td class='mono'>{t['qty']}</td>"
+            f"<td class='mono'>${t['avg_entry']:,.2f}</td>"
+            f"<td class='mono'>${t['avg_exit']:,.2f}</td>"
+            f"<td class='mono heat {h}'>{ps}{_fmt_money(t['pnl'])}</td>"
+            f"<td class='mono heat {h}'>{_fmt_pct(t['pct'])}</td>"
+            "</tr>"
+        )
+    stats_line = ""
+    if stats["count"]:
+        net_sign = "+" if stats["net"] >= 0 else ""
+        stats_line = (
+            f"{stats['count']} closed trades · {stats['wins']}W / {stats['losses']}L "
+            f"({stats['win_rate']:.0f}% win) · net {net_sign}{_fmt_money(stats['net'])} · "
+            f"avg win +{_fmt_money(stats['avg_win'])} / avg loss {_fmt_money(stats['avg_loss'])} · "
+            f"payoff {stats['payoff']:.1f}"
         )
 
     equity_points = build_equity_curve_js(history)
@@ -337,14 +476,18 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
   <div class="chart-wrap"><canvas id="eqchart"></canvas></div>
 </div>
 
-<div class="chart-card">
+<h2>Open Positions</h2>
+{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Qty</th><th>Entry</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody>" + pos_rows + "</tbody></table>" if pos_rows else "<div class='empty'>No open positions.</div>"}
+
+<div class="chart-card" style="margin-top:28px">
   <h2 style="margin-top:0">Month-over-Month Performance</h2>
   {'<div class="chart-wrap" style="height:240px"><canvas id="mochart"></canvas></div>' if months else '<div class="empty">Not enough history yet for monthly performance.</div>'}
   {("<table class='pos-table' style='margin-top:16px'><thead><tr><th>Month</th><th>Start Equity</th><th>End Equity</th><th>P&amp;L</th><th>Return</th></tr></thead><tbody>" + mo_rows + "</tbody></table>") if months else ""}
 </div>
 
-<h2>Open Positions</h2>
-{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Qty</th><th>Entry</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody>" + pos_rows + "</tbody></table>" if pos_rows else "<div class='empty'>No open positions.</div>"}
+<h2>Trade History (closed, 2026)</h2>
+{("<p class='subtitle' style='margin-bottom:12px'>" + stats_line + "</p>") if stats_line else ""}
+{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Entry Date</th><th>Exit Date</th><th>Held</th><th>Qty</th><th>Avg Entry</th><th>Avg Exit</th><th>P&amp;L</th><th>Return</th></tr></thead><tbody>" + trade_rows + "</tbody></table>" if trade_rows else "<div class='empty'>No closed trades yet.</div>"}
 
 <div class="footer">Data: Alpaca paper API · updates hourly during US market hours via position-monitor workflow.</div>
 
@@ -425,8 +568,10 @@ def main() -> str | None:
         log.warning("Skipping portfolio page — account fetch failed.")
         return None
 
+    trades = closed_trades(fetch_fills(), since=TRADES_SINCE)
+
     os.makedirs(DATA_DIR, exist_ok=True)
-    html = generate_html(account, positions, history)
+    html = generate_html(account, positions, history, trades=trades)
     with open(OUTPUT_PATH, "w") as f:
         f.write(html)
     log.info("claude_portfolio.html written → %s", OUTPUT_PATH)

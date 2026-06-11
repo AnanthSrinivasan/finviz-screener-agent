@@ -119,6 +119,86 @@ class MonthlyPerformanceTests(unittest.TestCase):
         self.assertEqual(gp.monthly_performance({"equity": []}), [])
 
 
+def _fill(sym, side, qty, price, ts):
+    return {"symbol": sym, "side": side, "qty": str(qty), "price": str(price),
+            "transaction_time": ts}
+
+
+class ClosedTradesTests(unittest.TestCase):
+    def test_simple_round_trip(self):
+        fills = [_fill("VIK", "buy", 100, 80.0, "2026-05-01T14:00:00Z"),
+                 _fill("VIK", "sell", 100, 88.0, "2026-05-10T14:00:00Z")]
+        out = gp.closed_trades(fills)
+        self.assertEqual(len(out), 1)
+        t = out[0]
+        self.assertEqual(t["symbol"], "VIK")
+        self.assertEqual(t["qty"], 100)
+        self.assertEqual(t["pnl"], 800.0)
+        self.assertEqual(t["pct"], 10.0)
+        self.assertEqual(t["hold_days"], 9)
+
+    def test_partial_fills_aggregate_per_exit_date(self):
+        # 3 partial sells on the same day collapse into one trade row
+        fills = [_fill("SNDK", "buy", 24, 1000.0, "2026-04-28T14:00:00Z"),
+                 _fill("SNDK", "sell", 18, 1400.0, "2026-05-06T14:00:00Z"),
+                 _fill("SNDK", "sell", 2, 1400.0, "2026-05-06T14:01:00Z"),
+                 _fill("SNDK", "sell", 4, 1400.0, "2026-05-06T14:02:00Z")]
+        out = gp.closed_trades(fills)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["qty"], 24)
+        self.assertEqual(out[0]["pnl"], 9600.0)
+
+    def test_fifo_across_lots_and_weighted_entry(self):
+        fills = [_fill("MU", "buy", 10, 100.0, "2026-05-01T14:00:00Z"),
+                 _fill("MU", "buy", 10, 120.0, "2026-05-02T14:00:00Z"),
+                 _fill("MU", "sell", 20, 130.0, "2026-05-08T14:00:00Z")]
+        out = gp.closed_trades(fills)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["avg_entry"], 110.0)
+        self.assertEqual(out[0]["pnl"], 400.0)
+        self.assertEqual(out[0]["entry_date"], "2026-05-01")
+
+    def test_since_filter_drops_old_exits(self):
+        fills = [_fill("ALGM", "buy", 10, 40.0, "2023-02-08T14:00:00Z"),
+                 _fill("ALGM", "sell", 10, 50.0, "2023-06-01T14:00:00Z"),
+                 _fill("VIK", "buy", 10, 80.0, "2026-05-01T14:00:00Z"),
+                 _fill("VIK", "sell", 10, 88.0, "2026-05-10T14:00:00Z")]
+        out = gp.closed_trades(fills, since="2026-01-01")
+        self.assertEqual([t["symbol"] for t in out], ["VIK"])
+
+    def test_sell_without_lot_is_skipped(self):
+        fills = [_fill("XYZ", "sell", 10, 50.0, "2026-05-01T14:00:00Z")]
+        self.assertEqual(gp.closed_trades(fills), [])
+
+    def test_newest_first(self):
+        fills = [_fill("A", "buy", 1, 10.0, "2026-05-01T14:00:00Z"),
+                 _fill("A", "sell", 1, 11.0, "2026-05-02T14:00:00Z"),
+                 _fill("B", "buy", 1, 10.0, "2026-05-03T14:00:00Z"),
+                 _fill("B", "sell", 1, 9.0, "2026-05-04T14:00:00Z")]
+        out = gp.closed_trades(fills)
+        self.assertEqual([t["symbol"] for t in out], ["B", "A"])
+
+
+class TradeStatsTests(unittest.TestCase):
+    def test_stats(self):
+        trades = [{"pnl": 1000.0}, {"pnl": 500.0}, {"pnl": -300.0}]
+        s = gp.trade_stats(trades)
+        self.assertEqual(s["count"], 3)
+        self.assertEqual(s["wins"], 2)
+        self.assertEqual(s["losses"], 1)
+        self.assertEqual(s["win_rate"], 66.7)
+        self.assertEqual(s["net"], 1200.0)
+        self.assertEqual(s["avg_win"], 750.0)
+        self.assertEqual(s["avg_loss"], -300.0)
+        self.assertEqual(s["payoff"], 2.5)
+
+    def test_empty(self):
+        s = gp.trade_stats([])
+        self.assertEqual(s["count"], 0)
+        self.assertEqual(s["win_rate"], 0.0)
+        self.assertEqual(s["payoff"], 0.0)
+
+
 class GenerateHtmlTests(unittest.TestCase):
     def test_smoke_with_position(self):
         account = {"equity": "100000", "last_equity": "99500",
@@ -130,7 +210,11 @@ class GenerateHtmlTests(unittest.TestCase):
             "unrealized_pl": "100", "unrealized_plpc": "0.10",
         }]
         history = {"timestamp": [1704067200, 1704153600], "equity": [90000.0, 100000.0]}
-        html = gp.generate_html(account, positions, history)
+        trades = [{"symbol": "MU", "entry_date": "2026-04-30",
+                   "exit_date": "2026-05-07", "qty": 47, "avg_entry": 504.19,
+                   "avg_exit": 647.34, "pnl": 6728.0, "pct": 28.4,
+                   "hold_days": 7}]
+        html = gp.generate_html(account, positions, history, trades=trades)
         self.assertIn("Claude Model Portfolio", html)
         self.assertIn("Equity Curve", html)
         self.assertIn("Total Return", html)
@@ -140,6 +224,17 @@ class GenerateHtmlTests(unittest.TestCase):
         self.assertIn("heat-pos", html)
         self.assertIn("1.1%", html)
         self.assertIn("$500", html)
+        self.assertIn("Trade History", html)
+        self.assertIn("1 closed trades", html)
+        # open positions section renders before the MoM panel
+        self.assertLess(html.index("Open Positions"),
+                        html.index("Month-over-Month Performance"))
+
+    def test_no_trades_renders_empty_state(self):
+        account = {"equity": "100000", "last_equity": "100000",
+                   "cash": "100000", "buying_power": "100000"}
+        html = gp.generate_html(account, [], {})
+        self.assertIn("No closed trades yet", html)
 
     def test_total_return_unavailable_without_history(self):
         account = {"equity": "100000", "last_equity": "99500",
