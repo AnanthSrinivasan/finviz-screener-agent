@@ -1,6 +1,8 @@
 # Spec — Live Alpaca Executor (agent-traded real-money account)
 
-**Status:** DRAFT — awaiting user approval. Do not implement until approved.
+**Status:** APPROVED 2026-06-12 — user decisions: cap 3 · NO dry-run (straight
+live, user's explicit call against recommendation) · breakers confirmed
+(−3% day / −15% DD) · full exits only, winners realized in the +20–30% band.
 **Date:** 2026-06-12
 **Owner request:** 2026-06-11 — "i am going to ask you to start agent trade on alpaca live account … i am giving alpaca live which has 5k or so … i want for live also no distractions with multi tickers"
 
@@ -53,8 +55,8 @@ pass runs inside the existing position-monitor schedule.
 
 1. **Notional (fractional) orders.** $5k cannot buy whole shares of SNDK-class
    names. Buys submit as `notional` dollars; sells submit fractional `qty`.
-   Floor: skip any order < $10; skip T1/T2 peel legs worth < $25.
-2. **Position cap 2** (user: "no distractions with multi tickers"). Base size =
+   Floor: skip any order < $10.
+2. **Position cap 3** (user decision 2026-06-12). Base size =
    `equity / cap × size_mul`; the market-state and sizing-mode multipliers
    apply unchanged.
 3. **Marketable-limit instead of market orders.** Limit = `last × 1.005`, TIF
@@ -69,19 +71,31 @@ pass runs inside the existing position-monitor schedule.
      symbol not on today's qualified list.
 5. **Idempotent orders.** `client_order_id = "live-{YYYYMMDD}-{ticker}"` so a
    retried workflow can never double-buy.
-6. **Dry-run phase.** `LIVE_DRY_RUN=1`: full pipeline runs and Slack-logs every
-   order it *would* place, submits nothing. Ships ON.
+6. **Full exits only — no T1/T2 peels** (user decision 2026-06-12: "full exit
+   is fine at 20-30%"). Winner realization band +20–30%: once `peak_gain_pct
+   ≥ 20%` the existing tight tier trail (1.25/1.0×ATR off
+   `highest_price_seen`) manages the position; a **hard full take-profit
+   fires at +30%** gain. Either way the entire position exits in one order —
+   no fragments. Stops/trails likewise sell the full position.
+7. **Dry-run flag exists but ships OFF** (user decision 2026-06-12: no dry-run
+   week — straight live). `LIVE_DRY_RUN=1` remains available for debugging.
+   Compensating control: the **first live run is a manually dispatched
+   workflow** (not cron) so the user sees order #1 land; cron entries activate
+   after that first verified run. The order-sanity checks + idempotent
+   client_order_ids are the safety net.
 
 Note: PDT is no longer a constraint — FINRA removed the $25k pattern-day-trader
 rule effective 2026-06-04 (Reg Notice 26-10).
 
 ## 5. Rollout
 
-- **Phase 0 (week 1):** dry-run on. Verify order logs against paper's actual
-  entries — they should match modulo sizing.
-- **Phase 1 (months 1–2):** live. Cap 2, breakers armed, notional sizing.
-- **Phase 2:** compare live vs paper stats (fill slippage, same-signal P&L
-  delta). Scaling = user funds the account; no code change.
+- **Prerequisite:** user generates LIVE API keys in the Alpaca dashboard
+  (live keys are separate from paper keys) → added as GH secrets
+  `ALPACA_LIVE_API_KEY` / `ALPACA_LIVE_SECRET_KEY`.
+- **Phase 1 (day 1):** first run via manual workflow_dispatch, user watching.
+  Then cron-armed: cap 3, breakers armed, notional sizing, full-exit policy.
+- **Phase 2 (after ~2 months):** compare live vs paper stats (fill slippage,
+  same-signal P&L delta). Scaling = user funds the account; no code change.
 
 ## 6. Out of scope
 
@@ -89,11 +103,12 @@ rule effective 2026-06-04 (Reg Notice 26-10).
 - A live twin of `claude_portfolio.html` (phase 2 if wanted).
 - Changing paper behavior in any way.
 
-## 7. Open questions for user
+## 7. Decisions log
 
-1. **Position cap — 2 or 3?** (Spec assumes 2 for a $5k account.)
-2. **Dry-run week — keep, or go straight live?** (Strong recommend: keep.)
-3. **Breaker numbers OK?** (−3% daily halt · −15% drawdown suspend.)
-4. **T1/T2 peels at this size?** Halving a ~$2.5k position leaves fragments;
-   alternative is full-position exits only (simpler, less churn). Spec assumes
-   peels stay ON with the $25 floor.
+All open questions resolved by user 2026-06-12:
+
+1. Position cap → **3**
+2. Dry-run week → **NO** (straight live; recommendation to keep was declined —
+   compensating control: manual first dispatch, see §4.7)
+3. Breakers → **confirmed** (−3% daily halt · −15% drawdown suspend)
+4. Peels → **OFF — full exits only**, winners realized in the +20–30% band
