@@ -2,14 +2,14 @@
   "open_positions": [
     {
       "ticker": "DAVE",
-      "shares": 50,
-      "entry_price": 279.69,
+      "shares": 75,
+      "entry_price": 282.79,
       "entry_date": "2026-06-11",
-      "stop_price": 279.69,
+      "stop_price": 282.79,
       "breakeven_activated": false,
-      "target1": 335.63,
+      "target1": 339.35,
       "target1_hit": false,
-      "target2": 391.57,
+      "target2": 395.91,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 285.43,
@@ -32,6 +32,23 @@
       "highest_price_seen": 208.06,
       "current_gain_pct": -0.69,
       "first_entry_price": 208.06,
+      "peak_gain_pct": 0.0
+    },
+    {
+      "ticker": "SPCX",
+      "shares": 19,
+      "entry_price": 135.0,
+      "entry_date": "2026-06-12",
+      "stop_price": 135.0,
+      "breakeven_activated": false,
+      "target1": 162.0,
+      "target1_hit": false,
+      "target2": 189.0,
+      "thesis": "User manual entry 2026-06-12 \u2014 stop at entry per user instruction, alert-only",
+      "status": "active",
+      "highest_price_seen": 135.0,
+      "current_gain_pct": 0.0,
+      "first_entry_price": 135.0,
       "peak_gain_pct": 0.0
     }
   ],
