@@ -150,9 +150,9 @@
     "p90": 13.0,
     "max_seen": 16.0,
     "runs": 6,
-    "atr_pct_avg": 4.53,
+    "atr_pct_avg": 4.54,
     "calibrated": true,
-    "updated": "2026-06-06"
+    "updated": "2026-06-13"
   },
   "SQM": {
     "signal": 10.0,
@@ -1073,9 +1073,9 @@
     "p90": 9.7,
     "max_seen": 10.7,
     "runs": 3,
-    "atr_pct_avg": 3.18,
+    "atr_pct_avg": 3.19,
     "calibrated": true,
-    "updated": "2026-06-06"
+    "updated": "2026-06-13"
   },
   "STNG": {
     "signal": 10.0,
@@ -1691,7 +1691,7 @@
     "runs": 6,
     "atr_pct_avg": 4.58,
     "calibrated": true,
-    "updated": "2026-06-12"
+    "updated": "2026-06-13"
   },
   "MRAM": {
     "signal": 13.1,
@@ -1852,9 +1852,9 @@
     "p90": 12.5,
     "max_seen": 15.6,
     "runs": 7,
-    "atr_pct_avg": 5.44,
+    "atr_pct_avg": 5.45,
     "calibrated": true,
-    "updated": "2026-06-06"
+    "updated": "2026-06-13"
   },
   "ALMU": {
     "signal": 10.2,
@@ -1960,9 +1960,9 @@
     "p90": 8.0,
     "max_seen": 8.3,
     "runs": 6,
-    "atr_pct_avg": 4.42,
+    "atr_pct_avg": 4.43,
     "calibrated": true,
-    "updated": "2026-06-06"
+    "updated": "2026-06-13"
   },
   "LIND": {
     "signal": 10.4,
@@ -2894,7 +2894,7 @@
     "runs": 7,
     "atr_pct_avg": 12.95,
     "calibrated": true,
-    "updated": "2026-06-12"
+    "updated": "2026-06-13"
   },
   "ARKX": {
     "signal": 12.1,
@@ -3319,5 +3319,11 @@
     "atr_pct_avg": 2.24,
     "calibrated": true,
     "updated": "2026-06-06"
+  },
+  "SPCX": {
+    "calibrated": false,
+    "reason": "insufficient_data",
+    "runs": 0,
+    "updated": "2026-06-13"
   }
 }
