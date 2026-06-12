@@ -512,7 +512,10 @@ def place_live_buy(symbol: str, notional: float, limit_price: float,
         )
         log.info(msg)
         slack_send(msg)
-        return {}
+        # Simulated fill — caller counts it toward the position cap so the
+        # dry-run previews exactly what a real run would place, but must not
+        # persist stops or any other state.
+        return {"dry_run": True}
     try:
         resp = requests.post(
             f"{ALPACA_BASE_URL}/orders",
@@ -971,6 +974,9 @@ if __name__ == "__main__":
         total_deployed += dollar_actual
         buying_power   -= dollar_actual
         pending_positions.add(ticker)
+
+        if isinstance(order_result, dict) and order_result.get("dry_run"):
+            continue  # simulated fill — no stops persistence, no real-order Slack
 
         # Step 6: Stop reference (2×ATR below entry)
         atr_pct    = row.get("ATR%", 0)
