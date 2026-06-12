@@ -47,12 +47,24 @@ jobs:
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
         run: python agents/trading/position_monitor.py
 
+      # Live (real-money) stop coverage every 30 min during market hours.
+      # MONITOR_QUIET suppresses HOLD/summary chatter — only sells and
+      # critical alerts post from here; the 3x-daily book runs stay verbose.
+      - name: Run Alpaca live monitor (quiet)
+        env:
+          TRADING_PROFILE: live
+          MONITOR_QUIET: '1'
+          ALPACA_LIVE_API_KEY: ${{ secrets.ALPACA_LIVE_API_KEY }}
+          ALPACA_LIVE_SECRET_KEY: ${{ secrets.ALPACA_LIVE_SECRET_KEY }}
+          ALPACA_LIVE_BASE_URL: ${{ secrets.ALPACA_LIVE_BASE_URL }}
+        run: python -m agents.trading.alpaca_monitor
+
       - name: Commit state changes
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/book_last_post.json data/position_history.json data/live_portfolio.html || true
+          git add data/positions.json data/trading_state.json data/live_alpaca_stops.json data/live_alpaca_trading_state.json data/book_last_post.json data/position_history.json data/live_portfolio.html || true
           git diff --cached --quiet || git commit -m "Critical event state update [skip ci]"
           git push || true
 

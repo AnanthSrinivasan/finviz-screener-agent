@@ -82,6 +82,14 @@ jobs:
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
         run: python -m agents.trading.alpaca_monitor
 
+      - name: Run Alpaca live monitor
+        env:
+          TRADING_PROFILE: live
+          ALPACA_LIVE_API_KEY: ${{ secrets.ALPACA_LIVE_API_KEY }}
+          ALPACA_LIVE_SECRET_KEY: ${{ secrets.ALPACA_LIVE_SECRET_KEY }}
+          ALPACA_LIVE_BASE_URL: ${{ secrets.ALPACA_LIVE_BASE_URL }}
+        run: python -m agents.trading.alpaca_monitor
+
       - name: Regenerate dashboard
         if: success()
         env:
@@ -107,7 +115,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/positions.json data/trading_state.json data/paper_stops.json data/watchlist.json data/book_last_post.json data/position_history.json data/claude_portfolio.html data/live_portfolio.html data/performance_2026.html dashboard.html watchlist.html || true
+          git add data/positions.json data/trading_state.json data/paper_stops.json data/live_alpaca_stops.json data/live_alpaca_trading_state.json data/watchlist.json data/book_last_post.json data/position_history.json data/claude_portfolio.html data/live_portfolio.html data/performance_2026.html dashboard.html watchlist.html || true
           git diff --cached --quiet || git commit -m "Update positions/trading state [skip ci]"
           git push || true
 

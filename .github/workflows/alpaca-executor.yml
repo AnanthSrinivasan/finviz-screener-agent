@@ -1,5 +1,10 @@
 name: Alpaca Paper Executor
 
+# Runs the paper executor, then the LIVE executor (TRADING_PROFILE=live —
+# dedicated live Alpaca account, spec: docs/specs/live-alpaca-executor.md).
+# Live entries stay disarmed until one manual workflow_dispatch has run with
+# the user watching (first_run_verified in data/live_alpaca_trading_state.json).
+
 on:
   workflow_run:
     workflows: ["Daily Finviz Screener"]
@@ -7,7 +12,19 @@ on:
   workflow_dispatch:
     inputs:
       cancel_ticker:
-        description: 'Cancel all open orders for this ticker (e.g. MRVL). Leave blank for normal run.'
+        description: 'Cancel all open PAPER orders for this ticker (e.g. MRVL). Leave blank for normal run.'
+        required: false
+        default: ''
+      live_dry_run:
+        description: 'LIVE pass dry-run (1 = evaluate + log, place no orders)'
+        required: false
+        default: ''
+      live_only:
+        description: 'Skip the paper pass (1 = live smoke test only)'
+        required: false
+        default: ''
+      live_reenable:
+        description: 'Clear the live drawdown-breaker suspension (1 = re-enable)'
         required: false
         default: ''
 
@@ -19,9 +36,7 @@ jobs:
     timeout-minutes: 15
     env:
       TZ: Europe/Luxembourg
-      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-      ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+      PYTHONPATH: .
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -40,21 +55,41 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Alpaca executor
+      - name: Run Alpaca executor (paper)
+        if: ${{ github.event.inputs.live_only != '1' }}
         env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
           CANCEL_TICKER: ${{ github.event.inputs.cancel_ticker || '' }}
-        run: python agents/trading/alpaca_executor.py
+        run: python -m agents.trading.alpaca_executor
 
-      - name: Commit paper stops
+      - name: Run Alpaca executor (LIVE)
+        # Skipped on paper cancel-ticker runs — live never touches orders it
+        # didn't create, and cancel mode is a paper maintenance action.
+        if: ${{ !github.event.inputs.cancel_ticker }}
+        env:
+          TRADING_PROFILE: live
+          ALPACA_LIVE_API_KEY: ${{ secrets.ALPACA_LIVE_API_KEY }}
+          ALPACA_LIVE_SECRET_KEY: ${{ secrets.ALPACA_LIVE_SECRET_KEY }}
+          ALPACA_LIVE_BASE_URL: ${{ secrets.ALPACA_LIVE_BASE_URL }}
+          LIVE_DRY_RUN: ${{ github.event.inputs.live_dry_run || '' }}
+          LIVE_REENABLE: ${{ github.event.inputs.live_reenable || '' }}
+          LIVE_MANUAL_DISPATCH: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
+        run: python -m agents.trading.alpaca_executor
+
+      - name: Commit executor state
         if: success()
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          if [ -f data/paper_stops.json ]; then
-            git add data/paper_stops.json
-          fi
-          git diff --staged --quiet || git commit -m "update paper stops [skip ci]"
-          git push || true
+          for f in data/paper_stops.json data/live_alpaca_stops.json data/live_alpaca_trading_state.json; do
+            if [ -f "$f" ]; then
+              git add "$f"
+            fi
+          done
+          git diff --staged --quiet || git commit -m "update executor stops/state [skip ci]"
+          git pull --rebase && git push || true
 
       - name: Notify on failure
         if: failure()

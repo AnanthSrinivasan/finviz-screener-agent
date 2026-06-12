@@ -42,7 +42,12 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Winners Watchlist | `winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
 | **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` (BUY placements + summary only) |
 | **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
+| **Live Executor** | `alpaca_executor.py` + `TRADING_PROFILE=live` | LIVE step in alpaca-executor.yml (after paper pass) | `#daily-alerts` (prefixed `[LIVE 🔴]`) |
+| **Live Monitor** | `alpaca_monitor.py` + `TRADING_PROFILE=live` | position-book.yml (3x verbose) + position-critical.yml (30-min, `MONITOR_QUIET=1` — sells/alerts only) | `#positions` (prefixed `[LIVE 🔴]`) |
 | Sector Rotation | `agents/sector_rotation.py` | 21:15 UTC Mon-Fri (Slack on Mon/Thu) | `#daily-alerts` |
+
+**Live Alpaca profile (2026-06-12 — spec [docs/specs/live-alpaca-executor.md](docs/specs/live-alpaca-executor.md)):**
+`agents/trading/trading_profile.py` resolves `TRADING_PROFILE` (paper default | live) into creds/base-URL/state-files/Slack-tag; executor + monitor are parameterized, not forked. The agent trades the **dedicated live Alpaca account (~$5k)** — a *scoped amendment* to the "never execute live orders" rule; **SnapTrade/Robinhood stays alert-only forever**. State: `data/live_alpaca_stops.json` + `data/live_alpaca_trading_state.json` (fresh streaks, independent of paper and of the user's manual `trading_state.json`). Live deltas: position cap **3** (`equity/3 × size_mul`, Q≥60 floor unchanged) · notional buys / fractional sells, $10 floor · marketable-limit buys (`last × 1.005`, day TIF; expired-unfilled logged `UNFILLED EOD — no chase`) · circuit breakers (−3% intraday → daily halt; equity < 85% high-water → `breaker_suspended`, re-enable only via dispatch input `live_reenable=1`) · order sanity (≤60% equity, today's qualified list only) · idempotent `client_order_id = "live-{YYYYMMDD}-{ticker}"` · **full exits only — NO T1/T2 peels**: ≥+20% tight tier trail + **hard full take-profit at +30%** · foreign positions refused (`[LIVE 🔴] FOREIGN POSITION` alert, never managed) · first-run gating: scheduled live entries skipped until `first_run_verified: true`, set by the first manual non-dry-run dispatch (`LIVE_DRY_RUN=1` evaluates but places/arms nothing). Tests: `tests/test_trading_profile.py`.
 
 **Note on naming:** `finviz_` prefix kept only where Finviz is the primary data source (`finviz_agent.py`, `finviz_weekly_agent.py`). All other agents renamed to reflect their actual data source (Alpaca, SnapTrade, etc.).
 
@@ -217,6 +222,9 @@ The position monitor has two layers:
 | `ALPACA_API_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_SECRET_KEY` | secret | Paper executor, paper monitor, premarket alert, market pulse |
 | `ALPACA_BASE_URL` | secret | Paper executor, paper monitor (`https://paper-api.alpaca.markets/v2`) |
+| `ALPACA_LIVE_API_KEY` | secret | Live executor + live monitor (`TRADING_PROFILE=live`, account 939406794) |
+| `ALPACA_LIVE_SECRET_KEY` | secret | Live executor + live monitor |
+| `ALPACA_LIVE_BASE_URL` | secret | Live executor + live monitor (`https://api.alpaca.markets/v2`) |
 | `AWS_ACCESS_KEY_ID` | secret | `archive_data.py` + `event_publisher.py` — bot key for `finviz-screener-bot` IAM user |
 | `AWS_SECRET_ACCESS_KEY` | secret | `archive_data.py` + `event_publisher.py` |
 | `AWS_BUCKET_NAME` | secret | `archive_data.py` (`screener-data-repository`) |
@@ -241,6 +249,8 @@ data/
   paper_stops.json                        # Paper trade state: {ticker: {stop_price, entry_price, atr_pct, entry_date, highest_price_seen, peak_gain_pct, breakeven_activated, target1, target2, target1_hit, pending_close}}
   book_last_post.json                     # Position-book digest log {last_book_post_ts, events_since_last: [{kind, ticker, message, ts, ...}]}. Accumulated by position_monitor.py between book runs; cleared on each book post.
   paper_trading_state.json                # Paper streaks/sizing — independent from live trading_state.json. Same schema (consecutive_wins/losses, current_sizing_mode, recent_trades). Drives executor's size_mul + suspended block.
+  live_alpaca_stops.json                  # LIVE Alpaca profile position state — same schema as paper_stops.json
+  live_alpaca_trading_state.json          # LIVE profile streaks/sizing + first_run_verified + breaker_suspended + high_water_equity + last_expired_check_ts. Fresh streaks — independent of paper AND manual trading_state.json.
   hidden_growth.json                      # Today's Hidden Growth candidates (overwritten daily) — {date, candidates: [{ticker, signal_score, criteria, eps_yy_ttm, eps_qq, inst_trans, appearances}]}
   rs_leaders.json                         # RS Leader persistent tracker — {ticker: {first_triggered, trigger_state, trigger_q, trigger_dist, trigger_atr_mult, rs_rating, current_status, last_active_date, pullback_started, reacquired_dates, days_tracked}}
   alerts_state.json                       # Breadth/F&G alert state (rolling 15-day)

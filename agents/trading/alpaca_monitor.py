@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # ----------------------------
-# Alpaca Paper Position Monitor
+# Alpaca Position Monitor (paper by default; TRADING_PROFILE=live for the
+# dedicated live Alpaca account — see docs/specs/live-alpaca-executor.md)
 # ----------------------------
-# Runs after market close (via position-monitor.yml).
-# For each open Alpaca paper position:
+# Runs inside the position-monitor schedule.
+# For each open Alpaca position:
 #   - Stop hit  → market sell
 #   - Stage 3/4 → market sell
+#   - Live only: +30% hard full take-profit · foreign-position refusal ·
+#     no T1/T2 peels (full exits only) · EOD unfilled-order log
 #   - Otherwise → hold, log P&L to Slack
 
 import ast
@@ -17,20 +20,29 @@ import datetime
 import requests
 
 from agents.trading import rules
+from agents.trading import trading_profile as tp
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
 # ----------------------------
-# Config
+# Config — resolved per TRADING_PROFILE (paper default | live)
 # ----------------------------
-ALPACA_API_KEY    = os.environ.get("ALPACA_API_KEY", "")
-ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
-ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
+PROFILE = tp.resolve_profile()
+IS_LIVE      = PROFILE["is_live"]
+LIVE_DRY_RUN = PROFILE["dry_run"]
+TAG          = PROFILE["slack_tag"]          # "[PAPER]" / "[LIVE 🔴]"
+# Quiet mode (30-min critical runs): suppress HOLD/summary chatter, keep
+# sells and alerts. Set by position-critical.yml so live stop coverage runs
+# intraday without spamming #positions.
+MONITOR_QUIET = (os.environ.get("MONITOR_QUIET") or "").strip() == "1"
+ALPACA_API_KEY    = PROFILE["api_key"]
+ALPACA_SECRET_KEY = PROFILE["secret_key"]
+ALPACA_BASE_URL   = PROFILE["base_url"]
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
-PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
-PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
+PAPER_STOPS_FILE  = os.path.join(DATA_DIR, PROFILE["stops_filename"])
+PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, PROFILE["state_filename"])
 MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 
 
@@ -70,25 +82,33 @@ def get_positions() -> list:
         return []
 
 
-def place_sell(symbol: str, qty: str) -> dict:
+def place_sell(symbol: str, qty: str, client_order_id: str = "") -> dict:
+    if IS_LIVE and LIVE_DRY_RUN:
+        msg = ":test_tube: " + TAG + " DRY RUN — would SELL " + symbol + " qty " + str(qty)
+        log.info(msg)
+        slack_send(msg)
+        return {}
+    payload = {
+        "symbol":        symbol,
+        "qty":           qty,
+        "side":          "sell",
+        "type":          "market",
+        "time_in_force": "day",
+    }
+    if client_order_id:
+        payload["client_order_id"] = client_order_id
     try:
         resp = requests.post(
             f"{ALPACA_BASE_URL}/orders",
             headers=alpaca_headers(),
-            json={
-                "symbol":        symbol,
-                "qty":           qty,
-                "side":          "sell",
-                "type":          "market",
-                "time_in_force": "day",
-            },
+            json=payload,
             timeout=15,
         )
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         log.error("Sell order failed for %s: %s", symbol, e)
-        slack_send(":x: *SELL FAILED* " + symbol + ": " + str(e))
+        slack_send(":x: " + (TAG + " " if IS_LIVE else "") + "*SELL FAILED* " + symbol + ": " + str(e))
         return {}
 
 
@@ -271,7 +291,7 @@ def apply_paper_rules(ticker: str, entry: dict, current_price: float,
                      day_high: float, atr_pct: float) -> tuple:
     """Thin shim — delegates to the shared rules engine."""
     return rules.apply_position_rules(ticker, entry, current_price, day_high,
-                                      atr_pct, label_prefix="PAPER")
+                                      atr_pct, label_prefix=PROFILE["label_prefix"])
 
 
 # ----------------------------
@@ -349,6 +369,36 @@ def fetch_recent_sell_fill(ticker: str, lookback_days: int = 7) -> float:
 
 
 # ----------------------------
+# Live EOD unfilled-order log — day-TIF buys that expired without a fill
+# ----------------------------
+def report_expired_live_buys(state: dict):
+    """Slack a "no chase" line for each agent-placed live BUY that expired or
+    was cancelled with zero fill. Dedup across runs via last_expired_check_ts."""
+    try:
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3)
+        resp = requests.get(
+            f"{ALPACA_BASE_URL}/orders",
+            headers=alpaca_headers(),
+            params={"status": "closed", "limit": 100, "direction": "desc",
+                    "after": cutoff.isoformat()},
+            timeout=10,
+        )
+        if not resp.ok:
+            log.warning("Could not fetch closed orders for EOD report: %s", resp.status_code)
+            return
+        since = state.get("last_expired_check_ts", "")
+        for o in tp.filter_expired_unfilled(resp.json(), since):
+            slack_send(
+                ":hourglass: " + TAG + " *UNFILLED EOD* — " + str(o.get("symbol"))
+                + " buy order " + str(o.get("status"))
+                + " unfilled (limit $" + str(o.get("limit_price")) + ") — no chase"
+            )
+        state["last_expired_check_ts"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    except Exception as e:
+        log.warning("report_expired_live_buys failed: %s", e)
+
+
+# ----------------------------
 # MA trail (post-close alert layer — Layer 1b)
 # ----------------------------
 def fetch_daily_closes(ticker: str, limit: int = 30) -> list:
@@ -392,18 +442,43 @@ def fetch_day_high_atr(ticker: str) -> tuple:
 # ----------------------------
 if __name__ == "__main__":
     today = datetime.date.today().strftime("%Y-%m-%d")
-    log.info("=== Alpaca monitor starting — %s ===", today)
+    log.info("=== Alpaca monitor starting — %s (profile=%s%s) ===",
+             today, PROFILE["name"], ", DRY RUN" if LIVE_DRY_RUN else "")
 
     if not ALPACA_API_KEY or not ALPACA_SECRET_KEY:
         log.error("Missing Alpaca credentials — aborting.")
-        slack_send(":x: *Alpaca monitor failed* — missing API credentials")
+        slack_send(":x: " + (TAG + " " if IS_LIVE else "") + "*Alpaca monitor failed* — missing API credentials")
         raise SystemExit(1)
+
+    paper_state = load_paper_trading_state()
+
+    # Live profile stays silent until the user has armed it with the first
+    # manual executor dispatch — no positions can exist before that.
+    if IS_LIVE and not paper_state.get("first_run_verified"):
+        log.info("Live profile not yet armed (first_run_verified false) — nothing to monitor.")
+        raise SystemExit(0)
 
     positions     = get_positions()
     market_state  = load_market_state()
     stops         = load_stops()
-    paper_state   = load_paper_trading_state()
     open_symbols  = {p.get("symbol", "") for p in positions}
+
+    if IS_LIVE:
+        # Hard boundary: the live agent refuses to manage positions it didn't
+        # open (one discretionary trade contaminates the experiment). Alert
+        # every run until the foreign position is gone.
+        foreign = [p for p in positions if p.get("symbol", "") not in stops]
+        for p in foreign:
+            slack_send(
+                ":bangbang: " + TAG + " *FOREIGN POSITION* " + str(p.get("symbol"))
+                + " — qty " + str(p.get("qty")) + " not opened by the agent. "
+                "Not managed: no stops, no exits. Close it manually or move it out."
+            )
+        if foreign:
+            positions = [p for p in positions if p.get("symbol", "") in stops]
+            open_symbols = {p.get("symbol", "") for p in positions}
+
+        report_expired_live_buys(paper_state)
 
     # Close-detection: tickers in stops but no longer in Alpaca positions.
     # Record win/loss/breakeven into paper_trading_state and pop from stops.
@@ -429,7 +504,7 @@ if __name__ == "__main__":
     for ticker, entry_px, exit_px, result_pct, src in closed_records:
         sign = "+" if result_pct >= 0 else ""
         slack_send(
-            ":checkered_flag: *[PAPER] CLOSED* " + ticker
+            ":checkered_flag: *" + TAG + " CLOSED* " + ticker
             + " entry $" + str(round(entry_px, 2))
             + " → exit $" + str(round(exit_px, 2))
             + " (" + sign + str(round(result_pct, 1)) + "%, " + src + ")"
@@ -437,14 +512,16 @@ if __name__ == "__main__":
 
     sizing_alerts = rules.update_sizing_mode(paper_state, market_state)
     for a in sizing_alerts:
-        slack_send("[PAPER] " + a)
+        slack_send(TAG + " " + a)
 
     if not positions:
-        log.info("No open paper positions to monitor.")
-        slack_send(
-            ":bar_chart: *Alpaca Monitor " + today + "* — No open positions. "
-            "Mode: " + paper_state.get("current_sizing_mode", "normal")
-        )
+        log.info("No open %s positions to monitor.", PROFILE["name"])
+        if not MONITOR_QUIET:
+            slack_send(
+                ":bar_chart: *" + (TAG + " " if IS_LIVE else "") + "Alpaca Monitor " + today
+                + "* — No open positions. "
+                "Mode: " + paper_state.get("current_sizing_mode", "normal")
+            )
         save_paper_trading_state(paper_state)
         save_stops(stops)
         raise SystemExit(0)
@@ -478,15 +555,38 @@ if __name__ == "__main__":
             qty_int = int(float(qty))
         except (TypeError, ValueError):
             qty_int = 0
-        peel_sells, qty_after_peel = process_target_peels(
-            ticker, rule_events, stop_info, qty_int, current,
-            sell_fn=place_sell, slack_fn=slack_send,
-        )
-        if peel_sells:
-            sells_placed += peel_sells
-            stop_info["pending_close"] = True
-            qty = str(qty_after_peel)
-            if qty_after_peel <= 0:
+        if IS_LIVE:
+            # Full exits only (user decision 2026-06-12) — no T1/T2 peels.
+            # Forward the engine's alerts; the tight ≥+20% tier trail plus the
+            # +30% hard take-profit below realize winners in one order.
+            for event in rule_events:
+                slack_send(event.get("message", ""))
+        else:
+            peel_sells, qty_after_peel = process_target_peels(
+                ticker, rule_events, stop_info, qty_int, current,
+                sell_fn=place_sell, slack_fn=slack_send,
+            )
+            if peel_sells:
+                sells_placed += peel_sells
+                stop_info["pending_close"] = True
+                qty = str(qty_after_peel)
+                if qty_after_peel <= 0:
+                    continue
+
+        # Live hard take-profit: +30% gain → the entire position exits now.
+        if IS_LIVE and tp.should_full_take_profit(entry_price, current):
+            result = place_sell(ticker, qty,
+                                client_order_id=tp.make_client_order_id(today, ticker, side="sell"))
+            if result:
+                sells_placed += 1
+                stop_info["pending_close"] = True
+                stop_info["close_source"] = "take_profit_30"
+                gain = (current - entry_price) / entry_price * 100
+                slack_send(
+                    ":moneybag: " + TAG + " *TAKE PROFIT +30%* " + ticker
+                    + " — sold full " + str(qty) + " sh @ ~$" + str(round(current, 2))
+                    + " (+" + str(round(gain, 1)) + "%) — winner realized, full exit"
+                )
                 continue
 
         # Layer 1b — post-close MA trail alert (alert-only, human decides)
@@ -499,7 +599,7 @@ if __name__ == "__main__":
             )
             if ma_alert:
                 slack_send(
-                    ":warning: *[PAPER] MA TRAIL* " + ticker
+                    ":warning: *" + TAG + " MA TRAIL* " + ticker
                     + " — close $" + str(ma_alert["last_close"])
                     + " < " + ma_alert["ma_type"] + " $" + str(ma_alert["last_ema"])
                     + " (" + ma_alert["tier"] + ", " + str(ma_alert["consecutive"])
@@ -510,17 +610,18 @@ if __name__ == "__main__":
         sell_reason = None
 
         # Stale cull — auto-sell positions that drifted flat for 14d with peak < +4%
+        sell_coid = tp.make_client_order_id(today, ticker, side="sell") if IS_LIVE else ""
         is_stale, stale_days, stale_peak = check_stale_position(stop_info)
         if is_stale and current > 0:
             log.info("%s: STALE — %dd open, peak +%.1f%% — auto-cull",
                      ticker, stale_days, stale_peak)
-            result = place_sell(ticker, qty)
+            result = place_sell(ticker, qty, client_order_id=sell_coid)
             if result:
                 sells_placed += 1
                 stop_info["pending_close"] = True
                 stop_info["close_source"] = "stale_cull"
                 slack_send(
-                    ":zzz: *[PAPER] STALE CULL* " + ticker
+                    ":zzz: *" + TAG + " STALE CULL* " + ticker
                     + " — " + str(stale_days) + "d open, peak only +"
                     + str(round(stale_peak, 1)) + "% · sold " + str(qty) + " sh "
                     + "@ ~$" + str(round(current, 2))
@@ -558,7 +659,7 @@ if __name__ == "__main__":
 
         if sell_reason:
             log.info("SELL %s — %s", ticker, sell_reason)
-            result = place_sell(ticker, qty)
+            result = place_sell(ticker, qty, client_order_id=sell_coid)
             if result:
                 sells_placed += 1
                 # Mark for close-detection on next run; entry kept so we can
@@ -568,7 +669,7 @@ if __name__ == "__main__":
                 pl_sign  = "+" if pl_dollar >= 0 else ""
                 pct_sign = "+" if pl_pct    >= 0 else ""
                 slack_send(
-                    ":large_red_circle: *[PAPER] SELL PLACED* " + ticker + "\n"
+                    ":large_red_circle: *" + TAG + " SELL PLACED* " + ticker + "\n"
                     "Reason: " + sell_reason + "\n"
                     "Qty: " + qty
                     + " | Entry: $" + str(round(entry_price, 2))
@@ -576,7 +677,7 @@ if __name__ == "__main__":
                     "P&L: " + pl_sign + str(int(pl_dollar))
                     + " (" + pct_sign + str(round(pl_pct, 1)) + "%)"
                 )
-        else:
+        elif not MONITOR_QUIET:
             # Hold — report current P&L with T1/T2/peak context
             stop_str = ""
             if stop_price is not None:
@@ -593,7 +694,7 @@ if __name__ == "__main__":
             pl_sign  = "+" if pl_dollar >= 0 else ""
             pct_sign = "+" if pl_pct    >= 0 else ""
             slack_send(
-                ":white_circle: *[PAPER] HOLD* " + ticker
+                ":white_circle: *" + TAG + " HOLD* " + ticker
                 + " — $" + str(round(current, 2))
                 + " | P&L: " + pl_sign + str(int(pl_dollar))
                 + " (" + pct_sign + str(round(pl_pct, 1)) + "%" + peak_str + ")"
@@ -605,21 +706,23 @@ if __name__ == "__main__":
     save_stops(stops)
     save_paper_trading_state(paper_state)
 
-    slack_send(
-        ":bar_chart: *Alpaca Monitor Summary — " + today + "*\n"
-        "Market: " + market_state + " | Mode: "
-        + paper_state.get("current_sizing_mode", "normal")
-        + " (W:" + str(paper_state.get("consecutive_wins", 0))
-        + " L:" + str(paper_state.get("consecutive_losses", 0)) + ")\n"
-        "Positions monitored: " + str(len(positions)) + "\n"
-        "Sells placed: " + str(sells_placed)
-    )
+    if not MONITOR_QUIET or sells_placed:
+        slack_send(
+            ":bar_chart: *" + (TAG + " " if IS_LIVE else "") + "Alpaca Monitor Summary — " + today + "*\n"
+            "Market: " + market_state + " | Mode: "
+            + paper_state.get("current_sizing_mode", "normal")
+            + " (W:" + str(paper_state.get("consecutive_wins", 0))
+            + " L:" + str(paper_state.get("consecutive_losses", 0)) + ")\n"
+            "Positions monitored: " + str(len(positions)) + "\n"
+            "Sells placed: " + str(sells_placed)
+        )
 
-    # Regenerate Claude model portfolio page (non-fatal).
-    try:
-        from utils.generators.generate_portfolio import main as _gen_portfolio
-        _gen_portfolio()
-    except Exception as e:
-        log.warning("Portfolio page generation failed: %s", e)
+    # Regenerate Claude model portfolio page (paper book only, non-fatal).
+    if not IS_LIVE:
+        try:
+            from utils.generators.generate_portfolio import main as _gen_portfolio
+            _gen_portfolio()
+        except Exception as e:
+            log.warning("Portfolio page generation failed: %s", e)
 
     log.info("=== Alpaca monitor done — %d sell(s) placed ===", sells_placed)

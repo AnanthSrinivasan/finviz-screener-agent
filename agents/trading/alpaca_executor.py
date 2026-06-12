@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # ----------------------------
-# Alpaca Paper Trading Executor
+# Alpaca Trading Executor (paper by default; TRADING_PROFILE=live for the
+# dedicated live Alpaca account — see docs/specs/live-alpaca-executor.md)
 # ----------------------------
 # Triggered after Daily Finviz Screener completes.
 # Steps:
-#   1. Regime check (SPY vs 200-day SMA)
+#   1. Market-state gate (breadth) + sizing-mode overlay
 #   2. Load today's screener CSV
 #   3. Get open positions + account from Alpaca
 #   4. Size each qualifying ticker
-#   5. Claude bull/bear thesis + VERDICT
-#   6. Place market buy orders
-#   7. Persist stop-loss reference to data/paper_stops.json
-#   8. Slack summary
+#   5. Place buy orders (paper: GTC limit whole shares · live: day
+#      marketable-limit notional with idempotent client_order_id)
+#   6. Persist stop-loss reference (paper_stops.json / live_alpaca_stops.json)
+#   7. Slack summary
 
 import argparse
 import ast
@@ -26,20 +27,26 @@ import re
 import requests
 import sys
 
+from agents.trading import trading_profile as tp
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
 # ----------------------------
-# Config
+# Config — resolved per TRADING_PROFILE (paper default | live)
 # ----------------------------
-ALPACA_API_KEY    = os.environ.get("ALPACA_API_KEY", "")
-ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
-ALPACA_BASE_URL   = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
+PROFILE = tp.resolve_profile()
+IS_LIVE      = PROFILE["is_live"]
+LIVE_DRY_RUN = PROFILE["dry_run"]
+TAG          = PROFILE["slack_tag"]          # "[PAPER]" / "[LIVE 🔴]"
+ALPACA_API_KEY    = PROFILE["api_key"]
+ALPACA_SECRET_KEY = PROFILE["secret_key"]
+ALPACA_BASE_URL   = PROFILE["base_url"]
 ALPACA_DATA_URL   = "https://data.alpaca.markets/v2"
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
 DATA_DIR          = os.environ.get("DATA_DIR", "data")
-PAPER_STOPS_FILE  = os.path.join(DATA_DIR, "paper_stops.json")
-PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, "paper_trading_state.json")
+PAPER_STOPS_FILE  = os.path.join(DATA_DIR, PROFILE["stops_filename"])
+PAPER_TRADING_STATE_FILE = os.path.join(DATA_DIR, PROFILE["state_filename"])
 MARKET_HISTORY_FILE = os.path.join(DATA_DIR, "market_monitor_history.json")
 WATCHLIST_FILE    = os.path.join(DATA_DIR, "watchlist.json")
 def effective_max_positions(market_state: str) -> int:
@@ -490,6 +497,53 @@ def place_order(symbol: str, qty: int, limit_price: float) -> dict:
         return {}
 
 
+def place_live_buy(symbol: str, notional: float, limit_price: float,
+                   client_order_id: str) -> dict:
+    """Live profile buy: notional dollars, marketable limit (last × 1.005),
+    day TIF — unfilled at EOD expires (monitor posts the no-chase log line).
+    client_order_id makes retried workflows idempotent (Alpaca rejects dups).
+    """
+    if LIVE_DRY_RUN:
+        msg = (
+            ":test_tube: " + TAG + " DRY RUN — would BUY " + symbol
+            + " $" + str(round(notional, 2))
+            + " @ limit $" + str(round(limit_price, 2))
+            + " (day, id " + client_order_id + ")"
+        )
+        log.info(msg)
+        slack_send(msg)
+        return {}
+    try:
+        resp = requests.post(
+            f"{ALPACA_BASE_URL}/orders",
+            headers=alpaca_headers(),
+            json={
+                "symbol":          symbol,
+                "notional":        str(round(notional, 2)),
+                "side":            "buy",
+                "type":            "limit",
+                "limit_price":     str(round(limit_price, 2)),
+                "time_in_force":   "day",
+                "client_order_id": client_order_id,
+            },
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        log.error("Live order failed for %s: %s", symbol, e)
+        slack_send(":x: " + TAG + " *ORDER FAILED* " + symbol
+                   + " $" + str(round(notional, 2)) + ": " + str(e))
+        return {}
+
+
+def save_trading_state(state: dict):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(PAPER_TRADING_STATE_FILE, "w") as f:
+        json.dump(state, f, indent=2)
+    log.info("%s saved.", os.path.basename(PAPER_TRADING_STATE_FILE))
+
+
 # ----------------------------
 # Step 6: Cancel stale GTC orders
 # ----------------------------
@@ -631,12 +685,15 @@ if __name__ == "__main__":
         slack_send(msg)
         raise SystemExit(0)
 
-    log.info("=== Alpaca executor starting — %s ===", today)
+    log.info("=== Alpaca executor starting — %s (profile=%s%s) ===",
+             today, PROFILE["name"], ", DRY RUN" if LIVE_DRY_RUN else "")
 
     # Step 1: Market state gate (breadth-based — single source of truth)
     market_state    = load_market_state()
     block, size_mul = _MARKET_GATE.get(market_state, (True, 0.0))
-    max_pos         = effective_max_positions(market_state)
+    # Live cap is fixed at 3 (user decision 2026-06-12) — no distractions
+    # with multi tickers; market state only ever tightens via block/size_mul.
+    max_pos         = tp.LIVE_MAX_POSITIONS if IS_LIVE else effective_max_positions(market_state)
     paper_state     = load_paper_trading_state()
     sizing_mode     = paper_state.get("current_sizing_mode", "normal")
 
@@ -667,8 +724,71 @@ if __name__ == "__main__":
     buying_power     = float(account.get("buying_power", 0) or 0)
 
     if portfolio_equity <= 0:
-        slack_send(":x: *Alpaca executor* — portfolio equity is zero or missing")
+        slack_send(":x: " + TAG + " *Alpaca executor* — portfolio equity is zero or missing")
         raise SystemExit(1)
+
+    # Live-only guard rails: circuit breakers + first-run gating.
+    # Exits are never gated here — the monitor manages open positions
+    # regardless; these only stop NEW entries.
+    if IS_LIVE:
+        last_equity = float(account.get("last_equity", 0) or 0)
+
+        # Manual re-enable after a drawdown suspension (workflow_dispatch input)
+        if (os.environ.get("LIVE_REENABLE") or "").strip().lower() in ("1", "true", "yes") \
+                and paper_state.get("breaker_suspended"):
+            paper_state["breaker_suspended"] = False
+            save_trading_state(paper_state)
+            slack_send(":unlock: " + TAG + " drawdown suspension CLEARED via manual dispatch — entries re-enabled")
+
+        if tp.update_high_water(paper_state, portfolio_equity):
+            save_trading_state(paper_state)
+
+        if paper_state.get("breaker_suspended"):
+            slack_send(
+                ":no_entry: " + TAG + " SUSPENDED — drawdown breaker active since "
+                + str(paper_state.get("breaker_suspended_date", "?"))
+                + ". No new entries. Re-enable via workflow_dispatch (live_reenable=1)."
+            )
+            raise SystemExit(0)
+
+        high_water = float(paper_state.get("high_water_equity", 0) or 0)
+        if tp.drawdown_suspend_triggered(portfolio_equity, high_water):
+            paper_state["breaker_suspended"] = True
+            paper_state["breaker_suspended_date"] = today
+            save_trading_state(paper_state)
+            slack_send(
+                ":rotating_light: " + TAG + " *DRAWDOWN BREAKER* — equity $"
+                + str(round(portfolio_equity, 2)) + " < 85% of high-water $"
+                + str(round(high_water, 2))
+                + ". Live profile suspended — re-enable via workflow_dispatch (live_reenable=1)."
+            )
+            raise SystemExit(0)
+
+        if tp.daily_halt_triggered(portfolio_equity, last_equity):
+            slack_send(
+                ":octagonal_sign: " + TAG + " *DAILY HALT* — equity "
+                + str(round(tp.intraday_change_pct(portfolio_equity, last_equity), 2))
+                + "% intraday (≤ −3%). No new entries today; exits unaffected."
+            )
+            raise SystemExit(0)
+
+        # First-run gating: cron/workflow_run entries stay disarmed until the
+        # user has run one manual dispatch and watched order #1 land. A DRY RUN
+        # passes through (places nothing, arms nothing) so wiring can be
+        # smoke-tested without arming the cron.
+        if not paper_state.get("first_run_verified") and not LIVE_DRY_RUN:
+            manual = (os.environ.get("LIVE_MANUAL_DISPATCH") or "").strip() == "1"
+            if manual:
+                paper_state["first_run_verified"] = True
+                save_trading_state(paper_state)
+                slack_send(":white_check_mark: " + TAG
+                           + " FIRST RUN — manual dispatch verified; scheduled entries armed from now on")
+            else:
+                slack_send(
+                    ":hourglass: " + TAG + " entries skipped — first run not yet "
+                    "verified. Run the executor workflow manually (workflow_dispatch) to arm."
+                )
+                raise SystemExit(0)
 
     log.info(
         "Open positions: %d/%d | Equity: $%.2f | BP: $%.2f",
@@ -677,7 +797,7 @@ if __name__ == "__main__":
 
     if len(open_positions) >= max_pos:
         msg = (
-            ":no_entry: *MAX POSITIONS REACHED* — "
+            ":no_entry: " + (TAG + " " if IS_LIVE else "") + "*MAX POSITIONS REACHED* — "
             + str(len(open_positions))
             + "/"
             + str(max_pos)
@@ -688,7 +808,10 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     # Step 4–7: Evaluate and trade
-    cancel_stale_gtc_orders(max_age_days=2)
+    if not IS_LIVE:
+        # Paper uses GTC limit orders that can go stale. Live places day-TIF
+        # orders only and must never cancel anything it didn't create.
+        cancel_stale_gtc_orders(max_age_days=2)
     stops           = load_stops()
     orders_placed   = 0
     total_deployed  = 0.0
@@ -711,10 +834,11 @@ if __name__ == "__main__":
     # Market-state gate: in RED/DANGER/BLACKOUT (or sizing=suspended), don't trade —
     # but post a Slack alert listing the would-have-bought candidates so the human
     # can decide. Mirrors live's "no entries in RED" rule with an informational layer.
+    entries_label = TAG if IS_LIVE else "PAPER"
     if block:
         if sorted_rows:
             lines = [
-                ":no_entry: *PAPER ENTRIES BLOCKED* — market " + market_state
+                ":no_entry: *" + entries_label + " ENTRIES BLOCKED* — market " + market_state
                 + (", sizing " + sizing_mode if sizing_mode != "normal" else "")
                 + ". " + str(len(sorted_rows)) + " candidate(s) — your call:"
             ]
@@ -726,12 +850,15 @@ if __name__ == "__main__":
             slack_send("\n".join(lines))
         else:
             slack_send(
-                ":no_entry: *PAPER ENTRIES BLOCKED* — market " + market_state
+                ":no_entry: *" + entries_label + " ENTRIES BLOCKED* — market " + market_state
                 + ". No qualifying candidates today."
             )
         raise SystemExit(0)
 
     log.info("Market %s | sizing %s | size_mul=%.2f", market_state, sizing_mode, size_mul)
+
+    # Today's qualified list — live order sanity hard-rejects anything else.
+    qualified_tickers = {(r.get("Ticker") or "").strip() for r in sorted_rows}
 
     for row in sorted_rows:
         ticker = (row.get("Ticker") or "").strip()
@@ -748,9 +875,13 @@ if __name__ == "__main__":
 
         qs = row.get("Quality Score", 0)
 
-        # Compute allocation
-        vcp_dict     = row.get("VCP", {})
-        dollar_alloc = compute_allocation(qs, vcp_dict, portfolio_equity) * size_mul
+        # Compute allocation — live: equity / cap × size_mul (spec §4.2);
+        # paper: Q-tier percentage of equity.
+        vcp_dict = row.get("VCP", {})
+        if IS_LIVE:
+            dollar_alloc = tp.compute_live_allocation(portfolio_equity, size_mul, qs)
+        else:
+            dollar_alloc = compute_allocation(qs, vcp_dict, portfolio_equity) * size_mul
         if dollar_alloc <= 0:
             log.info("Skipping %s — no allocation (Q=%.0f)", ticker, qs)
             continue
@@ -785,35 +916,56 @@ if __name__ == "__main__":
             slack_send(":warning: *" + ticker + "* — price fetch failed, skipped")
             continue
 
-        shares = math.floor(dollar_alloc / price)
-        if shares < 1:
+        if IS_LIVE:
+            # Notional (fractional) order — $5k can't buy whole shares of
+            # SNDK-class names. Clamp to buying power, then sanity-gate.
+            notional = round(min(dollar_alloc, buying_power), 2)
+            ok, reason = tp.live_order_sanity(notional, portfolio_equity, ticker, qualified_tickers)
+            if not ok:
+                log.info("Skipping %s — order sanity: %s", ticker, reason)
+                slack_send(":no_entry_sign: " + TAG + " *SKIPPED* " + ticker + " — " + reason)
+                continue
+            shares        = 0  # fractional — qty comes from the fill
+            dollar_actual = notional
+            limit_price   = tp.marketable_limit(price)
+            coid          = tp.make_client_order_id(today, ticker)
             log.info(
-                "Skipping %s — alloc $%.0f / price $%.2f = %.2f shares < 1",
-                ticker, dollar_alloc, price, dollar_alloc / price,
+                "Placing LIVE BUY %s: $%.2f notional, limit $%.2f (day, %s)",
+                ticker, notional, limit_price, coid,
             )
-            continue
+            order_result = place_live_buy(ticker, notional, limit_price, coid)
+            if not order_result:
+                continue
+        else:
+            shares = math.floor(dollar_alloc / price)
+            if shares < 1:
+                log.info(
+                    "Skipping %s — alloc $%.0f / price $%.2f = %.2f shares < 1",
+                    ticker, dollar_alloc, price, dollar_alloc / price,
+                )
+                continue
 
-        dollar_actual = shares * price
+            dollar_actual = shares * price
 
-        if dollar_actual > buying_power:
-            log.warning(
-                "Skipping %s — $%.0f exceeds buying power $%.0f",
-                ticker, dollar_actual, buying_power,
+            if dollar_actual > buying_power:
+                log.warning(
+                    "Skipping %s — $%.0f exceeds buying power $%.0f",
+                    ticker, dollar_actual, buying_power,
+                )
+                slack_send(
+                    ":warning: *" + ticker + "* — insufficient buying power "
+                    "($" + str(int(buying_power)) + " available), skipped"
+                )
+                continue
+
+            # Step 5: Place GTC limit order at close price
+            log.info(
+                "Placing BUY %s: %d shares limit $%.2f = $%.0f (GTC)",
+                ticker, shares, price, dollar_actual,
             )
-            slack_send(
-                ":warning: *" + ticker + "* — insufficient buying power "
-                "($" + str(int(buying_power)) + " available), skipped"
-            )
-            continue
-
-        # Step 5: Place GTC limit order at close price
-        log.info(
-            "Placing BUY %s: %d shares limit $%.2f = $%.0f (GTC)",
-            ticker, shares, price, dollar_actual,
-        )
-        order_result = place_order(ticker, shares, price)
-        if not order_result:
-            continue
+            order_result = place_order(ticker, shares, price)
+            if not order_result:
+                continue
 
         orders_placed  += 1
         total_deployed += dollar_actual
@@ -836,19 +988,31 @@ if __name__ == "__main__":
         vcp_ok = vcp_dict.get("vcp_possible", False) if isinstance(vcp_dict, dict) else False
 
         # Step 7: Per-trade Slack alert
-        slack_send(
-            ":large_green_circle: *LIMIT ORDER PLACED* " + ticker + " (GTC)\n"
-            "Shares: " + str(shares) + " @ limit $" + str(round(price, 2))
-            + " = *$" + str(int(dollar_actual)) + "*\n"
-            "Stop: $" + str(stop_price)
-            + " (2×ATR = $" + str(round(atr_dollar, 2)) + ")\n"
-            "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
-            "_Fills at open if price ≤ limit — no chase if gap-up_"
-        )
+        if IS_LIVE:
+            slack_send(
+                ":large_green_circle: " + TAG + " *LIMIT ORDER PLACED* " + ticker + " (day)\n"
+                "Notional: *$" + str(round(dollar_actual, 2))
+                + "* @ limit $" + str(tp.marketable_limit(price))
+                + " (last $" + str(round(price, 2)) + " × 1.005)\n"
+                "Stop ref: $" + str(stop_price)
+                + " (2×ATR = $" + str(round(atr_dollar, 2)) + ")\n"
+                "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
+                "_Day TIF — expires unfilled at EOD, no chase_"
+            )
+        else:
+            slack_send(
+                ":large_green_circle: *LIMIT ORDER PLACED* " + ticker + " (GTC)\n"
+                "Shares: " + str(shares) + " @ limit $" + str(round(price, 2))
+                + " = *$" + str(int(dollar_actual)) + "*\n"
+                "Stop: $" + str(stop_price)
+                + " (2×ATR = $" + str(round(atr_dollar, 2)) + ")\n"
+                "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
+                "_Fills at open if price ≤ limit — no chase if gap-up_"
+            )
 
     # Step 8: Summary
     slack_send(
-        ":bar_chart: *Alpaca Executor Summary — " + today + "*\n"
+        ":bar_chart: *" + (TAG + " " if IS_LIVE else "") + "Alpaca Executor Summary — " + today + "*\n"
         "Market: " + market_state + " | Mode: " + sizing_mode
         + " | Size multiplier: " + str(size_mul) + "x\n"
         "Positions opened today: *" + str(orders_placed) + "*\n"

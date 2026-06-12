@@ -837,6 +837,9 @@ Not needed yet. Revisit if automated execution is added.
 | `ALPACA_API_KEY` | alpaca_executor.py, alpaca_monitor.py, position_monitor.py (intraday day_high via Alpaca snapshot) |
 | `ALPACA_SECRET_KEY` | alpaca_executor.py, alpaca_monitor.py, position_monitor.py |
 | `ALPACA_BASE_URL` | alpaca_executor.py, alpaca_monitor.py (`https://paper-api.alpaca.markets/v2`) |
+| `ALPACA_LIVE_API_KEY` | alpaca_executor.py + alpaca_monitor.py when `TRADING_PROFILE=live` (dedicated live account, §10.7) |
+| `ALPACA_LIVE_SECRET_KEY` | same as above |
+| `ALPACA_LIVE_BASE_URL` | same as above (`https://api.alpaca.markets/v2`) |
 | `AWS_ACCESS_KEY_ID` | archive_data.py (bot key for `finviz-screener-bot`) |
 | `AWS_SECRET_ACCESS_KEY` | archive_data.py |
 | `AWS_BUCKET_NAME` | archive_data.py (`screener-data-repository`) |
@@ -1132,6 +1135,60 @@ Spec: `docs/specs/paper-auto-peel-and-live-dashboard.md`.
 Runs 9am ET Mon–Fri. For each `priority=focus` watchlist ticker, reports setup readiness and a sizing label driven by conviction score.
 
 **Q-rank fallback:** `_load_conviction()` walks back up to 10 `daily_quality_*.json` files so a focus-list ticker that has temporarily dropped off today's Finviz screener still displays its most recent rank, rendered as `Q:81 (2d)` to flag the staleness. Only `Q:0` when the ticker is absent from the full 10-day window. Sizing (`AGGRESSIVE / NORMAL / REDUCED`) uses the recovered rank.
+
+### 10.7 Live Alpaca Executor — `TRADING_PROFILE=live` (2026-06-12)
+
+**Spec:** `docs/specs/live-alpaca-executor.md` (APPROVED 2026-06-12). The agent
+auto-trades the user's **dedicated live Alpaca account (~$5k)** with the exact
+same signal pipeline as paper. Discipline experiment, not a scale-up. This is a
+*scoped amendment* to the "system never places live orders" rule — live
+execution is authorized ONLY for this account; **SnapTrade/Robinhood stays
+alert-only forever**.
+
+**Architecture — profile, not fork.** `agents/trading/trading_profile.py`
+resolves `TRADING_PROFILE` (paper default | live) into credentials, base URL,
+state files and Slack tag; `alpaca_executor.py` + `alpaca_monitor.py` read the
+profile at import. State: `data/live_alpaca_stops.json` +
+`data/live_alpaca_trading_state.json` (own streaks — starts clean, independent
+of both paper and the user's manual `trading_state.json`). Slack prefix
+`[LIVE 🔴]`.
+
+**Live deltas vs paper:**
+- **Position cap 3** · base size = `equity / 3 × size_mul` (market-state +
+  sizing-mode multipliers unchanged; Q ≥ 60 still the eligibility floor).
+- **Notional buys / fractional sells**, $10 order floor.
+- **Marketable-limit buys**: `last × 1.005`, day TIF — unfilled at EOD expires;
+  monitor posts an `UNFILLED EOD — no chase` log line (dedup via
+  `last_expired_check_ts`).
+- **Circuit breakers** (in `trading_profile.py`, unit-tested): −3% intraday vs
+  `last_equity` → daily halt (no new entries today) · equity < 85% of
+  high-water (`high_water_equity`, ratcheted each run) → self-suspend
+  (`breaker_suspended` flag; re-enable only via workflow_dispatch input
+  `live_reenable=1`).
+- **Order sanity:** reject > 60% of equity, reject symbols not on today's
+  qualified list, $10 floor.
+- **Idempotent orders:** `client_order_id = "live-{YYYYMMDD}-{ticker}"`
+  (sells: `live-sell-…`) — a retried workflow can never double-buy.
+- **Full exits only — NO T1/T2 peels.** The ≥+20% tight tier trail
+  (1.25/1.0×ATR off peak) manages winners; a **hard full take-profit fires at
+  +30%**. Stops/trails/stale-cull likewise sell the entire position.
+- **Foreign positions refused:** the live monitor alerts `[LIVE 🔴] FOREIGN
+  POSITION` on any symbol it didn't open and will not manage it.
+- **First-run gating:** scheduled (workflow_run/cron) live entries are skipped
+  until `first_run_verified: true` in `live_alpaca_trading_state.json` — set
+  automatically by the first **manual, non-dry-run** workflow_dispatch of the
+  executor (user watching order #1 land). `LIVE_DRY_RUN=1` evaluates the whole
+  pipeline but places nothing and arms nothing.
+
+**Workflows (no new crons):** `alpaca-executor.yml` runs the paper pass then
+the LIVE pass (dispatch inputs: `live_dry_run`, `live_only`, `live_reenable`);
+`position-book.yml` runs the live monitor verbose 3×/day;
+`position-critical.yml` runs it every 30 min with `MONITOR_QUIET=1`
+(sells/alerts only, no HOLD spam).
+
+**Tests:** `tests/test_trading_profile.py` — sizing, breakers, sanity,
+idempotent ids, full-exit threshold, expired-order filter, paper-default
+wiring guards.
 
 ---
 
