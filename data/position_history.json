@@ -1,30 +1,82 @@
 {
-  "updated": "2026-06-12T22:58:07.470297Z",
+  "updated": "2026-06-15T18:03:15.152638Z",
   "history": {
-    "TWLO": [
+    "AMD": [
       {
-        "date": "2026-05-28T18:28:05Z",
+        "date": "2026-04-13T17:05:35Z",
         "action": "BUY",
-        "shares": 50.0,
-        "price": 186.75
+        "shares": 25.0,
+        "price": 246.055
       },
       {
-        "date": "2026-06-01T14:19:38Z",
+        "date": "2026-04-14T16:01:39Z",
+        "action": "BUY",
+        "shares": 15.0,
+        "price": 252.06
+      },
+      {
+        "date": "2026-04-22T14:12:02Z",
         "action": "SELL",
-        "shares": 40.0,
-        "price": 207.0599
+        "shares": 20.0,
+        "price": 289.67
       },
       {
-        "date": "2026-06-01T15:29:22Z",
+        "date": "2026-04-22T15:09:52Z",
         "action": "SELL",
         "shares": 10.0,
-        "price": 216.65
+        "price": 296.27
       },
       {
-        "date": "2026-06-11T21:23:11Z",
+        "date": "2026-04-22T15:54:56Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 296.755
+      },
+      {
+        "date": "2026-06-12T12:01:25Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 495.0
+      }
+    ],
+    "DOCN": [
+      {
+        "date": "2026-06-09T16:18:02Z",
+        "action": "SELL",
+        "shares": 30.0,
+        "price": 155.855
+      },
+      {
+        "date": "2026-06-11T18:59:12Z",
+        "action": "BUY",
+        "shares": 30.0,
+        "price": 174.385
+      },
+      {
+        "date": "2026-06-12T10:21:39Z",
         "action": "BUY",
         "shares": 100.0,
-        "price": 208.0609
+        "price": 175.0
+      }
+    ],
+    "LSCC": [
+      {
+        "date": "2026-05-07T10:50:49Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 125.0
+      },
+      {
+        "date": "2026-05-07T20:46:51Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 118.89
+      },
+      {
+        "date": "2026-06-12T10:16:08Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 143.0
       }
     ],
     "DAVE": [
@@ -93,15 +145,61 @@
         "action": "BUY",
         "shares": 50.0,
         "price": 279.69
+      },
+      {
+        "date": "2026-06-12T10:13:12Z",
+        "action": "BUY",
+        "shares": 25.0,
+        "price": 288.9816
+      }
+    ],
+    "INGM": [
+      {
+        "date": "2026-06-01T13:54:28Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 28.545
+      },
+      {
+        "date": "2026-06-03T14:45:55Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 30.725
+      },
+      {
+        "date": "2026-06-12T10:09:51Z",
+        "action": "BUY",
+        "shares": 300.0,
+        "price": 29.46
+      }
+    ],
+    "TWLO": [
+      {
+        "date": "2026-05-28T18:28:05Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 186.75
+      },
+      {
+        "date": "2026-06-01T14:19:38Z",
+        "action": "SELL",
+        "shares": 40.0,
+        "price": 207.0599
+      },
+      {
+        "date": "2026-06-01T15:29:22Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 216.65
+      },
+      {
+        "date": "2026-06-11T21:23:11Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 208.0609
       }
     ],
     "SNDK": [
-      {
-        "date": "2026-03-16T14:08:15Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 708.465
-      },
       {
         "date": "2026-03-17T14:47:57Z",
         "action": "BUY",
@@ -207,20 +305,6 @@
         "action": "BUY",
         "shares": 10.0,
         "price": 963.505
-      }
-    ],
-    "DOCN": [
-      {
-        "date": "2026-06-09T16:18:02Z",
-        "action": "SELL",
-        "shares": 30.0,
-        "price": 155.855
-      },
-      {
-        "date": "2026-06-11T18:59:12Z",
-        "action": "BUY",
-        "shares": 30.0,
-        "price": 174.385
       }
     ],
     "ZVRA": [
@@ -509,6 +593,14 @@
         "action": "SELL",
         "shares": 20.0,
         "price": 217.82
+      }
+    ],
+    "SPCX": [
+      {
+        "date": "2026-06-04T17:07:51Z",
+        "action": "BUY",
+        "shares": 19.0,
+        "price": 135.0
       }
     ],
     "ASML": [
@@ -813,20 +905,6 @@
         "action": "SELL",
         "shares": 200.0,
         "price": 16.7951
-      }
-    ],
-    "INGM": [
-      {
-        "date": "2026-06-01T13:54:28Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 28.545
-      },
-      {
-        "date": "2026-06-03T14:45:55Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 30.725
       }
     ],
     "APLD": [
@@ -1413,12 +1491,6 @@
     ],
     "FLY": [
       {
-        "date": "2026-03-16T14:09:33Z",
-        "action": "BUY",
-        "shares": 400.0,
-        "price": 24.6727
-      },
-      {
         "date": "2026-03-19T07:10:45Z",
         "action": "SELL",
         "shares": 400.0,
@@ -1551,20 +1623,6 @@
         "price": 411.21
       }
     ],
-    "LSCC": [
-      {
-        "date": "2026-05-07T10:50:49Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 125.0
-      },
-      {
-        "date": "2026-05-07T20:46:51Z",
-        "action": "SELL",
-        "shares": 50.0,
-        "price": 118.89
-      }
-    ],
     "REMX": [
       {
         "date": "2026-05-06T17:03:19Z",
@@ -1623,38 +1681,6 @@
         "action": "SELL",
         "shares": 30.0,
         "price": 139.8601
-      }
-    ],
-    "AMD": [
-      {
-        "date": "2026-04-13T17:05:35Z",
-        "action": "BUY",
-        "shares": 25.0,
-        "price": 246.055
-      },
-      {
-        "date": "2026-04-14T16:01:39Z",
-        "action": "BUY",
-        "shares": 15.0,
-        "price": 252.06
-      },
-      {
-        "date": "2026-04-22T14:12:02Z",
-        "action": "SELL",
-        "shares": 20.0,
-        "price": 289.67
-      },
-      {
-        "date": "2026-04-22T15:09:52Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 296.27
-      },
-      {
-        "date": "2026-04-22T15:54:56Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 296.755
       }
     ],
     "PLAB": [
