@@ -19,7 +19,7 @@
     },
     {
       "ticker": "TWLO",
-      "shares": 100,
+      "shares": 50,
       "entry_price": 208.06,
       "entry_date": "2026-06-11",
       "stop_price": 208.06,
@@ -85,23 +85,6 @@
       "current_gain_pct": 10.56,
       "first_entry_price": 495.0,
       "peak_gain_pct": 12.77
-    },
-    {
-      "ticker": "INGM",
-      "shares": 300,
-      "entry_price": 29.46,
-      "entry_date": "2026-06-12",
-      "stop_price": 28.12,
-      "breakeven_activated": false,
-      "target1": 35.35,
-      "target1_hit": false,
-      "target2": 41.24,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 30.16,
-      "current_gain_pct": 2.14,
-      "first_entry_price": 29.46,
-      "peak_gain_pct": 2.38
     },
     {
       "ticker": "LSCC",
@@ -1578,6 +1561,27 @@
       "close_price": 13.0,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -3.85
+    },
+    {
+      "ticker": "INGM",
+      "shares": 300,
+      "entry_price": 29.46,
+      "entry_date": "2026-06-12",
+      "stop_price": 28.12,
+      "breakeven_activated": false,
+      "target1": 35.35,
+      "target1_hit": false,
+      "target2": 41.24,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 30.16,
+      "current_gain_pct": 2.14,
+      "first_entry_price": 29.46,
+      "peak_gain_pct": 2.38,
+      "close_date": "2026-06-15",
+      "close_price": 30.73,
+      "close_source": "snaptrade_fill",
+      "result_pct": 4.29
     }
   ]
 }

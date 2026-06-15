@@ -1,4 +1,36 @@
 {
   "last_book_post_ts": "2026-06-15T20:38:35.975600Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "share_drift_partial_sell",
+      "ticker": "TWLO",
+      "message": "\ud83d\udfe1 PARTIAL SELL: TWLO\n   100 \u2192 50 shares (50 sold) \u2014 entry/targets unchanged",
+      "old_shares": 100.0,
+      "new_shares": 50.0,
+      "ts": "2026-06-15T21:46:47.947928Z"
+    },
+    {
+      "kind": "auto_closed",
+      "ticker": "INGM",
+      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: INGM\n   Entry $29.46 \u2192 $30.73 (fill) (+4.3%) \u2014 WIN\n   Streak: 1W / 0L",
+      "result_pct": 4.29,
+      "close_price": 30.73,
+      "close_source": "snaptrade_fill",
+      "ts": "2026-06-15T21:46:47.947928Z"
+    },
+    {
+      "kind": "sizing_mode",
+      "ticker": "\u2014",
+      "message": ":information_source: Sizing mode \u2192 normal.",
+      "ts": "2026-06-15T21:46:47.947928Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $202.00 \u2014 exit immediately (stop $208.06)",
+      "current_price": 202.0,
+      "stop_price": 208.06,
+      "ts": "2026-06-15T21:46:47.947928Z"
+    }
+  ]
 }
