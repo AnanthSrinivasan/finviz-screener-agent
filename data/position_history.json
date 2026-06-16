@@ -1,6 +1,64 @@
 {
-  "updated": "2026-06-15T21:46:47.661949Z",
+  "updated": "2026-06-16T18:11:55.443555Z",
   "history": {
+    "TWLO": [
+      {
+        "date": "2026-05-28T18:28:05Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 186.75
+      },
+      {
+        "date": "2026-06-01T14:19:38Z",
+        "action": "SELL",
+        "shares": 40.0,
+        "price": 207.0599
+      },
+      {
+        "date": "2026-06-01T15:29:22Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 216.65
+      },
+      {
+        "date": "2026-06-11T21:23:11Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 208.0609
+      },
+      {
+        "date": "2026-06-15T21:05:16Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 201.0
+      }
+    ],
+    "INGM": [
+      {
+        "date": "2026-06-01T13:54:28Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 28.545
+      },
+      {
+        "date": "2026-06-03T14:45:55Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 30.725
+      },
+      {
+        "date": "2026-06-12T10:09:51Z",
+        "action": "BUY",
+        "shares": 300.0,
+        "price": 29.46
+      },
+      {
+        "date": "2026-06-15T21:05:00Z",
+        "action": "SELL",
+        "shares": 300.0,
+        "price": 28.36
+      }
+    ],
     "AMD": [
       {
         "date": "2026-04-13T17:05:35Z",
@@ -153,59 +211,7 @@
         "price": 288.9816
       }
     ],
-    "INGM": [
-      {
-        "date": "2026-06-01T13:54:28Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 28.545
-      },
-      {
-        "date": "2026-06-03T14:45:55Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 30.725
-      },
-      {
-        "date": "2026-06-12T10:09:51Z",
-        "action": "BUY",
-        "shares": 300.0,
-        "price": 29.46
-      }
-    ],
-    "TWLO": [
-      {
-        "date": "2026-05-28T18:28:05Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 186.75
-      },
-      {
-        "date": "2026-06-01T14:19:38Z",
-        "action": "SELL",
-        "shares": 40.0,
-        "price": 207.0599
-      },
-      {
-        "date": "2026-06-01T15:29:22Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 216.65
-      },
-      {
-        "date": "2026-06-11T21:23:11Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 208.0609
-      }
-    ],
     "SNDK": [
-      {
-        "date": "2026-03-17T14:47:57Z",
-        "action": "BUY",
-        "shares": 10.0,
-        "price": 713.325
-      },
       {
         "date": "2026-03-19T07:11:03Z",
         "action": "SELL",
@@ -1053,12 +1059,6 @@
     ],
     "TNA": [
       {
-        "date": "2026-03-17T14:47:29Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 46.6399
-      },
-      {
         "date": "2026-03-20T19:07:15Z",
         "action": "SELL",
         "shares": 500.0,
@@ -1714,12 +1714,6 @@
       }
     ],
     "KRMN": [
-      {
-        "date": "2026-03-17T21:39:29Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 107.03
-      },
       {
         "date": "2026-03-19T07:10:15Z",
         "action": "SELL",
