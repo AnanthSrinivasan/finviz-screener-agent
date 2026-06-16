@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 317.99,
-      "current_gain_pct": 8.01,
+      "current_gain_pct": 7.85,
       "first_entry_price": 279.69,
       "peak_gain_pct": 12.45
     },
@@ -30,27 +30,9 @@
       "thesis": "User manual entry 2026-06-11 (after hours) \u2014 stop at entry per user instruction, alert-only",
       "status": "active",
       "highest_price_seen": 209.43,
-      "current_gain_pct": -7.29,
+      "current_gain_pct": -7.41,
       "first_entry_price": 208.06,
       "peak_gain_pct": 0.66
-    },
-    {
-      "ticker": "SPCX",
-      "shares": 19,
-      "entry_price": 135.0,
-      "entry_date": "2026-06-12",
-      "stop_price": 203.0,
-      "breakeven_activated": true,
-      "target1": 162.0,
-      "target1_hit": true,
-      "target2": 189.0,
-      "thesis": "User manual entry 2026-06-12 \u2014 stop at entry per user instruction, alert-only",
-      "status": "active",
-      "highest_price_seen": 225.56,
-      "current_gain_pct": 58.78,
-      "first_entry_price": 135.0,
-      "peak_gain_pct": 67.08,
-      "target2_hit": true
     },
     {
       "ticker": "DOCN",
@@ -65,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 185.45,
-      "current_gain_pct": 1.66,
+      "current_gain_pct": 1.19,
       "first_entry_price": 175.0,
       "peak_gain_pct": 5.97
     },
@@ -82,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 558.22,
-      "current_gain_pct": 5.22,
+      "current_gain_pct": 4.88,
       "first_entry_price": 495.0,
       "peak_gain_pct": 12.77
     },
@@ -99,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 151.87,
-      "current_gain_pct": 2.97,
+      "current_gain_pct": 2.94,
       "first_entry_price": 143.0,
       "peak_gain_pct": 6.2
     },
@@ -116,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 29.06,
-      "current_gain_pct": -0.14,
+      "current_gain_pct": -0.28,
       "first_entry_price": 28.55,
       "peak_gain_pct": 1.79
     }
@@ -1599,6 +1581,28 @@
       "close_price": 30.73,
       "close_source": "snaptrade_fill",
       "result_pct": 4.29
+    },
+    {
+      "ticker": "SPCX",
+      "shares": 19,
+      "entry_price": 135.0,
+      "entry_date": "2026-06-12",
+      "stop_price": 203.0,
+      "breakeven_activated": true,
+      "target1": 162.0,
+      "target1_hit": true,
+      "target2": 189.0,
+      "thesis": "User manual entry 2026-06-12 \u2014 stop at entry per user instruction, alert-only",
+      "status": "closed_external",
+      "highest_price_seen": 225.56,
+      "current_gain_pct": 58.78,
+      "first_entry_price": 135.0,
+      "peak_gain_pct": 67.08,
+      "target2_hit": true,
+      "close_date": "2026-06-16",
+      "close_price": 213.35,
+      "close_source": "live_quote",
+      "result_pct": 58.04
     }
   ]
 }

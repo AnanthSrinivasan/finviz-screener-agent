@@ -1,21 +1,12 @@
 {
-  "consecutive_wins": 1,
+  "consecutive_wins": 2,
   "consecutive_losses": 0,
-  "total_wins": 24,
+  "total_wins": 25,
   "total_losses": 38,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-06-15",
+  "last_updated": "2026-06-16",
   "recent_trades": [
-    {
-      "ticker": "TNA",
-      "result": "win",
-      "result_pct": 7.99,
-      "date": "2026-06-01",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 709.0
-    },
     {
       "ticker": "XBI",
       "result": "neutral",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 379.5
+    },
+    {
+      "ticker": "SPCX",
+      "result": "win",
+      "result_pct": 58.04,
+      "date": "2026-06-16",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1488.65
     }
   ],
   "market_state": "TREND-FOLLOW",

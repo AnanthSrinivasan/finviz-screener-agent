@@ -1,20 +1,4 @@
 {
-  "last_book_post_ts": "2026-06-16T18:11:55.798047Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "TWLO",
-      "message": "\ud83d\udea8 STOP HIT: TWLO @ $192.90 \u2014 exit immediately (stop $208.06)",
-      "current_price": 192.9,
-      "stop_price": 208.06,
-      "ts": "2026-06-16T18:28:14.637990Z"
-    },
-    {
-      "kind": "warn_stop",
-      "ticker": "TWLO",
-      "message": "\ud83d\udfe1 WARN_STOP \u2014 TWLO ATR mult 1.41",
-      "alert_type": "WARN_STOP",
-      "ts": "2026-06-16T18:28:14.637990Z"
-    }
-  ]
+  "last_book_post_ts": "2026-06-16T18:43:01.210857Z",
+  "events_since_last": []
 }
