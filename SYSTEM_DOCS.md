@@ -989,7 +989,7 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
 6. Gate: `effective_max_positions(market_state)` — GREEN/THRUST/TREND-FOLLOW: 10, CAUTION/STEADY-UPTREND: 7, default (COOLING/RED/DANGER/EXTENDED/BLACKOUT): 5. Weekend guard: executor exits immediately on Sat/Sun with a Slack notice.
 7. For each candidate not already held:
    - Compute allocation by Q score tier (see below)
-   - **Extended-entry gate:** if `SMA50% / ATR%` > peel warn, skip. Warn is per-ticker from `peel_calibration.json` when calibrated; else ATR% tier fallback (low ≤4%: 3.0x · mid ≤7%: 5.0x · high ≤10%: 6.5x · extreme: 8.5x). Replaces the older hardcoded 6.0x cap — lets high-vol names (e.g. AAOI calibrated warn 11.8x) enter on their own scale. Skip Slack message shows source (`calibrated` or `tier`).
+   - **Extended-entry gate:** if `SMA50% / ATR%` > peel warn, skip. Warn is per-ticker from `peel_calibration.json` when calibrated, **capped at the ATR% tier warn** (low ≤4%: 3.0x · mid ≤7%: 5.0x · high ≤10%: 6.5x · extreme: 8.5x) — calibration can only tighten the gate, never loosen it (2026-06-12 fix: raw calibrated warns 10.3x/8.7x let the live dry-run "buy" ALAB at +58.7% and MU at +49.7% above the 50 SMA; same rule as the screener's 2026-05-29 v2 `_peel_warn_for` cap). Uncalibrated tickers use the tier warn directly. Skip Slack message shows source (`calibrated` / `tier-cap` / `tier`).
    - Fetch close price via Alpaca data API (`/trades/latest`, feed=iex, fallback to last bar)
    - Place **GTC limit order at close price** — fills at open if price ≤ limit, no fill on gap-up (intentional, no chasing)
 8. Write stop reference to `paper_stops.json` (entry − 2×ATR)

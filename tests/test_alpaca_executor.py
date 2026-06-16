@@ -27,13 +27,41 @@ class EntryPeelWarnTests(unittest.TestCase):
         with open(path, "w") as f:
             json.dump(payload, f)
 
-    def test_calibrated_ticker_uses_warn(self):
+    def test_calibrated_warn_tighter_than_tier_applies(self):
+        # Calibration may only tighten: warn 4.2 < tier 6.5 → calibrated wins
+        self._write_calibration({
+            "AAOI": {"calibrated": True, "warn": 4.2, "signal": 8.0},
+        })
+        warn, src = ae.get_entry_peel_warn(atr_pct=8.6, ticker="AAOI")
+        self.assertAlmostEqual(warn, 4.2)
+        self.assertEqual(src, "calibrated")
+
+    def test_calibrated_warn_looser_than_tier_is_capped(self):
+        # 2026-06-12 ALAB/MU bug: calibrated warn 11.8 > tier 6.5 (ATR 8.6 →
+        # high tier) must be capped — calibration can never loosen the gate.
         self._write_calibration({
             "AAOI": {"calibrated": True, "warn": 11.8, "signal": 15.8},
         })
         warn, src = ae.get_entry_peel_warn(atr_pct=8.6, ticker="AAOI")
-        self.assertAlmostEqual(warn, 11.8)
-        self.assertEqual(src, "calibrated")
+        self.assertAlmostEqual(warn, 6.5)
+        self.assertEqual(src, "tier-cap")
+
+    def test_alab_mu_2026_06_12_regression(self):
+        # Real data from the dry run the user flagged ("you are bloody chasing"):
+        # ALAB ATR 8.20 mult 7.16 (cal warn 10.3) · MU ATR 7.56 mult 6.57
+        # (cal warn 8.7). Both must now be blocked by the tier cap (6.5).
+        self._write_calibration({
+            "ALAB": {"calibrated": True, "warn": 10.3, "signal": 13.7},
+            "MU":   {"calibrated": True, "warn": 8.7,  "signal": 11.6},
+        })
+        warn_alab, src_alab = ae.get_entry_peel_warn(atr_pct=8.20, ticker="ALAB")
+        warn_mu, src_mu     = ae.get_entry_peel_warn(atr_pct=7.56, ticker="MU")
+        self.assertAlmostEqual(warn_alab, 6.5)
+        self.assertEqual(src_alab, "tier-cap")
+        self.assertTrue(7.16 > warn_alab)   # ALAB blocked
+        self.assertAlmostEqual(warn_mu, 6.5)
+        self.assertEqual(src_mu, "tier-cap")
+        self.assertTrue(6.57 > warn_mu)     # MU blocked
 
     def test_uncalibrated_ticker_falls_back_to_tier(self):
         self._write_calibration({
@@ -57,8 +85,7 @@ class EntryPeelWarnTests(unittest.TestCase):
         self.assertAlmostEqual(warn, 3.0)
         self.assertEqual(src, "tier")
 
-    def test_gate_blocks_when_multiple_exceeds_calibrated_warn(self):
-        # AAOI calibrated warn 11.8 → multiple 13.2 should block
+    def test_gate_blocks_when_multiple_exceeds_warn(self):
         self._write_calibration({
             "AAOI": {"calibrated": True, "warn": 11.8, "signal": 15.8},
         })
@@ -66,13 +93,13 @@ class EntryPeelWarnTests(unittest.TestCase):
         atr_multiple = 13.2
         self.assertTrue(atr_multiple > warn)
 
-    def test_gate_passes_when_multiple_below_calibrated_warn(self):
-        # AAOI calibrated warn 11.8 → multiple 8.3 allowed (previously blocked at hardcoded 6)
+    def test_gate_passes_when_multiple_below_warn(self):
+        # Calibrated 4.8 ≤ tier 6.5 → calibrated applies; multiple 3.9 allowed
         self._write_calibration({
-            "AAOI": {"calibrated": True, "warn": 11.8, "signal": 15.8},
+            "AAOI": {"calibrated": True, "warn": 4.8, "signal": 8.0},
         })
         warn, _ = ae.get_entry_peel_warn(atr_pct=8.6, ticker="AAOI")
-        atr_multiple = 8.3
+        atr_multiple = 3.9
         self.assertFalse(atr_multiple > warn)
 
 

@@ -337,7 +337,7 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 | Hard position cap | $-4,500 per position (SLV incident Feb 2026) |
 | ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
 | Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme (warn at ~75% of signal) |
-| Entry gate (extended) | `alpaca_executor.py` blocks new entry when ATR multiple > per-ticker `peel_warn` (from `peel_calibration.json`). Falls back to ATR% tier warn when ticker is uncalibrated. Slack notes `calibrated` vs `tier` source. |
+| Entry gate (extended) | `alpaca_executor.py` blocks new entry when ATR multiple > per-ticker `peel_warn` (from `peel_calibration.json`), **capped at the ATR% tier warn — calibration can only tighten, never loosen** (2026-06-12: raw calibrated warns 10.3/8.7 waved ALAB +58.7%/MU +49.7% above 50SMA into the live dry-run; same rule as the screener's 2026-05-29 v2 cal-cap). Falls back to tier warn when uncalibrated. Slack notes `calibrated` / `tier-cap` / `tier` source. |
 | Paper market-state gate | `alpaca_executor.py` reads `market_state` from `market_monitor_history.json` (single source of truth — replaced the old SPY/SMA200 check). RED/DANGER/BLACKOUT → no buys, but still posts a Slack alert listing top-5 would-have candidates ("your call"). CAUTION/COOLING → half size. GREEN/THRUST → full. Sizing mode overlays: `suspended` blocks entirely, `reduced` clamps size_mul ≤ 0.25, `aggressive` boosts to 1.25× in GREEN/THRUST. |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |

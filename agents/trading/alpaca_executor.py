@@ -87,8 +87,15 @@ _PEEL_CALIBRATION_CACHE: dict | None = None
 def get_entry_peel_warn(atr_pct: float, ticker: str) -> tuple:
     """
     Return (warn_multiple, source) for entry gating.
-    source == 'calibrated' when drawn from per-ticker p75×0.75 in
-    data/peel_calibration.json; else 'tier' (ATR% band fallback).
+
+    Calibration may only TIGHTEN the gate, never loosen it (same rule as the
+    screener's 2026-05-29 v2 `_peel_warn_for` fix): the per-ticker calibrated
+    warn is capped at the ATR%-tier warn. Monster runners calibrate huge warns
+    off their own historical peaks (ALAB 10.3x, MU 8.7x on 2026-06-12) which
+    would otherwise wave through 50%+-above-50SMA chases.
+
+    source == 'calibrated' when the per-ticker warn applied; 'tier-cap' when
+    the tier warn overrode a looser calibration; 'tier' (no calibration).
     """
     global _PEEL_CALIBRATION_CACHE
     if _PEEL_CALIBRATION_CACHE is None:
@@ -98,13 +105,20 @@ def get_entry_peel_warn(atr_pct: float, ticker: str) -> tuple:
                 _PEEL_CALIBRATION_CACHE = json.load(fh)
         except (FileNotFoundError, json.JSONDecodeError):
             _PEEL_CALIBRATION_CACHE = {}
-    entry = _PEEL_CALIBRATION_CACHE.get(ticker, {})
-    if entry.get("calibrated") and entry.get("warn"):
-        return float(entry["warn"]), "calibrated"
+
+    tier_warn = 8.5
     for max_atr, warn in PEEL_WARN_TIERS:
         if atr_pct <= max_atr:
-            return warn, "tier"
-    return 8.5, "tier"
+            tier_warn = warn
+            break
+
+    entry = _PEEL_CALIBRATION_CACHE.get(ticker, {})
+    if entry.get("calibrated") and entry.get("warn"):
+        cal_warn = float(entry["warn"])
+        if cal_warn <= tier_warn:
+            return cal_warn, "calibrated"
+        return tier_warn, "tier-cap"
+    return tier_warn, "tier"
 
 
 def alpaca_headers() -> dict:
@@ -694,6 +708,11 @@ if __name__ == "__main__":
     # Step 1: Market state gate (breadth-based — single source of truth)
     market_state    = load_market_state()
     block, size_mul = _MARKET_GATE.get(market_state, (True, 0.0))
+    # Live follows the market-state table strictly: COOLING = "trim, tighten,
+    # no new entries". Paper's half-size-in-COOLING is a documented looser
+    # gate (kept unchanged for the paper experiment).
+    if IS_LIVE and market_state == "COOLING":
+        block = True
     # Live cap is fixed at 3 (user decision 2026-06-12) — no distractions
     # with multi tickers; market state only ever tightens via block/size_mul.
     max_pos         = tp.LIVE_MAX_POSITIONS if IS_LIVE else effective_max_positions(market_state)
