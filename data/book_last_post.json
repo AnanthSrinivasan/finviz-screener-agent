@@ -1,4 +1,28 @@
 {
   "last_book_post_ts": "2026-06-17T19:37:36.266865Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $285.84 \u2014 exit immediately (stop $286.40)",
+      "current_price": 285.84,
+      "stop_price": 286.4,
+      "ts": "2026-06-17T21:30:44.701273Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $188.11 \u2014 exit immediately (stop $208.06)",
+      "current_price": 188.11,
+      "stop_price": 208.06,
+      "ts": "2026-06-17T21:30:44.701273Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.86, P&L $-997",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-17T21:30:44.701273Z"
+    }
+  ]
 }
