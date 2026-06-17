@@ -1,6 +1,82 @@
 {
-  "updated": "2026-06-16T21:32:11.735705Z",
+  "updated": "2026-06-17T16:44:43.689386Z",
   "history": {
+    "SPCX": [
+      {
+        "date": "2026-06-04T17:07:51Z",
+        "action": "BUY",
+        "shares": 19.0,
+        "price": 135.0
+      },
+      {
+        "date": "2026-06-16T18:36:41Z",
+        "action": "SELL",
+        "shares": 19.0,
+        "price": 210.815
+      }
+    ],
+    "CORZ": [
+      {
+        "date": "2026-04-14T16:03:10Z",
+        "action": "BUY",
+        "shares": 300.0,
+        "price": 19.305
+      },
+      {
+        "date": "2026-04-16T12:10:32Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 19.19
+      },
+      {
+        "date": "2026-04-27T15:22:14Z",
+        "action": "SELL",
+        "shares": 350.0,
+        "price": 20.6808
+      },
+      {
+        "date": "2026-05-12T19:35:30Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 22.835
+      },
+      {
+        "date": "2026-05-14T11:37:36Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 24.4
+      },
+      {
+        "date": "2026-05-18T15:12:27Z",
+        "action": "SELL",
+        "shares": 300.0,
+        "price": 23.0
+      },
+      {
+        "date": "2026-05-22T15:33:17Z",
+        "action": "BUY",
+        "shares": 200.0,
+        "price": 25.14
+      },
+      {
+        "date": "2026-05-26T09:19:54Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 25.8
+      },
+      {
+        "date": "2026-06-03T17:37:39Z",
+        "action": "SELL",
+        "shares": 300.0,
+        "price": 28.96
+      },
+      {
+        "date": "2026-06-16T15:04:11Z",
+        "action": "BUY",
+        "shares": 300.0,
+        "price": 28.5499
+      }
+    ],
     "TWLO": [
       {
         "date": "2026-05-28T18:28:05Z",
@@ -601,14 +677,6 @@
         "price": 217.82
       }
     ],
-    "SPCX": [
-      {
-        "date": "2026-06-04T17:07:51Z",
-        "action": "BUY",
-        "shares": 19.0,
-        "price": 135.0
-      }
-    ],
     "ASML": [
       {
         "date": "2026-05-21T10:10:30Z",
@@ -841,62 +909,6 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 65.845
-      }
-    ],
-    "CORZ": [
-      {
-        "date": "2026-04-14T16:03:10Z",
-        "action": "BUY",
-        "shares": 300.0,
-        "price": 19.305
-      },
-      {
-        "date": "2026-04-16T12:10:32Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 19.19
-      },
-      {
-        "date": "2026-04-27T15:22:14Z",
-        "action": "SELL",
-        "shares": 350.0,
-        "price": 20.6808
-      },
-      {
-        "date": "2026-05-12T19:35:30Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 22.835
-      },
-      {
-        "date": "2026-05-14T11:37:36Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 24.4
-      },
-      {
-        "date": "2026-05-18T15:12:27Z",
-        "action": "SELL",
-        "shares": 300.0,
-        "price": 23.0
-      },
-      {
-        "date": "2026-05-22T15:33:17Z",
-        "action": "BUY",
-        "shares": 200.0,
-        "price": 25.14
-      },
-      {
-        "date": "2026-05-26T09:19:54Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 25.8
-      },
-      {
-        "date": "2026-06-03T17:37:39Z",
-        "action": "SELL",
-        "shares": 300.0,
-        "price": 28.96
       }
     ],
     "KLAR": [
