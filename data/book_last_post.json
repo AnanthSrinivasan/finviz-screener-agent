@@ -1,27 +1,4 @@
 {
-  "last_book_post_ts": "2026-06-17T17:29:13.389070Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "TWLO",
-      "message": "\ud83d\udea8 STOP HIT: TWLO @ $189.25 \u2014 exit immediately (stop $208.06)",
-      "current_price": 189.25,
-      "stop_price": 208.06,
-      "ts": "2026-06-17T19:27:31.588656Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "FPS",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 FPS ATR mult 6.23x",
-      "alert_type": "PEEL",
-      "ts": "2026-06-17T19:27:31.588656Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "TWLO",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.97, P&L $-941",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-06-17T19:27:31.588656Z"
-    }
-  ]
+  "last_book_post_ts": "2026-06-17T19:37:36.266865Z",
+  "events_since_last": []
 }
