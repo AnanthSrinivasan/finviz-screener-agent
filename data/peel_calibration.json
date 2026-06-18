@@ -35,7 +35,7 @@
     "runs": 5,
     "atr_pct_avg": 7.37,
     "calibrated": true,
-    "updated": "2026-06-18",
+    "updated": "2026-06-19",
     "gap_trimmed": true,
     "bars_start": "2024-01-24"
   },
@@ -150,9 +150,9 @@
     "p90": 13.0,
     "max_seen": 16.0,
     "runs": 6,
-    "atr_pct_avg": 4.54,
+    "atr_pct_avg": 4.55,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "SQM": {
     "signal": 10.0,
@@ -1691,7 +1691,7 @@
     "runs": 6,
     "atr_pct_avg": 4.59,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "MRAM": {
     "signal": 13.1,
@@ -1727,7 +1727,7 @@
     "runs": 10,
     "atr_pct_avg": 5.79,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "REMX": {
     "signal": 10.4,
@@ -1854,7 +1854,7 @@
     "runs": 7,
     "atr_pct_avg": 5.46,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "ALMU": {
     "signal": 10.2,
@@ -1962,7 +1962,7 @@
     "runs": 6,
     "atr_pct_avg": 4.43,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "LIND": {
     "signal": 10.4,
@@ -2548,8 +2548,8 @@
     "calibrated": false,
     "reason": "insufficient_runs",
     "runs": 1,
-    "atr_pct_avg": 7.07,
-    "updated": "2026-06-18"
+    "atr_pct_avg": 7.06,
+    "updated": "2026-06-19"
   },
   "NXT": {
     "signal": 10.0,
@@ -2892,9 +2892,9 @@
     "p90": 103.5,
     "max_seen": 220.7,
     "runs": 7,
-    "atr_pct_avg": 12.93,
+    "atr_pct_avg": 12.92,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "ARKX": {
     "signal": 12.1,
@@ -3143,7 +3143,7 @@
     "runs": 6,
     "atr_pct_avg": 4.67,
     "calibrated": true,
-    "updated": "2026-06-18"
+    "updated": "2026-06-19"
   },
   "TNDM": {
     "signal": 10.0,
@@ -3987,5 +3987,17 @@
     "atr_pct_avg": 2.42,
     "calibrated": true,
     "updated": "2026-06-13"
+  },
+  "QLD": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 7.8,
+    "p75": 9.4,
+    "p90": 10.7,
+    "max_seen": 12.1,
+    "runs": 8,
+    "atr_pct_avg": 3.57,
+    "calibrated": true,
+    "updated": "2026-06-19"
   }
 }
