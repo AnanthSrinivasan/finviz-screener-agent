@@ -1,4 +1,34 @@
 {
   "last_book_post_ts": "2026-06-18T16:44:08.714591Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $185.30 \u2014 exit immediately (stop $208.06)",
+      "current_price": 185.3,
+      "stop_price": 208.06,
+      "ts": "2026-06-18T17:16:59.552129Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "DDOG",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 DDOG ATR mult 3.25",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-18T17:16:59.552129Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FPS",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FPS ATR mult 5.65x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-06-18T17:16:59.552129Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.50, P&L $-1,138",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-18T17:16:59.552129Z"
+    }
+  ]
 }
