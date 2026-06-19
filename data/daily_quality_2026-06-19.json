@@ -521,10 +521,10 @@
     "etf": "KCE"
   },
   "FCFS": {
-    "q_rank": 24,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch",
+    "q_rank": 97,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
     "textbook_vcp": false,
     "etf": "ARKF"
   },
@@ -537,10 +537,10 @@
     "etf": "KBE"
   },
   "FIX": {
-    "q_rank": 37,
-    "stage": 0,
-    "stage_label": "Transitional",
-    "section": "watch",
+    "q_rank": 115,
+    "stage": 2,
+    "stage_label": "Uptrend",
+    "section": "stage2",
     "textbook_vcp": false,
     "etf": "XLI"
   },
@@ -1444,9 +1444,9 @@
     "etf": "XLI"
   },
   "CRVO": {
-    "q_rank": -5,
-    "stage": 4,
-    "stage_label": "Downtrend",
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
     "section": "power_move",
     "textbook_vcp": false,
     "etf": "XBI"
@@ -1812,10 +1812,10 @@
     "etf": "XLE"
   },
   "KRYS": {
-    "q_rank": 84,
-    "stage": 2,
-    "stage_label": "Uptrend",
-    "section": "stage2",
+    "q_rank": 22,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
     "textbook_vcp": false,
     "etf": "XBI"
   },
@@ -1980,10 +1980,10 @@
     "etf": "XLB"
   },
   "MX": {
-    "q_rank": 43,
-    "stage": 2,
-    "stage_label": "Uptrend",
-    "section": "stage2",
+    "q_rank": 0,
+    "stage": 0,
+    "stage_label": "Transitional",
+    "section": "watch",
     "textbook_vcp": false,
     "etf": "SMH"
   },
@@ -2028,7 +2028,7 @@
     "etf": "XLF"
   },
   "NVRI": {
-    "q_rank": 54,
+    "q_rank": 59,
     "stage": 2,
     "stage_label": "Uptrend",
     "section": "stage2",
