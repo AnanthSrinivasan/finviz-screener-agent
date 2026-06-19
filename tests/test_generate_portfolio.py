@@ -226,9 +226,11 @@ class GenerateHtmlTests(unittest.TestCase):
         self.assertIn("$500", html)
         self.assertIn("Trade History", html)
         self.assertIn("1 closed trades", html)
-        # open positions section renders before the MoM panel
+        # unified order: charts → Open Positions → Trade History
+        self.assertLess(html.index("Month-over-Month Performance"),
+                        html.index("Open Positions"))
         self.assertLess(html.index("Open Positions"),
-                        html.index("Month-over-Month Performance"))
+                        html.index("Trade History"))
 
     def test_no_trades_renders_empty_state(self):
         account = {"equity": "100000", "last_equity": "100000",
@@ -292,8 +294,12 @@ class TradeHistoryInteractivityTests(unittest.TestCase):
                 "cost_basis": "1000", "unrealized_pl": "50",
                 "unrealized_plpc": "0.05"}]
         html = gp.generate_html(account, pos, {}, entry_dates={"NVDA": "2026-05-10"})
-        self.assertIn("Entry Date", html)
+        # unified positions table uses an "Entry" column carrying the date
+        self.assertIn(">Entry<", html)
         self.assertIn("2026-05-10", html)
+        # paper page now shows the shared verdict + action chips too
+        self.assertIn("data-action=", html)
+        self.assertIn("Verdict", html)
 
 
 if __name__ == "__main__":

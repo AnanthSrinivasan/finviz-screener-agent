@@ -2,96 +2,44 @@
 """
 Live SnapTrade Portfolio — HTML dashboard for the real-money book.
 
-Mirrors utils/generators/generate_portfolio.py (paper / Alpaca) but pulls
-from SnapTrade (account header) + Finviz (live quote + technicals). Writes
-data/live_portfolio.html.
+Same dashboard as the paper page (utils/generators/generate_portfolio.py),
+reading from SnapTrade instead of Alpaca. All shared layout/analytics live in
+utils/generators/portfolio_common.py; this file is the SnapTrade adapter:
+
+  • account header  ← SnapTrade balances
+  • Open Positions  ← SnapTrade positions + Finviz technicals
+  • Trade History + Month-over-Month  ← SnapTrade BUY/SELL activities cached in
+    data/position_history.json (same FIFO engine the paper page uses)
+
+Writes data/live_portfolio.html. Invoked from agents/trading/position_monitor.py
+on every monitor run (3x daily book runs + every 30 min during market hours).
 
 Light theme only (see memory/feedback_light_theme.md).
-
-Invoked from agents/trading/position_monitor.py on every monitor run
-(3x daily book runs + every 30 min during market hours).
 """
 
 import datetime
+import json
 import logging
 import os
 import re
 import urllib.request
+
+from utils.generators.portfolio_common import (
+    fmt_money, fmt_pct, heat_class, held_days, verdict_for, classify_action,
+    closed_trades, trade_stats, monthly_realized, render_stat_cards,
+    render_positions_section, render_trade_history, page_shell,
+)
 
 log = logging.getLogger(__name__)
 
 DATA_DIR    = os.environ.get("DATA_DIR", "data")
 OUTPUT_PATH = os.path.join(DATA_DIR, "live_portfolio.html")
 
-
-# ---------- formatters ----------
-
-def _fmt_money(v: float) -> str:
-    sign = "-" if v < 0 else ""
-    return f"{sign}${abs(v):,.0f}"
-
-
-def _fmt_pct(v: float) -> str:
-    return f"{v:+.2f}%"
-
-
-def _heat_class(pct: float) -> str:
-    if pct >= 5:    return "heat-pos-strong"
-    if pct > 0:     return "heat-pos"
-    if pct == 0:    return "heat-zero"
-    if pct > -5:    return "heat-neg"
-    return "heat-neg-strong"
-
-
-# ---------- verdict ----------
-
-def verdict_for(gain: float, atr: float, s20: float, stage: str) -> str:
-    """Mirrors .claude/commands/pos-review.md verdict logic."""
-    parts = []
-    if gain <= -5:
-        parts.append("🚨 CUT — past stop zone")
-    elif gain >= 20:
-        parts.append("💰 PEEL ½ (T1 rule)")
-    elif gain >= 10:
-        parts.append("🟢 trail tighter")
-    elif gain >= 7 and atr > 7:
-        parts.append("⚠ peel ⅓ — high vol extended")
-    elif gain >= 5:
-        parts.append("✅ working, hold")
-    elif gain >= 2:
-        parts.append("hold")
-    elif gain >= 1:
-        parts.append("🟡 sleeping")
-    elif gain >= 0:
-        parts.append("💀 dead weight — review")
-    else:
-        parts.append("watch — give a day")
-    if s20 > 20:
-        parts.append(f"ext +{s20:.0f}% S20")
-    if stage and stage not in ("2P", "2"):
-        parts.append(f"⚠ {stage}")
-    return " · ".join(parts)
-
-
-def classify_action(gain: float, atr: float) -> str:
-    """Single source of truth for the action summary AND per-row tagging, so the
-    counts at the top always match the rows below.
-
-    Returns a key in {cut, peel, trail, dead, hold}. Mirrors the EXACT clause
-    ordering of verdict_for (gain≥10 → trail is checked before the high-vol peel
-    clause) so the row's Verdict text and the summary chip never disagree.
-    """
-    if gain <= -5:
-        return "cut"
-    if gain >= 20:
-        return "peel"            # 💰 PEEL ½ (T1 rule)
-    if gain >= 10:
-        return "trail"           # 🟢 trail tighter — NOT a peel
-    if gain >= 7 and atr > 7:
-        return "peel"            # ⚠ peel ⅓ — high-vol extended
-    if 0 <= gain < 1:
-        return "dead"            # 💀 dead weight
-    return "hold"
+# Backward-compatible aliases (tests + callers import these names from here).
+_fmt_money = fmt_money
+_fmt_pct = fmt_pct
+_heat_class = heat_class
+_held_days = held_days
 
 
 # ---------- Finviz live quote (no API key — html parse) ----------
@@ -141,16 +89,6 @@ def _technicals(ticker: str) -> dict:
     }
 
 
-def _held_days(entry_date: str) -> str:
-    if not entry_date:
-        return "—"
-    try:
-        d0 = datetime.date.fromisoformat(str(entry_date)[:10])
-        return f"{(datetime.date.today() - d0).days}d"
-    except ValueError:
-        return "—"
-
-
 def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
     ticker = pos["ticker"]
     shares = float(pos.get("shares", 0) or 0)
@@ -166,7 +104,7 @@ def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
         "ticker": ticker, "shares": shares, "avg": avg, "live": live,
         "gain": gain, "pl": pl, "mv": mv,
         "entry_date": entry_date or "—",
-        "held":       _held_days(entry_date),
+        "held":       held_days(entry_date),
         "atr":    tech.get("atr", 0.0),
         "s20":    tech.get("s20", 0.0),
         "stage":  tech.get("stage", "?"),
@@ -175,200 +113,88 @@ def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
 
 # ---------- HTML ----------
 
-def render_html(account: dict, rows: list) -> str:
+def render_html(account: dict, rows: list, trades: list = None) -> str:
+    trades = trades or []
     equity = float(account.get("equity", 0) or 0)
     cash   = float(account.get("cash", 0) or 0)
     bp     = float(account.get("buying_power", 0) or 0)
     total_mv = sum(r["mv"] for r in rows)
     total_pl = sum(r["pl"] for r in rows)
     leverage_pct = ((-cash) / equity * 100) if (equity > 0 and cash < 0) else 0.0
-    total_unr_pct = ((total_pl) / (total_mv - total_pl) * 100) if (total_mv - total_pl) > 0 else 0.0
+    total_unr_pct = (total_pl / (total_mv - total_pl) * 100) if (total_mv - total_pl) > 0 else 0.0
 
-    # Tag every row with its action FIRST so the summary counts and the table
-    # rows are derived from one classifier and can never disagree.
-    for r in rows:
-        r["action"] = classify_action(r["gain"], r["atr"])
+    stats = trade_stats(trades)
+    realized_sign = "+" if stats["net"] >= 0 else ""
 
-    # Sort decision-first (cut → peel → dead → trail → hold), then by market
-    # value desc, so the names that need an action float to the top.
-    _prio = {"cut": 0, "peel": 1, "dead": 2, "trail": 3, "hold": 4}
-    rows = sorted(rows, key=lambda r: (_prio.get(r["action"], 9), -r["mv"]))
+    cards = [
+        {"label": "Equity", "value": fmt_money(equity),
+         "sub": f"Buying power {fmt_money(bp)}"},
+        {"label": "Cash", "value": fmt_money(cash),
+         "sub": "margin debt" if cash < 0 else "free cash"},
+        {"label": "Position MV", "value": fmt_money(total_mv),
+         "sub": f"{len(rows)} positions"},
+        {"label": "Open P&amp;L",
+         "value": f"{'+' if total_pl >= 0 else ''}{fmt_money(total_pl)} ({fmt_pct(total_unr_pct)})",
+         "sub": "across all positions", "heat": total_unr_pct},
+        {"label": "Realized P&amp;L",
+         "value": f"{realized_sign}{fmt_money(stats['net'])}",
+         "sub": f"{stats['wins']}W / {stats['losses']}L · {stats['win_rate']:.0f}% win"
+                if stats["count"] else "no closed trades", "heat": stats["net"]},
+        {"label": "Leverage", "value": f"{leverage_pct:.0f}%", "sub": "debt / equity"},
+    ]
 
-    peel_count = sum(1 for r in rows if r["action"] == "peel")
-    cut_count  = sum(1 for r in rows if r["action"] == "cut")
-    dead_count = sum(1 for r in rows if r["action"] == "dead")
+    months = monthly_realized(trades)
+    mo_labels = json.dumps([m["month"] for m in months])
+    mo_pnl    = json.dumps([m["pnl"] for m in months])
+    mo_colors = json.dumps(["#16a34a" if m["pnl"] >= 0 else "#dc2626" for m in months])
+    mo_keys   = json.dumps([m["key"] for m in months])
 
-    pos_rows_html = ""
-    for idx, r in enumerate(rows, 1):
-        heat = _heat_class(r["gain"])
-        verdict = verdict_for(r["gain"], r["atr"], r["s20"], r["stage"])
-        pct_book = (r["mv"] / equity * 100) if equity > 0 else 0
-        pl_sign  = "+" if r["pl"]   >= 0 else ""
-        pct_sign = "+" if r["gain"] >= 0 else ""
-        pos_rows_html += (
-            f"<tr data-action='{r['action']}'>"
-            f"<td class='mono num'>{idx}</td>"
-            f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={r['ticker']}' target='_blank'>{r['ticker']}</a></td>"
-            f"<td class='mono'>{r.get('entry_date', '—')}</td>"
-            f"<td class='mono'>{r.get('held', '—')}</td>"
-            f"<td class='mono'>{r['shares']:.0f}</td>"
-            f"<td class='mono'>${r['avg']:.2f}</td>"
-            f"<td class='mono'>${r['live']:.2f}</td>"
-            f"<td class='mono heat {heat}'>{pct_sign}{r['gain']:.2f}%</td>"
-            f"<td class='mono heat {heat}'>{pl_sign}{_fmt_money(r['pl'])}</td>"
-            f"<td class='mono'>{_fmt_money(r['mv'])}</td>"
-            f"<td class='mono'>{pct_book:.1f}%</td>"
-            f"<td class='mono'>{r['atr']:.1f}</td>"
-            f"<td class='mono'>{r['s20']:+.1f}</td>"
-            f"<td class='mono'>{r['stage']}</td>"
-            f"<td>{verdict}</td>"
-            "</tr>"
-        )
-
-    updated = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
-    unr_heat = _heat_class(total_unr_pct)
-
-    table_html = (
-        "<table class='pos-table' id='posTable'><thead><tr>"
-        "<th>No.</th><th>TKR</th>"
-        "<th title='Date the position was opened'>Entry</th>"
-        "<th title='Days held since entry'>Held</th>"
-        "<th>Sh</th><th title='Average cost'>Avg</th><th>Live</th>"
-        "<th title='Gain since entry'>Δ%</th>"
-        "<th title='Unrealized profit/loss in dollars'>$P/L</th>"
-        "<th title='Market value'>MV</th>"
-        "<th title='Position size as % of total book/equity'>%Bk</th>"
-        "<th title='Average True Range % — daily volatility'>ATR%</th>"
-        "<th title='Price vs its 20-day moving average — + above / - below'>S20%</th>"
-        "<th title='Weinstein stage — 2P = perfect Stage 2 uptrend'>St</th>"
-        "<th>Verdict</th></tr></thead><tbody>"
-        + pos_rows_html + "</tbody></table>"
-    ) if rows else "<div class='empty'>No open positions.</div>"
-
-    legend_html = (
-        "<div class='legend'><strong>Column key:</strong> "
-        "<b>Δ%</b> gain since entry · "
-        "<b>%Bk</b> position as % of book · "
-        "<b>ATR%</b> daily volatility (avg true range) · "
-        "<b>S20%</b> price vs 20-day moving average (+ above / − below) · "
-        "<b>St</b> Weinstein stage (2P = perfect Stage 2) · "
-        "<b>Verdict</b> action from the pos-review ladder. "
-        "Rows are sorted action-first; click a summary chip above to filter.</div>"
+    chart_block = (
+        "<div class='chart-card'><h2 style='margin-top:0'>Month-over-Month "
+        "Realized P&amp;L</h2><div class='chart-wrap' style='height:240px'>"
+        "<canvas id='mochart'></canvas></div></div>" if months else ""
     )
 
-    return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Live SnapTrade Portfolio</title>
-<style>
-*, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-       background: #f8f9fc; color: #111827; padding: 32px; max-width: 1500px; margin: 0 auto; }}
-h1 {{ font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }}
-.subtitle {{ color: #6b7280; font-size: 0.82rem; margin-bottom: 24px; }}
-h2 {{ font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase;
-     letter-spacing: .08em; margin: 28px 0 14px; }}
-.stat-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-              gap: 12px; margin-bottom: 24px; }}
-.stat-card {{ background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-              padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }}
-.stat-label {{ font-size: 0.68rem; color: #9ca3af; text-transform: uppercase;
-               letter-spacing: .06em; margin-bottom: 6px; }}
-.stat-val {{ font-size: 1.35rem; font-weight: 700; color: #111827; }}
-.stat-sub {{ font-size: 0.73rem; color: #6b7280; margin-top: 4px; }}
-.pos-table {{ width: 100%; border-collapse: collapse; font-size: 0.82rem; background: #fff;
-              border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }}
-.pos-table th {{ text-align: left; padding: 10px 12px; color: #6b7280; font-weight: 500;
-                 border-bottom: 1px solid #e5e7eb; text-transform: uppercase;
-                 font-size: 0.66rem; letter-spacing: .05em; background: #f9fafb; }}
-.pos-table td {{ padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; }}
-.pos-table tr:last-child td {{ border-bottom: none; }}
-.pos-table tr:hover td {{ background: #f9fafb; }}
-.bold {{ font-weight: 700; }}
-.mono {{ font-variant-numeric: tabular-nums; }}
-.num  {{ color: #9ca3af; }}
-a {{ color: #2563eb; text-decoration: none; }}
-a:hover {{ color: #1d4ed8; text-decoration: underline; }}
-.heat {{ border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block; }}
-.heat-pos-strong {{ background: #bbf7d0; color: #166534; }}
-.heat-pos        {{ background: #dcfce7; color: #15803d; }}
-.heat-zero       {{ color: #6b7280; }}
-.heat-neg        {{ background: #fee2e2; color: #b91c1c; }}
-.heat-neg-strong {{ background: #fecaca; color: #991b1b; }}
-.empty {{ color: #6b7280; font-size: 0.88rem; padding: 24px; text-align: center;
-         background: #fff; border: 1px dashed #e5e7eb; border-radius: 10px; }}
-.footer {{ margin-top: 32px; font-size: 0.7rem; color: #9ca3af; }}
-.action-summary {{ background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-                   padding: 14px 18px; margin: 18px 0; font-size: 0.88rem; }}
-.action-summary strong {{ color: #111827; }}
-.action-summary .hint {{ color: #9ca3af; font-size: 0.8rem; font-weight: 400; }}
-.chip {{ display: inline-block; padding: 3px 10px; margin: 2px 4px; border-radius: 999px;
-         background: #f3f4f6; border: 1px solid #e5e7eb; color: #111827; font-size: 0.82rem; }}
-.chip:hover {{ background: #eef2ff; border-color: #c7d2fe; text-decoration: none; }}
-.chip-all {{ background: #fff; color: #6b7280; }}
-.legend {{ font-size: 0.76rem; color: #6b7280; margin-top: 12px; line-height: 1.6; }}
-.legend b {{ color: #374151; }}
-</style>
-</head><body>
+    body = (
+        render_stat_cards(cards)
+        + chart_block
+        + "<h2>Open Positions — sorted action-first</h2>"
+        + render_positions_section(rows, equity)
+        + "<h2>Trade History (closed, from SnapTrade)</h2>"
+        + render_trade_history(trades)
+        + "<div class='footer'>Data: SnapTrade (balances · positions · activities) "
+          "+ Finviz (live quotes &amp; technicals) · refreshes on every position "
+          "monitor run.</div>"
+    )
 
-<h1>📈 Live SnapTrade Portfolio</h1>
-<p class="subtitle">Real-money book · SnapTrade + Finviz · refreshed {updated}</p>
-
-<div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-label">Equity</div>
-    <div class="stat-val">{_fmt_money(equity)}</div>
-    <div class="stat-sub">Buying power {_fmt_money(bp)}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Cash</div>
-    <div class="stat-val">{_fmt_money(cash)}</div>
-    <div class="stat-sub">{"margin debt" if cash < 0 else "free cash"}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Position MV</div>
-    <div class="stat-val">{_fmt_money(total_mv)}</div>
-    <div class="stat-sub">{len(rows)} positions</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Open P&amp;L</div>
-    <div class="stat-val heat {unr_heat}">{"+" if total_pl >= 0 else ""}{_fmt_money(total_pl)} ({_fmt_pct(total_unr_pct)})</div>
-    <div class="stat-sub">across all positions</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Leverage</div>
-    <div class="stat-val">{leverage_pct:.0f}%</div>
-    <div class="stat-sub">debt / equity</div>
-  </div>
-</div>
-
-<div class="action-summary">
-  <strong>Actions</strong> <span class="hint">(click to filter the table)</span>:
-  <a class="chip" href="#" onclick="filterAction('peel');return false;">💰 PEEL: {peel_count}</a>
-  <a class="chip" href="#" onclick="filterAction('cut');return false;">🚨 CUT: {cut_count}</a>
-  <a class="chip" href="#" onclick="filterAction('dead');return false;">💀 dead weight: {dead_count}</a>
-  <a class="chip chip-all" href="#" onclick="filterAction('all');return false;">show all</a>
-</div>
-
-<h2>Open Positions — sorted action-first</h2>
-{table_html}
-{legend_html}
-
-<div class="footer">Data: SnapTrade (account) + Finviz (quotes &amp; technicals) · refreshes on every position monitor run.</div>
-
-<script>
-function filterAction(key) {{
-  var rows = document.querySelectorAll('#posTable tbody tr');
-  rows.forEach(function(r) {{
-    var match = (key === 'all') || (r.getAttribute('data-action') === key);
-    r.style.display = match ? '' : 'none';
+    updated = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
+    extra_head = '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>'
+    extra_script = f"""
+const moLabels = {mo_labels};
+const moPnl    = {mo_pnl};
+const moColors = {mo_colors};
+const moKeys   = {mo_keys};
+const moCanvas = document.getElementById('mochart');
+if (moCanvas && moLabels.length > 0) {{
+  new Chart(moCanvas.getContext('2d'), {{
+    type: 'bar',
+    data: {{ labels: moLabels, datasets: [{{ label: 'Realized P&L', data: moPnl, backgroundColor: moColors }}] }},
+    options: {{
+      responsive: true, maintainAspectRatio: false,
+      onClick: function(evt, els) {{ if (els && els.length) {{ filterMonth(moKeys[els[0].index]); }} }},
+      plugins: {{ legend: {{ display: false }} }},
+      scales: {{
+        x: {{ grid: {{ display: false }}, ticks: {{ color: '#6b7280' }} }},
+        y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
+               callback: function(v){{ return '$' + v.toLocaleString(); }} }} }}
+      }}
+    }}
   }});
 }}
-</script>
-</body></html>
 """
+    return page_shell("Live SnapTrade Portfolio", "📈 Live SnapTrade Portfolio",
+                      f"Real-money book · SnapTrade + Finviz · refreshed {updated}",
+                      body, extra_head=extra_head, extra_script=extra_script)
 
 
 # ---------- placeholder + main ----------
@@ -410,12 +236,7 @@ def _fetch_account_balances() -> dict:
 
 
 def _load_entry_dates() -> dict:
-    """ticker -> entry_date from the rules-engine book (positions.json).
-
-    SnapTrade's position payload carries no entry date; positions.json does.
-    Empty/non-fatal when the file is missing or unreadable.
-    """
-    import json
+    """ticker -> entry_date from the rules-engine book (positions.json)."""
     try:
         with open(os.path.join(DATA_DIR, "positions.json")) as f:
             d = json.load(f)
@@ -424,6 +245,29 @@ def _load_entry_dates() -> dict:
     except Exception as e:
         log.warning("entry-date lookup failed: %s", e)
         return {}
+
+
+def _load_live_events() -> list:
+    """Flatten the cached SnapTrade BUY/SELL activities (position_history.json)
+    into the common event schema for the FIFO trade engine."""
+    try:
+        with open(os.path.join(DATA_DIR, "position_history.json")) as f:
+            d = json.load(f)
+    except Exception as e:
+        log.warning("position_history load failed: %s", e)
+        return []
+    history = d.get("history", d) if isinstance(d, dict) else {}
+    events = []
+    for ticker, acts in (history.items() if isinstance(history, dict) else []):
+        for a in (acts or []):
+            events.append({
+                "symbol": ticker,
+                "side": (a.get("action") or "").lower(),
+                "qty": a.get("shares", 0),
+                "price": a.get("price", 0),
+                "date": (a.get("date") or "")[:10],
+            })
+    return events
 
 
 def write_page() -> str | None:
@@ -441,7 +285,8 @@ def write_page() -> str | None:
         account   = _fetch_account_balances()
         entry_dates = _load_entry_dates()
         rows = [build_row(p, entry_date=entry_dates.get(p["ticker"])) for p in positions]
-        html = render_html(account, rows)
+        trades = closed_trades(_load_live_events())
+        html = render_html(account, rows, trades=trades)
     except Exception as e:
         log.warning("Live portfolio render failed: %s", e)
         html = _placeholder_html(str(e))
