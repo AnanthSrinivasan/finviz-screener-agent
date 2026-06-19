@@ -249,5 +249,52 @@ class GenerateHtmlTests(unittest.TestCase):
         self.assertIn("No open positions", html)
 
 
+class OpenEntryDatesTests(unittest.TestCase):
+    def _f(self, sym, side, qty, price, date):
+        return {"symbol": sym, "side": side, "qty": str(qty),
+                "price": str(price), "transaction_time": f"{date}T14:00:00Z"}
+
+    def test_open_lot_reports_earliest_date(self):
+        fills = [self._f("NVDA", "buy", 5, 200, "2026-05-10"),
+                 self._f("NVDA", "buy", 5, 210, "2026-05-20")]
+        self.assertEqual(gp.open_entry_dates(fills), {"NVDA": "2026-05-10"})
+
+    def test_fully_closed_symbol_excluded(self):
+        fills = [self._f("AAPL", "buy", 10, 100, "2026-06-02"),
+                 self._f("AAPL", "sell", 10, 120, "2026-06-15")]
+        self.assertNotIn("AAPL", gp.open_entry_dates(fills))
+
+    def test_partial_close_keeps_remaining_lot_date(self):
+        fills = [self._f("TSLA", "buy", 10, 100, "2026-04-01"),
+                 self._f("TSLA", "buy", 10, 110, "2026-04-10"),
+                 self._f("TSLA", "sell", 10, 130, "2026-05-01")]
+        # first lot consumed FIFO → earliest remaining is the 04-10 lot
+        self.assertEqual(gp.open_entry_dates(fills), {"TSLA": "2026-04-10"})
+
+
+class TradeHistoryInteractivityTests(unittest.TestCase):
+    def test_sort_and_filter_hooks_present(self):
+        account = {"equity": "100000", "last_equity": "100000",
+                   "cash": "5000", "buying_power": "10000"}
+        trades = [{"symbol": "AAA", "entry_date": "2026-06-02",
+                   "exit_date": "2026-06-15", "qty": 10, "avg_entry": 100.0,
+                   "avg_exit": 120.0, "pnl": 200.0, "pct": 20.0, "hold_days": 13}]
+        html = gp.generate_html(account, [], {}, trades=trades)
+        self.assertIn("sortTable", html)
+        self.assertIn("filterMonth", html)
+        self.assertIn("data-month='2026-06'", html)
+
+    def test_open_position_entry_date_column(self):
+        account = {"equity": "100000", "last_equity": "100000",
+                   "cash": "5000", "buying_power": "10000"}
+        pos = [{"symbol": "NVDA", "qty": "5", "avg_entry_price": "200",
+                "current_price": "210", "market_value": "1050",
+                "cost_basis": "1000", "unrealized_pl": "50",
+                "unrealized_plpc": "0.05"}]
+        html = gp.generate_html(account, pos, {}, entry_dates={"NVDA": "2026-05-10"})
+        self.assertIn("Entry Date", html)
+        self.assertIn("2026-05-10", html)
+
+
 if __name__ == "__main__":
     unittest.main()

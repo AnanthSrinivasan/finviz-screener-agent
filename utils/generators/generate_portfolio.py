@@ -154,12 +154,50 @@ def monthly_performance(history: dict) -> list:
         pct = (pnl / start * 100) if start else 0.0
         out.append({
             "month": dt.strftime("%b %Y"),
+            "key": key,                       # YYYY-MM — used to filter trades
             "start": round(start, 2),
             "end": round(end, 2),
             "pnl": round(pnl, 2),
             "pct": round(pct, 2),
         })
         prev_end = end
+    return out
+
+
+def open_entry_dates(fills: list) -> dict:
+    """Earliest still-open FIFO lot date per symbol, from FILL activities.
+
+    Alpaca's /positions payload carries no entry date, so we replay buys/sells
+    FIFO and report the oldest date among the lots that remain open. Used to
+    show an Entry Date on the open-positions table.
+    """
+    lots: dict[str, list] = {}   # symbol -> FIFO list of [qty, date]
+    for f in sorted(fills or [], key=lambda f: f.get("transaction_time", "")):
+        sym  = f.get("symbol")
+        side = f.get("side")
+        try:
+            qty = float(f.get("qty", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if not sym or qty <= 0:
+            continue
+        date = (f.get("transaction_time") or "")[:10]
+        if side == "buy":
+            lots.setdefault(sym, []).append([qty, date])
+            continue
+        remaining = qty
+        while remaining > 1e-9 and lots.get(sym):
+            lot = lots[sym][0]
+            take = min(lot[0], remaining)
+            lot[0] -= take
+            remaining -= take
+            if lot[0] <= 1e-9:
+                lots[sym].pop(0)
+    out: dict[str, str] = {}
+    for sym, ls in lots.items():
+        dates = [d for q, d in ls if q > 1e-9 and d]
+        if dates:
+            out[sym] = min(dates)
     return out
 
 
@@ -269,7 +307,9 @@ def trade_stats(trades: list) -> dict:
 
 
 def generate_html(account: dict, positions: list, history: dict,
-                  trades: list = None) -> str:
+                  trades: list = None, entry_dates: dict = None) -> str:
+    entry_dates = entry_dates or {}
+    today = datetime.date.today()
     equity      = float(account.get("equity", 0) or 0)
     last_equity = float(account.get("last_equity", 0) or 0)
     cash        = float(account.get("cash", 0) or 0)
@@ -305,9 +345,19 @@ def generate_html(account: dict, positions: list, history: dict,
         heat       = _heat_class(unr_pct)
         pl_sign    = "+" if unr >= 0 else ""
         pct_sign   = "+" if unr_pct >= 0 else ""
+        edate      = entry_dates.get(sym)
+        if edate:
+            try:
+                held = f"{(today - datetime.date.fromisoformat(edate)).days}d"
+            except ValueError:
+                held = "—"
+        else:
+            edate, held = "—", "—"
         pos_rows += (
             "<tr>"
             f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={sym}' target='_blank'>{sym}</a></td>"
+            f"<td class='mono'>{edate}</td>"
+            f"<td class='mono'>{held}</td>"
             f"<td class='mono'>{qty}</td>"
             f"<td class='mono'>${entry:.2f}</td>"
             f"<td class='mono'>${price:.2f}</td>"
@@ -327,12 +377,13 @@ def generate_html(account: dict, positions: list, history: dict,
     mo_labels = json.dumps([m["month"] for m in months])
     mo_pnl    = json.dumps([m["pnl"] for m in months])
     mo_colors = json.dumps(["#16a34a" if m["pnl"] >= 0 else "#dc2626" for m in months])
+    mo_keys   = json.dumps([m["key"] for m in months])
     mo_rows = ""
     for m in reversed(months):  # newest first in the table
         h = _heat_class(m["pct"])
         ps = "+" if m["pnl"] >= 0 else ""
         mo_rows += (
-            "<tr>"
+            f"<tr class='month-row' onclick=\"filterMonth('{m['key']}')\" title='Click to show only {m['month']} trades'>"
             f"<td class='bold'>{m['month']}</td>"
             f"<td class='mono'>{_fmt_money(m['start'])}</td>"
             f"<td class='mono'>{_fmt_money(m['end'])}</td>"
@@ -347,17 +398,18 @@ def generate_html(account: dict, positions: list, history: dict,
     for t in trades:
         h  = _heat_class(t["pct"])
         ps = "+" if t["pnl"] >= 0 else ""
+        exit_month = t["exit_date"][:7]
         trade_rows += (
-            "<tr>"
-            f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={t['symbol']}' target='_blank'>{t['symbol']}</a></td>"
-            f"<td class='mono'>{t['entry_date']}</td>"
-            f"<td class='mono'>{t['exit_date']}</td>"
-            f"<td class='mono'>{t['hold_days']}d</td>"
-            f"<td class='mono'>{t['qty']}</td>"
-            f"<td class='mono'>${t['avg_entry']:,.2f}</td>"
-            f"<td class='mono'>${t['avg_exit']:,.2f}</td>"
-            f"<td class='mono heat {h}'>{ps}{_fmt_money(t['pnl'])}</td>"
-            f"<td class='mono heat {h}'>{_fmt_pct(t['pct'])}</td>"
+            f"<tr class='trade-row' data-month='{exit_month}'>"
+            f"<td class='bold' data-sort='{t['symbol']}'><a href='https://finviz.com/quote.ashx?t={t['symbol']}' target='_blank'>{t['symbol']}</a></td>"
+            f"<td class='mono' data-sort='{t['entry_date']}'>{t['entry_date']}</td>"
+            f"<td class='mono' data-sort='{t['exit_date']}'>{t['exit_date']}</td>"
+            f"<td class='mono' data-sort='{t['hold_days']}'>{t['hold_days']}d</td>"
+            f"<td class='mono' data-sort='{t['qty']}'>{t['qty']}</td>"
+            f"<td class='mono' data-sort='{t['avg_entry']}'>${t['avg_entry']:,.2f}</td>"
+            f"<td class='mono' data-sort='{t['avg_exit']}'>${t['avg_exit']:,.2f}</td>"
+            f"<td class='mono heat {h}' data-sort='{t['pnl']}'>{ps}{_fmt_money(t['pnl'])}</td>"
+            f"<td class='mono heat {h}' data-sort='{t['pct']}'>{_fmt_pct(t['pct'])}</td>"
             "</tr>"
         )
     stats_line = ""
@@ -369,6 +421,28 @@ def generate_html(account: dict, positions: list, history: dict,
             f"avg win +{_fmt_money(stats['avg_win'])} / avg loss {_fmt_money(stats['avg_loss'])} · "
             f"payoff {stats['payoff']:.1f}"
         )
+
+    if trade_rows:
+        _cols = [("Ticker", "str"), ("Entry Date", "date"), ("Exit Date", "date"),
+                 ("Held", "num"), ("Qty", "num"), ("Avg Entry", "num"),
+                 ("Avg Exit", "num"), ("P&amp;L", "num"), ("Return", "num")]
+        _ths = "".join(
+            f"<th class='sortable' onclick=\"sortTable('tradeTable',{i},'{ty}',this)\">"
+            f"{lbl}<span class='arrow'></span></th>"
+            for i, (lbl, ty) in enumerate(_cols)
+        )
+        trade_table_html = (
+            f"<table class='pos-table' id='tradeTable'><thead><tr>{_ths}</tr></thead>"
+            f"<tbody>{trade_rows}</tbody></table>"
+        )
+        filter_bar_html = (
+            "<div class='filter-bar'>Showing <strong id='monthLabel'>all months</strong> · "
+            "<a href='#' onclick=\"filterMonth('all');return false;\">show all</a> "
+            "<span class='hint'>— click a month in the chart/table above, or a column header to sort</span></div>"
+        )
+    else:
+        trade_table_html = "<div class='empty'>No closed trades yet.</div>"
+        filter_bar_html = ""
 
     equity_points = build_equity_curve_js(history)
     day_heat  = _heat_class(day_pl_pct)
@@ -426,6 +500,14 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 .empty {{ color: #6b7280; font-size: 0.88rem; padding: 24px; text-align: center;
          background: #fff; border: 1px dashed #e5e7eb; border-radius: 10px; }}
 .footer {{ margin-top: 32px; font-size: 0.7rem; color: #9ca3af; }}
+.sortable {{ cursor: pointer; user-select: none; }}
+.sortable:hover {{ color: #2563eb; }}
+.arrow {{ font-size: 0.7em; margin-left: 4px; color: #9ca3af; }}
+.month-row {{ cursor: pointer; }}
+.month-row:hover td {{ background: #eef2ff; }}
+.filter-bar {{ font-size: 0.8rem; color: #6b7280; margin-bottom: 12px; }}
+.filter-bar strong {{ color: #2563eb; }}
+.filter-bar .hint {{ color: #9ca3af; }}
 </style>
 </head><body>
 
@@ -477,7 +559,7 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 </div>
 
 <h2>Open Positions</h2>
-{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Qty</th><th>Entry</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody>" + pos_rows + "</tbody></table>" if pos_rows else "<div class='empty'>No open positions.</div>"}
+{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Entry Date</th><th>Held</th><th>Qty</th><th>Entry $</th><th>Price</th><th>Mkt Value</th><th>Alloc</th><th>Unrealized $</th><th>Unrealized %</th></tr></thead><tbody>" + pos_rows + "</tbody></table>" if pos_rows else "<div class='empty'>No open positions.</div>"}
 
 <div class="chart-card" style="margin-top:28px">
   <h2 style="margin-top:0">Month-over-Month Performance</h2>
@@ -487,7 +569,8 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 
 <h2>Trade History (closed, 2026)</h2>
 {("<p class='subtitle' style='margin-bottom:12px'>" + stats_line + "</p>") if stats_line else ""}
-{"<table class='pos-table'><thead><tr><th>Ticker</th><th>Entry Date</th><th>Exit Date</th><th>Held</th><th>Qty</th><th>Avg Entry</th><th>Avg Exit</th><th>P&amp;L</th><th>Return</th></tr></thead><tbody>" + trade_rows + "</tbody></table>" if trade_rows else "<div class='empty'>No closed trades yet.</div>"}
+{filter_bar_html}
+{trade_table_html}
 
 <div class="footer">Data: Alpaca paper API · updates hourly during US market hours via position-monitor workflow.</div>
 
@@ -525,6 +608,7 @@ if (points.length > 0) {{
 const moLabels = {mo_labels};
 const moPnl    = {mo_pnl};
 const moColors = {mo_colors};
+const moKeys   = {mo_keys};
 const moCanvas = document.getElementById('mochart');
 if (moCanvas && moLabels.length > 0) {{
   new Chart(moCanvas.getContext('2d'), {{
@@ -533,6 +617,7 @@ if (moCanvas && moLabels.length > 0) {{
     options: {{
       responsive: true,
       maintainAspectRatio: false,
+      onClick: function(evt, els) {{ if (els && els.length) {{ filterMonth(moKeys[els[0].index]); }} }},
       plugins: {{ legend: {{ display: false }} }},
       scales: {{
         x: {{ grid: {{ display: false }}, ticks: {{ color: '#6b7280' }} }},
@@ -541,6 +626,41 @@ if (moCanvas && moLabels.length > 0) {{
       }}
     }}
   }});
+}}
+
+function filterMonth(key) {{
+  var rows = document.querySelectorAll('#tradeTable tbody tr');
+  var shown = 0;
+  rows.forEach(function(r) {{
+    var match = (key === 'all') || (r.getAttribute('data-month') === key);
+    r.style.display = match ? '' : 'none';
+    if (match) shown++;
+  }});
+  var lbl = document.getElementById('monthLabel');
+  if (lbl) lbl.textContent = (key === 'all') ? 'all months' : (key + ' (' + shown + ' trades)');
+  var tt = document.getElementById('tradeTable');
+  if (tt) tt.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+}}
+
+function sortTable(tableId, col, type, th) {{
+  var table = document.getElementById(tableId);
+  var tbody = table.tBodies[0];
+  var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+  var asc = th.getAttribute('data-asc') !== 'true';
+  // reset arrows
+  table.querySelectorAll('th .arrow').forEach(function(a) {{ a.textContent = ''; }});
+  th.querySelector('.arrow').textContent = asc ? ' ▲' : ' ▼';
+  th.parentNode.querySelectorAll('th').forEach(function(h) {{ h.setAttribute('data-asc', 'false'); }});
+  th.setAttribute('data-asc', asc ? 'true' : 'false');
+  rows.sort(function(a, b) {{
+    var x = a.children[col].getAttribute('data-sort') || a.children[col].textContent;
+    var y = b.children[col].getAttribute('data-sort') || b.children[col].textContent;
+    var cmp;
+    if (type === 'num') {{ cmp = parseFloat(x) - parseFloat(y); }}
+    else {{ cmp = String(x).localeCompare(String(y)); }}  // date ISO + str both sort lexically
+    return asc ? cmp : -cmp;
+  }});
+  rows.forEach(function(r) {{ tbody.appendChild(r); }});
 }}
 </script>
 </body></html>
@@ -568,10 +688,13 @@ def main() -> str | None:
         log.warning("Skipping portfolio page — account fetch failed.")
         return None
 
-    trades = closed_trades(fetch_fills(), since=TRADES_SINCE)
+    fills = fetch_fills()
+    trades = closed_trades(fills, since=TRADES_SINCE)
+    entry_dates = open_entry_dates(fills)
 
     os.makedirs(DATA_DIR, exist_ok=True)
-    html = generate_html(account, positions, history, trades=trades)
+    html = generate_html(account, positions, history, trades=trades,
+                         entry_dates=entry_dates)
     with open(OUTPUT_PATH, "w") as f:
         f.write(html)
     log.info("claude_portfolio.html written → %s", OUTPUT_PATH)

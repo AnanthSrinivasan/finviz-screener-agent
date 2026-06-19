@@ -73,6 +73,27 @@ def verdict_for(gain: float, atr: float, s20: float, stage: str) -> str:
     return " · ".join(parts)
 
 
+def classify_action(gain: float, atr: float) -> str:
+    """Single source of truth for the action summary AND per-row tagging, so the
+    counts at the top always match the rows below.
+
+    Returns a key in {cut, peel, trail, dead, hold}. Mirrors the EXACT clause
+    ordering of verdict_for (gain≥10 → trail is checked before the high-vol peel
+    clause) so the row's Verdict text and the summary chip never disagree.
+    """
+    if gain <= -5:
+        return "cut"
+    if gain >= 20:
+        return "peel"            # 💰 PEEL ½ (T1 rule)
+    if gain >= 10:
+        return "trail"           # 🟢 trail tighter — NOT a peel
+    if gain >= 7 and atr > 7:
+        return "peel"            # ⚠ peel ⅓ — high-vol extended
+    if 0 <= gain < 1:
+        return "dead"            # 💀 dead weight
+    return "hold"
+
+
 # ---------- Finviz live quote (no API key — html parse) ----------
 
 _QUOTE_RE = re.compile(r'class="quote-price[^"]*"[^>]*>([\d,.]+)')
@@ -120,7 +141,17 @@ def _technicals(ticker: str) -> dict:
     }
 
 
-def build_row(pos: dict, tech_lookup=None) -> dict:
+def _held_days(entry_date: str) -> str:
+    if not entry_date:
+        return "—"
+    try:
+        d0 = datetime.date.fromisoformat(str(entry_date)[:10])
+        return f"{(datetime.date.today() - d0).days}d"
+    except ValueError:
+        return "—"
+
+
+def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
     ticker = pos["ticker"]
     shares = float(pos.get("shares", 0) or 0)
     avg    = float(pos.get("avg_cost", 0) or 0)
@@ -134,6 +165,8 @@ def build_row(pos: dict, tech_lookup=None) -> dict:
     return {
         "ticker": ticker, "shares": shares, "avg": avg, "live": live,
         "gain": gain, "pl": pl, "mv": mv,
+        "entry_date": entry_date or "—",
+        "held":       _held_days(entry_date),
         "atr":    tech.get("atr", 0.0),
         "s20":    tech.get("s20", 0.0),
         "stage":  tech.get("stage", "?"),
@@ -150,11 +183,20 @@ def render_html(account: dict, rows: list) -> str:
     total_pl = sum(r["pl"] for r in rows)
     leverage_pct = ((-cash) / equity * 100) if (equity > 0 and cash < 0) else 0.0
     total_unr_pct = ((total_pl) / (total_mv - total_pl) * 100) if (total_mv - total_pl) > 0 else 0.0
-    rows = sorted(rows, key=lambda r: -r["mv"])
 
-    peel_count = sum(1 for r in rows if r["gain"] >= 20 or (r["gain"] >= 7 and r["atr"] > 7))
-    cut_count  = sum(1 for r in rows if r["gain"] <= -5)
-    dead_count = sum(1 for r in rows if 0 <= r["gain"] < 1 and r["mv"] > 5000)
+    # Tag every row with its action FIRST so the summary counts and the table
+    # rows are derived from one classifier and can never disagree.
+    for r in rows:
+        r["action"] = classify_action(r["gain"], r["atr"])
+
+    # Sort decision-first (cut → peel → dead → trail → hold), then by market
+    # value desc, so the names that need an action float to the top.
+    _prio = {"cut": 0, "peel": 1, "dead": 2, "trail": 3, "hold": 4}
+    rows = sorted(rows, key=lambda r: (_prio.get(r["action"], 9), -r["mv"]))
+
+    peel_count = sum(1 for r in rows if r["action"] == "peel")
+    cut_count  = sum(1 for r in rows if r["action"] == "cut")
+    dead_count = sum(1 for r in rows if r["action"] == "dead")
 
     pos_rows_html = ""
     for idx, r in enumerate(rows, 1):
@@ -164,9 +206,11 @@ def render_html(account: dict, rows: list) -> str:
         pl_sign  = "+" if r["pl"]   >= 0 else ""
         pct_sign = "+" if r["gain"] >= 0 else ""
         pos_rows_html += (
-            "<tr>"
+            f"<tr data-action='{r['action']}'>"
             f"<td class='mono num'>{idx}</td>"
             f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={r['ticker']}' target='_blank'>{r['ticker']}</a></td>"
+            f"<td class='mono'>{r.get('entry_date', '—')}</td>"
+            f"<td class='mono'>{r.get('held', '—')}</td>"
             f"<td class='mono'>{r['shares']:.0f}</td>"
             f"<td class='mono'>${r['avg']:.2f}</td>"
             f"<td class='mono'>${r['live']:.2f}</td>"
@@ -185,12 +229,32 @@ def render_html(account: dict, rows: list) -> str:
     unr_heat = _heat_class(total_unr_pct)
 
     table_html = (
-        "<table class='pos-table'><thead><tr>"
-        "<th>No.</th><th>TKR</th><th>Sh</th><th>Avg</th><th>Live</th><th>Δ%</th>"
-        "<th>$P/L</th><th>MV</th><th>%Bk</th><th>ATR%</th><th>S20%</th>"
-        "<th>St</th><th>Verdict</th></tr></thead><tbody>"
+        "<table class='pos-table' id='posTable'><thead><tr>"
+        "<th>No.</th><th>TKR</th>"
+        "<th title='Date the position was opened'>Entry</th>"
+        "<th title='Days held since entry'>Held</th>"
+        "<th>Sh</th><th title='Average cost'>Avg</th><th>Live</th>"
+        "<th title='Gain since entry'>Δ%</th>"
+        "<th title='Unrealized profit/loss in dollars'>$P/L</th>"
+        "<th title='Market value'>MV</th>"
+        "<th title='Position size as % of total book/equity'>%Bk</th>"
+        "<th title='Average True Range % — daily volatility'>ATR%</th>"
+        "<th title='Price vs its 20-day moving average — + above / - below'>S20%</th>"
+        "<th title='Weinstein stage — 2P = perfect Stage 2 uptrend'>St</th>"
+        "<th>Verdict</th></tr></thead><tbody>"
         + pos_rows_html + "</tbody></table>"
     ) if rows else "<div class='empty'>No open positions.</div>"
+
+    legend_html = (
+        "<div class='legend'><strong>Column key:</strong> "
+        "<b>Δ%</b> gain since entry · "
+        "<b>%Bk</b> position as % of book · "
+        "<b>ATR%</b> daily volatility (avg true range) · "
+        "<b>S20%</b> price vs 20-day moving average (+ above / − below) · "
+        "<b>St</b> Weinstein stage (2P = perfect Stage 2) · "
+        "<b>Verdict</b> action from the pos-review ladder. "
+        "Rows are sorted action-first; click a summary chip above to filter.</div>"
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -239,6 +303,13 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 .action-summary {{ background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
                    padding: 14px 18px; margin: 18px 0; font-size: 0.88rem; }}
 .action-summary strong {{ color: #111827; }}
+.action-summary .hint {{ color: #9ca3af; font-size: 0.8rem; font-weight: 400; }}
+.chip {{ display: inline-block; padding: 3px 10px; margin: 2px 4px; border-radius: 999px;
+         background: #f3f4f6; border: 1px solid #e5e7eb; color: #111827; font-size: 0.82rem; }}
+.chip:hover {{ background: #eef2ff; border-color: #c7d2fe; text-decoration: none; }}
+.chip-all {{ background: #fff; color: #6b7280; }}
+.legend {{ font-size: 0.76rem; color: #6b7280; margin-top: 12px; line-height: 1.6; }}
+.legend b {{ color: #374151; }}
 </style>
 </head><body>
 
@@ -274,17 +345,28 @@ a:hover {{ color: #1d4ed8; text-decoration: underline; }}
 </div>
 
 <div class="action-summary">
-  <strong>Actions:</strong>
-  💰 PEEL candidates: {peel_count} ·
-  🚨 CUT today: {cut_count} ·
-  💀 dead weight: {dead_count}
+  <strong>Actions</strong> <span class="hint">(click to filter the table)</span>:
+  <a class="chip" href="#" onclick="filterAction('peel');return false;">💰 PEEL: {peel_count}</a>
+  <a class="chip" href="#" onclick="filterAction('cut');return false;">🚨 CUT: {cut_count}</a>
+  <a class="chip" href="#" onclick="filterAction('dead');return false;">💀 dead weight: {dead_count}</a>
+  <a class="chip chip-all" href="#" onclick="filterAction('all');return false;">show all</a>
 </div>
 
-<h2>Open Positions — sorted by Market Value</h2>
+<h2>Open Positions — sorted action-first</h2>
 {table_html}
+{legend_html}
 
 <div class="footer">Data: SnapTrade (account) + Finviz (quotes &amp; technicals) · refreshes on every position monitor run.</div>
 
+<script>
+function filterAction(key) {{
+  var rows = document.querySelectorAll('#posTable tbody tr');
+  rows.forEach(function(r) {{
+    var match = (key === 'all') || (r.getAttribute('data-action') === key);
+    r.style.display = match ? '' : 'none';
+  }});
+}}
+</script>
 </body></html>
 """
 
@@ -327,6 +409,23 @@ def _fetch_account_balances() -> dict:
     return {"equity": equity, "cash": cash, "buying_power": bp}
 
 
+def _load_entry_dates() -> dict:
+    """ticker -> entry_date from the rules-engine book (positions.json).
+
+    SnapTrade's position payload carries no entry date; positions.json does.
+    Empty/non-fatal when the file is missing or unreadable.
+    """
+    import json
+    try:
+        with open(os.path.join(DATA_DIR, "positions.json")) as f:
+            d = json.load(f)
+        return {p["ticker"]: p.get("entry_date")
+                for p in d.get("open_positions", []) if p.get("ticker")}
+    except Exception as e:
+        log.warning("entry-date lookup failed: %s", e)
+        return {}
+
+
 def write_page() -> str | None:
     """Fetch live data, render HTML, write to OUTPUT_PATH. Non-fatal."""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -340,7 +439,8 @@ def write_page() -> str | None:
     try:
         positions = fetch_positions() or []
         account   = _fetch_account_balances()
-        rows = [build_row(p) for p in positions]
+        entry_dates = _load_entry_dates()
+        rows = [build_row(p, entry_date=entry_dates.get(p["ticker"])) for p in positions]
         html = render_html(account, rows)
     except Exception as e:
         log.warning("Live portfolio render failed: %s", e)

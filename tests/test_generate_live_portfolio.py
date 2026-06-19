@@ -79,5 +79,72 @@ class WritePageTests(unittest.TestCase):
             self.assertIn("Live SnapTrade Portfolio", html)
 
 
+class ClassifyActionTests(unittest.TestCase):
+    def test_cut(self):
+        self.assertEqual(glp.classify_action(-6.0, 3.0), "cut")
+
+    def test_peel_at_20(self):
+        self.assertEqual(glp.classify_action(22.0, 3.0), "peel")
+
+    def test_peel_high_vol_extended(self):
+        # gain in [7,10) with high vol → peel ⅓
+        self.assertEqual(glp.classify_action(8.0, 8.0), "peel")
+
+    def test_gain_over_10_is_trail_not_peel(self):
+        # mirrors verdict_for: 🟢 trail tighter is checked before the peel clause
+        self.assertEqual(glp.classify_action(11.0, 8.0), "trail")
+
+    def test_dead_weight(self):
+        self.assertEqual(glp.classify_action(0.4, 3.0), "dead")
+
+    def test_hold(self):
+        self.assertEqual(glp.classify_action(5.0, 3.0), "hold")
+
+
+class SummaryConsistencyTests(unittest.TestCase):
+    """The action summary counts must equal what the rows are tagged with."""
+
+    def _row(self, ticker, gain, atr=3.0, mv=1000.0):
+        return {"ticker": ticker, "shares": 100, "avg": 10.0, "live": 11.0,
+                "gain": gain, "pl": 100.0, "mv": mv, "entry_date": "2026-06-01",
+                "held": "18d", "atr": atr, "s20": 1.0, "stage": "2P"}
+
+    def test_counts_match_row_tags(self):
+        rows = [self._row("PEELX", 25), self._row("CUTX", -6),
+                self._row("DEADX", 0.4), self._row("HOLDX", 5)]
+        html = glp.render_html({"equity": 100000, "cash": 0, "buying_power": 0}, rows)
+        self.assertIn("PEEL: 1", html)
+        self.assertIn("CUT: 1", html)
+        self.assertIn("dead weight: 1", html)
+        self.assertEqual(html.count("data-action='peel'"), 1)
+        self.assertEqual(html.count("data-action='cut'"), 1)
+        self.assertEqual(html.count("data-action='dead'"), 1)
+
+    def test_high_gain_high_vol_is_trail_not_peel(self):
+        # DAVE-class: +11% with high ATR must show "trail tighter" and NOT be
+        # counted as a peel candidate (the bug the summary used to have).
+        rows = [self._row("DAVE", 11.0, atr=8.0)]
+        html = glp.render_html({"equity": 100000, "cash": 0, "buying_power": 0}, rows)
+        self.assertIn("PEEL: 0", html)
+        self.assertIn("data-action='trail'", html)
+        self.assertIn("trail tighter", html)
+
+    def test_entry_date_and_legend_present(self):
+        rows = [self._row("AAA", 5)]
+        html = glp.render_html({"equity": 100000, "cash": 0, "buying_power": 0}, rows)
+        self.assertIn("2026-06-01", html)
+        self.assertIn("18d", html)
+        self.assertIn("price vs 20-day moving average", html)
+        self.assertIn("filterAction", html)
+
+
+class HeldDaysTests(unittest.TestCase):
+    def test_none_returns_dash(self):
+        self.assertEqual(glp._held_days(None), "—")
+
+    def test_bad_date_returns_dash(self):
+        self.assertEqual(glp._held_days("not-a-date"), "—")
+
+
 if __name__ == "__main__":
     unittest.main()
