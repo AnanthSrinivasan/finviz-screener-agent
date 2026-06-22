@@ -98,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 74.6,
-      "current_gain_pct": 3.4,
+      "current_gain_pct": 3.47,
       "first_entry_price": 71.24,
       "peak_gain_pct": 4.72
     },
@@ -115,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 99.56,
-      "current_gain_pct": -0.37,
+      "current_gain_pct": -0.33,
       "first_entry_price": 98.0,
       "peak_gain_pct": 1.59
     },
@@ -149,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 36.74,
-      "current_gain_pct": -2.98,
+      "current_gain_pct": -2.9,
       "first_entry_price": 36.59,
       "peak_gain_pct": 0.41
     },
@@ -171,22 +171,6 @@
       "peak_gain_pct": 3.69
     },
     {
-      "ticker": "ZVRA",
-      "shares": 500,
-      "entry_price": 13.19,
-      "entry_date": "2026-06-22",
-      "stop_price": 11.01,
-      "breakeven_activated": false,
-      "target1": 15.83,
-      "target1_hit": false,
-      "target2": 18.47,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 13.11,
-      "current_gain_pct": -4.09,
-      "first_entry_price": 13.19
-    },
-    {
       "ticker": "SN",
       "shares": 20,
       "entry_price": 140.28,
@@ -202,6 +186,23 @@
       "current_gain_pct": -1.23,
       "first_entry_price": 140.28,
       "peak_gain_pct": 0.75
+    },
+    {
+      "ticker": "MCHP",
+      "shares": 75,
+      "entry_price": 103.26,
+      "entry_date": "2026-06-22",
+      "stop_price": 93.8,
+      "breakeven_activated": false,
+      "target1": 123.91,
+      "target1_hit": false,
+      "target2": 144.56,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 104.0,
+      "current_gain_pct": -0.53,
+      "first_entry_price": 103.26,
+      "peak_gain_pct": 0.72
     }
   ],
   "closed_positions": [
@@ -1767,6 +1768,26 @@
       "close_price": 155.85,
       "close_source": "snaptrade_fill",
       "result_pct": -10.94
+    },
+    {
+      "ticker": "ZVRA",
+      "shares": 500,
+      "entry_price": 13.19,
+      "entry_date": "2026-06-22",
+      "stop_price": 11.01,
+      "breakeven_activated": false,
+      "target1": 15.83,
+      "target1_hit": false,
+      "target2": 18.47,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 13.11,
+      "current_gain_pct": -4.09,
+      "first_entry_price": 13.19,
+      "close_date": "2026-06-22",
+      "close_price": 13.0,
+      "close_source": "snaptrade_fill",
+      "result_pct": -1.44
     }
   ]
 }
