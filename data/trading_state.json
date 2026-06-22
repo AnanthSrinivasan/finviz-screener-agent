@@ -1,30 +1,12 @@
 {
-  "consecutive_wins": 2,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 2,
   "total_wins": 25,
-  "total_losses": 38,
-  "current_sizing_mode": "normal",
+  "total_losses": 40,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-06-16",
+  "last_updated": "2026-06-22",
   "recent_trades": [
-    {
-      "ticker": "XBI",
-      "result": "neutral",
-      "result_pct": -0.48,
-      "date": "2026-06-01",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 44.0
-    },
-    {
-      "ticker": "TWLO",
-      "result": "win",
-      "result_pct": 16.01,
-      "date": "2026-06-01",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1954.0
-    },
     {
       "ticker": "ARKX",
       "result": "loss",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 1488.65
+    },
+    {
+      "ticker": "FPS",
+      "result": "loss",
+      "result_pct": -1.61,
+      "date": "2026-06-22",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -150.0
+    },
+    {
+      "ticker": "DDOG",
+      "result": "loss",
+      "result_pct": -4.86,
+      "date": "2026-06-22",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -281.48
     }
   ],
   "market_state": "TREND-FOLLOW",
