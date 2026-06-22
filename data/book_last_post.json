@@ -1,35 +1,4 @@
 {
-  "last_book_post_ts": "2026-06-22T17:53:46.040636Z",
-  "events_since_last": [
-    {
-      "kind": "auto_closed",
-      "ticker": "DOCN",
-      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: DOCN\n   Entry $175.00 \u2192 $155.85 (fill) (-10.9%) \u2014 LOSS\n   Streak: 0W / 3L",
-      "result_pct": -10.94,
-      "close_price": 155.85,
-      "close_source": "snaptrade_fill",
-      "ts": "2026-06-22T18:14:27.887193Z"
-    },
-    {
-      "kind": "sizing_mode",
-      "ticker": "\u2014",
-      "message": "\ud83d\udea8 SIZING SUSPENDED \u2014 3 consecutive losses. Paper trade only until 2 consecutive wins.",
-      "ts": "2026-06-22T18:14:27.887193Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "TWLO",
-      "message": "\ud83d\udea8 STOP HIT: TWLO @ $181.24 \u2014 exit immediately (stop $208.06)",
-      "current_price": 181.24,
-      "stop_price": 208.06,
-      "ts": "2026-06-22T18:14:27.887193Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "TWLO",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.02, P&L $-1,341",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-06-22T18:14:27.887193Z"
-    }
-  ]
+  "last_book_post_ts": "2026-06-22T18:32:15.014201Z",
+  "events_since_last": []
 }
