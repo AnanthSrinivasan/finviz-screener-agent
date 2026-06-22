@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 321.48,
-      "current_gain_pct": 9.11,
+      "current_gain_pct": 9.87,
       "first_entry_price": 279.69,
       "peak_gain_pct": 13.68
     },
@@ -30,26 +30,9 @@
       "thesis": "User manual entry 2026-06-11 (after hours) \u2014 stop at entry per user instruction, alert-only",
       "status": "active",
       "highest_price_seen": 209.43,
-      "current_gain_pct": -13.25,
+      "current_gain_pct": -12.89,
       "first_entry_price": 208.06,
       "peak_gain_pct": 0.66
-    },
-    {
-      "ticker": "DOCN",
-      "shares": 100,
-      "entry_price": 175.0,
-      "entry_date": "2026-06-12",
-      "stop_price": 169.75,
-      "breakeven_activated": false,
-      "target1": 210.0,
-      "target1_hit": false,
-      "target2": 245.0,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 187.19,
-      "current_gain_pct": -8.19,
-      "first_entry_price": 175.0,
-      "peak_gain_pct": 6.97
     },
     {
       "ticker": "AMD",
@@ -64,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 562.3,
-      "current_gain_pct": 9.75,
+      "current_gain_pct": 10.26,
       "first_entry_price": 495.0,
       "peak_gain_pct": 13.6
     },
@@ -73,17 +56,17 @@
       "shares": 100,
       "entry_price": 143.0,
       "entry_date": "2026-06-12",
-      "stop_price": 138.84,
+      "stop_price": 138.95,
       "breakeven_activated": false,
       "target1": 171.6,
       "target1_hit": false,
       "target2": 200.2,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 155.93,
-      "current_gain_pct": 8.43,
+      "highest_price_seen": 156.51,
+      "current_gain_pct": 9.01,
       "first_entry_price": 143.0,
-      "peak_gain_pct": 9.04
+      "peak_gain_pct": 9.45
     },
     {
       "ticker": "CORZ",
@@ -98,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 30.43,
-      "current_gain_pct": 1.82,
+      "current_gain_pct": 2.42,
       "first_entry_price": 28.55,
       "peak_gain_pct": 6.58
     },
@@ -115,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 74.6,
-      "current_gain_pct": 2.89,
+      "current_gain_pct": 3.58,
       "first_entry_price": 71.24,
       "peak_gain_pct": 4.72
     },
@@ -132,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 99.56,
-      "current_gain_pct": -0.82,
+      "current_gain_pct": -0.57,
       "first_entry_price": 98.0,
       "peak_gain_pct": 1.59
     },
@@ -141,17 +124,17 @@
       "shares": 100,
       "entry_price": 144.98,
       "entry_date": "2026-06-22",
-      "stop_price": 138.11,
+      "stop_price": 138.29,
       "breakeven_activated": false,
       "target1": 173.98,
       "target1_hit": false,
       "target2": 202.97,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 146.31,
-      "current_gain_pct": 0.51,
+      "highest_price_seen": 146.53,
+      "current_gain_pct": 0.76,
       "first_entry_price": 144.98,
-      "peak_gain_pct": 0.92
+      "peak_gain_pct": 1.07
     },
     {
       "ticker": "BEAM",
@@ -166,7 +149,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 36.74,
-      "current_gain_pct": -3.2,
+      "current_gain_pct": -3.01,
       "first_entry_price": 36.59,
       "peak_gain_pct": 0.41
     },
@@ -183,7 +166,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 7.3,
-      "current_gain_pct": -2.98,
+      "current_gain_pct": -1.28,
       "first_entry_price": 7.04,
       "peak_gain_pct": 3.69
     },
@@ -200,7 +183,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 13.11,
-      "current_gain_pct": -4.47,
+      "current_gain_pct": -4.62,
       "first_entry_price": 13.19
     },
     {
@@ -216,7 +199,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 141.33,
-      "current_gain_pct": -0.84,
+      "current_gain_pct": -0.61,
       "first_entry_price": 140.28,
       "peak_gain_pct": 0.75
     }
@@ -1763,6 +1746,27 @@
       "close_price": 220.51,
       "close_source": "snaptrade_fill",
       "result_pct": -4.86
+    },
+    {
+      "ticker": "DOCN",
+      "shares": 100,
+      "entry_price": 175.0,
+      "entry_date": "2026-06-12",
+      "stop_price": 169.75,
+      "breakeven_activated": false,
+      "target1": 210.0,
+      "target1_hit": false,
+      "target2": 245.0,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 187.19,
+      "current_gain_pct": -8.19,
+      "first_entry_price": 175.0,
+      "peak_gain_pct": 6.97,
+      "close_date": "2026-06-22",
+      "close_price": 155.85,
+      "close_source": "snaptrade_fill",
+      "result_pct": -10.94
     }
   ]
 }
