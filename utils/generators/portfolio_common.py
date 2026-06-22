@@ -447,7 +447,7 @@ h2 { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: upperc
 .num  { color: #9ca3af; }
 a { color: #2563eb; text-decoration: none; }
 a:hover { color: #1d4ed8; text-decoration: underline; }
-.heat { border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block; }
+.heat { border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block; white-space: nowrap; min-width: 58px; text-align: right; }
 .heat-pos-strong { background: #bbf7d0; color: #166534; }
 .heat-pos        { background: #dcfce7; color: #15803d; }
 .heat-zero       { color: #6b7280; }
