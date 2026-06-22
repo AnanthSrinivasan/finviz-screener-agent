@@ -42,6 +42,29 @@ _heat_class = heat_class
 _held_days = held_days
 
 
+# ---------- Monthly equity walk ----------
+
+def _monthly_equity_walk(months: list, current_equity: float) -> list:
+    """Walk backwards from current equity using per-month realized P&L.
+
+    Returns [{month, key, start, end, pnl, pct}] oldest→newest — same schema
+    as paper's monthly_performance() so the table renderer is identical."""
+    if not months or current_equity <= 0:
+        return []
+    # months is oldest→newest from monthly_realized(); walk backwards to infer start
+    enriched = []
+    end = current_equity
+    for m in reversed(months):
+        start = end - m["pnl"]
+        pct = (m["pnl"] / start * 100) if start else 0.0
+        enriched.append({"month": m["month"], "key": m["key"],
+                         "start": round(start, 2), "end": round(end, 2),
+                         "pnl": m["pnl"], "pct": round(pct, 2)})
+        end = start
+    enriched.reverse()
+    return enriched
+
+
 # ---------- Finviz live quote (no API key — html parse) ----------
 
 _QUOTE_RE = re.compile(r'class="quote-price[^"]*"[^>]*>([\d,.]+)')
@@ -138,7 +161,7 @@ def render_html(account: dict, rows: list, trades: list = None) -> str:
          "sub": "across all positions", "heat": total_unr_pct},
         {"label": "Realized P&amp;L",
          "value": f"{realized_sign}{fmt_money(stats['net'])}",
-         "sub": f"{stats['wins']}W / {stats['losses']}L · {stats['win_rate']:.0f}% win"
+         "sub": f"{stats['count']} trades: {stats['wins']}W / {stats['losses']}L · {stats['win_rate']:.0f}% win"
                 if stats["count"] else "no closed trades", "heat": stats["net"]},
         {"label": "Leverage", "value": f"{leverage_pct:.0f}%", "sub": "debt / equity"},
     ]
@@ -149,10 +172,33 @@ def render_html(account: dict, rows: list, trades: list = None) -> str:
     mo_colors = json.dumps(["#16a34a" if m["pnl"] >= 0 else "#dc2626" for m in months])
     mo_keys   = json.dumps([m["key"] for m in months])
 
+    # Build equity-walk table: walk backwards from current equity using realized P&L
+    mo_equity = _monthly_equity_walk(months, equity)
+    mo_rows = ""
+    for m in reversed(mo_equity):
+        h = heat_class(m["pct"])
+        ps = "+" if m["pnl"] >= 0 else ""
+        mo_rows += (
+            f"<tr class='month-row' onclick=\"filterMonth('{m['key']}')\" "
+            f"title='Click to show only {m['month']} trades'>"
+            f"<td class='bold'>{m['month']}</td>"
+            f"<td class='mono'>{fmt_money(m['start'])}</td>"
+            f"<td class='mono'>{fmt_money(m['end'])}</td>"
+            f"<td class='mono heat {h}'>{ps}{fmt_money(m['pnl'])}</td>"
+            f"<td class='mono heat {h}'>{fmt_pct(m['pct'])}</td>"
+            "</tr>"
+        )
+    monthly_table = (
+        "<table class='pos-table' style='margin-top:16px'><thead><tr><th>Month</th>"
+        "<th>Start Equity</th><th>End Equity</th><th>P&amp;L</th><th>Return</th>"
+        "</tr></thead><tbody>" + mo_rows + "</tbody></table>"
+    ) if mo_equity else ""
+
     chart_block = (
-        "<div class='chart-card'><h2 style='margin-top:0'>Month-over-Month "
-        "Realized P&amp;L</h2><div class='chart-wrap' style='height:240px'>"
-        "<canvas id='mochart'></canvas></div></div>" if months else ""
+        "<div class='chart-card' style='margin-top:28px'>"
+        "<h2 style='margin-top:0'>Month-over-Month Performance</h2>"
+        "<div class='chart-wrap' style='height:240px'><canvas id='mochart'></canvas></div>"
+        + monthly_table + "</div>" if months else ""
     )
 
     body = (
