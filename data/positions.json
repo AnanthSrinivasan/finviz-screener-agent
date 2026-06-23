@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 321.48,
-      "current_gain_pct": 11.23,
+      "current_gain_pct": 11.95,
       "first_entry_price": 279.69,
       "peak_gain_pct": 13.68
     },
@@ -30,26 +30,9 @@
       "thesis": "User manual entry 2026-06-11 (after hours) \u2014 stop at entry per user instruction, alert-only",
       "status": "active",
       "highest_price_seen": 209.43,
-      "current_gain_pct": -11.97,
+      "current_gain_pct": -11.3,
       "first_entry_price": 208.06,
       "peak_gain_pct": 0.66
-    },
-    {
-      "ticker": "AMD",
-      "shares": 20,
-      "entry_price": 495.0,
-      "entry_date": "2026-06-12",
-      "stop_price": 513.49,
-      "breakeven_activated": false,
-      "target1": 594.0,
-      "target1_hit": false,
-      "target2": 693.0,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 562.3,
-      "current_gain_pct": 4.73,
-      "first_entry_price": 495.0,
-      "peak_gain_pct": 13.6
     },
     {
       "ticker": "TNA",
@@ -64,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 74.6,
-      "current_gain_pct": 0.48,
+      "current_gain_pct": 1.02,
       "first_entry_price": 71.24,
       "peak_gain_pct": 4.72
     },
@@ -81,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 99.56,
-      "current_gain_pct": -6.22,
+      "current_gain_pct": -6.02,
       "first_entry_price": 98.0,
       "peak_gain_pct": 1.59
     },
@@ -98,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 148.36,
-      "current_gain_pct": 1.42,
+      "current_gain_pct": 1.55,
       "first_entry_price": 144.98,
       "peak_gain_pct": 2.33
     },
@@ -115,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 36.74,
-      "current_gain_pct": -4.35,
+      "current_gain_pct": -8.03,
       "first_entry_price": 36.59,
       "peak_gain_pct": 0.41
     },
@@ -132,7 +115,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 7.3,
-      "current_gain_pct": -9.66,
+      "current_gain_pct": -10.94,
       "first_entry_price": 7.04,
       "peak_gain_pct": 3.69
     },
@@ -149,7 +132,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 141.33,
-      "current_gain_pct": -2.56,
+      "current_gain_pct": -2.48,
       "first_entry_price": 140.28,
       "peak_gain_pct": 0.75
     }
@@ -1800,6 +1783,27 @@
       "close_price": 94.5,
       "close_source": "live_quote",
       "result_pct": -8.48
+    },
+    {
+      "ticker": "AMD",
+      "shares": 20,
+      "entry_price": 495.0,
+      "entry_date": "2026-06-12",
+      "stop_price": 513.49,
+      "breakeven_activated": false,
+      "target1": 594.0,
+      "target1_hit": false,
+      "target2": 693.0,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 562.3,
+      "current_gain_pct": 4.73,
+      "first_entry_price": 495.0,
+      "peak_gain_pct": 13.6,
+      "close_date": "2026-06-23",
+      "close_price": 520.95,
+      "close_source": "live_quote",
+      "result_pct": 5.24
     }
   ]
 }
