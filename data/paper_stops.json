@@ -1,14 +1,14 @@
 {
   "VIK": {
     "entry_price": 85.224769,
-    "highest_price_seen": 100.48,
-    "peak_gain_pct": 17.9,
+    "highest_price_seen": 100.64,
+    "peak_gain_pct": 18.09,
     "breakeven_activated": false,
     "target1": 102.27,
     "target2": 119.31,
     "target1_hit": false,
     "atr_pct": 4.23,
-    "stop_price": 95.07,
+    "stop_price": 95.23,
     "t1_peeled": false,
     "t2_peeled": false
   },
@@ -27,12 +27,12 @@
     "t2_peeled": false
   },
   "INCY": {
-    "stop_price": 97.2,
+    "stop_price": 97.65,
     "entry_price": 102.015,
     "atr_pct": 3.834085114728378,
     "entry_date": "2026-06-16",
-    "highest_price_seen": 105.02,
-    "peak_gain_pct": 2.95,
+    "highest_price_seen": 105.47,
+    "peak_gain_pct": 3.39,
     "breakeven_activated": false,
     "target1": 122.42,
     "target2": 142.82,
@@ -66,7 +66,8 @@
     "target2": 140.45,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "KALU": {
     "stop_price": 167.97,
