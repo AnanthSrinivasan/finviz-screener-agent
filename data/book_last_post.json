@@ -54,6 +54,43 @@
       "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.15, P&L $-1,201",
       "alert_type": "EXIT_STOP",
       "ts": "2026-06-23T20:34:19.960313Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $184.04 \u2014 exit immediately (stop $208.06)",
+      "current_price": 184.04,
+      "stop_price": 208.06,
+      "ts": "2026-06-23T22:17:55.973392Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "QLD",
+      "message": "\ud83d\udea8 STOP HIT: QLD @ $91.22 \u2014 exit immediately (stop $91.62)",
+      "current_price": 91.22,
+      "stop_price": 91.62,
+      "ts": "2026-06-23T22:17:55.973392Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "QLD",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 QLD ATR mult 0.72, P&L $-678",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-23T22:17:55.973392Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "SN",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 SN ATR mult 3.20",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-23T22:17:55.973392Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.15, P&L $-1,201",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-23T22:17:55.973392Z"
     }
   ]
 }
