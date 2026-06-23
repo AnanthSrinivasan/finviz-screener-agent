@@ -12,10 +12,10 @@
       "target2": 395.91,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 321.48,
-      "current_gain_pct": 12.56,
+      "highest_price_seen": 321.52,
+      "current_gain_pct": 12.44,
       "first_entry_price": 279.69,
-      "peak_gain_pct": 13.68
+      "peak_gain_pct": 13.7
     },
     {
       "ticker": "TWLO",
@@ -30,7 +30,7 @@
       "thesis": "User manual entry 2026-06-11 (after hours) \u2014 stop at entry per user instruction, alert-only",
       "status": "active",
       "highest_price_seen": 209.43,
-      "current_gain_pct": -10.75,
+      "current_gain_pct": -11.54,
       "first_entry_price": 208.06,
       "peak_gain_pct": 0.66
     },
@@ -47,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 74.6,
-      "current_gain_pct": 0.56,
+      "current_gain_pct": 0.25,
       "first_entry_price": 71.24,
       "peak_gain_pct": 4.72
     },
@@ -64,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 99.56,
-      "current_gain_pct": -6.79,
+      "current_gain_pct": -6.92,
       "first_entry_price": 98.0,
       "peak_gain_pct": 1.59
     },
@@ -86,40 +86,6 @@
       "peak_gain_pct": 2.61
     },
     {
-      "ticker": "BEAM",
-      "shares": 250,
-      "entry_price": 36.59,
-      "entry_date": "2026-06-22",
-      "stop_price": 32.44,
-      "breakeven_activated": false,
-      "target1": 43.91,
-      "target1_hit": false,
-      "target2": 51.23,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 36.74,
-      "current_gain_pct": -8.03,
-      "first_entry_price": 36.59,
-      "peak_gain_pct": 0.41
-    },
-    {
-      "ticker": "NUAI",
-      "shares": 1000,
-      "entry_price": 7.04,
-      "entry_date": "2026-06-22",
-      "stop_price": 5.92,
-      "breakeven_activated": false,
-      "target1": 8.45,
-      "target1_hit": false,
-      "target2": 9.86,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 7.3,
-      "current_gain_pct": -11.08,
-      "first_entry_price": 7.04,
-      "peak_gain_pct": 3.69
-    },
-    {
       "ticker": "SN",
       "shares": 20,
       "entry_price": 140.28,
@@ -132,7 +98,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 141.33,
-      "current_gain_pct": -3.46,
+      "current_gain_pct": -3.84,
       "first_entry_price": 140.28,
       "peak_gain_pct": 0.75
     }
@@ -1804,6 +1770,48 @@
       "close_price": 520.95,
       "close_source": "live_quote",
       "result_pct": 5.24
+    },
+    {
+      "ticker": "BEAM",
+      "shares": 250,
+      "entry_price": 36.59,
+      "entry_date": "2026-06-22",
+      "stop_price": 32.44,
+      "breakeven_activated": false,
+      "target1": 43.91,
+      "target1_hit": false,
+      "target2": 51.23,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 36.74,
+      "current_gain_pct": -8.03,
+      "first_entry_price": 36.59,
+      "peak_gain_pct": 0.41,
+      "close_date": "2026-06-23",
+      "close_price": 33.2,
+      "close_source": "live_quote",
+      "result_pct": -9.26
+    },
+    {
+      "ticker": "NUAI",
+      "shares": 1000,
+      "entry_price": 7.04,
+      "entry_date": "2026-06-22",
+      "stop_price": 5.92,
+      "breakeven_activated": false,
+      "target1": 8.45,
+      "target1_hit": false,
+      "target2": 9.86,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 7.3,
+      "current_gain_pct": -11.08,
+      "first_entry_price": 7.04,
+      "peak_gain_pct": 3.69,
+      "close_date": "2026-06-23",
+      "close_price": 6.16,
+      "close_source": "live_quote",
+      "result_pct": -12.5
     }
   ]
 }
