@@ -1,39 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 4,
-  "total_wins": 25,
-  "total_losses": 41,
-  "current_sizing_mode": "suspended",
+  "consecutive_losses": 1,
+  "total_wins": 26,
+  "total_losses": 42,
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-06-22",
+  "last_updated": "2026-06-23",
   "recent_trades": [
-    {
-      "ticker": "ZVRA",
-      "result": "neutral",
-      "result_pct": -0.22,
-      "date": "2026-06-02",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -7.68
-    },
-    {
-      "ticker": "IREN",
-      "result": "win",
-      "result_pct": 24.73,
-      "date": "2026-06-03",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1267.0
-    },
-    {
-      "ticker": "CORZ",
-      "result": "win",
-      "result_pct": 14.2,
-      "date": "2026-06-03",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1137.0
-    },
     {
       "ticker": "AFRM",
       "result": "loss",
@@ -276,6 +249,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -95.0
+    },
+    {
+      "ticker": "LSCC",
+      "result": "win",
+      "result_pct": 1.06,
+      "date": "2026-06-23",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 151.0
+    },
+    {
+      "ticker": "CORZ",
+      "result": "neutral",
+      "result_pct": 0.35,
+      "date": "2026-06-23",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 30.0
+    },
+    {
+      "ticker": "MCHP",
+      "result": "loss",
+      "result_pct": -8.48,
+      "date": "2026-06-23",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -657.0
     }
   ],
   "market_state": "TREND-FOLLOW",
