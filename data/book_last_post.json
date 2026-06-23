@@ -1,4 +1,41 @@
 {
   "last_book_post_ts": "2026-06-23T16:07:09.282959Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $186.72 \u2014 exit immediately (stop $208.06)",
+      "current_price": 186.72,
+      "stop_price": 208.06,
+      "ts": "2026-06-23T16:28:33.180597Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "QLD",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 QLD ATR mult 1.15",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-23T16:28:33.180597Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.40, P&L $-1,067",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-23T16:28:33.180597Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "BEAM",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 BEAM ATR mult 1.46, P&L $-780",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-23T16:28:33.180597Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "NUAI",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 NUAI ATR mult 3.05",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-06-23T16:28:33.180597Z"
+    }
+  ]
 }
