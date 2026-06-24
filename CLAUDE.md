@@ -40,7 +40,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Earnings Alert | `earnings_alert.py` | 21:30 UTC Mon-Fri | `#general-alerts` |
 | Market Pulse | `market_pulse.py` | 4x daily (10am, 12:10pm, 2:20pm, 4pm ET) | `#daily-alerts` |
 | Winners Watchlist | `winners_watchlist.py` | Monday evenings | `#weekly-alerts` |
-| **Paper Executor** | `alpaca_executor.py` | After Daily Screener (workflow_run) + manual | `#daily-alerts` (BUY placements + summary only) |
+| **Paper Executor** | `alpaca_executor.py` | After Market Monitor (workflow_run) + manual | `#daily-alerts` (BUY placements + summary only) |
 | **Paper Monitor** | `alpaca_monitor.py` | Runs inside position-monitor.yml | `#positions` (prefixed `[PAPER]`) |
 | **Live Executor** | `alpaca_executor.py` + `TRADING_PROFILE=live` | LIVE step in alpaca-executor.yml (after paper pass) | `#daily-alerts` (prefixed `[LIVE 🔴]`) |
 | **Live Monitor** | `alpaca_monitor.py` + `TRADING_PROFILE=live` | position-book.yml (3x verbose) + position-critical.yml (30-min, `MONITOR_QUIET=1` — sells/alerts only) | `#positions` (prefixed `[LIVE 🔴]`) |
