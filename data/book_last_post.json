@@ -1,4 +1,27 @@
 {
   "last_book_post_ts": "2026-06-24T15:39:02.416599Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $187.30 \u2014 exit immediately (stop $208.06)",
+      "current_price": 187.3,
+      "stop_price": 208.06,
+      "ts": "2026-06-24T16:24:14.831808Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "QLD",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 QLD ATR mult 0.78, P&L $-621",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-24T16:24:14.831808Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.34, P&L $-1,038",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-24T16:24:14.831808Z"
+    }
+  ]
 }
