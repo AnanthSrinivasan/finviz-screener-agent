@@ -7,7 +7,7 @@ name: Alpaca Executor (Paper + Live)
 
 on:
   workflow_run:
-    workflows: ["Daily Finviz Screener"]
+    workflows: ["Market Monitor"]
     types: [completed]
   workflow_dispatch:
     inputs:

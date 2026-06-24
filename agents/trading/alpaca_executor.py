@@ -151,7 +151,13 @@ def load_market_state() -> str:
             h = json.load(f)
         hist = h if isinstance(h, list) else h.get("history", [])
         if hist:
-            state = hist[-1].get("market_state") or "RED"
+            entry = hist[-1]
+            state = entry.get("market_state") or "RED"
+            entry_date = (entry.get("date") or "")[:10]
+            today = datetime.date.today().isoformat()
+            if entry_date and entry_date < today:
+                log.warning("Market state is STALE (last entry %s, today %s) — defaulting RED", entry_date, today)
+                return "RED"
             log.info("Market state (from market_monitor_history): %s", state)
             return state
     except Exception as e:
