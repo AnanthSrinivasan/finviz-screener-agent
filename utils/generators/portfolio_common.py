@@ -280,7 +280,7 @@ POSITIONS_LEGEND = (
     "<b>%Bk</b> position as % of book · "
     "<b>ATR%</b> daily volatility (avg true range) · "
     "<b>Stop</b> tracked stop price (ATR-tiered trail off peak) · "
-    "<b>Dist%</b> distance from live price to stop (how much room left) · "
+    "<b>Room</b> dollar distance from live price to stop · "
     "<b>S20%</b> price vs 20-day moving average (+ above / − below) · "
     "<b>St</b> Weinstein stage (2P = perfect Stage 2) · "
     "<b>Verdict</b> action from the pos-review ladder. "
@@ -330,10 +330,12 @@ def render_positions_section(rows: list, equity: float) -> str:
         stop = r.get("stop")
         live_price = r.get("live", 0)
         if stop and live_price > 0:
-            dist_stop = (live_price - stop) / live_price * 100
+            dist_stop_dollars = live_price - stop
+            dist_stop_pct = dist_stop_dollars / live_price * 100
             stop_txt = f"${stop:.2f}"
-            dist_cls = "heat-neg" if dist_stop < 2 else ""
-            dist_txt = f"{dist_stop:.1f}%"
+            dist_cls = "heat-neg" if dist_stop_pct < 2 else ""
+            sign = "+" if dist_stop_dollars >= 0 else ""
+            dist_txt = f"{sign}${dist_stop_dollars:.2f}"
         else:
             stop_txt = "—"
             dist_cls = ""
@@ -372,7 +374,7 @@ def render_positions_section(rows: list, equity: float) -> str:
         "<th title='Position size as % of total book/equity'>%Bk</th>"
         "<th title='Average True Range % — daily volatility'>ATR%</th>"
         "<th title='Tracked stop price — ATR-tiered trail off peak'>Stop</th>"
-        "<th title='Distance from current price to stop — how much room left'>Dist%</th>"
+        "<th title='Dollar distance from live price to stop'>Room</th>"
         "<th title='Price vs its 20-day moving average — + above / - below'>S20%</th>"
         "<th title='Weinstein stage — 2P = perfect Stage 2'>St</th>"
         "<th>Verdict</th></tr></thead><tbody>"
