@@ -1,35 +1,4 @@
 {
-  "last_book_post_ts": "2026-06-24T16:37:51.849354Z",
-  "events_since_last": [
-    {
-      "kind": "auto_closed",
-      "ticker": "QLD",
-      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: QLD\n   Entry $98.00 \u2192 $89.65 (quote) (-8.5%) \u2014 LOSS\n   Streak: 0W / 3L",
-      "result_pct": -8.52,
-      "close_price": 89.65,
-      "close_source": "live_quote",
-      "ts": "2026-06-24T18:18:22.840907Z"
-    },
-    {
-      "kind": "sizing_mode",
-      "ticker": "\u2014",
-      "message": "\ud83d\udea8 SIZING SUSPENDED \u2014 3 consecutive losses. Paper trade only until 2 consecutive wins.",
-      "ts": "2026-06-24T18:18:22.840907Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "TWLO",
-      "message": "\ud83d\udea8 STOP HIT: TWLO @ $188.08 \u2014 exit immediately (stop $208.06)",
-      "current_price": 188.08,
-      "stop_price": 208.06,
-      "ts": "2026-06-24T18:18:22.840907Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "TWLO",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.42, P&L $-999",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-06-24T18:18:22.840907Z"
-    }
-  ]
+  "last_book_post_ts": "2026-06-24T19:13:42.191400Z",
+  "events_since_last": []
 }
