@@ -15,6 +15,21 @@
       "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.44, P&L $-986",
       "alert_type": "EXIT_STOP",
       "ts": "2026-06-24T20:18:29.557642Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TWLO",
+      "message": "\ud83d\udea8 STOP HIT: TWLO @ $188.34 \u2014 exit immediately (stop $208.06)",
+      "current_price": 188.34,
+      "stop_price": 208.06,
+      "ts": "2026-06-24T21:54:27.817010Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "TWLO",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 TWLO ATR mult 0.44, P&L $-986",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-06-24T21:54:27.817010Z"
     }
   ]
 }
