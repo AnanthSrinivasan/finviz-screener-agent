@@ -89,7 +89,8 @@ def _technicals(ticker: str) -> dict:
     }
 
 
-def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
+def build_row(pos: dict, tech_lookup=None, entry_date: str = None,
+              stop_price: float = None) -> dict:
     ticker = pos["ticker"]
     shares = float(pos.get("shares", 0) or 0)
     avg    = float(pos.get("avg_cost", 0) or 0)
@@ -108,6 +109,7 @@ def build_row(pos: dict, tech_lookup=None, entry_date: str = None) -> dict:
         "atr":    tech.get("atr", 0.0),
         "s20":    tech.get("s20", 0.0),
         "stage":  tech.get("stage", "?"),
+        "stop":   stop_price,
     }
 
 
@@ -267,6 +269,19 @@ def _load_entry_dates() -> dict:
         return {}
 
 
+def _load_live_stops() -> dict:
+    """ticker -> stop_price from rules-engine (positions.json open_positions)."""
+    try:
+        with open(os.path.join(DATA_DIR, "positions.json")) as f:
+            d = json.load(f)
+        return {p["ticker"]: p.get("stop_price")
+                for p in d.get("open_positions", [])
+                if p.get("ticker") and p.get("stop_price")}
+    except Exception as e:
+        log.warning("live stops lookup failed: %s", e)
+        return {}
+
+
 def _load_live_events() -> list:
     """Flatten the cached SnapTrade BUY/SELL activities (position_history.json)
     into the common event schema for the FIFO trade engine."""
@@ -304,7 +319,10 @@ def write_page() -> str | None:
         positions = fetch_positions() or []
         account   = _fetch_account_balances()
         entry_dates = _load_entry_dates()
-        rows = [build_row(p, entry_date=entry_dates.get(p["ticker"])) for p in positions]
+        live_stops = _load_live_stops()
+        rows = [build_row(p, entry_date=entry_dates.get(p["ticker"]),
+                          stop_price=live_stops.get(p["ticker"]))
+                for p in positions]
         trades = closed_trades(_load_live_events())
         html = render_html(account, rows, trades=trades)
     except Exception as e:

@@ -193,8 +193,20 @@ def open_entry_dates(fills: list) -> dict:
 
 # ---------- HTML ----------
 
+def _load_paper_stops() -> dict:
+    """Load paper_stops.json → {ticker: stop_price}."""
+    try:
+        with open(os.path.join(DATA_DIR, "paper_stops.json")) as f:
+            d = json.load(f)
+        return {tk: v.get("stop_price") for tk, v in d.items()
+                if isinstance(v, dict) and v.get("stop_price")}
+    except Exception:
+        return {}
+
+
 def _alpaca_rows(positions: list, entry_dates: dict, technicals: dict) -> list:
     """Normalize Alpaca position dicts → the common row schema."""
+    stops = _load_paper_stops()
     rows = []
     for p in positions:
         sym = p.get("symbol", "")
@@ -214,6 +226,7 @@ def _alpaca_rows(positions: list, entry_dates: dict, technicals: dict) -> list:
             "atr":    tech.get("atr", 0.0),
             "s20":    tech.get("s20"),
             "stage":  tech.get("stage", "—"),
+            "stop":   stops.get(sym),
         })
     return rows
 

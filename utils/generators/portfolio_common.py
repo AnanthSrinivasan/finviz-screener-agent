@@ -279,6 +279,8 @@ POSITIONS_LEGEND = (
     "<b>Δ%</b> gain since entry · "
     "<b>%Bk</b> position as % of book · "
     "<b>ATR%</b> daily volatility (avg true range) · "
+    "<b>Stop</b> tracked stop price (ATR-tiered trail off peak) · "
+    "<b>Dist%</b> distance from live price to stop (how much room left) · "
     "<b>S20%</b> price vs 20-day moving average (+ above / − below) · "
     "<b>St</b> Weinstein stage (2P = perfect Stage 2) · "
     "<b>Verdict</b> action from the pos-review ladder. "
@@ -325,6 +327,17 @@ def render_positions_section(rows: list, equity: float) -> str:
         s20_txt = f"{s20:+.1f}" if (s20 is not None and s20 != 0) else ("—" if not s20 else f"{s20:+.1f}")
         pl_sign = "+" if r.get("pl", 0) >= 0 else ""
         pct_sign = "+" if gain >= 0 else ""
+        stop = r.get("stop")
+        live_price = r.get("live", 0)
+        if stop and live_price > 0:
+            dist_stop = (live_price - stop) / live_price * 100
+            stop_txt = f"${stop:.2f}"
+            dist_cls = "heat-neg" if dist_stop < 2 else ""
+            dist_txt = f"{dist_stop:.1f}%"
+        else:
+            stop_txt = "—"
+            dist_cls = ""
+            dist_txt = "—"
         body += (
             f"<tr data-action='{r['action']}'>"
             f"<td class='mono num'>{idx}</td>"
@@ -339,6 +352,8 @@ def render_positions_section(rows: list, equity: float) -> str:
             f"<td class='mono'>{fmt_money(r.get('mv',0))}</td>"
             f"<td class='mono'>{pct_book:.1f}%</td>"
             f"<td class='mono'>{atr_txt}</td>"
+            f"<td class='mono {dist_cls}'>{stop_txt}</td>"
+            f"<td class='mono {dist_cls}'>{dist_txt}</td>"
             f"<td class='mono'>{s20_txt}</td>"
             f"<td class='mono'>{stage}</td>"
             f"<td>{verdict}</td>"
@@ -356,6 +371,8 @@ def render_positions_section(rows: list, equity: float) -> str:
         "<th title='Market value'>MV</th>"
         "<th title='Position size as % of total book/equity'>%Bk</th>"
         "<th title='Average True Range % — daily volatility'>ATR%</th>"
+        "<th title='Tracked stop price — ATR-tiered trail off peak'>Stop</th>"
+        "<th title='Distance from current price to stop — how much room left'>Dist%</th>"
         "<th title='Price vs its 20-day moving average — + above / - below'>S20%</th>"
         "<th title='Weinstein stage — 2P = perfect Stage 2'>St</th>"
         "<th>Verdict</th></tr></thead><tbody>"
