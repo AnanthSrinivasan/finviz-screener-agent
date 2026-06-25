@@ -1,6 +1,114 @@
 {
-  "updated": "2026-06-24T21:54:27.645548Z",
+  "updated": "2026-06-25T15:46:40.842328Z",
   "history": {
+    "QLD": [
+      {
+        "date": "2026-06-09T16:16:07Z",
+        "action": "SELL",
+        "shares": 20.0,
+        "price": 86.64
+      },
+      {
+        "date": "2026-06-11T18:59:33Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 90.94
+      },
+      {
+        "date": "2026-06-18T20:05:23Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 97.999
+      },
+      {
+        "date": "2026-06-24T17:18:27Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 90.2108
+      }
+    ],
+    "SN": [
+      {
+        "date": "2026-05-27T06:16:39Z",
+        "action": "BUY",
+        "shares": 40.0,
+        "price": 117.43
+      },
+      {
+        "date": "2026-05-28T14:45:56Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 118.43
+      },
+      {
+        "date": "2026-06-04T14:01:15Z",
+        "action": "SELL",
+        "shares": 60.0,
+        "price": 120.26
+      },
+      {
+        "date": "2026-06-22T11:39:18Z",
+        "action": "BUY",
+        "shares": 20.0,
+        "price": 140.28
+      },
+      {
+        "date": "2026-06-24T13:53:56Z",
+        "action": "BUY",
+        "shares": 80.0,
+        "price": 138.625
+      }
+    ],
+    "TNA": [
+      {
+        "date": "2026-05-04T14:38:49Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 63.045
+      },
+      {
+        "date": "2026-05-12T14:37:28Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 62.05
+      },
+      {
+        "date": "2026-05-15T17:53:58Z",
+        "action": "BUY",
+        "shares": 150.0,
+        "price": 61.02
+      },
+      {
+        "date": "2026-05-15T20:46:22Z",
+        "action": "SELL",
+        "shares": 150.0,
+        "price": 60.04
+      },
+      {
+        "date": "2026-05-20T17:36:19Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 61.4825
+      },
+      {
+        "date": "2026-06-01T13:55:24Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 66.385
+      },
+      {
+        "date": "2026-06-17T13:51:15Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 71.24
+      },
+      {
+        "date": "2026-06-24T12:13:21Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 72.35
+      }
+    ],
     "BEAM": [
       {
         "date": "2026-06-22T13:40:53Z",
@@ -393,32 +501,6 @@
         "price": 144.98
       }
     ],
-    "SN": [
-      {
-        "date": "2026-05-27T06:16:39Z",
-        "action": "BUY",
-        "shares": 40.0,
-        "price": 117.43
-      },
-      {
-        "date": "2026-05-28T14:45:56Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 118.43
-      },
-      {
-        "date": "2026-06-04T14:01:15Z",
-        "action": "SELL",
-        "shares": 60.0,
-        "price": 120.26
-      },
-      {
-        "date": "2026-06-22T11:39:18Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 140.28
-      }
-    ],
     "DDOG": [
       {
         "date": "2026-06-17T13:53:18Z",
@@ -443,70 +525,6 @@
         "action": "SELL",
         "shares": 25.0,
         "price": 220.1784
-      }
-    ],
-    "QLD": [
-      {
-        "date": "2026-06-09T16:16:07Z",
-        "action": "SELL",
-        "shares": 20.0,
-        "price": 86.64
-      },
-      {
-        "date": "2026-06-11T18:59:33Z",
-        "action": "BUY",
-        "shares": 20.0,
-        "price": 90.94
-      },
-      {
-        "date": "2026-06-18T20:05:23Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 97.999
-      }
-    ],
-    "TNA": [
-      {
-        "date": "2026-05-04T14:38:49Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 63.045
-      },
-      {
-        "date": "2026-05-12T14:37:28Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 62.05
-      },
-      {
-        "date": "2026-05-15T17:53:58Z",
-        "action": "BUY",
-        "shares": 150.0,
-        "price": 61.02
-      },
-      {
-        "date": "2026-05-15T20:46:22Z",
-        "action": "SELL",
-        "shares": 150.0,
-        "price": 60.04
-      },
-      {
-        "date": "2026-05-20T17:36:19Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 61.4825
-      },
-      {
-        "date": "2026-06-01T13:55:24Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 66.385
-      },
-      {
-        "date": "2026-06-17T13:51:15Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 71.24
       }
     ],
     "SPCX": [
