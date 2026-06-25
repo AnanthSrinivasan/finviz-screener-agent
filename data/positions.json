@@ -13,10 +13,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 342.3,
-      "current_gain_pct": 12.56,
+      "current_gain_pct": 14.13,
       "first_entry_price": 279.69,
-      "peak_gain_pct": 21.04,
-      "last_fade_alert_gain_pct": 12.56
+      "peak_gain_pct": 21.04
     },
     {
       "ticker": "TNA",
@@ -31,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 75.88,
-      "current_gain_pct": 1.6,
+      "current_gain_pct": 2.97,
       "first_entry_price": 71.24,
       "peak_gain_pct": 5.68
     },
@@ -40,7 +39,7 @@
       "shares": 100,
       "entry_price": 144.98,
       "entry_date": "2026-06-22",
-      "stop_price": 145.98,
+      "stop_price": 146.14,
       "breakeven_activated": false,
       "target1": 173.98,
       "target1_hit": false,
@@ -48,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 154.7,
-      "current_gain_pct": 4.26,
+      "current_gain_pct": 4.56,
       "first_entry_price": 144.98,
       "peak_gain_pct": 6.7
     },
@@ -65,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 145.65,
-      "current_gain_pct": 1.21,
+      "current_gain_pct": 2.8,
       "first_entry_price": 140.28,
       "peak_gain_pct": 4.81
     },
@@ -82,9 +81,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 78.94,
-      "current_gain_pct": 1.83,
+      "current_gain_pct": 2.47,
       "first_entry_price": 75.0,
       "peak_gain_pct": 5.25
+    },
+    {
+      "ticker": "TEM",
+      "shares": 100,
+      "entry_price": 54.17,
+      "entry_date": "2026-06-25",
+      "stop_price": 50.35,
+      "breakeven_activated": false,
+      "target1": 65.0,
+      "target1_hit": false,
+      "target2": 75.84,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 55.62,
+      "current_gain_pct": 1.29,
+      "first_entry_price": 54.17,
+      "peak_gain_pct": 2.68
     }
   ],
   "closed_positions": [
