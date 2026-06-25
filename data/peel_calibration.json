@@ -531,7 +531,7 @@
     "runs": 4,
     "atr_pct_avg": 3.74,
     "calibrated": true,
-    "updated": "2026-06-24"
+    "updated": "2026-06-26"
   },
   "DAN": {
     "signal": 10.0,
@@ -1727,7 +1727,7 @@
     "runs": 10,
     "atr_pct_avg": 5.79,
     "calibrated": true,
-    "updated": "2026-06-24"
+    "updated": "2026-06-26"
   },
   "REMX": {
     "signal": 10.4,
@@ -2341,7 +2341,7 @@
     "runs": 4,
     "atr_pct_avg": 2.81,
     "calibrated": true,
-    "updated": "2026-06-24"
+    "updated": "2026-06-26"
   },
   "ROKU": {
     "signal": 10.0,
@@ -2873,9 +2873,9 @@
     "p90": 10.1,
     "max_seen": 13.0,
     "runs": 9,
-    "atr_pct_avg": 7.87,
+    "atr_pct_avg": 7.83,
     "calibrated": true,
-    "updated": "2026-06-03"
+    "updated": "2026-06-26"
   },
   "KLAR": {
     "calibrated": false,
@@ -2894,7 +2894,7 @@
     "runs": 7,
     "atr_pct_avg": 12.9,
     "calibrated": true,
-    "updated": "2026-06-24"
+    "updated": "2026-06-26"
   },
   "ARKX": {
     "signal": 12.1,
@@ -4375,5 +4375,17 @@
     "atr_pct_avg": 2.3,
     "calibrated": true,
     "updated": "2026-06-20"
+  },
+  "TEM": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 6.9,
+    "p75": 8.3,
+    "p90": 10.3,
+    "max_seen": 11.7,
+    "runs": 4,
+    "atr_pct_avg": 8.32,
+    "calibrated": true,
+    "updated": "2026-06-26"
   }
 }
