@@ -1,6 +1,52 @@
 {
-  "updated": "2026-06-25T22:41:07.074711Z",
+  "updated": "2026-06-26T15:31:14.460463Z",
   "history": {
+    "TEM": [
+      {
+        "date": "2026-06-25T19:36:38Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 54.17
+      }
+    ],
+    "TWLO": [
+      {
+        "date": "2026-05-28T18:28:05Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 186.75
+      },
+      {
+        "date": "2026-06-01T14:19:38Z",
+        "action": "SELL",
+        "shares": 40.0,
+        "price": 207.0599
+      },
+      {
+        "date": "2026-06-01T15:29:22Z",
+        "action": "SELL",
+        "shares": 10.0,
+        "price": 216.65
+      },
+      {
+        "date": "2026-06-11T21:23:11Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 208.0609
+      },
+      {
+        "date": "2026-06-15T21:05:16Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 201.0
+      },
+      {
+        "date": "2026-06-25T13:32:42Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 184.0101
+      }
+    ],
     "QLD": [
       {
         "date": "2026-06-09T16:16:07Z",
@@ -25,6 +71,26 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 90.2108
+      }
+    ],
+    "AFRM": [
+      {
+        "date": "2026-05-26T18:13:46Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 69.14
+      },
+      {
+        "date": "2026-06-03T17:38:49Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 65.845
+      },
+      {
+        "date": "2026-06-24T16:56:11Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 75.0
       }
     ],
     "SN": [
@@ -539,38 +605,6 @@
         "action": "SELL",
         "shares": 19.0,
         "price": 210.815
-      }
-    ],
-    "TWLO": [
-      {
-        "date": "2026-05-28T18:28:05Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 186.75
-      },
-      {
-        "date": "2026-06-01T14:19:38Z",
-        "action": "SELL",
-        "shares": 40.0,
-        "price": 207.0599
-      },
-      {
-        "date": "2026-06-01T15:29:22Z",
-        "action": "SELL",
-        "shares": 10.0,
-        "price": 216.65
-      },
-      {
-        "date": "2026-06-11T21:23:11Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 208.0609
-      },
-      {
-        "date": "2026-06-15T21:05:16Z",
-        "action": "SELL",
-        "shares": 50.0,
-        "price": 201.0
       }
     ],
     "INGM": [
@@ -1091,20 +1125,6 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 65.98
-      }
-    ],
-    "AFRM": [
-      {
-        "date": "2026-05-26T18:13:46Z",
-        "action": "BUY",
-        "shares": 100.0,
-        "price": 69.14
-      },
-      {
-        "date": "2026-06-03T17:38:49Z",
-        "action": "SELL",
-        "shares": 100.0,
-        "price": 65.845
       }
     ],
     "KLAR": [
