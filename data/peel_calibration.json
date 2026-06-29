@@ -531,7 +531,7 @@
     "runs": 5,
     "atr_pct_avg": 3.74,
     "calibrated": true,
-    "updated": "2026-06-27"
+    "updated": "2026-06-29"
   },
   "DAN": {
     "signal": 10.0,
@@ -1727,7 +1727,7 @@
     "runs": 10,
     "atr_pct_avg": 5.79,
     "calibrated": true,
-    "updated": "2026-06-26"
+    "updated": "2026-06-29"
   },
   "REMX": {
     "signal": 10.4,
@@ -2281,7 +2281,7 @@
     "runs": 8,
     "atr_pct_avg": 4.32,
     "calibrated": true,
-    "updated": "2026-06-27"
+    "updated": "2026-06-29"
   },
   "TE": {
     "signal": 12.2,
@@ -2875,7 +2875,7 @@
     "runs": 9,
     "atr_pct_avg": 7.83,
     "calibrated": true,
-    "updated": "2026-06-26"
+    "updated": "2026-06-29"
   },
   "KLAR": {
     "calibrated": false,
@@ -2894,7 +2894,7 @@
     "runs": 7,
     "atr_pct_avg": 12.89,
     "calibrated": true,
-    "updated": "2026-06-27"
+    "updated": "2026-06-29"
   },
   "ARKX": {
     "signal": 12.1,
@@ -4386,7 +4386,7 @@
     "runs": 4,
     "atr_pct_avg": 8.31,
     "calibrated": true,
-    "updated": "2026-06-26"
+    "updated": "2026-06-29"
   },
   "DHT": {
     "signal": 10.0,
@@ -4730,5 +4730,17 @@
     "atr_pct_avg": 6.55,
     "calibrated": true,
     "updated": "2026-06-27"
+  },
+  "SNOW": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 7.3,
+    "p75": 9.5,
+    "p90": 12.7,
+    "max_seen": 15.5,
+    "runs": 8,
+    "atr_pct_avg": 4.8,
+    "calibrated": true,
+    "updated": "2026-06-29"
   }
 }
