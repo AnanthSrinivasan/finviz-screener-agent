@@ -1,10 +1,6 @@
 {
   "fng_history": [
     {
-      "date": "2026-06-09",
-      "score": 40.1
-    },
-    {
       "date": "2026-06-10",
       "score": 33.4
     },
@@ -59,6 +55,10 @@
     {
       "date": "2026-06-27",
       "score": 24.8
+    },
+    {
+      "date": "2026-06-30",
+      "score": 27.0
     }
   ],
   "nyse_hl_history": [],
@@ -190,6 +190,7 @@
   "last_alerts_sent": {
     "fng_extreme_fear": "2026-03-20",
     "slv_breakout_in_fear": "2026-03-27",
-    "gld_breakout_in_fear": "2026-03-31"
+    "gld_breakout_in_fear": "2026-03-31",
+    "atr_compression": "2026-06-30"
   }
 }
