@@ -1,4 +1,54 @@
 {
   "last_book_post_ts": "2026-06-29T16:43:08.136848Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "hard_stop",
+      "ticker": "AFRM",
+      "message": "\ud83d\udea8 HARD STOP \u2014 AFRM down $7,500 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "FROG",
+      "message": "\ud83d\udea8 HARD STOP \u2014 FROG down $8,907 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "TNA",
+      "message": "\ud83d\udea8 HARD STOP \u2014 TNA down $14,360 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 HARD STOP \u2014 DAVE down $21,209 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "TEM",
+      "message": "\ud83d\udea8 HARD STOP \u2014 TEM down $11,072 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "SNOW",
+      "message": "\ud83d\udea8 HARD STOP \u2014 SNOW down $6,340 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    },
+    {
+      "kind": "hard_stop",
+      "ticker": "SN",
+      "message": "\ud83d\udea8 HARD STOP \u2014 SN down $13,896 (breaches $4,500 cap). Get out now.",
+      "alert_type": "HARD_STOP",
+      "ts": "2026-06-29T16:54:27.719031Z"
+    }
+  ]
 }
