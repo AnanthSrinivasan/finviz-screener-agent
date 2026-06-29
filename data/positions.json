@@ -84,6 +84,38 @@
       "current_gain_pct": 1.41,
       "first_entry_price": 54.17,
       "peak_gain_pct": 3.03
+    },
+    {
+      "ticker": "SNOW",
+      "shares": 25,
+      "entry_price": 253.6,
+      "entry_date": "2026-06-29",
+      "stop_price": 235.85,
+      "breakeven_activated": false,
+      "target1": 304.32,
+      "target1_hit": false,
+      "target2": 355.04,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 251.1,
+      "current_gain_pct": -100.0,
+      "first_entry_price": 253.6
+    },
+    {
+      "ticker": "FROG",
+      "shares": 100,
+      "entry_price": 89.07,
+      "entry_date": "2026-06-29",
+      "stop_price": 82.84,
+      "breakeven_activated": false,
+      "target1": 106.88,
+      "target1_hit": false,
+      "target2": 124.7,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 89.68,
+      "current_gain_pct": -100.0,
+      "first_entry_price": 89.07
     }
   ],
   "closed_positions": [
@@ -1855,9 +1887,9 @@
       "first_entry_price": 144.98,
       "peak_gain_pct": 6.7,
       "close_date": "2026-06-26",
-      "close_price": 155.14,
-      "close_source": "live_quote",
-      "result_pct": 7.01
+      "close_price": 155.02,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 6.93
     }
   ]
 }
