@@ -425,15 +425,15 @@
       "added": "2026-04-08",
       "status": "watching",
       "source": "screener_auto",
-      "priority": "entry-ready",
+      "priority": "focus",
       "archive_reason": null,
       "archived_date": "2026-04-23",
       "reactivated_date": "2026-04-30",
       "focus_promoted_date": "2026-04-30",
-      "entry_ready_date": "2026-06-08",
-      "demoted_from_entry_ready_date": "2026-06-04",
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-06-30",
       "last_seen_in_screener": "2026-06-23",
-      "demote_reason": "no longer meets Ready-to-Enter criteria"
+      "demote_reason": "stale \u2014 not in screener since 2026-06-23"
     },
     {
       "ticker": "ADI",
@@ -3310,11 +3310,13 @@
       "thesis": "Relative strength leader \u2014 stock-level signal",
       "added": "2026-05-27",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "focus_promoted_date": "2026-05-27",
       "source": "rs_leader_auto",
       "last_seen_in_screener": "2026-06-23",
-      "entry_ready_date": "2026-06-23"
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-06-30",
+      "demote_reason": "stale \u2014 not in screener since 2026-06-23"
     },
     {
       "ticker": "ADTN",
@@ -3801,13 +3803,13 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-06-09",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-06-09",
       "last_seen_in_screener": "2026-06-23",
-      "entry_ready_date": "2026-06-23",
-      "demoted_from_entry_ready_date": "2026-06-18",
-      "demote_reason": "no longer meets Ready-to-Enter criteria"
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-06-30",
+      "demote_reason": "stale \u2014 not in screener since 2026-06-23"
     },
     {
       "ticker": "PHIN",
@@ -4050,13 +4052,13 @@
       "thesis": "Relative strength leader \u2014 stock-level signal",
       "added": "2026-06-09",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "focus_promoted_date": "2026-06-09",
       "source": "rs_leader_auto",
-      "entry_ready_date": "2026-06-23",
+      "entry_ready_date": null,
       "last_seen_in_screener": "2026-06-23",
-      "demoted_from_entry_ready_date": "2026-06-16",
-      "demote_reason": "no longer meets Ready-to-Enter criteria"
+      "demoted_from_entry_ready_date": "2026-06-30",
+      "demote_reason": "stale \u2014 not in screener since 2026-06-23"
     },
     {
       "ticker": "DBD",
