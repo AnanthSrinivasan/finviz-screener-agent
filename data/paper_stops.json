@@ -25,15 +25,17 @@
     "target2": 197.2,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true,
+    "close_source": "stale_cull"
   },
   "INCY": {
-    "stop_price": 109.41,
+    "stop_price": 109.43,
     "entry_price": 102.015,
     "atr_pct": 3.834085114728378,
     "entry_date": "2026-06-16",
-    "highest_price_seen": 115.28,
-    "peak_gain_pct": 13.0,
+    "highest_price_seen": 115.3,
+    "peak_gain_pct": 13.02,
     "breakeven_activated": false,
     "target1": 122.42,
     "target2": 142.82,
@@ -56,12 +58,12 @@
     "t2_peeled": false
   },
   "KALU": {
-    "stop_price": 170.62,
+    "stop_price": 178.72,
     "entry_price": 183.04,
     "atr_pct": 4.724194429273621,
     "entry_date": "2026-06-16",
-    "highest_price_seen": 187.91,
-    "peak_gain_pct": 2.66,
+    "highest_price_seen": 193.21,
+    "peak_gain_pct": 5.56,
     "breakeven_activated": false,
     "target1": 219.65,
     "target2": 256.26,
@@ -71,8 +73,8 @@
   },
   "APH": {
     "entry_price": 158.51,
-    "highest_price_seen": 168.72,
-    "peak_gain_pct": 6.44,
+    "highest_price_seen": 175.09,
+    "peak_gain_pct": 10.46,
     "breakeven_activated": false,
     "target1": 190.21,
     "target2": 221.91,
@@ -80,15 +82,15 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.96,
-    "stop_price": 156.17
+    "stop_price": 165.67
   },
   "FIX": {
     "entry_price": 1902.0,
     "highest_price_seen": 2035.67,
     "peak_gain_pct": 7.03,
     "breakeven_activated": false,
-    "target1": 2282.4,
-    "target2": 2662.8,
+    "target1": 2130.24,
+    "target2": 2377.5,
     "target1_hit": false,
     "t1_peeled": false,
     "t2_peeled": false,
@@ -97,8 +99,8 @@
   },
   "TSM": {
     "entry_price": 436.561831,
-    "highest_price_seen": 454.42,
-    "peak_gain_pct": 4.09,
+    "highest_price_seen": 471.3,
+    "peak_gain_pct": 7.96,
     "breakeven_activated": false,
     "target1": 523.87,
     "target2": 611.19,
@@ -106,6 +108,6 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 4.22,
-    "stop_price": 417.57
+    "stop_price": 434.45
   }
 }

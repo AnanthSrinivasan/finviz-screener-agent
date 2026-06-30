@@ -87,14 +87,14 @@
     },
     {
       "ticker": "SNOW",
-      "shares": 25,
-      "entry_price": 253.6,
+      "shares": 40,
+      "entry_price": 252.3,
       "entry_date": "2026-06-29",
       "stop_price": 235.85,
       "breakeven_activated": false,
-      "target1": 304.32,
+      "target1": 302.76,
       "target1_hit": false,
-      "target2": 355.04,
+      "target2": 353.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 253.6,
@@ -116,6 +116,22 @@
       "highest_price_seen": 89.68,
       "current_gain_pct": 0.0,
       "first_entry_price": 89.07
+    },
+    {
+      "ticker": "DDOG",
+      "shares": 40,
+      "entry_price": 251.97,
+      "entry_date": "2026-06-30",
+      "stop_price": 234.33,
+      "breakeven_activated": false,
+      "target1": 302.36,
+      "target1_hit": false,
+      "target2": 352.76,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 256.1,
+      "current_gain_pct": -100.0,
+      "first_entry_price": 251.97
     }
   ],
   "closed_positions": [
