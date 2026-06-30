@@ -88,11 +88,10 @@ def get_entry_peel_warn(atr_pct: float, ticker: str) -> tuple:
     """
     Return (warn_multiple, source) for entry gating.
 
-    Calibration may only TIGHTEN the gate, never loosen it (same rule as the
-    screener's 2026-05-29 v2 `_peel_warn_for` fix): the per-ticker calibrated
-    warn is capped at the ATR%-tier warn. Monster runners calibrate huge warns
-    off their own historical peaks (ALAB 10.3x, MU 8.7x on 2026-06-12) which
-    would otherwise wave through 50%+-above-50SMA chases.
+    Entry discipline = don't chase. Calibration can only TIGHTEN the gate,
+    never loosen it. Well-calibrated tickers with huge historical peaks
+    (DAVE 18×, ALAB 10×) still get capped at tier for NEW entries — the
+    calibration tells you when to SELL a held winner, not when to BUY a chase.
 
     source == 'calibrated' when the per-ticker warn applied; 'tier-cap' when
     the tier warn overrode a looser calibration; 'tier' (no calibration).

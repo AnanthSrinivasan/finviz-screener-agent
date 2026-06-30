@@ -2144,14 +2144,15 @@ def _tier_peel_warn(atr_pct: float) -> float:
 
 
 def _peel_warn_for(ticker: str, atr_pct: float) -> float:
-    """Return peel-warn threshold for a ticker.
+    """Return peel-warn threshold for a ticker (ENTRY gating — strict).
 
-    Uses per-ticker calibration from data/peel_calibration.json when available,
-    BUT capped by the ATR%-tier table so the calibration floor (warn≥7.5)
-    can't mask genuinely extended low-vol names. Catch from 2026-05-29 audit:
-    ADI (ATR 3.7 / S50 12.8 → S50/ATR 3.46) was passing because calibration
-    warn=7.5; tier warn for ATR≤4 is 3.0 — the right discipline. Same fix
-    rescues TSM/LLY-class from Entry-Ready tier rot.
+    For screener entry decisions (Ready-to-Enter, Fresh Breakout, etc.) we
+    always cap at the tier warn. Entry discipline = don't chase, period.
+    The calibration can only TIGHTEN (catch ADI/TSM/LLY class where the
+    floor is too loose), never loosen.
+
+    For held-position peel status (where the question is "sell now?"), use
+    the calibration directly — see utils/calibrate_peel.py output.
     """
     import json
     global _PEEL_CAL_CACHE
