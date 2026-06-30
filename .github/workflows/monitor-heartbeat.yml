@@ -1,0 +1,58 @@
+name: Monitor Heartbeat
+
+# Checks whether position-critical and position-book have run recently.
+# Alerts to #positions if either is offline (GitHub Actions silent cron skip).
+
+on:
+  schedule:
+    - cron: '0 15,17,19,21 * * 1-5'   # 4 checks during market hours
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SLACK_WEBHOOK_POSITIONS: ${{ secrets.SLACK_WEBHOOK_POSITIONS }}
+
+    steps:
+      - name: Check monitor health
+        run: |
+          check_workflow() {
+            local workflow_name="$1"
+            local workflow_file="$2"
+            local max_minutes="$3"
+
+            last_run=$(gh run list \
+              --workflow="$workflow_file" \
+              --status=completed \
+              --limit=1 \
+              --json updatedAt \
+              --jq '.[0].updatedAt' \
+              -R AnanthSrinivasan/finviz-screener-agent 2>/dev/null || echo "")
+
+            if [ -z "$last_run" ]; then
+              echo "$workflow_name: no completed runs found"
+              return 0
+            fi
+
+            last_epoch=$(date -d "$last_run" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$last_run" +%s 2>/dev/null || echo "0")
+            now_epoch=$(date +%s)
+            diff_minutes=$(( (now_epoch - last_epoch) / 60 ))
+
+            echo "$workflow_name: last run $diff_minutes min ago ($last_run)"
+
+            if [ "$diff_minutes" -gt "$max_minutes" ]; then
+              curl -s -X POST "$SLACK_WEBHOOK_POSITIONS" \
+                -H 'Content-Type: application/json' \
+                -d "{\"text\":\":rotating_light: *MONITOR OFFLINE* — $workflow_name hasn't run in ${diff_minutes} min (threshold: ${max_minutes} min). GitHub Actions may be dropping crons.\\nManual dispatch: https://github.com/AnanthSrinivasan/finviz-screener-agent/actions/workflows/$workflow_file\"}"
+              echo "ALERT SENT for $workflow_name"
+            fi
+          }
+
+          # position-critical runs every 30 min → alert if >120 min stale
+          check_workflow "position-critical" "position-critical.yml" 120
+
+          # position-book runs 3x daily → alert if >240 min stale (4 hours)
+          check_workflow "position-book" "position-book.yml" 240

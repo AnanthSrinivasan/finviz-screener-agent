@@ -8,6 +8,52 @@ import unittest
 from agents.trading import alpaca_monitor as am
 
 
+class ComputeTargetsTests(unittest.TestCase):
+    def test_low_vol_unchanged(self):
+        t1, t2 = am.compute_targets(100.0, 2.5)
+        self.assertEqual(t1, 120.0)
+        self.assertEqual(t2, 140.0)
+
+    def test_mid_vol(self):
+        t1, t2 = am.compute_targets(100.0, 4.0)
+        self.assertEqual(t1, 115.0)
+        self.assertEqual(t2, 130.0)
+
+    def test_high_vol(self):
+        t1, t2 = am.compute_targets(100.0, 7.0)
+        self.assertEqual(t1, 112.0)
+        self.assertEqual(t2, 125.0)
+
+    def test_extreme_vol(self):
+        t1, t2 = am.compute_targets(100.0, 9.0)
+        self.assertEqual(t1, 110.0)
+        self.assertEqual(t2, 120.0)
+
+    def test_boundary_at_3(self):
+        # Exactly 3.0 → low-vol tier (not > 3)
+        t1, t2 = am.compute_targets(100.0, 3.0)
+        self.assertEqual(t1, 120.0)
+        self.assertEqual(t2, 140.0)
+
+    def test_boundary_at_5(self):
+        # Exactly 5.0 → mid-vol tier (not > 5)
+        t1, t2 = am.compute_targets(100.0, 5.0)
+        self.assertEqual(t1, 115.0)
+        self.assertEqual(t2, 130.0)
+
+    def test_boundary_at_8(self):
+        # Exactly 8.0 → high-vol tier (not > 8)
+        t1, t2 = am.compute_targets(100.0, 8.0)
+        self.assertEqual(t1, 112.0)
+        self.assertEqual(t2, 125.0)
+
+    def test_sndk_case(self):
+        # SNDK: entry $1960.51, ATR 8.46%
+        t1, t2 = am.compute_targets(1960.51, 8.46)
+        self.assertEqual(t1, round(1960.51 * 1.10, 2))
+        self.assertEqual(t2, round(1960.51 * 1.20, 2))
+
+
 class MigrateStopEntryTests(unittest.TestCase):
     def test_adds_missing_fields_with_defaults(self):
         entry = {"stop_price": 90.0, "entry_price": 100.0, "atr_pct": 5.0,
@@ -16,11 +62,46 @@ class MigrateStopEntryTests(unittest.TestCase):
         self.assertEqual(out["highest_price_seen"], 100.0)
         self.assertEqual(out["peak_gain_pct"], 0.0)
         self.assertFalse(out["breakeven_activated"])
-        self.assertEqual(out["target1"], 120.0)  # +20%
-        self.assertEqual(out["target2"], 140.0)  # +40%
+        # ATR 5.0 → mid-vol tier: +15%/+30%
+        self.assertEqual(out["target1"], 115.0)
+        self.assertEqual(out["target2"], 130.0)
         self.assertFalse(out["target1_hit"])
         # Original fields untouched
         self.assertEqual(out["stop_price"], 90.0)
+
+    def test_legacy_high_vol_targets_migrated(self):
+        # Existing position with legacy +20% targets and ATR > 5
+        entry = {"stop_price": 90.0, "entry_price": 100.0, "atr_pct": 8.5,
+                 "entry_date": "2026-04-01", "target1": 120.0, "target2": 140.0,
+                 "target1_hit": False, "t1_peeled": False, "t2_peeled": False,
+                 "highest_price_seen": 105.0, "peak_gain_pct": 5.0,
+                 "breakeven_activated": False}
+        out = am.migrate_stop_entry("SNDK", entry, 100.0)
+        # Should migrate to extreme-vol tier: +10%/+20%
+        self.assertEqual(out["target1"], 110.0)
+        self.assertEqual(out["target2"], 120.0)
+
+    def test_legacy_targets_not_migrated_if_already_peeled(self):
+        entry = {"stop_price": 90.0, "entry_price": 100.0, "atr_pct": 8.5,
+                 "entry_date": "2026-04-01", "target1": 120.0, "target2": 140.0,
+                 "target1_hit": True, "t1_peeled": True, "t2_peeled": False,
+                 "highest_price_seen": 125.0, "peak_gain_pct": 25.0,
+                 "breakeven_activated": True}
+        out = am.migrate_stop_entry("SNDK", entry, 100.0)
+        # Should NOT migrate — already peeled
+        self.assertEqual(out["target1"], 120.0)
+        self.assertEqual(out["target2"], 140.0)
+
+    def test_low_vol_not_migrated(self):
+        # ATR 3.0 keeps +20%/+40% — no migration needed
+        entry = {"stop_price": 90.0, "entry_price": 100.0, "atr_pct": 3.0,
+                 "entry_date": "2026-04-01", "target1": 120.0, "target2": 140.0,
+                 "target1_hit": False, "t1_peeled": False, "t2_peeled": False,
+                 "highest_price_seen": 100.0, "peak_gain_pct": 0.0,
+                 "breakeven_activated": False}
+        out = am.migrate_stop_entry("CALM", entry, 100.0)
+        self.assertEqual(out["target1"], 120.0)
+        self.assertEqual(out["target2"], 140.0)
 
     def test_idempotent_does_not_overwrite(self):
         entry = {

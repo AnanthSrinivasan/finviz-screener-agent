@@ -168,6 +168,19 @@ def get_ticker_stage(ticker: str) -> int:
 # ----------------------------
 # Schema migration & rules
 # ----------------------------
+def compute_targets(entry_price: float, atr_pct: float) -> tuple:
+    """ATR-tiered T1/T2 targets. Volatile names peel sooner."""
+    if atr_pct > 8:
+        t1_mult, t2_mult = 1.10, 1.20
+    elif atr_pct > 5:
+        t1_mult, t2_mult = 1.12, 1.25
+    elif atr_pct > 3:
+        t1_mult, t2_mult = 1.15, 1.30
+    else:
+        t1_mult, t2_mult = 1.20, 1.40
+    return round(entry_price * t1_mult, 2), round(entry_price * t2_mult, 2)
+
+
 def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
     """
     Bring a paper_stops entry up to the full schema.
@@ -183,11 +196,23 @@ def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
     entry.setdefault("highest_price_seen", round(ep, 2))
     entry.setdefault("peak_gain_pct", 0.0)
     entry.setdefault("breakeven_activated", False)
-    entry.setdefault("target1", round(ep * 1.20, 2))
-    entry.setdefault("target2", round(ep * 1.40, 2))
+    atr = entry.get("atr_pct", 0) or 0
+    t1, t2 = compute_targets(ep, atr)
+    entry.setdefault("target1", t1)
+    entry.setdefault("target2", t2)
     entry.setdefault("target1_hit", False)
     entry.setdefault("t1_peeled", False)
     entry.setdefault("t2_peeled", False)
+
+    # Migrate legacy +20% targets for high-vol names that haven't peeled yet
+    if atr > 5 and not entry.get("t1_peeled"):
+        legacy_t1 = round(ep * 1.20, 2)
+        if abs(entry["target1"] - legacy_t1) < 1.0:
+            entry["target1"] = t1
+            entry["target2"] = t2
+            log.info("%s: migrated targets to ATR-tiered T1=$%.2f T2=$%.2f (ATR %.1f%%)",
+                     ticker, t1, t2, atr)
+
     return entry
 
 

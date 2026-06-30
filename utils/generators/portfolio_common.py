@@ -54,9 +54,18 @@ def held_days(entry_date: str) -> str:
         return "—"
 
 
+def _parse_held(val) -> int:
+    """Parse held-days from string like '18d' or int."""
+    if isinstance(val, int):
+        return val
+    if isinstance(val, str):
+        return int(val.replace("d", "")) if val.rstrip("d").isdigit() else 0
+    return 0
+
+
 # ---------- verdict / action ----------
 
-def verdict_for(gain: float, atr: float, s20: float, stage: str) -> str:
+def verdict_for(gain: float, atr: float, s20: float, stage: str, held: int = 0) -> str:
     """Mirrors .claude/commands/pos-review.md verdict logic."""
     parts = []
     if gain <= -5:
@@ -74,7 +83,10 @@ def verdict_for(gain: float, atr: float, s20: float, stage: str) -> str:
     elif gain >= 1:
         parts.append("🟡 sleeping")
     elif gain >= 0:
-        parts.append("💀 dead weight — review")
+        if held <= 2:
+            parts.append("watch — give a day")
+        else:
+            parts.append("💀 dead weight — review")
     else:
         parts.append("watch — give a day")
     if s20 > 20:
@@ -84,7 +96,7 @@ def verdict_for(gain: float, atr: float, s20: float, stage: str) -> str:
     return " · ".join(parts)
 
 
-def classify_action(gain: float, atr: float) -> str:
+def classify_action(gain: float, atr: float, held: int = 0) -> str:
     """Single source for the action summary chips AND each row's data-action tag,
     so they can never disagree with the Verdict column.
 
@@ -101,7 +113,7 @@ def classify_action(gain: float, atr: float) -> str:
     if gain >= 7 and atr > 7:
         return "peel"
     if 0 <= gain < 1:
-        return "dead"
+        return "hold" if held <= 2 else "dead"
     return "hold"
 
 
@@ -296,7 +308,7 @@ def render_positions_section(rows: list, equity: float) -> str:
         return "<div class='empty'>No open positions.</div>"
 
     for r in rows:
-        r["action"] = classify_action(r.get("gain", 0), r.get("atr", 0) or 0)
+        r["action"] = classify_action(r.get("gain", 0), r.get("atr", 0) or 0, held=_parse_held(r.get("held")))
     _prio = {"cut": 0, "peel": 1, "dead": 2, "trail": 3, "hold": 4}
     rows = sorted(rows, key=lambda r: (_prio.get(r["action"], 9), -r.get("mv", 0)))
 
@@ -318,7 +330,7 @@ def render_positions_section(rows: list, equity: float) -> str:
         gain = r.get("gain", 0)
         h = heat_class(gain)
         verdict = verdict_for(gain, r.get("atr", 0) or 0, r.get("s20", 0) or 0,
-                              r.get("stage", "?"))
+                              r.get("stage", "?"), held=_parse_held(r.get("held")))
         pct_book = (r.get("mv", 0) / equity * 100) if equity > 0 else 0
         atr = r.get("atr")
         s20 = r.get("s20")

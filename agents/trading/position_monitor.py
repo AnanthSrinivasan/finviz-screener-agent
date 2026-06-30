@@ -906,6 +906,11 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
         if ma50 > 0:
             initial_stop = ma50
 
+        # Guard: SnapTrade returns price=0 for pre-market fills before first quote.
+        snap_price = snap["current_price"]
+        gain_pct = snap["pnl_pct"] if snap_price > 0 else 0.0
+        highest = max(snap_price, entry_price)
+
         new_position = {
             "ticker": ticker,
             "shares": int(shares) if shares == int(shares) else shares,
@@ -918,8 +923,8 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             "target2": round(entry_price * 1.40, 2),
             "thesis": "Auto-detected from SnapTrade — update thesis via workflow_dispatch",
             "status": "active",
-            "highest_price_seen": round(snap["current_price"], 2),
-            "current_gain_pct": round(snap["pnl_pct"], 2),
+            "highest_price_seen": round(highest, 2),
+            "current_gain_pct": round(gain_pct, 2),
             "first_entry_price": entry_price,
         }
         positions_data["open_positions"].append(new_position)

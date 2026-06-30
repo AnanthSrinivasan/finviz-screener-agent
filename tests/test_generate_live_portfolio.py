@@ -22,7 +22,10 @@ class VerdictTests(unittest.TestCase):
         self.assertIn("peel", glp.verdict_for(8.0, 8.5, 5.0, "2P").lower())
 
     def test_dead_weight(self):
-        self.assertIn("dead", glp.verdict_for(0.3, 5.0, 5.0, "2P").lower())
+        self.assertIn("dead", glp.verdict_for(0.3, 5.0, 5.0, "2P", held=5).lower())
+
+    def test_new_buy_not_dead_weight(self):
+        self.assertNotIn("dead", glp.verdict_for(0.3, 5.0, 5.0, "2P", held=0).lower())
 
     def test_off_stage_annotation(self):
         v = glp.verdict_for(6.0, 5.0, 5.0, "3")
@@ -95,7 +98,8 @@ class ClassifyActionTests(unittest.TestCase):
         self.assertEqual(glp.classify_action(11.0, 8.0), "trail")
 
     def test_dead_weight(self):
-        self.assertEqual(glp.classify_action(0.4, 3.0), "dead")
+        self.assertEqual(glp.classify_action(0.4, 3.0, held=5), "dead")
+        self.assertEqual(glp.classify_action(0.4, 3.0, held=0), "hold")
 
     def test_hold(self):
         self.assertEqual(glp.classify_action(5.0, 3.0), "hold")

@@ -55,7 +55,8 @@ class ClassifyActionTests(unittest.TestCase):
         self.assertEqual(pc.classify_action(22, 3), "peel")
         self.assertEqual(pc.classify_action(11, 8), "trail")   # NOT peel
         self.assertEqual(pc.classify_action(8, 8), "peel")     # high-vol peel ⅓
-        self.assertEqual(pc.classify_action(0.4, 3), "dead")
+        self.assertEqual(pc.classify_action(0.4, 3, held=5), "dead")
+        self.assertEqual(pc.classify_action(0.4, 3, held=0), "hold")  # new buy, not dead
         self.assertEqual(pc.classify_action(5, 3), "hold")
 
 

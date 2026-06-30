@@ -420,6 +420,9 @@ def _build_positions_html(positions, peel_calib=None, position_history=None):
         entry = p.get("entry_price", 0)          # current weighted avg (post avg-up)
         first_entry = p.get("first_entry_price", entry)  # original entry, fallback to entry
         gain_pct = p.get("current_gain_pct", 0)
+        # SnapTrade can persist -100% when price=0 (pre-market, no quote). Treat as flat.
+        if gain_pct <= -99.9:
+            gain_pct = 0.0
         cost = shares * entry
         pnl = cost * (gain_pct / 100)
         # If we have history, recompute P/L from actual BUY/SELL walk (captures

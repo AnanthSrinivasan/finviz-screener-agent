@@ -210,17 +210,32 @@ def _alpaca_rows(positions: list, entry_dates: dict, technicals: dict) -> list:
     rows = []
     for p in positions:
         sym = p.get("symbol", "")
-        gain = float(p.get("unrealized_plpc", 0) or 0) * 100
+        avg = float(p.get("avg_entry_price", 0) or 0)
+        live = float(p.get("current_price", 0) or 0)
+        shares = float(p.get("qty", 0) or 0)
+
+        # Alpaca returns current_price=0 for pre-market fills before first quote.
+        # Don't show -100% — treat as flat until real quote arrives.
+        if live <= 0 and avg > 0:
+            live = avg
+            gain = 0.0
+            pl = 0.0
+            mv = avg * shares
+        else:
+            gain = float(p.get("unrealized_plpc", 0) or 0) * 100
+            pl = float(p.get("unrealized_pl", 0) or 0)
+            mv = float(p.get("market_value", 0) or 0)
+
         edate = (entry_dates or {}).get(sym) or "—"
         tech = (technicals or {}).get(sym, {})
         rows.append({
             "ticker": sym,
-            "shares": float(p.get("qty", 0) or 0),
-            "avg":    float(p.get("avg_entry_price", 0) or 0),
-            "live":   float(p.get("current_price", 0) or 0),
+            "shares": shares,
+            "avg":    avg,
+            "live":   live,
             "gain":   gain,
-            "pl":     float(p.get("unrealized_pl", 0) or 0),
-            "mv":     float(p.get("market_value", 0) or 0),
+            "pl":     pl,
+            "mv":     mv,
             "entry_date": edate,
             "held":   held_days(edate),
             "atr":    tech.get("atr", 0.0),
