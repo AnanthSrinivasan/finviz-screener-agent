@@ -558,6 +558,7 @@ Finviz daily chart attached as media.
 
 - **Position Book** (`position-book.yml`, env `BOOK_RUN=1`): runs **3x daily** at 13:15 / 14:30 / 17:30 UTC. Posts ONE consolidated table with TK / Avg / Now / Move% / Peak% / Stop / $P/L / STATE per row, plus an `🚨 ACTIONS TODAY` block (TRIM / ROUND-TRIP / STOP-NEAR / STOPPED rows sorted by severity) and an `📋 EVENTS SINCE LAST POST` digest.
 - **Position Critical** (`position-critical.yml`): runs every 30 min 14:00–21:00 UTC. Posts ONLY when an event in `rules.CRITICAL_EVENT_KINDS` fires — `stop_hit`, `auto_closed`, `share_drift_avg_up`, `share_drift_partial_sell`, `target1`, `target2`, `hard_stop`. Each event = its own short Slack message. Same event also appended to `data/book_last_post.json` so the next book post acknowledges it.
+- **Monitor Heartbeat** (`monitor-heartbeat.yml`, 2026-06-30): runs 4× during market hours (15/17/19/21 UTC). Checks via `gh run list` whether position-critical ran in last 120 min and position-book in last 240 min. Fires `🚨 MONITOR OFFLINE` Slack alert to `#positions` with manual dispatch link if either is stale. Catches GitHub Actions silent cron skips (Friday 6/27 incident — all monitors dropped, price crashed through stop with no alert).
 
 State map (`agents/trading/book_table.py:compute_state`):
 
@@ -624,7 +625,7 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 
 **Share-drift reconcile (ticker in both SnapTrade and `positions.json` with different share counts) — `sync_snaptrade_with_rules`:**
 
-- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1` (×1.20) and `target2` (×1.40), reset `target1_hit` and `breakeven_activated` to False so the new levels apply afresh. `first_entry_price` is set on first avg-up and never overwritten thereafter. Slack alert "🟡 SHARES INCREASED".
+- **Avg-up** (SnapTrade > rules): trust SnapTrade's weighted `avg_cost`, set `entry_price = avg_cost`, recompute `target1`/`target2` (ATR-tiered — see below), reset `target1_hit` and `breakeven_activated` to False so the new levels apply afresh. `first_entry_price` is set on first avg-up and never overwritten thereafter. Slack alert "🟡 SHARES INCREASED".
 - **Partial sell** (SnapTrade < rules): sync `shares` only; keep `entry_price`, `target1`, `target2`, `target1_hit`, `breakeven_activated` intact (still the same trade). Slack alert "🟡 PARTIAL SELL".
 - 0.01-share tolerance for fractional rounding.
 
@@ -1091,7 +1092,7 @@ Companion dashboard for the real-money book — pulls account balances from Snap
 
 **Clarity overhaul (2026-06-19, user request):**
 - **Entry/Held columns** — ticker→`entry_date` from `positions.json` `open_positions`; `—` for SnapTrade-only holdings (e.g. leveraged ETFs like TNA) the rules engine doesn't track.
-- **Summary ↔ table consistency** — `classify_action(gain, atr)` is now the single source for both the top "PEEL/CUT/dead weight" chip counts AND each row's `data-action` tag. It mirrors `verdict_for`'s **exact** clause order — critically, `gain ≥ 10 → trail` is evaluated **before** the high-vol peel clause, so a +11% high-ATR name (DAVE-class) is `trail`, **not** `peel`. Previously the summary used looser thresholds (and an `mv > 5000` filter on dead weight) that disagreed with what the Verdict column showed. Chips are now clickable (`filterAction(key)`) to filter the table; rows sort **decision-first** (cut → peel → dead → trail → hold, then MV desc).
+- **Summary ↔ table consistency** — `classify_action(gain, atr, held)` is now the single source for both the top "PEEL/CUT/dead weight" chip counts AND each row's `data-action` tag. It mirrors `verdict_for`'s **exact** clause order — critically, `gain ≥ 10 → trail` is evaluated **before** the high-vol peel clause, so a +11% high-ATR name (DAVE-class) is `trail`, **not** `peel`. **Held-aware (2026-06-30):** positions ≤ 2 days old in the 0–1% zone get "watch — give a day" instead of "dead weight" (FROG day-0 false alarm). Chips are now clickable (`filterAction(key)`) to filter the table; rows sort **decision-first** (cut → peel → dead → trail → hold, then MV desc).
 - **Column legend** below the table spells out the abbreviations: **S20%** = price vs its 20-day moving average (+ above / − below), **%Bk** = position as % of book, **ATR%** = daily volatility, **St** = Weinstein stage (2P = perfect Stage 2). Header `title=` tooltips added too.
 - Tests: `tests/test_generate_live_portfolio.py` (`ClassifyActionTests`, `SummaryConsistencyTests`, `HeldDaysTests`).
 
@@ -1119,7 +1120,7 @@ The daily output was a chart **firehose** — `finviz_chart_grid_*.html` with 10
 
 Two additions to `alpaca_monitor.py`:
 
-- **T1/T2 auto-peel** — consumes `target1`/`target2` events from the shared rules engine. On T1, places SELL for `qty // 2`, sets `t1_peeled=True`, raises stop to `entry × 1.005` (breakeven). On T2, places SELL for `qty // 2` of remaining and sets `t2_peeled=True`. Skips when `qty <= 1` or `peel_qty × price < $50`. Slack alerts prefixed `[PAPER] T1/T2 AUTO-PEEL`. New `paper_stops.json` fields `t1_peeled` / `t2_peeled` (default `False`, idempotent migration).
+- **T1/T2 auto-peel** — consumes `target1`/`target2` events from the shared rules engine. **ATR-tiered targets (2026-06-30):** `compute_targets(entry_price, atr_pct)` in `alpaca_monitor.py` — ATR ≤3% → +20%/+40% (unchanged); 3–5% → +15%/+30%; 5–8% → +12%/+25%; >8% → +10%/+20%. SNDK at 8.5% ATR peels at +10% instead of +20% — catches the peak before a volatile reversal. Migration: existing high-vol positions with legacy +20% targets auto-migrate on next monitor run (idempotent, skipped if already peeled). On T1, places SELL for `qty // 2`, sets `t1_peeled=True`, raises stop to `entry × 1.005` (breakeven). On T2, places SELL for `qty // 2` of remaining and sets `t2_peeled=True`. Skips when `qty <= 1` or `peel_qty × price < $50`. Slack alerts prefixed `[PAPER] T1/T2 AUTO-PEEL`. New `paper_stops.json` fields `t1_peeled` / `t2_peeled` (default `False`, idempotent migration).
 - **Stale-cull** — when `days_open >= 14` AND `peak_gain_pct < +4%` AND not `t1_peeled`, places SELL for full qty. Slack alert `💤 [PAPER] STALE CULL`. Thresholds in `rules.STALE_DAYS` / `rules.STALE_PEAK_THRESHOLD`. Frees buying power for the next signal — opportunity cost of dead capital is the biggest leak in a flying market.
 
 Helpers exported from `agents/trading/alpaca_monitor.py`: `process_target_peels()`, `check_stale_position()` (pure, unit-tested).
