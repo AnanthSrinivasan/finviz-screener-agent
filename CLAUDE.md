@@ -107,6 +107,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 | Market Monitor | `market_monitor.yml` | Cron + workflow_dispatch |
 | Pre-Market Alert | `premarket-alert.yml` | 9:00 AM ET (13:00 UTC) Mon-Fri + workflow_dispatch |
 | Sector Rotation | `sector-rotation.yml` | Cron 20:15 UTC Mon-Fri + workflow_dispatch (runs 15 min before daily screener so screener can read today's snapshot for Stage Transition gate) |
+| Monitor Heartbeat | `monitor-heartbeat.yml` | Cron 15/17/19/21 UTC Mon-Fri + workflow_dispatch |
 | Test Suite | `test.yml` | On push to main / PRs |
 
 ## Position Book / Critical Slack split (May 2026)
@@ -170,7 +171,7 @@ The position monitor has two layers:
 - Rule 4: No averaging down (blocks BUY if price < entry). Averaging UP merges shares + recomputes weighted avg cost, recalculates T1/T2.
 - Rule 5: Gain protection — continuous ATR-tiered trail off `highest_price_seen` (2.0/1.5/1.0× ATR by peak +0/+10/+20). Hybrid +5% loss-cap floor `max(entry × 0.97, entry − 0.5×ATR$)`. Breakeven crossover flag at peak +20% (with `entry × 1.005` fallback floor when ATR missing). +30% floor `max(1.0×ATR trail, peak × 0.90)`. Trail ratchets off recorded peak so hourly-snapshot gaps don't lose intraday peaks (VIK Apr-2026 regression)
 - Rule 6: Market state gate — no entries in RED/BLACKOUT
-- Target alerts: Target 1 (+20%) → sell half; Target 2 (+40%) → trail tight. T1/T2 status (✅/⏳) shown in every daily summary; daily reminder while T1 locked and T2 pending
+- Target alerts: **ATR-tiered T1/T2** (`compute_targets()` in `alpaca_monitor.py`): ATR ≤3% → +20%/+40%; 3–5% → +15%/+30%; 5–8% → +12%/+25%; >8% → +10%/+20%. Existing high-vol positions auto-migrate from legacy +20% on next monitor run. T1/T2 status (✅/⏳) shown in every daily summary; daily reminder while T1 locked and T2 pending
 - Gain fading warning: `peak_gain_pct ≥ +20% AND current_price < highest_price_seen − 1×ATR`. Every-run alert with 5pp dedup. ATR-normalized so volatile names aren't choked
 - `highest_price_seen` and `peak_gain_pct` use Finviz intraday "Range" high (fixes missed-intraday-peak bug where hourly snap missed spikes between ticks)
 
