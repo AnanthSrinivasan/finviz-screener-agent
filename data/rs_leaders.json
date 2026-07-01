@@ -280,21 +280,6 @@
     ],
     "days_tracked": 6
   },
-  "LSCC": {
-    "first_triggered": "2026-06-09",
-    "trigger_state": "DANGER",
-    "trigger_q": 94.0,
-    "trigger_dist": -8.291618534206124,
-    "trigger_atr_mult": 3.1,
-    "rs_rating": 82,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [
-      "2026-06-12"
-    ],
-    "days_tracked": 4
-  },
   "FIX": {
     "first_triggered": "2026-06-09",
     "trigger_state": "RED",
@@ -357,21 +342,6 @@
       "2026-06-25"
     ],
     "days_tracked": 6
-  },
-  "SSSS": {
-    "first_triggered": "2026-06-09",
-    "trigger_state": "RED",
-    "trigger_q": 89.0,
-    "trigger_dist": -6.475300400534046,
-    "trigger_atr_mult": 1.9,
-    "rs_rating": 78,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [
-      "2026-06-11"
-    ],
-    "days_tracked": 3
   },
   "KRYS": {
     "first_triggered": "2026-06-09",
@@ -641,19 +611,6 @@
     ],
     "days_tracked": 3
   },
-  "VCYT": {
-    "first_triggered": "2026-06-13",
-    "trigger_state": "THRUST",
-    "trigger_q": 106.0,
-    "trigger_dist": -6.665352001577607,
-    "trigger_atr_mult": 4.4,
-    "rs_rating": 62,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [],
-    "days_tracked": 1
-  },
   "ECO": {
     "first_triggered": "2026-06-13",
     "trigger_state": "THRUST",
@@ -714,45 +671,6 @@
       "2026-06-23"
     ],
     "days_tracked": 4
-  },
-  "APGE": {
-    "first_triggered": "2026-06-13",
-    "trigger_state": "THRUST",
-    "trigger_q": 79.0,
-    "trigger_dist": -7.333193453629871,
-    "trigger_atr_mult": 0.8,
-    "rs_rating": 63,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [],
-    "days_tracked": 1
-  },
-  "ATRO": {
-    "first_triggered": "2026-06-13",
-    "trigger_state": "THRUST",
-    "trigger_q": 79.0,
-    "trigger_dist": 1.104780360396429,
-    "trigger_atr_mult": 4.2,
-    "rs_rating": 82,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [],
-    "days_tracked": 1
-  },
-  "ASTH": {
-    "first_triggered": "2026-06-13",
-    "trigger_state": "THRUST",
-    "trigger_q": 78.0,
-    "trigger_dist": -3.7627709942686383,
-    "trigger_atr_mult": 2.5,
-    "rs_rating": 71,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-06-13",
-    "pullback_started": "2026-06-16",
-    "reacquired_dates": [],
-    "days_tracked": 1
   },
   "PWR": {
     "first_triggered": "2026-06-16",
