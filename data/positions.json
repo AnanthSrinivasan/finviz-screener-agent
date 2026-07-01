@@ -132,6 +132,22 @@
       "highest_price_seen": 256.1,
       "current_gain_pct": -100.0,
       "first_entry_price": 251.97
+    },
+    {
+      "ticker": "LIME",
+      "shares": 1,
+      "entry_price": 25.0,
+      "entry_date": "2026-07-01",
+      "stop_price": 23.25,
+      "breakeven_activated": false,
+      "target1": 30.0,
+      "target1_hit": false,
+      "target2": 35.0,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 25.0,
+      "current_gain_pct": -100.0,
+      "first_entry_price": 25.0
     }
   ],
   "closed_positions": [

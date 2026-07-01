@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-30T22:02:04.627573Z",
+  "updated": "2026-07-01T15:53:26.180718Z",
   "history": {
     "SNOW": [
       {
@@ -7,6 +7,44 @@
         "action": "BUY",
         "shares": 25.0,
         "price": 253.6
+      },
+      {
+        "date": "2026-06-30T13:54:31Z",
+        "action": "BUY",
+        "shares": 15.0,
+        "price": 250.1331
+      }
+    ],
+    "DDOG": [
+      {
+        "date": "2026-06-17T13:53:18Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 232.0
+      },
+      {
+        "date": "2026-06-17T16:18:18Z",
+        "action": "BUY",
+        "shares": 25.0,
+        "price": 231.3
+      },
+      {
+        "date": "2026-06-18T13:32:02Z",
+        "action": "SELL",
+        "shares": 50.0,
+        "price": 220.511
+      },
+      {
+        "date": "2026-06-22T11:30:45Z",
+        "action": "SELL",
+        "shares": 25.0,
+        "price": 220.1784
+      },
+      {
+        "date": "2026-06-30T13:46:18Z",
+        "action": "BUY",
+        "shares": 40.0,
+        "price": 251.9743
       }
     ],
     "FROG": [
@@ -593,32 +631,6 @@
         "action": "SELL",
         "shares": 150.0,
         "price": 62.265
-      }
-    ],
-    "DDOG": [
-      {
-        "date": "2026-06-17T13:53:18Z",
-        "action": "BUY",
-        "shares": 50.0,
-        "price": 232.0
-      },
-      {
-        "date": "2026-06-17T16:18:18Z",
-        "action": "BUY",
-        "shares": 25.0,
-        "price": 231.3
-      },
-      {
-        "date": "2026-06-18T13:32:02Z",
-        "action": "SELL",
-        "shares": 50.0,
-        "price": 220.511
-      },
-      {
-        "date": "2026-06-22T11:30:45Z",
-        "action": "SELL",
-        "shares": 25.0,
-        "price": 220.1784
       }
     ],
     "SPCX": [
