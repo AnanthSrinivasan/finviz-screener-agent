@@ -1,19 +1,4 @@
 {
-  "VIK": {
-    "entry_price": 85.224769,
-    "highest_price_seen": 105.66,
-    "peak_gain_pct": 23.98,
-    "breakeven_activated": true,
-    "target1": 102.27,
-    "target2": 119.31,
-    "target1_hit": true,
-    "atr_pct": 4.23,
-    "stop_price": 101.15,
-    "t1_peeled": true,
-    "t2_peeled": false,
-    "pending_close": true,
-    "last_fade_alert_gain_pct": 17.48
-  },
   "INCY": {
     "stop_price": 112.76,
     "entry_price": 102.015,
@@ -55,34 +40,6 @@
     "target1_hit": false,
     "t1_peeled": false,
     "t2_peeled": false
-  },
-  "APH": {
-    "entry_price": 158.51,
-    "highest_price_seen": 178.43,
-    "peak_gain_pct": 12.57,
-    "breakeven_activated": false,
-    "target1": 190.21,
-    "target2": 221.91,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "atr_pct": 3.96,
-    "stop_price": 169.01,
-    "pending_close": true
-  },
-  "FIX": {
-    "entry_price": 1902.0,
-    "highest_price_seen": 2035.67,
-    "peak_gain_pct": 7.03,
-    "breakeven_activated": false,
-    "target1": 2130.24,
-    "target2": 2377.5,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "atr_pct": 5.23,
-    "stop_price": 1852.26,
-    "pending_close": true
   },
   "TSM": {
     "entry_price": 436.561831,
