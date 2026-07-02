@@ -11,15 +11,16 @@
     "stop_price": 101.15,
     "t1_peeled": true,
     "t2_peeled": false,
-    "pending_close": true
+    "pending_close": true,
+    "last_fade_alert_gain_pct": 17.48
   },
   "INCY": {
-    "stop_price": 109.43,
+    "stop_price": 112.76,
     "entry_price": 102.015,
     "atr_pct": 3.834085114728378,
     "entry_date": "2026-06-16",
-    "highest_price_seen": 115.3,
-    "peak_gain_pct": 13.02,
+    "highest_price_seen": 118.63,
+    "peak_gain_pct": 16.29,
     "breakeven_activated": false,
     "target1": 122.42,
     "target2": 142.82,
@@ -66,7 +67,8 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.96,
-    "stop_price": 169.01
+    "stop_price": 169.01,
+    "pending_close": true
   },
   "FIX": {
     "entry_price": 1902.0,
@@ -79,7 +81,8 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 5.23,
-    "stop_price": 1852.26
+    "stop_price": 1852.26,
+    "pending_close": true
   },
   "TSM": {
     "entry_price": 436.561831,
