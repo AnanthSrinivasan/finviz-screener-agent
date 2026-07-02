@@ -39,7 +39,8 @@
     "target2": 256.26,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "TSM": {
     "entry_price": 436.561831,
@@ -52,6 +53,7 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 4.22,
-    "stop_price": 439.12
+    "stop_price": 439.12,
+    "pending_close": true
   }
 }
