@@ -1650,6 +1650,12 @@ if __name__ == "__main__":
             avg_cost   = pos["avg_cost"]
             shares     = pos["shares"]
 
+            # Skip all stop/alert logic when price is 0 (market closed, no quote)
+            if price <= 0:
+                log.info(f"{ticker}: price=0 (market closed/no quote) — skipping alerts")
+                positions_with_metrics.append(pos)
+                continue
+
             pnl        = (price - avg_cost) * shares
             pnl_pct    = ((price / avg_cost) - 1) * 100 if avg_cost > 0 else 0
             # Tighten stop base in bear market conditions
