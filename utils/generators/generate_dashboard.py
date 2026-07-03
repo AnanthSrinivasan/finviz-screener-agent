@@ -1134,10 +1134,38 @@ def generate_dashboard(data, base_url):
 </html>"""
 
 
+def _refresh_stale_prices(positions):
+    """Fetch last-close for positions with current_gain_pct == 0 (no live quote yet)."""
+    stale = [p for p in positions.get("open_positions", [])
+             if abs(p.get("current_gain_pct", 0)) < 0.01 and p.get("entry_price", 0) > 0]
+    if not stale:
+        return
+    tickers = [p["ticker"] for p in stale]
+    log.info(f"Refreshing stale prices for: {tickers}")
+    try:
+        import yfinance as yf
+        data = yf.download(tickers, period="2d", progress=False, threads=True)
+        closes = data["Close"] if len(tickers) > 1 else data[["Close"]].rename(columns={"Close": tickers[0]})
+        for p in stale:
+            tk = p["ticker"]
+            try:
+                last_close = float(closes[tk].dropna().iloc[-1])
+                if last_close > 0:
+                    entry = p["entry_price"]
+                    p["current_gain_pct"] = round((last_close - entry) / entry * 100, 2)
+                    p["highest_price_seen"] = max(p.get("highest_price_seen", 0), last_close)
+                    log.info(f"  {tk}: ${last_close:.2f} → gain {p['current_gain_pct']:+.1f}%")
+            except Exception as e:
+                log.warning(f"  {tk}: failed to get close — {e}")
+    except Exception as e:
+        log.warning(f"yfinance refresh failed: {e}")
+
+
 def main():
     log.info("=== Dashboard generator starting ===")
 
     data = load_data(DATA_DIR)
+    _refresh_stale_prices(data["positions"])
     log.info(f"Loaded: {len(data['positions'].get('open_positions', []))} open positions, "
              f"{len(data['market_history'])} market history entries, "
              f"{len(data['watchlist'].get('watchlist', []))} watchlist items")
