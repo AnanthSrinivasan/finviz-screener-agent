@@ -633,8 +633,10 @@ Non-exit: fires Slack alert ("⚠️ MA Trail Exit Signal"), stamps `ma_trail_al
 
 Real exit price priority for `close_price`:
 1. **SnapTrade SELL fill** — `fetch_recent_sell_fills(account_ids, days=14)` calls `/accounts/{id}/activities?type=SELL&startDate=…`, latest SELL by `trade_date` per ticker. `close_source = "snaptrade_fill"`.
-2. **Live Finviz quote** — `fetch_position_metrics(ticker)["price"]`. `close_source = "live_quote"`.
+2. **Alpaca last price** — `fetch_alpaca_last_price(ticker)` (latestTrade or prevDailyBar). `close_source = "live_quote"`.
 3. **`highest_price_seen`** — last-resort fallback only. `close_source = "fallback_high"`.
+
+**Price source architecture (2026-07-03):** `fetch_position_metrics` uses **Alpaca** (`fetch_alpaca_last_price`) as the primary price for all P&L / stop / alert calculations. Alpaca always returns last close even on holidays/pre-market — eliminates the price=0 bug class (bogus HARD STOP on holidays, -100% dashboard P&L). Finviz scrape provides only the technical fields (ATR, SMA50%, dist-from-high, RVol). If Finviz is rate-limited (429), alerts still fire correctly using Alpaca price; only technical-based signals (ATR exit, peel) degrade gracefully.
 
 `close_source` persisted on closed position; Slack alert tags `(fill)`, `(quote)`, or `(peak — fill unavailable)`.
 
