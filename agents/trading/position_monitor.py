@@ -391,30 +391,44 @@ def fetch_sma50_price(ticker: str, fallback_pct: float = 0.90) -> float:
         return 0.0
 
 
-def fetch_alpaca_day_high(ticker: str) -> float:
-    """Today's intraday high via Alpaca snapshot. Returns 0.0 if unavailable.
-    Finviz snapshot has no intraday range, so we use Alpaca for the trailing-stop high."""
+def _fetch_alpaca_snapshot(ticker: str) -> dict:
+    """Alpaca snapshot for a ticker. Returns {} on failure."""
     api_key = os.environ.get("ALPACA_API_KEY", "")
     api_sec = os.environ.get("ALPACA_SECRET_KEY", "")
-    base    = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets/v2")
     if not api_key or not api_sec:
-        return 0.0
+        return {}
     try:
-        data_host = "https://data.alpaca.markets"
         resp = requests.get(
-            f"{data_host}/v2/stocks/{ticker}/snapshot",
+            f"https://data.alpaca.markets/v2/stocks/{ticker}/snapshot",
             headers={"APCA-API-KEY-ID": api_key, "APCA-API-SECRET-KEY": api_sec},
             timeout=8,
         )
         if not resp.ok:
-            return 0.0
-        snap = resp.json() or {}
-        day_bar = snap.get("dailyBar") or {}
-        high = float(day_bar.get("h") or 0)
-        return high
+            return {}
+        return resp.json() or {}
     except Exception as e:
-        log.warning(f"{ticker}: Alpaca day_high fetch failed — {e}")
-        return 0.0
+        log.warning(f"{ticker}: Alpaca snapshot fetch failed — {e}")
+        return {}
+
+
+def fetch_alpaca_last_price(ticker: str) -> float:
+    """Last trade price from Alpaca. Always returns a value (last close if market closed).
+    This is the reliable price source — never returns 0 for valid tickers."""
+    snap = _fetch_alpaca_snapshot(ticker)
+    trade = snap.get("latestTrade") or {}
+    price = float(trade.get("p") or 0)
+    if price > 0:
+        return price
+    # Fallback to previous day close
+    prev_bar = snap.get("prevDailyBar") or {}
+    return float(prev_bar.get("c") or 0)
+
+
+def fetch_alpaca_day_high(ticker: str) -> float:
+    """Today's intraday high via Alpaca snapshot. Returns 0.0 if unavailable."""
+    snap = _fetch_alpaca_snapshot(ticker)
+    day_bar = snap.get("dailyBar") or {}
+    return float(day_bar.get("h") or 0)
 
 
 def fetch_alpaca_daily_bars(ticker: str, limit: int = 30) -> list:
@@ -480,7 +494,11 @@ def fetch_position_metrics(ticker: str) -> dict:
             elif suffix == 'B': val *= 1_000_000_000
             return val
 
-        price   = parse_float(data.get("Price", "0").replace(',', ''))
+        # Price from Alpaca (reliable — always has last close even on holidays).
+        # Finviz price is only a fallback for the technical metric denominators.
+        alpaca_price = fetch_alpaca_last_price(ticker)
+        finviz_price = parse_float(data.get("Price", "0").replace(',', ''))
+        price = alpaca_price if alpaca_price > 0 else finviz_price
         atr     = parse_float(data.get("ATR (14)", "0"))
         atr_pct = (atr / price * 100) if price > 0 else 0
 
