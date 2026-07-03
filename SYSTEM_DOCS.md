@@ -143,8 +143,9 @@ flowchart TB
 **Slack:** `#daily-alerts` via `SLACK_WEBHOOK_DAILY`
 
 **Flow:**
+0. **Scrape canary** (`scrape_canary()`) — scrapes AAPL first and raises `ScrapeHealthError` if ATR% comes back None/0. Fails the whole run in one request if Finviz changed their page layout, instead of burning the full run and posting a misleading "0 passed".
 1. Hits 5 Finviz screener URLs, aggregates all tickers
-2. Fetches snapshot metrics (ATR%, EPS, SMA distances, Rel Volume, 52w high distance)
+2. Fetches snapshot metrics (ATR%, EPS, SMA distances, Rel Volume, 52w high distance). **Parsing (2026-07-03):** reads ALL `<td class="snapshot-td2">` cells page-wide and pairs them key/value — Finviz moved these fields out of `<table class="snapshot-table2">` on ~2026-06-29. Post-scrape, `assert_scrape_healthy()` raises if the ENTIRE universe has ATR%=0 AND SMA50%=0 (the silent-break signature that rotted for 3 days). Both guards exit non-zero → `daily-finviz.yml` `if: failure()` → `#general-alerts` Slack alarm.
 3. Computes Weinstein Stage Analysis
 4. Computes Minervini VCP detection
 5. Computes Quality Score

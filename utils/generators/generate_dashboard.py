@@ -141,14 +141,12 @@ def _fetch_index_tiles() -> dict:
                 if not resp.ok:
                     continue
                 soup = BeautifulSoup(resp.content, "html.parser")
-                table = soup.find("table", class_="snapshot-table2")
-                if not table:
+                snapshot_cells = soup.find_all("td", class_="snapshot-td2")
+                if not snapshot_cells:
                     continue
                 raw = {}
-                for row in table.find_all("tr"):
-                    cells = row.find_all("td")
-                    for k, v in zip(cells[0::2], cells[1::2]):
-                        raw[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
+                for k, v in zip(snapshot_cells[0::2], snapshot_cells[1::2]):
+                    raw[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
 
                 def _pct(key):
                     try:

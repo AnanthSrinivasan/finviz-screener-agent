@@ -263,17 +263,15 @@ def get_snapshot_metrics(ticker: str, max_retries: int = 5):
             )
             resp.raise_for_status()
             soup = BeautifulSoup(resp.content, "html.parser")
-            table = soup.find("table", class_="snapshot-table2")
-            if not table:
-                log.warning(f"{ticker}: snapshot table not found (layout may have changed)")
+            snapshot_cells = soup.find_all("td", class_="snapshot-td2")
+            if not snapshot_cells:
+                log.warning(f"{ticker}: snapshot cells not found (layout may have changed)")
                 return None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None
 
             data = {}
-            for row in table.find_all("tr"):
-                cells = row.find_all("td")
-                for key_cell, val_cell in zip(cells[0::2], cells[1::2]):
-                    key = key_cell.get_text(strip=True).rstrip('.')
-                    data[key] = val_cell.get_text(strip=True)
+            for key_cell, val_cell in zip(snapshot_cells[0::2], snapshot_cells[1::2]):
+                key = key_cell.get_text(strip=True).rstrip('.')
+                data[key] = val_cell.get_text(strip=True)
 
             price_raw = data.get("Price", "1").replace(',', '')
             price = float(price_raw) if price_raw else 1.0
@@ -368,6 +366,50 @@ def fetch_snapshots_concurrent(tickers: list, workers: int = SNAPSHOT_WORKERS) -
             ticker = futures[future]
             results[ticker] = future.result()
     return results
+
+
+class ScrapeHealthError(RuntimeError):
+    """Raised when the Finviz snapshot scrape returns structurally-empty data
+    for the entire universe — the signature of a Finviz layout change, not a
+    quiet market. Propagates non-zero so the workflow's failure step alerts."""
+
+
+def scrape_canary(ticker: str = "AAPL") -> None:
+    """Fast trip-wire run BEFORE the full screener. Scrapes one always-liquid
+    ticker and asserts the technical fields are present and non-zero. If Finviz
+    changed their layout, this fails in ~1 request instead of burning the whole
+    run and posting a misleading "0 passed" message. Raises ScrapeHealthError."""
+    metrics = get_snapshot_metrics(ticker)
+    atr_pct, _, _, _, _, _, _, sma50_pct, *_ = metrics
+    if atr_pct is None or sma50_pct is None:
+        raise ScrapeHealthError(
+            f"Canary {ticker}: snapshot returned no data (ATR%={atr_pct}, "
+            f"SMA50%={sma50_pct}). Finviz layout likely changed — see "
+            f"get_snapshot_metrics() cell selector."
+        )
+    if atr_pct == 0:
+        raise ScrapeHealthError(
+            f"Canary {ticker}: ATR%=0 — impossible for a live liquid name. "
+            f"Finviz snapshot parsing is broken (layout change?)."
+        )
+    log.info(f"Scrape canary OK — {ticker}: ATR%={atr_pct:.2f}, SMA50%={sma50_pct:.2f}")
+
+
+def assert_scrape_healthy(summary_df: pd.DataFrame) -> None:
+    """Backstop guard AFTER the full scrape. If the ENTIRE universe has ATR%
+    and SMA50% both 0/NaN, the scrape is dead — a live market always has some
+    volatility. Raise so the run fails loudly instead of silently posting
+    "0 passed". Empty universe (0 tickers) is a legitimate no-op, not a break."""
+    if summary_df.empty:
+        return
+    atr = pd.to_numeric(summary_df.get("ATR%"), errors="coerce").fillna(0)
+    sma50 = pd.to_numeric(summary_df.get("SMA50%"), errors="coerce").fillna(0)
+    if (atr == 0).all() and (sma50 == 0).all():
+        raise ScrapeHealthError(
+            f"Scrape health check FAILED: all {len(summary_df)} tickers have "
+            f"ATR%=0 AND SMA50%=0. Finviz snapshot parsing is broken (layout "
+            f"change?). Refusing to post a misleading '0 passed' result."
+        )
 
 
 # ----------------------------
@@ -3719,6 +3761,10 @@ if __name__ == "__main__":
     today = datetime.date.today().strftime("%Y-%m-%d")
     log.info(f"=== Finviz agent starting — {today} ===")
 
+    # Step 0: Scrape canary — fail fast (1 request) if Finviz changed layout,
+    # instead of burning the full run and posting a misleading "0 passed".
+    scrape_canary()
+
     # Step 1: Screener fetch
     summary_df, csv_path, html_summary = aggregate_and_save(screener_urls)
     log.info(f"Total unique tickers: {len(summary_df)}")
@@ -3767,6 +3813,15 @@ if __name__ == "__main__":
     summary_df['Perf Quarter']   = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[13])
     summary_df['Perf Half Y']    = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[14])
     summary_df['Perf Year']      = summary_df['Ticker'].map(lambda t: snapshot_results.get(t, (None,)*16)[15])
+
+    # ── Scrape-health guard (2026-07-03) ──────────────────────────────────────
+    # A Finviz layout change silently zeroed every technical field for 3 days
+    # (June 29–July 2 2026): ATR%=0 → nothing passed ATR%>3, the run posted
+    # "0 passed" and exited green. An empty scrape must NEVER look like a quiet
+    # market. If the ENTIRE universe comes back with ATR% and SMA50% both 0/NaN
+    # (physically impossible for a live market with real tickers), raise so the
+    # workflow's `if: failure()` step fires the #general-alerts Slack alarm.
+    assert_scrape_healthy(summary_df)
 
     # ── Dollar-volume liquidity gate (2026-06-09) — see passes_dollar_volume_gate() ──
     _before = len(summary_df)

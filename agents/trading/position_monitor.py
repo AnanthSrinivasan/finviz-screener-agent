@@ -370,14 +370,12 @@ def fetch_sma50_price(ticker: str, fallback_pct: float = 0.90) -> float:
         if not resp.ok:
             return 0.0
         soup = BeautifulSoup(resp.content, "html.parser")
-        table = soup.find("table", class_="snapshot-table2")
-        if not table:
+        snapshot_cells = soup.find_all("td", class_="snapshot-td2")
+        if not snapshot_cells:
             return 0.0
         data = {}
-        for row in table.find_all("tr"):
-            cells = row.find_all("td")
-            for key_cell, val_cell in zip(cells[0::2], cells[1::2]):
-                data[key_cell.get_text(strip=True).rstrip(".")] = val_cell.get_text(strip=True)
+        for key_cell, val_cell in zip(snapshot_cells[0::2], snapshot_cells[1::2]):
+            data[key_cell.get_text(strip=True).rstrip(".")] = val_cell.get_text(strip=True)
         price_raw = data.get("Price", "0").replace(",", "").strip()
         price = float(re.match(r"^[\d.]+", price_raw).group()) if re.match(r"^[\d.]+", price_raw) else 0.0
         sma50_raw = data.get("SMA50") or data.get("SMA20") or ""
@@ -469,16 +467,14 @@ def fetch_position_metrics(ticker: str) -> dict:
         import re
 
         soup  = BeautifulSoup(resp.content, "html.parser")
-        table = soup.find("table", class_="snapshot-table2")
-        if not table:
-            log.warning(f"{ticker}: snapshot table not found")
+        snapshot_cells = soup.find_all("td", class_="snapshot-td2")
+        if not snapshot_cells:
+            log.warning(f"{ticker}: snapshot cells not found")
             return {}
 
         data = {}
-        for row in table.find_all("tr"):
-            cells = row.find_all("td")
-            for key_cell, val_cell in zip(cells[0::2], cells[1::2]):
-                data[key_cell.get_text(strip=True).rstrip(".")] = val_cell.get_text(strip=True)
+        for key_cell, val_cell in zip(snapshot_cells[0::2], snapshot_cells[1::2]):
+            data[key_cell.get_text(strip=True).rstrip(".")] = val_cell.get_text(strip=True)
 
         def parse_float(raw, default=0.0):
             if not raw or raw in ('-', ''):

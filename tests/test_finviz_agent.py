@@ -20,6 +20,9 @@ from agents.screener.finviz_agent import (
     _score_hidden_growth,
     _is_base_building,
     _is_stage_transition,
+    assert_scrape_healthy,
+    scrape_canary,
+    ScrapeHealthError,
 )
 from agents.alerts.earnings_alert import find_upcoming_earnings
 
@@ -50,18 +53,35 @@ def make_mock_screener_html(tickers: list) -> str:
 
 def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0",
                              eps_qq="30.0", inst_own="45.0", inst_trans="5.0") -> bytes:
-    """Build a minimal Finviz quote page snapshot table."""
+    """Build a minimal Finviz quote page snapshot.
+
+    Mirrors the real Finviz layout (post-2026-07 redesign): individual data
+    cells carry class ``snapshot-td2`` and are emitted as flat key/value pairs
+    in source order — NOT wrapped in a ``snapshot-table2`` table with 2-pair
+    rows. Parsers pair ``snapshot-td2`` cells 0::2 (key) / 1::2 (value).
+    """
+    def kv(key, val):
+        return (f'<td class="snapshot-td2">{key}</td>'
+                f'<td class="snapshot-td2">{val}</td>')
+
+    pairs = "".join([
+        kv("Price", price),
+        kv("ATR (14)", atr),
+        kv("EPS Y/Y TTM", f"{eps}%"),
+        kv("Sales Y/Y TTM", f"{sales}%"),
+        kv("52W High", "55.00"),
+        kv("Rel Volume", "1.2"),
+        kv("Avg Volume", "500K"),
+        kv("SMA20", "3.5%"),
+        kv("SMA50", "2.1%"),
+        kv("SMA200", "1.0%"),
+        kv("EPS Q/Q", f"{eps_qq}%"),
+        kv("Inst Own", f"{inst_own}%"),
+        kv("Inst Trans", f"{inst_trans}%"),
+    ])
     html = f"""
     <html><body>
-    <table class="snapshot-table2">
-        <tr><td>Price</td><td>{price}</td><td>ATR (14)</td><td>{atr}</td></tr>
-        <tr><td>EPS Y/Y TTM</td><td>{eps}%</td><td>Sales Y/Y TTM</td><td>{sales}%</td></tr>
-        <tr><td>52W High</td><td>55.00</td><td>Rel Volume</td><td>1.2</td></tr>
-        <tr><td>Avg Volume</td><td>500K</td><td>SMA20</td><td>3.5%</td></tr>
-        <tr><td>SMA50</td><td>2.1%</td><td>SMA200</td><td>1.0%</td></tr>
-        <tr><td>EPS Q/Q</td><td>{eps_qq}%</td><td>Inst Own</td><td>{inst_own}%</td></tr>
-        <tr><td>Inst Trans</td><td>{inst_trans}%</td><td></td><td></td></tr>
-    </table>
+    <table><tr>{pairs}</tr></table>
     </body></html>"""
     return html.encode()
 
@@ -204,6 +224,63 @@ class TestGetSnapshotMetrics(unittest.TestCase):
             result = get_snapshot_metrics("AAPL", max_retries=2)
 
         self.assertEqual(result, (None,) * 16)
+
+
+# ----------------------------
+# Tests: scrape-health guard (2026-07-03 Finviz layout regression)
+# ----------------------------
+
+class TestScrapeHealthGuard(unittest.TestCase):
+    """The June 29–July 2 2026 silent break: Finviz layout change zeroed every
+    ATR%/SMA, screener posted '0 passed' and exited green for 3 days. These
+    guards must make the next such break fail LOUDLY on day 1."""
+
+    def test_assert_healthy_passes_on_real_data(self):
+        df = pd.DataFrame({"ATR%": [2.5, 0.0, 4.1], "SMA50%": [1.0, 0.0, -3.0]})
+        # Should not raise — some tickers have real ATR/SMA.
+        assert_scrape_healthy(df)
+
+    def test_assert_healthy_raises_on_all_zero(self):
+        # The exact 2026-07-02 signature: every ticker ATR%=0 AND SMA50%=0.
+        df = pd.DataFrame({"ATR%": [0.0, 0.0, 0.0], "SMA50%": [0.0, 0.0, 0.0]})
+        with self.assertRaises(ScrapeHealthError):
+            assert_scrape_healthy(df)
+
+    def test_assert_healthy_raises_on_all_nan(self):
+        df = pd.DataFrame({"ATR%": [None, None], "SMA50%": [None, None]})
+        with self.assertRaises(ScrapeHealthError):
+            assert_scrape_healthy(df)
+
+    def test_assert_healthy_empty_df_is_noop(self):
+        # 0 tickers is a legitimate quiet-market no-op, NOT a scrape break.
+        assert_scrape_healthy(pd.DataFrame(columns=["ATR%", "SMA50%"]))
+
+    def test_assert_healthy_passes_when_atr_zero_but_sma_present(self):
+        # Only both-zero trips the guard; a real name can have ATR%=0 rounding
+        # while SMA is populated, so require BOTH columns dead.
+        df = pd.DataFrame({"ATR%": [0.0, 0.0], "SMA50%": [1.2, -3.4]})
+        assert_scrape_healthy(df)
+
+    @patch("agents.screener.finviz_agent.get_snapshot_metrics")
+    def test_canary_passes_on_good_metrics(self, mock_metrics):
+        mock_metrics.return_value = (2.83, 28.9, 12.7, -2.7, 1.4, 5e7,
+                                     4.6, 5.1, 14.0, 22.0, 67.2, 0.0,
+                                     -2.0, 20.7, 13.0, 45.2)
+        scrape_canary("AAPL")  # should not raise
+
+    @patch("agents.screener.finviz_agent.get_snapshot_metrics")
+    def test_canary_raises_on_none(self, mock_metrics):
+        mock_metrics.return_value = (None,) * 16
+        with self.assertRaises(ScrapeHealthError):
+            scrape_canary("AAPL")
+
+    @patch("agents.screener.finviz_agent.get_snapshot_metrics")
+    def test_canary_raises_on_zero_atr(self, mock_metrics):
+        # ATR%=0 for AAPL is impossible — the broken-scrape signature.
+        vals = [0.0] + [0.0] * 15
+        mock_metrics.return_value = tuple(vals)
+        with self.assertRaises(ScrapeHealthError):
+            scrape_canary("AAPL")
 
 
 # ----------------------------

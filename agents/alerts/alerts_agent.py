@@ -140,14 +140,12 @@ def fetch_finviz_value(symbol: str) -> dict:
             log.warning(f"Finviz fetch failed for {symbol}: {resp.status_code}")
             return {}
         soup = BeautifulSoup(resp.content, "html.parser")
-        table = soup.find("table", class_="snapshot-table2")
-        if not table:
+        snapshot_cells = soup.find_all("td", class_="snapshot-td2")
+        if not snapshot_cells:
             return {}
         data = {}
-        for row in table.find_all("tr"):
-            cells = row.find_all("td")
-            for k, v in zip(cells[0::2], cells[1::2]):
-                data[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
+        for k, v in zip(snapshot_cells[0::2], snapshot_cells[1::2]):
+            data[k.get_text(strip=True).rstrip(".")] = v.get_text(strip=True)
         return data
     except Exception as e:
         log.error(f"Finviz snapshot failed for {symbol}: {e}")

@@ -145,13 +145,12 @@ def fetch_earnings_date(ticker: str, session: requests.Session) -> datetime.date
             resp.raise_for_status()
             soup = BeautifulSoup(resp.content, "html.parser")
 
-            # Finviz snapshot table — find "Earnings" label and its value cell
-            table = soup.find("table", class_="snapshot-table2")
-            if not table:
-                log.warning(f"{ticker}: snapshot table not found")
+            # Finviz snapshot cells — find "Earnings" label and its value cell
+            cells = soup.find_all("td", class_="snapshot-td2")
+            if not cells:
+                log.warning(f"{ticker}: snapshot cells not found")
                 return None
 
-            cells = table.find_all("td")
             for i, cell in enumerate(cells):
                 if cell.get_text(strip=True) == "Earnings":
                     if i + 1 < len(cells):
