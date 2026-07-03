@@ -5,17 +5,17 @@
       "shares": 75,
       "entry_price": 282.79,
       "entry_date": "2026-06-11",
-      "stop_price": 327.56,
+      "stop_price": 358.94,
       "breakeven_activated": true,
       "target1": 339.35,
       "target1_hit": true,
       "target2": 395.91,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 351.46,
-      "current_gain_pct": 23.31,
+      "highest_price_seen": 398.82,
+      "current_gain_pct": 37.05,
       "first_entry_price": 279.69,
-      "peak_gain_pct": 24.28
+      "peak_gain_pct": 41.03
     },
     {
       "ticker": "TNA",
@@ -29,27 +29,27 @@
       "target2": 100.52,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 75.88,
-      "current_gain_pct": 2.02,
+      "highest_price_seen": 76.3,
+      "current_gain_pct": 1.57,
       "first_entry_price": 71.24,
-      "peak_gain_pct": 5.68
+      "peak_gain_pct": 6.27
     },
     {
       "ticker": "SN",
       "shares": 100,
       "entry_price": 138.96,
       "entry_date": "2026-06-22",
-      "stop_price": 134.21,
+      "stop_price": 134.79,
       "breakeven_activated": false,
       "target1": 166.75,
       "target1_hit": false,
       "target2": 194.54,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 145.65,
-      "current_gain_pct": 4.42,
+      "highest_price_seen": 153.87,
+      "current_gain_pct": 9.09,
       "first_entry_price": 140.28,
-      "peak_gain_pct": 4.81
+      "peak_gain_pct": 10.73
     },
     {
       "ticker": "AFRM",
@@ -63,27 +63,27 @@
       "target2": 105.0,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 80.42,
-      "current_gain_pct": 5.99,
+      "highest_price_seen": 86.13,
+      "current_gain_pct": 12.85,
       "first_entry_price": 75.0,
-      "peak_gain_pct": 7.23
+      "peak_gain_pct": 14.84
     },
     {
       "ticker": "TEM",
       "shares": 200,
       "entry_price": 55.36,
       "entry_date": "2026-06-25",
-      "stop_price": 50.35,
+      "stop_price": 53.7,
       "breakeven_activated": false,
       "target1": 66.43,
       "target1_hit": false,
       "target2": 77.5,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 57.04,
-      "current_gain_pct": 1.41,
+      "highest_price_seen": 63.01,
+      "current_gain_pct": 8.91,
       "first_entry_price": 54.17,
-      "peak_gain_pct": 3.03
+      "peak_gain_pct": 13.82
     },
     {
       "ticker": "SNOW",
@@ -97,41 +97,44 @@
       "target2": 353.22,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 253.6,
-      "current_gain_pct": 0.0,
-      "first_entry_price": 253.6
+      "highest_price_seen": 264.61,
+      "current_gain_pct": 3.1,
+      "first_entry_price": 253.6,
+      "peak_gain_pct": 4.88
     },
     {
       "ticker": "FROG",
       "shares": 100,
       "entry_price": 89.07,
       "entry_date": "2026-06-29",
-      "stop_price": 82.84,
+      "stop_price": 86.4,
       "breakeven_activated": false,
       "target1": 106.88,
       "target1_hit": false,
       "target2": 124.7,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 89.68,
-      "current_gain_pct": 0.0,
-      "first_entry_price": 89.07
+      "highest_price_seen": 95.89,
+      "current_gain_pct": 6.42,
+      "first_entry_price": 89.07,
+      "peak_gain_pct": 7.66
     },
     {
       "ticker": "DDOG",
       "shares": 40,
       "entry_price": 251.97,
       "entry_date": "2026-06-30",
-      "stop_price": 234.33,
+      "stop_price": 244.41,
       "breakeven_activated": false,
       "target1": 302.36,
       "target1_hit": false,
       "target2": 352.76,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 256.1,
-      "current_gain_pct": -100.0,
-      "first_entry_price": 251.97
+      "highest_price_seen": 266.01,
+      "current_gain_pct": 3.27,
+      "first_entry_price": 251.97,
+      "peak_gain_pct": 5.57
     },
     {
       "ticker": "LIME",
@@ -145,9 +148,10 @@
       "target2": 35.0,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 25.0,
-      "current_gain_pct": -100.0,
-      "first_entry_price": 25.0
+      "highest_price_seen": 26.15,
+      "current_gain_pct": 0.52,
+      "first_entry_price": 25.0,
+      "peak_gain_pct": 4.6
     }
   ],
   "closed_positions": [
