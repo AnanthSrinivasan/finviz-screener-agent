@@ -24,6 +24,30 @@
       "current_price": 57.31,
       "stop_price": 57.35,
       "ts": "2026-07-08T20:04:52.249951Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $375.81 \u2014 exit immediately (stop $384.11)",
+      "current_price": 375.81,
+      "stop_price": 384.11,
+      "ts": "2026-07-08T21:43:17.167997Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TNA",
+      "message": "\ud83d\udea8 STOP HIT: TNA @ $69.95 \u2014 exit immediately (stop $69.95)",
+      "current_price": 69.95,
+      "stop_price": 69.95,
+      "ts": "2026-07-08T21:43:17.167997Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TEM",
+      "message": "\ud83d\udea8 STOP HIT: TEM @ $57.31 \u2014 exit immediately (stop $57.35)",
+      "current_price": 57.31,
+      "stop_price": 57.35,
+      "ts": "2026-07-08T21:43:17.167997Z"
     }
   ]
 }
