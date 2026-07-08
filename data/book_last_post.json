@@ -1,4 +1,37 @@
 {
   "last_book_post_ts": "2026-07-08T16:14:29.126375Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $372.22 \u2014 exit immediately (stop $384.11)",
+      "current_price": 372.22,
+      "stop_price": 384.11,
+      "ts": "2026-07-08T18:01:15.754128Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TNA",
+      "message": "\ud83d\udea8 STOP HIT: TNA @ $69.46 \u2014 exit immediately (stop $69.95)",
+      "current_price": 69.46,
+      "stop_price": 69.95,
+      "ts": "2026-07-08T18:01:15.754128Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "AFRM",
+      "message": "\ud83d\udea8 STOP HIT: AFRM @ $80.37 \u2014 exit immediately (stop $80.74)",
+      "current_price": 80.37,
+      "stop_price": 80.74,
+      "ts": "2026-07-08T18:01:15.754128Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "TEM",
+      "message": "\ud83d\udea8 STOP HIT: TEM @ $56.85 \u2014 exit immediately (stop $57.35)",
+      "current_price": 56.85,
+      "stop_price": 57.35,
+      "ts": "2026-07-08T18:01:15.754128Z"
+    }
+  ]
 }
