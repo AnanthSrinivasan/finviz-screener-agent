@@ -1,21 +1,12 @@
 {
-  "consecutive_wins": 1,
+  "consecutive_wins": 2,
   "consecutive_losses": 0,
-  "total_wins": 28,
+  "total_wins": 29,
   "total_losses": 46,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-06-26",
+  "last_updated": "2026-07-09",
   "recent_trades": [
-    {
-      "ticker": "FPS",
-      "result": "win",
-      "result_pct": 10.79,
-      "date": "2026-06-03",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 255.0
-    },
     {
       "ticker": "COPX",
       "result": "neutral",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 1016.0
+    },
+    {
+      "ticker": "AFRM",
+      "result": "win",
+      "result_pct": 8.4,
+      "date": "2026-07-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 630.0
     }
   ],
   "market_state": "RED",

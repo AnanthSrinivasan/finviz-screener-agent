@@ -21,7 +21,7 @@
     },
     {
       "ticker": "TNA",
-      "shares": 200,
+      "shares": 100,
       "entry_price": 71.8,
       "entry_date": "2026-06-17",
       "stop_price": 69.95,
@@ -52,23 +52,6 @@
       "current_gain_pct": 5.42,
       "first_entry_price": 140.28,
       "peak_gain_pct": 10.73
-    },
-    {
-      "ticker": "AFRM",
-      "shares": 100,
-      "entry_price": 75.0,
-      "entry_date": "2026-06-25",
-      "stop_price": 80.74,
-      "breakeven_activated": false,
-      "target1": 86.25,
-      "target1_hit": false,
-      "target2": 97.5,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 86.59,
-      "current_gain_pct": 8.4,
-      "first_entry_price": 75.0,
-      "peak_gain_pct": 15.45
     },
     {
       "ticker": "TEM",
@@ -1928,6 +1911,27 @@
       "close_price": 155.02,
       "close_source": "snaptrade_fill_retro",
       "result_pct": 6.93
+    },
+    {
+      "ticker": "AFRM",
+      "shares": 100,
+      "entry_price": 75.0,
+      "entry_date": "2026-06-25",
+      "stop_price": 80.74,
+      "breakeven_activated": false,
+      "target1": 86.25,
+      "target1_hit": false,
+      "target2": 97.5,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 86.59,
+      "current_gain_pct": 8.4,
+      "first_entry_price": 75.0,
+      "peak_gain_pct": 15.45,
+      "close_date": "2026-07-09",
+      "close_price": 81.3,
+      "close_source": "live_quote",
+      "result_pct": 8.4
     }
   ]
 }

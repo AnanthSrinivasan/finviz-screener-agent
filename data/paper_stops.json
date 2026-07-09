@@ -1,8 +1,8 @@
 {
   "BTSG": {
     "entry_price": 63.95,
-    "highest_price_seen": 71.27,
-    "peak_gain_pct": 11.45,
+    "highest_price_seen": 72.3,
+    "peak_gain_pct": 13.06,
     "breakeven_activated": false,
     "target1": 73.54,
     "target2": 83.14,
@@ -10,7 +10,7 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.2,
-    "stop_price": 68.2
+    "stop_price": 69.23
   },
   "HAPN": {
     "entry_price": 19.672779,
@@ -32,10 +32,11 @@
     "breakeven_activated": false,
     "target1": 117.13,
     "target2": 132.4,
-    "target1_hit": false,
-    "t1_peeled": false,
+    "target1_hit": true,
+    "t1_peeled": true,
     "t2_peeled": false,
     "atr_pct": 3.22,
-    "stop_price": 113.76
+    "stop_price": 113.76,
+    "pending_close": true
   }
 }
