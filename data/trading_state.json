@@ -1,39 +1,12 @@
 {
-  "consecutive_wins": 2,
+  "consecutive_wins": 3,
   "consecutive_losses": 0,
-  "total_wins": 29,
+  "total_wins": 30,
   "total_losses": 46,
   "current_sizing_mode": "normal",
   "sizing_override": null,
   "last_updated": "2026-07-09",
   "recent_trades": [
-    {
-      "ticker": "COPX",
-      "result": "neutral",
-      "result_pct": 0.54,
-      "date": "2026-06-03",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 9.0
-    },
-    {
-      "ticker": "BE",
-      "result": "loss",
-      "result_pct": -6.31,
-      "date": "2026-06-04",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -571.2
-    },
-    {
-      "ticker": "ASML",
-      "result": "win",
-      "result_pct": 10.25,
-      "date": "2026-06-04",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 2374.5
-    },
     {
       "ticker": "SN",
       "result": "win",
@@ -276,6 +249,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 630.0
+    },
+    {
+      "ticker": "TNA",
+      "result": "neutral",
+      "result_pct": 0.99,
+      "date": "2026-07-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 71.0
+    },
+    {
+      "ticker": "TEM",
+      "result": "win",
+      "result_pct": 9.19,
+      "date": "2026-07-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1018.0
+    },
+    {
+      "ticker": "LIME",
+      "result": "neutral",
+      "result_pct": 0.7,
+      "date": "2026-07-09",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 0.18
     }
   ],
   "market_state": "RED",
