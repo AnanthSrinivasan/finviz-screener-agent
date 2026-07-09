@@ -447,11 +447,14 @@ class ShareDriftReconcileTests(unittest.TestCase):
                  "current_price": 175.0, "account_id": "a"}]
         positions_data = {"open_positions": [rules_pos], "closed_positions": []}
         ts = self._trading()
-        alerts, _evs = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
+        with patch.object(pm, "fetch_position_metrics",
+                          return_value={"price": 175.0, "atr_pct": 4.0}):
+            alerts, _evs = pm.sync_snaptrade_with_rules(snap, positions_data, ts, "GREEN", sell_fills={})
         self.assertEqual(rules_pos["shares"], 50)
         self.assertEqual(rules_pos["entry_price"], 170.00)
-        self.assertAlmostEqual(rules_pos["target1"], 204.0, places=1)
-        self.assertAlmostEqual(rules_pos["target2"], 238.0, places=1)
+        # ATR 4.0% → 3-5% tier → T1 +15%, T2 +30% off the new avg cost
+        self.assertAlmostEqual(rules_pos["target1"], 195.5, places=1)
+        self.assertAlmostEqual(rules_pos["target2"], 221.0, places=1)
         self.assertFalse(rules_pos["target1_hit"])
         self.assertFalse(rules_pos["breakeven_activated"])
         self.assertTrue(any("SHARES INCREASED" in a for a in alerts))

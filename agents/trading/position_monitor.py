@@ -557,6 +557,20 @@ def fetch_position_metrics(ticker: str) -> dict:
 # Part 4: Slack Alerts
 # ----------------------------
 
+def tiered_targets_for(ticker: str, entry_price: float) -> tuple:
+    """T1/T2 from the shared ATR-tier rule, using a fresh Finviz ATR%.
+
+    Falls back to the legacy +20%/+40% tier when ATR is unavailable — the
+    per-run migration in check_position_rules re-tiers it on the next run.
+    """
+    atr_pct = 0.0
+    try:
+        atr_pct = fetch_position_metrics(ticker).get("atr_pct", 0) or 0
+    except Exception as e:
+        log.warning(f"{ticker}: ATR fetch for target tiering failed — {e}")
+    return rules.compute_targets(entry_price, atr_pct)
+
+
 def send_position_alert(position: dict, metrics: dict, alert_type: str):
     if not SLACK_WEBHOOK_URL:
         return
@@ -925,6 +939,7 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
         gain_pct = snap["pnl_pct"] if snap_price > 0 else 0.0
         highest = max(snap_price, entry_price)
 
+        t1, t2 = tiered_targets_for(ticker, entry_price)
         new_position = {
             "ticker": ticker,
             "shares": int(shares) if shares == int(shares) else shares,
@@ -932,9 +947,9 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             "entry_date": today,
             "stop_price": initial_stop,
             "breakeven_activated": False,
-            "target1": round(entry_price * 1.20, 2),
+            "target1": t1,
             "target1_hit": False,
-            "target2": round(entry_price * 1.40, 2),
+            "target2": t2,
             "thesis": "Auto-detected from SnapTrade — update thesis via workflow_dispatch",
             "status": "active",
             "highest_price_seen": round(highest, 2),
@@ -974,8 +989,7 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
             # Preserve original entry price on first avg-up
             if "first_entry_price" not in rpos:
                 rpos["first_entry_price"] = old_entry
-            rpos["target1"] = round(new_avg * 1.20, 2)
-            rpos["target2"] = round(new_avg * 1.40, 2)
+            rpos["target1"], rpos["target2"] = tiered_targets_for(ticker, new_avg)
             # Reset target/breakeven flags so the recomputed levels are used afresh.
             rpos["target1_hit"] = False
             rpos["breakeven_activated"] = False
@@ -1143,6 +1157,17 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
 
     # Trail / breakeven / targets / fade — delegated to shared engine.
     atr_pct = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
+
+    # ATR-tier target migration (2026-07-09): positions created before the
+    # tiered-target rule (or while target writes were hardcoded +20%/+40%)
+    # get re-tiered here, where ATR is known. No-op once migrated.
+    if rules.retier_legacy_targets(ticker, position, atr_pct):
+        modified = True
+        log.info(
+            f"{ticker}: re-tiered targets to T1=${position['target1']:.2f} "
+            f"T2=${position['target2']:.2f} (ATR {atr_pct:.1f}%)"
+        )
+
     engine_events, eng_modified = rules.apply_position_rules(
         ticker, position, current_price,
         day_high=day_high or current_price,
@@ -1291,9 +1316,8 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
                 existing["first_entry_price"] = old_cost
             existing["entry_price"]  = new_avg
             existing["avg_cost"]     = new_avg
-            # Recalculate targets from new avg cost
-            existing["target1"]      = round(new_avg * 1.20, 2)
-            existing["target2"]      = round(new_avg * 1.40, 2)
+            # Recalculate targets from new avg cost (ATR-tiered)
+            existing["target1"], existing["target2"] = tiered_targets_for(ticker, new_avg)
             existing["target1_hit"]  = False  # reset — targets shift up
             # Keep stop unchanged (already trailed up), but raise if new stop is higher
             if initial_stop > existing.get("stop_price", 0):
@@ -1308,8 +1332,7 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
             return alerts
 
         # --- New position ---
-        target1 = round(price * 1.20, 2)
-        target2 = round(price * 1.40, 2)
+        target1, target2 = tiered_targets_for(ticker, price)
 
         new_position = {
             "ticker": ticker,
@@ -1331,8 +1354,8 @@ def handle_trade_input(ticker: str, shares: int, price: float, side: str,
         alerts.append(
             f"\U0001f7e2 NEW POSITION: {ticker} {shares} shares @ ${price:.2f}\n"
             f"   Auto-stop: ${initial_stop} (50MA)\n"
-            f"   Target 1: ${target1} (+20%)\n"
-            f"   Target 2: ${target2} (+40%)\n"
+            f"   Target 1: ${target1} (+{(target1 / price - 1) * 100:.0f}%)\n"
+            f"   Target 2: ${target2} (+{(target2 / price - 1) * 100:.0f}%)\n"
             f"   Sizing mode: {trading_state['current_sizing_mode']}"
             f"{sizing_note}"
         )

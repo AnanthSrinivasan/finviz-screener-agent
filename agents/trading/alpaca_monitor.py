@@ -168,17 +168,9 @@ def get_ticker_stage(ticker: str) -> int:
 # ----------------------------
 # Schema migration & rules
 # ----------------------------
-def compute_targets(entry_price: float, atr_pct: float) -> tuple:
-    """ATR-tiered T1/T2 targets. Volatile names peel sooner."""
-    if atr_pct > 8:
-        t1_mult, t2_mult = 1.10, 1.20
-    elif atr_pct > 5:
-        t1_mult, t2_mult = 1.12, 1.25
-    elif atr_pct > 3:
-        t1_mult, t2_mult = 1.15, 1.30
-    else:
-        t1_mult, t2_mult = 1.20, 1.40
-    return round(entry_price * t1_mult, 2), round(entry_price * t2_mult, 2)
+# Single source of truth lives in the shared rules engine; alias kept so
+# existing imports/tests (`am.compute_targets`) keep working.
+compute_targets = rules.compute_targets
 
 
 def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
@@ -204,14 +196,12 @@ def migrate_stop_entry(ticker: str, entry: dict, entry_price: float) -> dict:
     entry.setdefault("t1_peeled", False)
     entry.setdefault("t2_peeled", False)
 
-    # Migrate legacy +20% targets for high-vol names that haven't peeled yet
-    if atr > 5 and not entry.get("t1_peeled"):
-        legacy_t1 = round(ep * 1.20, 2)
-        if abs(entry["target1"] - legacy_t1) < 1.0:
-            entry["target1"] = t1
-            entry["target2"] = t2
-            log.info("%s: migrated targets to ATR-tiered T1=$%.2f T2=$%.2f (ATR %.1f%%)",
-                     ticker, t1, t2, atr)
+    # Migrate legacy +20% targets for ALL tiers that haven't peeled yet
+    # (2026-07-09: was atr > 5 only — left 3-5% ATR names on unreachable
+    # +20% targets; TEM-class miss on the manual book, BTSG-class here).
+    if rules.retier_legacy_targets(ticker, entry, atr):
+        log.info("%s: migrated targets to ATR-tiered T1=$%.2f T2=$%.2f (ATR %.1f%%)",
+                 ticker, entry["target1"], entry["target2"], atr)
 
     return entry
 

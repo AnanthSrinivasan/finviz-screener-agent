@@ -316,5 +316,59 @@ class PriceAboveSma5Tests(unittest.TestCase):
         self.assertTrue(rules.price_above_sma5(closes, 102.0))
 
 
+class RetierLegacyTargetsTests(unittest.TestCase):
+    """retier_legacy_targets — migrate legacy +20%/+40% targets to ATR tiers.
+    TEM 2026-07 reference: 6.7% ATR name sat on an unreachable +20% T1
+    ($66.43) while the tier rule said $62.00; peaked at $63.01 unpeeled."""
+
+    def _pos(self, entry=100.0, t1=120.0, t2=140.0, **overrides):
+        base = {"entry_price": entry, "target1": t1, "target2": t2,
+                "target1_hit": False}
+        base.update(overrides)
+        return base
+
+    def test_retiers_mid_vol_legacy_targets(self):
+        pos = self._pos()
+        self.assertTrue(rules.retier_legacy_targets("TEM", pos, 6.7))
+        self.assertEqual(pos["target1"], 112.0)   # +12%
+        self.assertEqual(pos["target2"], 125.0)   # +25%
+
+    def test_retiers_3_to_5_tier(self):
+        # The tier the old paper migration (atr > 5 guard) missed — BTSG-class
+        pos = self._pos()
+        self.assertTrue(rules.retier_legacy_targets("BTSG", pos, 3.2))
+        self.assertEqual(pos["target1"], 115.0)   # +15%
+        self.assertEqual(pos["target2"], 130.0)   # +30%
+
+    def test_noop_for_low_vol_tier(self):
+        # ATR ≤ 3% tier IS +20%/+40% — nothing to rewrite
+        pos = self._pos()
+        self.assertFalse(rules.retier_legacy_targets("KO", pos, 2.5))
+        self.assertEqual(pos["target1"], 120.0)
+
+    def test_never_touches_hit_or_peeled_targets(self):
+        pos = self._pos(target1_hit=True)
+        self.assertFalse(rules.retier_legacy_targets("DAVE", pos, 6.3))
+        self.assertEqual(pos["target1"], 120.0)
+        pos = self._pos(t1_peeled=True)
+        self.assertFalse(rules.retier_legacy_targets("X", pos, 6.3))
+        self.assertEqual(pos["target1"], 120.0)
+
+    def test_never_touches_non_legacy_targets(self):
+        # Manually-set or already-tiered target — not within $1 of entry×1.20
+        pos = self._pos(t1=112.0, t2=125.0)
+        self.assertFalse(rules.retier_legacy_targets("TEM", pos, 6.7))
+        self.assertEqual(pos["target1"], 112.0)
+
+    def test_noop_without_atr_or_entry(self):
+        self.assertFalse(rules.retier_legacy_targets("X", self._pos(), 0))
+        self.assertFalse(rules.retier_legacy_targets("X", self._pos(entry=0), 5.0))
+
+    def test_idempotent(self):
+        pos = self._pos()
+        self.assertTrue(rules.retier_legacy_targets("TEM", pos, 6.7))
+        self.assertFalse(rules.retier_legacy_targets("TEM", pos, 6.7))
+
+
 if __name__ == "__main__":
     unittest.main()

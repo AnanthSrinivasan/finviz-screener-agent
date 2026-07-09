@@ -52,6 +52,49 @@ STALE_DAYS = 14
 STALE_PEAK_THRESHOLD = 4.0
 
 
+def compute_targets(entry_price: float, atr_pct: float) -> tuple:
+    """ATR-tiered T1/T2 targets. Volatile names peel sooner.
+
+    Shared by the paper/live monitor (alpaca_monitor) and the manual book
+    (position_monitor) — single source of truth for target tiers.
+    """
+    if atr_pct > 8:
+        t1_mult, t2_mult = 1.10, 1.20
+    elif atr_pct > 5:
+        t1_mult, t2_mult = 1.12, 1.25
+    elif atr_pct > 3:
+        t1_mult, t2_mult = 1.15, 1.30
+    else:
+        t1_mult, t2_mult = 1.20, 1.40
+    return round(entry_price * t1_mult, 2), round(entry_price * t2_mult, 2)
+
+
+def retier_legacy_targets(ticker: str, position: dict, atr_pct: float) -> bool:
+    """Re-tier a position still carrying legacy +20%/+40% targets.
+
+    Only touches positions where T1 is untouched (not hit, not peeled) AND
+    target1 still matches the legacy entry×1.20 formula — an already-hit,
+    peeled, or manually-set target is never rewritten. Idempotent: for
+    ATR ≤ 3% the tier IS +20%/+40%, so nothing changes.
+
+    Returns True when targets were rewritten (caller persists state).
+    """
+    if atr_pct <= 0 or position.get("target1_hit") or position.get("t1_peeled"):
+        return False
+    entry = position.get("entry_price", 0) or 0
+    if entry <= 0:
+        return False
+    legacy_t1 = round(entry * 1.20, 2)
+    if abs(position.get("target1", 0) - legacy_t1) >= 1.0:
+        return False  # not a legacy target — leave it alone
+    t1, t2 = compute_targets(entry, atr_pct)
+    if t1 == position.get("target1"):
+        return False
+    position["target1"] = t1
+    position["target2"] = t2
+    return True
+
+
 # --- Per-tick rules -------------------------------------------------------
 
 def apply_position_rules(ticker: str, entry: dict, current_price: float,
