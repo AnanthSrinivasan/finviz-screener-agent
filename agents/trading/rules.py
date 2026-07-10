@@ -41,6 +41,7 @@ CRITICAL_EVENT_KINDS = {
     "target2",
     "hard_stop",
     "stale_entry",
+    "flush_suppress",
 }
 
 
@@ -465,3 +466,108 @@ def price_above_sma5(closes: list, current_price: float) -> bool:
         return False
     sma5 = sum(closes[-5:]) / 5
     return current_price >= sma5
+
+
+# --- Flush-suppress stop filter --------------------------------------------
+# Spec: docs/specs/flush-suppress-stop-filter.md (TEM/DAVE 2026-07 whipsaw).
+# An index-level flush can breach a position-level ATR trail while the name's
+# own structure is intact. Suppress the exit only when the market context says
+# "flush, not breakdown" AND the name holds its structure EMA AND the position
+# is still a winner. Real breakdowns (SPY below 50SMA, VIX elevated) never
+# activate — stops behave exactly as before.
+
+FLUSH_DOWN4_THRESHOLD = 400          # down-4% count that marks a flush session
+FLUSH_MAX_SUPPRESS_SESSIONS = 3      # flush day counts as 1/3
+FLUSH_VIX_MAX = 20.0                 # VIX at/above this = real stress, no suppress
+FLUSH_HIGH_MOMENTUM_PERF_MONTH = 40.0  # Perf Month ≥ this → tighter 8 EMA test
+
+
+def flush_structure_ema_span(perf_month: float) -> int:
+    """8 EMA for high-momentum names (DAVE class), 21 EMA otherwise (TEM class)."""
+    return 8 if (perf_month or 0) >= FLUSH_HIGH_MOMENTUM_PERF_MONTH else 21
+
+
+def flush_window_active(history: list) -> dict | None:
+    """Return flush-window context, or None when no window is active.
+
+    `history` is the market_monitor_history.json record list (oldest first).
+    Active iff a session with down_4_today ≥ 400 sits within the last
+    FLUSH_MAX_SUPPRESS_SESSIONS records (flush day = day 1) AND the latest
+    record shows intact index structure: SPY close above 50 SMA and VIX calm.
+    """
+    if not history:
+        return None
+    latest = history[-1]
+    spy_sma50_pct = latest.get("spy_sma50_pct")
+    vix = latest.get("vix_close")
+    if spy_sma50_pct is None or spy_sma50_pct <= 0:
+        return None
+    if vix is None or vix >= FLUSH_VIX_MAX:
+        return None
+    recent = history[-FLUSH_MAX_SUPPRESS_SESSIONS:]
+    for offset, rec in enumerate(reversed(recent)):  # offset 0 = latest session
+        if (rec.get("down_4_today") or 0) >= FLUSH_DOWN4_THRESHOLD:
+            return {
+                "flush_date": rec.get("date"),
+                "down_4": rec.get("down_4_today"),
+                "day": offset + 1,
+                "max_days": FLUSH_MAX_SUPPRESS_SESSIONS,
+                "spy_sma50_pct": spy_sma50_pct,
+                "vix_close": vix,
+            }
+    return None
+
+
+def should_suppress_stop_exit(closes: list, current_price: float, atr_pct: float,
+                              entry_price: float, perf_month: float,
+                              flush_ctx: dict | None) -> tuple:
+    """(suppress, reason) — hold through a stop breach during a market flush.
+
+    Suppress iff ALL of: flush window active · price ≥ entry AND ≥ loss-cap
+    floor (suppression only protects winners, never widens a loss) · price at
+    or above the structure EMA (8 EMA for Perf Month ≥ 40, else 21 EMA).
+    `reason` is Slack-ready either way (why held / why not suppressed).
+    """
+    if not flush_ctx:
+        return False, "no flush window active"
+    if entry_price <= 0 or current_price <= 0:
+        return False, "invalid prices"
+    if current_price < entry_price:
+        return False, "price below entry — suppression never widens a loss"
+    atr_dollar = entry_price * (atr_pct / 100.0) if atr_pct > 0 else 0.0
+    loss_floor = max(entry_price * 0.97, entry_price - 0.5 * atr_dollar) \
+        if atr_dollar > 0 else entry_price * 0.97
+    if current_price < loss_floor:
+        return False, "price below loss-cap floor $" + str(round(loss_floor, 2))
+    span = flush_structure_ema_span(perf_month)
+    if not closes or len(closes) < span:
+        return False, "insufficient closes for " + str(span) + " EMA"
+    ema_val = _ema([float(c) for c in closes], span)[-1]
+    if current_price < ema_val:
+        return False, ("close $" + str(round(current_price, 2)) + " below "
+                       + str(span) + " EMA $" + str(round(ema_val, 2)))
+    return True, ("above " + str(span) + " EMA $" + str(round(ema_val, 2))
+                  + ", flush day " + str(flush_ctx.get("day", 1)) + "/"
+                  + str(flush_ctx.get("max_days", FLUSH_MAX_SUPPRESS_SESSIONS)))
+
+
+def evaluate_flush_suppress(closes: list, current_price: float, atr_pct: float,
+                            entry_price: float, perf_month: float,
+                            flush_ctx: dict | None, already_active: bool,
+                            is_post_close: bool) -> tuple:
+    """(action, reason) — action ∈ {"suppress", "defer", "exit"}.
+
+    Evaluation is close-based (spec): the post-close run makes the binding
+    call. "suppress" = all conditions hold now. "defer" = intraday run during
+    an already-active suppression where the structure EMA is momentarily
+    breached — hold this run, the close decides (still requires price ≥ entry
+    so a real intraday collapse exits immediately). "exit" = normal stop path.
+    """
+    suppress, reason = should_suppress_stop_exit(
+        closes, current_price, atr_pct, entry_price, perf_month, flush_ctx)
+    if suppress:
+        return "suppress", reason
+    if (flush_ctx and already_active and not is_post_close
+            and current_price >= entry_price > 0):
+        return "defer", reason + " — close-based, post-close run decides"
+    return "exit", reason

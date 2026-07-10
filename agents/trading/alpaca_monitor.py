@@ -417,18 +417,24 @@ def report_expired_live_buys(state: dict):
 # MA trail (post-close alert layer — Layer 1b)
 # ----------------------------
 def fetch_daily_closes(ticker: str, limit: int = 30) -> list:
-    """Last N completed daily closes from Alpaca, oldest first."""
+    """Last N daily closes from Alpaca, oldest first.
+
+    Explicit `start` is required — without it Alpaca defaults start to the
+    current day and returns nothing (2026-07-10 regression fix)."""
+    start = (datetime.date.today()
+             - datetime.timedelta(days=max(limit * 2, 30))).isoformat()
     try:
         resp = requests.get(
             "https://data.alpaca.markets/v2/stocks/" + ticker + "/bars",
-            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            params={"timeframe": "1Day", "start": start, "limit": 1000,
+                    "feed": "iex", "adjustment": "raw"},
             headers=alpaca_headers(),
             timeout=8,
         )
         if not resp.ok:
             return []
         bars = resp.json().get("bars", []) or []
-        return [float(b["c"]) for b in bars if b.get("c") is not None]
+        return [float(b["c"]) for b in bars if b.get("c") is not None][-limit:]
     except Exception as e:
         log.warning("fetch_daily_closes(%s) failed: %s", ticker, e)
         return []
@@ -441,15 +447,16 @@ def is_post_close_run() -> bool:
 
 
 def fetch_day_high_atr(ticker: str) -> tuple:
-    """Pull today's (day_high, atr_pct) via position_monitor's Finviz parser.
-    Returns (0.0, 0.0) if unavailable — rules gracefully skip ATR-dependent branches."""
+    """Pull today's (day_high, atr_pct, perf_month) via position_monitor's Finviz
+    parser. Returns zeros if unavailable — rules gracefully skip those branches."""
     try:
         from agents.trading.position_monitor import fetch_position_metrics
         m = fetch_position_metrics(ticker) or {}
-        return float(m.get("day_high") or 0.0), float(m.get("atr_pct") or 0.0)
+        return (float(m.get("day_high") or 0.0), float(m.get("atr_pct") or 0.0),
+                float(m.get("perf_month") or 0.0))
     except Exception as e:
         log.warning("day_high/ATR fetch failed for %s: %s", ticker, e)
-        return 0.0, 0.0
+        return 0.0, 0.0, 0.0
 
 
 # ----------------------------
@@ -546,6 +553,20 @@ if __name__ == "__main__":
     sells_placed = 0
     post_close   = is_post_close_run()
 
+    # Flush-suppress stop filter (docs/specs/flush-suppress-stop-filter.md).
+    # Paper gates the auto-sell; LIVE stays on today's behavior until the
+    # replay/observation gate flips flush_suppress_live in the live state file.
+    flush_ctx = None
+    flush_enabled = (not IS_LIVE) or bool(paper_state.get("flush_suppress_live"))
+    if flush_enabled:
+        try:
+            with open(MARKET_HISTORY_FILE) as f:
+                flush_ctx = rules.flush_window_active(json.load(f))
+        except Exception as e:
+            log.warning("Could not evaluate flush window: %s", e)
+    if flush_ctx:
+        log.info("Flush window active: %s", flush_ctx)
+
     for pos in positions:
         ticker      = pos.get("symbol", "")
         qty         = pos.get("qty", "0")
@@ -561,7 +582,7 @@ if __name__ == "__main__":
         stop_info = migrate_stop_entry(ticker, stop_info, entry_price)
 
         # Apply trailing rules: ATR trail, breakeven, +30% trail, targets, fade
-        day_high, atr_pct = fetch_day_high_atr(ticker)
+        day_high, atr_pct, perf_month = fetch_day_high_atr(ticker)
         if atr_pct > 0 and "atr_pct" not in stop_info:
             stop_info["atr_pct"] = atr_pct
         rule_events, _ = apply_paper_rules(ticker, stop_info, current, day_high,
@@ -645,9 +666,37 @@ if __name__ == "__main__":
                 continue  # position will close-detect on next run
 
         # Check stop loss (now reflects any trailing raises applied above)
-        if stop_price is not None and current > 0 and current <= float(stop_price):
+        stop_breached = stop_price is not None and current > 0 and current <= float(stop_price)
+        if stop_info.get("flush_suppress_active") and (not flush_ctx or not stop_breached):
+            # Window expired or price recovered above stop: clear suppression state.
+            stop_info.pop("flush_suppress_active", None)
+            stop_info.pop("flush_suppress_day", None)
+            stop_info.pop("flush_suppress_alerted_date", None)
+        if stop_breached:
             effective_atr_pct = stop_info.get("atr_pct", atr_pct)
-            if effective_atr_pct <= 5.0:
+            flush_action, flush_reason = "exit", ""
+            if flush_ctx:
+                closes = fetch_daily_closes(ticker, limit=40)
+                flush_action, flush_reason = rules.evaluate_flush_suppress(
+                    closes, current, effective_atr_pct, entry_price, perf_month,
+                    flush_ctx,
+                    already_active=bool(stop_info.get("flush_suppress_active")),
+                    is_post_close=post_close,
+                )
+            if flush_action in ("suppress", "defer"):
+                stop_info["flush_suppress_active"] = True
+                stop_info["flush_suppress_day"] = flush_ctx.get("day", 1)
+                log.info("%s: stop breached but flush-suppressed (%s) — %s",
+                         ticker, flush_action, flush_reason)
+                if stop_info.get("flush_suppress_alerted_date") != today:
+                    stop_info["flush_suppress_alerted_date"] = today
+                    slack_send(
+                        ":shield: *" + TAG + " STOP BREACHED — FLUSH SUPPRESS* " + ticker
+                        + " @ $" + str(round(current, 2))
+                        + " (stop $" + str(round(float(stop_price), 2))
+                        + ") — holding: " + flush_reason
+                    )
+            elif effective_atr_pct <= 5.0:
                 closes = fetch_daily_closes(ticker, limit=5)
                 if rules.price_above_sma5(closes, current):
                     log.info(
@@ -664,6 +713,13 @@ if __name__ == "__main__":
                     "stop hit (price $" + str(round(current, 2))
                     + " <= stop $" + str(round(float(stop_price), 2)) + ")"
                 )
+            if sell_reason and stop_info.pop("flush_suppress_active", None):
+                # Suppression ended without saving the exit — structure broke
+                # or the window expired with price still below stop.
+                stop_info.pop("flush_suppress_day", None)
+                stop_info.pop("flush_suppress_alerted_date", None)
+                if flush_reason:
+                    sell_reason += " [flush suppress ended: " + flush_reason + "]"
 
         # Check Stage 3 or 4 deterioration
         if sell_reason is None:

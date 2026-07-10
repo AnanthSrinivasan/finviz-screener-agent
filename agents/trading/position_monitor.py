@@ -430,26 +430,33 @@ def fetch_alpaca_day_high(ticker: str) -> float:
 
 
 def fetch_alpaca_daily_bars(ticker: str, limit: int = 30) -> list:
-    """Return last N completed daily bars from Alpaca as list of dicts with 'c' (close).
+    """Return last N daily bars from Alpaca as list of dicts with 'c' (close).
 
     Empty list on failure / missing credentials / unknown ticker. Runs against the
     market-data host (not the paper-trading host) — same auth credentials.
+    An explicit `start` is required — without it Alpaca defaults start to the
+    current day and returns nothing (2026-07-10: SMA5 filter and MA trail were
+    silently getting [] on every call).
     """
     api_key = os.environ.get("ALPACA_API_KEY", "")
     api_sec = os.environ.get("ALPACA_SECRET_KEY", "")
     if not api_key or not api_sec:
         return []
+    start = (datetime.date.today()
+             - datetime.timedelta(days=max(limit * 2, 30))).isoformat()
     try:
         resp = requests.get(
             f"https://data.alpaca.markets/v2/stocks/{ticker}/bars",
-            params={"timeframe": "1Day", "limit": limit, "feed": "iex", "adjustment": "raw"},
+            params={"timeframe": "1Day", "start": start, "limit": 1000,
+                    "feed": "iex", "adjustment": "raw"},
             headers={"APCA-API-KEY-ID": api_key, "APCA-API-SECRET-KEY": api_sec},
             timeout=8,
         )
         if not resp.ok:
             log.warning(f"{ticker}: Alpaca bars HTTP {resp.status_code}")
             return []
-        return resp.json().get("bars", []) or []
+        bars = resp.json().get("bars", []) or []
+        return bars[-limit:]
     except Exception as e:
         log.warning(f"{ticker}: Alpaca bars fetch failed — {e}")
         return []
@@ -524,6 +531,7 @@ def fetch_position_metrics(ticker: str) -> dict:
         day_low = 0.0
 
         rel_vol = parse_float(data.get("Rel Volume", "1"), 1.0)
+        perf_month = parse_signed_pct(data.get("Perf Month")) or 0.0
 
         result = {
             "price":          price,
@@ -533,6 +541,7 @@ def fetch_position_metrics(ticker: str) -> dict:
             "atr_multiple_ma":round(atr_multiple_ma, 2),
             "dist_from_high": round(dist_from_high, 2),
             "rel_vol":        round(rel_vol, 2),
+            "perf_month":     round(perf_month, 2),
             "day_high":       day_high,
             "day_low":        day_low,
         }
@@ -809,6 +818,17 @@ def load_latest_market_state() -> str:
     except Exception as e:
         log.warning(f"Could not load market state: {e} — defaulting to CAUTION")
         return "CAUTION"
+
+
+def load_flush_ctx() -> dict | None:
+    """Flush-suppress window context from market_monitor_history.json, or None."""
+    try:
+        with open(os.path.join(DATA_DIR, "market_monitor_history.json")) as f:
+            history = json.load(f)
+        return rules.flush_window_active(history if isinstance(history, list) else [])
+    except Exception as e:
+        log.warning(f"Could not evaluate flush window: {e}")
+        return None
 
 
 def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
@@ -1106,7 +1126,10 @@ def sync_snaptrade_with_rules(snaptrade_positions: list, positions_data: dict,
 
 def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0,
                           day_high: float | None = None,
-                          daily_closes: list | None = None) -> tuple:
+                          daily_closes: list | None = None,
+                          flush_ctx: dict | None = None,
+                          perf_month: float = 0.0,
+                          is_post_close: bool = False) -> tuple:
     """
     Live caller into the shared rules engine.
 
@@ -1121,6 +1144,12 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
 
     Returns (alerts, modified, events). `events` is the structured event list
     for the book/critical router; `alerts` is preserved for legacy callers.
+
+    Flush-suppress (docs/specs/flush-suppress-stop-filter.md): when `flush_ctx`
+    is active and the name holds its structure EMA in profit, the stop-hit
+    alert is replaced by a 🛡 flush_suppress event (alert-only book — human
+    still decides). `perf_month` picks the EMA (≥40 → 8 EMA, else 21 EMA);
+    `is_post_close` makes the evaluation binding (close-based).
     """
     alerts = []
     events: list = []
@@ -1130,14 +1159,50 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
 
     # Rule 1 — Stop loss check (alert only; no status mutation, no recent_event)
     stop = position.get("stop_price", 0)
-    if stop > 0 and current_price <= stop:
+    stop_breached = stop > 0 and current_price <= stop
+    if position.get("flush_suppress_active") and (not flush_ctx or not stop_breached):
+        # Window expired or price recovered above stop: clear suppression state.
+        position.pop("flush_suppress_active", None)
+        position.pop("flush_suppress_day", None)
+        position.pop("flush_suppress_alerted_date", None)
+        modified = True
+    if stop_breached:
         atr_pct_live = (atr / entry * 100.0) if (atr > 0 and entry > 0) else 0.0
+        flush_action, flush_reason = "exit", ""
+        if flush_ctx:
+            flush_action, flush_reason = rules.evaluate_flush_suppress(
+                daily_closes or [], current_price, atr_pct_live, entry,
+                perf_month, flush_ctx,
+                already_active=bool(position.get("flush_suppress_active")),
+                is_post_close=is_post_close,
+            )
         suppress = (
             atr_pct_live <= 5.0
             and bool(daily_closes)
             and rules.price_above_sma5(daily_closes, current_price)
         )
-        if suppress:
+        if flush_action in ("suppress", "defer"):
+            position["flush_suppress_active"] = True
+            position["flush_suppress_day"] = flush_ctx.get("day", 1)
+            modified = True
+            today_iso = datetime.date.today().isoformat()
+            if position.get("flush_suppress_alerted_date") != today_iso:
+                position["flush_suppress_alerted_date"] = today_iso
+                _flush_msg = (
+                    "\U0001f6e1 STOP BREACHED — FLUSH SUPPRESS: " + ticker
+                    + " @ $" + format(current_price, ".2f")
+                    + " (stop $" + format(stop, ".2f")
+                    + ") — holding: " + flush_reason
+                )
+                alerts.append(_flush_msg)
+                events.append({
+                    "kind": "flush_suppress", "ticker": ticker, "message": _flush_msg,
+                    "current_price": round(current_price, 2),
+                    "stop_price": round(stop, 2),
+                    "flush_day": flush_ctx.get("day", 1),
+                })
+            log.info(f"{ticker}: stop breached but flush-suppressed ({flush_action}): {flush_reason}")
+        elif suppress:
             log.info(
                 f"{ticker}: stop hit but price ${current_price:.2f} >= SMA5 "
                 f"— suppressing alert this run (low-vol, trend intact)"
@@ -1147,6 +1212,14 @@ def apply_minervini_rules(position: dict, current_price: float, atr: float = 0.0
                 f"\U0001f6a8 STOP HIT: {ticker} @ ${current_price:.2f} \u2014 "
                 f"exit immediately (stop ${stop:.2f})"
             )
+            if position.get("flush_suppress_active"):
+                # Suppression ended without saving the exit — structure broke
+                # or the window expired with price still below stop.
+                _stop_msg += " [flush suppress ended: " + flush_reason + "]"
+                position.pop("flush_suppress_active", None)
+                position.pop("flush_suppress_day", None)
+                position.pop("flush_suppress_alerted_date", None)
+                modified = True
             alerts.append(_stop_msg)
             events.append({
                 "kind": "stop_hit", "ticker": ticker, "message": _stop_msg,
@@ -1783,6 +1856,12 @@ if __name__ == "__main__":
 
     # Steps 10-12: Apply Minervini rules per position
     rules_state_modified = False
+    # Flush-suppress context (spec docs/specs/flush-suppress-stop-filter.md):
+    # computed once per run; None outside an active flush window.
+    flush_ctx = load_flush_ctx()
+    if flush_ctx:
+        log.info(f"Flush window active: {flush_ctx}")
+    post_close_run = datetime.datetime.utcnow().hour >= 22
     for rpos in positions_data["open_positions"]:
         ticker = rpos["ticker"]
         # Get current price from the SnapTrade/Finviz data already fetched
@@ -1799,12 +1878,16 @@ if __name__ == "__main__":
             day_high = metrics.get("day_high") or None
             atr_pct_live = (atr / cur_price * 100) if cur_price > 0 else 0.0
             daily_closes_for_stop: list = []
-            if atr_pct_live <= 5.0:
-                _bars = fetch_alpaca_daily_bars(ticker, limit=5)
+            if atr_pct_live <= 5.0 or flush_ctx:
+                # SMA5 filter needs 5 closes; the flush-suppress EMA needs ≥21.
+                _bars = fetch_alpaca_daily_bars(ticker, limit=40 if flush_ctx else 5)
                 daily_closes_for_stop = [float(b["c"]) for b in _bars if b.get("c") is not None]
             pos_alerts, modified, pos_events = apply_minervini_rules(
                 rpos, cur_price, atr=atr, day_high=day_high,
                 daily_closes=daily_closes_for_stop,
+                flush_ctx=flush_ctx,
+                perf_month=metrics.get("perf_month", 0.0),
+                is_post_close=post_close_run,
             )
             rules_alerts.extend(pos_alerts)
             all_events.extend(pos_events)

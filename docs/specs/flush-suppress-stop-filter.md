@@ -42,3 +42,26 @@ Evaluation is **close-based** (like the user's DAVE hold), computed on the post-
 
 - `Perf Month ≥ 40%` momentum threshold — validate against DAVE (+~40) / TEM (+14) in replay; tune.
 - Whether suppression should also gate the loss-cap floor stop (currently: no — floor always wins).
+
+## Rollout status (2026-07-10 — shipped)
+
+- Implemented: `rules.flush_window_active` / `should_suppress_stop_exit` /
+  `evaluate_flush_suppress` (+ `flush_suppress` in `CRITICAL_EVENT_KINDS`);
+  manual-book alert path in `position_monitor.apply_minervini_rules`; paper
+  auto-sell gate in `alpaca_monitor`; live behind `flush_suppress_live` in
+  `live_alpaca_trading_state.json` (off). Tests: `tests/test_flush_suppress.py`.
+- Side fix shipped with this spec: Alpaca daily-bars fetches in both monitors
+  were returning `[]` (missing `start` param — API defaults to current day),
+  which had silently no-oped the SMA5 filter and Layer 1b MA trail. Fixed.
+- **First replay result (90d, stop-driven exits only): saves $643 vs damage
+  $1,805 → 0.36x. Live gate (≥2x) NOT met.** Damage concentrated on June 3–4
+  2026 stop-outs held into the June 5 break: 6/3 read down4 496 / SPY +6.3%
+  over 50SMA / VIX 16.1 — the first day of a real selloff passes the
+  SPY/VIX guard and is indistinguishable from a benign flush at that point.
+  The 7/7–7/9 window (TEM/DAVE reference) nets positive. Candidate tunings if
+  the paper observation confirms the pattern: require F&G/5d-ratio sanity,
+  or activate only from flush day 2 (a second session of held index structure).
+- Caveat: the replay's actual-exit prices are recorded closes (broker fills),
+  so the TEM 7/8 reference save itself is filtered out (its recorded fill was
+  7/9 @ 60.45, above stop×1.02). Treat the replay as directional; the paper
+  observation window is the binding half of the gate.
