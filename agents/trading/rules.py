@@ -468,6 +468,118 @@ def price_above_sma5(closes: list, current_price: float) -> bool:
     return current_price >= sma5
 
 
+# --- 21 EMA trail mode (paper lab) ------------------------------------------
+# Spec: docs/specs/ema21-trail-mode.md (VIK 2026-07-02 exit).
+# On a low-volatility runner in an orderly trend the ATR-from-peak tier trail
+# measures noise — VIK was sold at $100.07 on a ~1×ATR wobble while the 21 EMA
+# that defined the whole advance never broke. Once a low-vol position is a
+# confirmed runner the trail goes close-based: exit only on a daily close below
+# the 21 EMA that ALSO takes out the recent lows (trend damage — a close below
+# the EMA holding above prior lows is a shakeout), or on 3 consecutive closes
+# below the EMA (a dead trend must not camp under it on equal lows). Floors
+# (breakeven / loss-cap / peak×0.90) are the caller's job and always win.
+
+EMA21_TRAIL_ATR_MAX = 5.0        # low-vol class (VIK/OSCR)
+EMA21_TRAIL_PEAK_MIN = 20.0      # confirmed runner (post-T1-peel remainder)
+EMA21_TRAIL_CAMP_LIMIT = 3       # consecutive closes below EMA → exit
+EMA21_TRAIL_SWING_LOOKBACK = 10  # prior sessions defining the swing low
+
+
+def ema21_trail_activates(atr_pct: float, peak_gain_pct: float) -> bool:
+    """Mode qualification: ATR ≤ 5% AND peak ≥ +20%. Sticky once set —
+    the caller never flips a position back to ATR mode if ATR drifts."""
+    return 0 < (atr_pct or 0) <= EMA21_TRAIL_ATR_MAX \
+        and (peak_gain_pct or 0) >= EMA21_TRAIL_PEAK_MIN
+
+
+def ema21_mode_floor(entry_price: float, atr_pct: float, peak_gain_pct: float,
+                     highest_price_seen: float) -> float:
+    """Floor price for an ema21-mode position — the ATR tier trail is
+    deliberately excluded (that's the point of the mode). Floors are never
+    lowered and are evaluated every run including intraday:
+      - breakeven `entry × 1.005` (always armed — activation requires peak ≥ 20)
+      - hybrid loss-cap `max(entry × 0.97, entry − 0.5×ATR$)`
+      - +30% disaster floor `peak × 0.90` (gaps and crash days)
+    """
+    if entry_price <= 0:
+        return 0.0
+    floors = [entry_price * 1.005]
+    atr_dollar = entry_price * (atr_pct / 100.0) if atr_pct > 0 else 0.0
+    floors.append(max(entry_price * 0.97, entry_price - 0.5 * atr_dollar)
+                  if atr_dollar > 0 else entry_price * 0.97)
+    if peak_gain_pct >= 30 and highest_price_seen > 0:
+        floors.append(highest_price_seen * 0.90)
+    return round(max(floors), 2)
+
+
+def ema21_trail_verdict(closes: list, lows: list, current_close: float,
+                        atr_pct: float, peak_gain_pct: float,
+                        breach_count: int | None) -> dict:
+    """Post-close trail verdict for a position in (or eligible for) ema21 mode.
+
+    Returns {action: "hold"|"exit"|"activate", reason, new_breach_count,
+    ema21, swing_low}. `breach_count` None = mode not active yet → returns
+    "activate" when the position qualifies, else "hold". Once active the
+    caller passes the persisted `ema21_close_breaches` counter and persists
+    `new_breach_count` back.
+
+    Exit triggers (close-based — post-close runs only; intraday runs must not
+    call this, they check floors via ema21_mode_floor):
+      1. Breakdown: close < 21 EMA AND close < min(low of prior
+         EMA21_TRAIL_SWING_LOOKBACK sessions, excluding today).
+      2. Camping: EMA21_TRAIL_CAMP_LIMIT consecutive closes below the EMA,
+         even with no lower low. Counter resets on any close back above.
+    """
+    if breach_count is None:
+        if ema21_trail_activates(atr_pct, peak_gain_pct):
+            return {"action": "activate",
+                    "reason": ("ATR " + str(round(atr_pct, 2)) + "% ≤ "
+                               + str(EMA21_TRAIL_ATR_MAX) + " and peak +"
+                               + str(round(peak_gain_pct, 1)) + "% ≥ +"
+                               + str(int(EMA21_TRAIL_PEAK_MIN)) + "%"),
+                    "new_breach_count": 0, "ema21": None, "swing_low": None}
+        return {"action": "hold", "reason": "mode inactive — does not qualify",
+                "new_breach_count": None, "ema21": None, "swing_low": None}
+
+    count = int(breach_count or 0)
+    if not closes or len(closes) < 21:
+        return {"action": "hold",
+                "reason": "insufficient closes for 21 EMA ("
+                          + str(len(closes or [])) + ")",
+                "new_breach_count": count, "ema21": None, "swing_low": None}
+
+    ema21 = round(_ema([float(c) for c in closes], 21)[-1], 2)
+    prior_lows = [float(l) for l in (lows or [])[:-1]][-EMA21_TRAIL_SWING_LOOKBACK:]
+    swing_low = round(min(prior_lows), 2) if prior_lows else None
+
+    if current_close >= ema21:
+        return {"action": "hold",
+                "reason": ("close $" + str(round(current_close, 2))
+                           + " ≥ 21EMA $" + str(ema21)),
+                "new_breach_count": 0, "ema21": ema21, "swing_low": swing_low}
+
+    count += 1
+    if swing_low is not None and current_close < swing_low:
+        return {"action": "exit",
+                "reason": ("close $" + str(round(current_close, 2))
+                           + " < 21EMA $" + str(ema21)
+                           + " + lower low $" + str(swing_low)),
+                "new_breach_count": count, "ema21": ema21, "swing_low": swing_low}
+    if count >= EMA21_TRAIL_CAMP_LIMIT:
+        return {"action": "exit",
+                "reason": ("camping — " + str(count)
+                           + " consecutive closes below 21EMA $" + str(ema21)
+                           + " (no lower low, swing $" + str(swing_low) + ")"),
+                "new_breach_count": count, "ema21": ema21, "swing_low": swing_low}
+    return {"action": "hold",
+            "reason": ("shakeout — close $" + str(round(current_close, 2))
+                       + " < 21EMA $" + str(ema21)
+                       + " but holds swing low $" + str(swing_low)
+                       + " (breach " + str(count) + "/"
+                       + str(EMA21_TRAIL_CAMP_LIMIT) + ")"),
+            "new_breach_count": count, "ema21": ema21, "swing_low": swing_low}
+
+
 # --- Flush-suppress stop filter --------------------------------------------
 # Spec: docs/specs/flush-suppress-stop-filter.md (TEM/DAVE 2026-07 whipsaw).
 # An index-level flush can breach a position-level ATR trail while the name's

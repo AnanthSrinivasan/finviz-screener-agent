@@ -440,6 +440,51 @@ def fetch_daily_closes(ticker: str, limit: int = 30) -> list:
         return []
 
 
+def fetch_daily_closes_lows(ticker: str, limit: int = 60) -> tuple:
+    """(closes, lows) — last N daily bars from Alpaca, oldest first, paired.
+
+    Same explicit-`start` requirement as fetch_daily_closes (2026-07-10)."""
+    start = (datetime.date.today()
+             - datetime.timedelta(days=max(limit * 2, 30))).isoformat()
+    try:
+        resp = requests.get(
+            "https://data.alpaca.markets/v2/stocks/" + ticker + "/bars",
+            params={"timeframe": "1Day", "start": start, "limit": 1000,
+                    "feed": "iex", "adjustment": "raw"},
+            headers=alpaca_headers(),
+            timeout=8,
+        )
+        if not resp.ok:
+            return [], []
+        bars = [b for b in (resp.json().get("bars", []) or [])
+                if b.get("c") is not None and b.get("l") is not None][-limit:]
+        return [float(b["c"]) for b in bars], [float(b["l"]) for b in bars]
+    except Exception as e:
+        log.warning("fetch_daily_closes_lows(%s) failed: %s", ticker, e)
+        return [], []
+
+
+# ----------------------------
+# 21 EMA trail mode A/B log (docs/specs/ema21-trail-mode.md §Measurement)
+# ----------------------------
+TRAIL_AB_FILE = os.path.join(DATA_DIR, "trail_mode_ab.json")
+
+
+def append_trail_ab_record(record: dict):
+    """Append one A/B measurement row — what the ATR tier trail would have
+    done vs what ema21 mode did. Review gate: 8 weeks or 5 completed exits."""
+    try:
+        records = []
+        if os.path.exists(TRAIL_AB_FILE):
+            with open(TRAIL_AB_FILE) as f:
+                records = json.load(f)
+        records.append(record)
+        with open(TRAIL_AB_FILE, "w") as f:
+            json.dump(records, f, indent=2)
+    except Exception as e:
+        log.warning("trail_mode_ab append failed: %s", e)
+
+
 def is_post_close_run() -> bool:
     """True once per weekday after 21:00 UTC (matches the 22:00 UTC monitor tick)."""
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -625,8 +670,24 @@ if __name__ == "__main__":
                 )
                 continue
 
-        # Layer 1b — post-close MA trail alert (alert-only, human decides)
-        if post_close:
+        # 21 EMA trail mode — PAPER LAB ONLY (docs/specs/ema21-trail-mode.md).
+        # Low-vol confirmed runners graduate from the ATR tier trail to a
+        # close-based 21 EMA trail. Sticky for the life of the position.
+        effective_atr = stop_info.get("atr_pct", atr_pct)
+        ema21_mode = (not IS_LIVE) and stop_info.get("trail_mode") == "ema21"
+        if (not IS_LIVE) and not ema21_mode and rules.ema21_trail_activates(
+                effective_atr, stop_info.get("peak_gain_pct", 0.0)):
+            stop_info["trail_mode"] = "ema21"
+            stop_info["trail_mode_since"] = today
+            stop_info["ema21_close_breaches"] = 0
+            ema21_mode = True
+            log.info("%s: 21 EMA trail mode ACTIVATED (ATR %.2f%%, peak +%.1f%%)",
+                     ticker, effective_atr, stop_info.get("peak_gain_pct", 0.0))
+
+        # Layer 1b — post-close MA trail alert (alert-only, human decides).
+        # Skipped in ema21 mode: the mode IS the trail decision there, and a
+        # parallel "your call" alert on the same EMA would contradict it.
+        if post_close and not ema21_mode:
             closes = fetch_daily_closes(ticker, limit=60)
             ma_alert = rules.check_ma_trail_alert(
                 closes, market_state,
@@ -665,61 +726,113 @@ if __name__ == "__main__":
                 )
                 continue  # position will close-detect on next run
 
-        # Check stop loss (now reflects any trailing raises applied above)
-        stop_breached = stop_price is not None and current > 0 and current <= float(stop_price)
-        if stop_info.get("flush_suppress_active") and (not flush_ctx or not stop_breached):
-            # Window expired or price recovered above stop: clear suppression state.
-            stop_info.pop("flush_suppress_active", None)
-            stop_info.pop("flush_suppress_day", None)
-            stop_info.pop("flush_suppress_alerted_date", None)
-        if stop_breached:
-            effective_atr_pct = stop_info.get("atr_pct", atr_pct)
-            flush_action, flush_reason = "exit", ""
-            if flush_ctx:
-                closes = fetch_daily_closes(ticker, limit=40)
-                flush_action, flush_reason = rules.evaluate_flush_suppress(
-                    closes, current, effective_atr_pct, entry_price, perf_month,
-                    flush_ctx,
-                    already_active=bool(stop_info.get("flush_suppress_active")),
-                    is_post_close=post_close,
+        if ema21_mode:
+            # ema21 trail mode: the tier-trail stop_price is shadow-only here
+            # (apply_position_rules keeps ratcheting it — that IS the A/B
+            # counterfactual). Floors always win, every run incl. intraday;
+            # the close-based trail verdict runs on the post-close pass only.
+            floor_price = rules.ema21_mode_floor(
+                float(stop_info.get("entry_price", entry_price) or 0),
+                effective_atr,
+                stop_info.get("peak_gain_pct", 0.0),
+                stop_info.get("highest_price_seen", 0.0),
+            )
+            if current > 0 and floor_price > 0 and current <= floor_price:
+                sell_reason = (
+                    "ema21-mode floor hit (price $" + str(round(current, 2))
+                    + " <= floor $" + str(floor_price) + ")"
                 )
-            if flush_action in ("suppress", "defer"):
-                stop_info["flush_suppress_active"] = True
-                stop_info["flush_suppress_day"] = flush_ctx.get("day", 1)
-                log.info("%s: stop breached but flush-suppressed (%s) — %s",
-                         ticker, flush_action, flush_reason)
-                if stop_info.get("flush_suppress_alerted_date") != today:
-                    stop_info["flush_suppress_alerted_date"] = today
-                    slack_send(
-                        ":shield: *" + TAG + " STOP BREACHED — FLUSH SUPPRESS* " + ticker
-                        + " @ $" + str(round(current, 2))
-                        + " (stop $" + str(round(float(stop_price), 2))
-                        + ") — holding: " + flush_reason
+            elif post_close:
+                closes, lows_hist = fetch_daily_closes_lows(ticker, limit=60)
+                close_px = closes[-1] if closes else current
+                verdict = rules.ema21_trail_verdict(
+                    closes, lows_hist, close_px, effective_atr,
+                    stop_info.get("peak_gain_pct", 0.0),
+                    stop_info.get("ema21_close_breaches", 0),
+                )
+                stop_info["ema21_close_breaches"] = verdict.get("new_breach_count", 0)
+                atr_stop = float(stop_info.get("stop_price") or 0)
+                append_trail_ab_record({
+                    "date":           today,
+                    "ticker":         ticker,
+                    "close":          round(close_px, 2),
+                    "ema21":          verdict.get("ema21"),
+                    "atr_stop":       round(atr_stop, 2),
+                    "atr_would_exit": bool(atr_stop and close_px <= atr_stop),
+                    "ema21_exited":   verdict.get("action") == "exit",
+                    "breach_count":   verdict.get("new_breach_count", 0),
+                })
+                log.info("%s: ema21 trail verdict — %s (%s)",
+                         ticker, verdict.get("action"), verdict.get("reason"))
+                if verdict.get("action") == "exit":
+                    result = place_sell(ticker, qty, client_order_id=sell_coid)
+                    if result:
+                        sells_placed += 1
+                        stop_info["pending_close"] = True
+                        stop_info["close_source"] = "ema21_trail"
+                        slack_send(
+                            ":triangular_ruler: *" + TAG + " 21EMA TRAIL EXIT* "
+                            + ticker + " — " + verdict.get("reason", "")
+                            + " · sold " + str(qty) + " sh @ ~$"
+                            + str(round(current, 2))
+                        )
+                        continue  # position will close-detect on next run
+        else:
+            # Check stop loss (now reflects any trailing raises applied above)
+            stop_breached = stop_price is not None and current > 0 and current <= float(stop_price)
+            if stop_info.get("flush_suppress_active") and (not flush_ctx or not stop_breached):
+                # Window expired or price recovered above stop: clear suppression state.
+                stop_info.pop("flush_suppress_active", None)
+                stop_info.pop("flush_suppress_day", None)
+                stop_info.pop("flush_suppress_alerted_date", None)
+            if stop_breached:
+                effective_atr_pct = stop_info.get("atr_pct", atr_pct)
+                flush_action, flush_reason = "exit", ""
+                if flush_ctx:
+                    closes = fetch_daily_closes(ticker, limit=40)
+                    flush_action, flush_reason = rules.evaluate_flush_suppress(
+                        closes, current, effective_atr_pct, entry_price, perf_month,
+                        flush_ctx,
+                        already_active=bool(stop_info.get("flush_suppress_active")),
+                        is_post_close=post_close,
                     )
-            elif effective_atr_pct <= 5.0:
-                closes = fetch_daily_closes(ticker, limit=5)
-                if rules.price_above_sma5(closes, current):
-                    log.info(
-                        "%s: stop hit but price $%.2f >= SMA5 — skipping sell this run (low-vol, trend intact)",
-                        ticker, current,
-                    )
+                if flush_action in ("suppress", "defer"):
+                    stop_info["flush_suppress_active"] = True
+                    stop_info["flush_suppress_day"] = flush_ctx.get("day", 1)
+                    log.info("%s: stop breached but flush-suppressed (%s) — %s",
+                             ticker, flush_action, flush_reason)
+                    if stop_info.get("flush_suppress_alerted_date") != today:
+                        stop_info["flush_suppress_alerted_date"] = today
+                        slack_send(
+                            ":shield: *" + TAG + " STOP BREACHED — FLUSH SUPPRESS* " + ticker
+                            + " @ $" + str(round(current, 2))
+                            + " (stop $" + str(round(float(stop_price), 2))
+                            + ") — holding: " + flush_reason
+                        )
+                elif effective_atr_pct <= 5.0:
+                    closes = fetch_daily_closes(ticker, limit=5)
+                    if rules.price_above_sma5(closes, current):
+                        log.info(
+                            "%s: stop hit but price $%.2f >= SMA5 — skipping sell this run (low-vol, trend intact)",
+                            ticker, current,
+                        )
+                    else:
+                        sell_reason = (
+                            "stop hit (price $" + str(round(current, 2))
+                            + " <= stop $" + str(round(float(stop_price), 2)) + ")"
+                        )
                 else:
                     sell_reason = (
                         "stop hit (price $" + str(round(current, 2))
                         + " <= stop $" + str(round(float(stop_price), 2)) + ")"
                     )
-            else:
-                sell_reason = (
-                    "stop hit (price $" + str(round(current, 2))
-                    + " <= stop $" + str(round(float(stop_price), 2)) + ")"
-                )
-            if sell_reason and stop_info.pop("flush_suppress_active", None):
-                # Suppression ended without saving the exit — structure broke
-                # or the window expired with price still below stop.
-                stop_info.pop("flush_suppress_day", None)
-                stop_info.pop("flush_suppress_alerted_date", None)
-                if flush_reason:
-                    sell_reason += " [flush suppress ended: " + flush_reason + "]"
+                if sell_reason and stop_info.pop("flush_suppress_active", None):
+                    # Suppression ended without saving the exit — structure broke
+                    # or the window expired with price still below stop.
+                    stop_info.pop("flush_suppress_day", None)
+                    stop_info.pop("flush_suppress_alerted_date", None)
+                    if flush_reason:
+                        sell_reason += " [flush suppress ended: " + flush_reason + "]"
 
         # Check Stage 3 or 4 deterioration
         if sell_reason is None:
