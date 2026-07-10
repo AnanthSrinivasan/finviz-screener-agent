@@ -227,8 +227,8 @@
 
 <div class="dash-header">
   <h1>Dashboard</h1>
-  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html?v=8d338d2" class="back-link">Reports Index</a>
-  <div class="dash-meta">Updated 10 Jul 2026 00:10 UTC</div>
+  <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/index.html?v=97eeecb" class="back-link">Reports Index</a>
+  <div class="dash-meta">Updated 10 Jul 2026 11:50 UTC</div>
 </div>
 
 <div class="top-badges">
@@ -246,7 +246,7 @@
       </div>
       <div class="summary-item">
         <span class="summary-label">Unrealized P&L</span>
-        <span class="summary-val pos">$8,585.61 (+13.8%)</span>
+        <span class="summary-val pos">$11,265.93 (+18.1%)</span>
       </div>
       <div class="summary-item">
         <span class="summary-label">Positions</span>
@@ -272,7 +272,7 @@
           <td>$282.79</td>
           <td>$384.54 <span class="be-badge">BE</span></td>
           <td class="pos">+38.2%</td>
-          <td class="pos">$5,401.43</td>
+          <td class="pos">$8,081.75</td>
           <td class="risk-cell pos">+36.0%</td>
           <td class="targets-cell"><span class="target-hit">T1 $339 hit</span> <span class="target-pending">T2 $396</span></td>
           <td class="peel-cell"><span class="peel-thresholds">warn 18.1x · sig 24.2x · p90 103.5x</span></td>
@@ -302,6 +302,14 @@
             <td>$288.98</td>
             <td>$282.79</td>
             <td>75</td>
+          </tr>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>25</td>
+            <td>$390.00</td>
+            <td>$282.79</td>
+            <td>50</td>
           </tr></tbody>
           </table>
           
@@ -503,10 +511,36 @@
               </td>
               <td>1</td>
               <td>$25.00</td>
-              <td>$25.18</td>
-              <td class="pos">+0.70%</td>
-              <td class="history-src">live_quote</td>
-            </tr><tr class="history-row" data-ticker="LIME-c" hidden><td colspan="6"><em class="history-empty">No SnapTrade activity found for LIME-c in last 90 days.</em></td></tr>
+              <td>$25.39</td>
+              <td class="pos">+1.56%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="LIME-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>1</td>
+            <td>$25.39</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +1.56% (WIN) at $25.39
+            · <span class="history-src">source: snaptrade_fill_retro</span>
+          </div>
+        </td>
+      </tr>
             <tr class="position-row closed-row" data-ticker-row="TEM-c">
               <td class="ticker-cell">
                 <button type="button" class="hist-toggle" data-target="TEM-c" aria-expanded="false">▸</button>
@@ -515,9 +549,9 @@
               </td>
               <td>200</td>
               <td>$55.36</td>
-              <td>$60.45</td>
-              <td class="pos">+9.19%</td>
-              <td class="history-src">live_quote</td>
+              <td>$57.00</td>
+              <td class="pos">+2.96%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
             </tr>
       <tr class="history-row" data-ticker="TEM-c" hidden>
         <td colspan="6">
@@ -544,12 +578,28 @@
             <td>$56.55</td>
             <td>$55.36</td>
             <td>200</td>
+          </tr>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$57.25</td>
+            <td>$55.36</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$57.00</td>
+            <td>—</td>
+            <td>0</td>
           </tr></tbody>
           </table>
           
           <div class="history-summary pos">
-            <strong>Result:</strong> +9.19% (WIN) at $60.45
-            · <span class="history-src">source: live_quote</span>
+            <strong>Result:</strong> +2.96% (WIN) at $57.00
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="pos">$353.50</span> (bought 200 / sold 200)
           </div>
         </td>
       </tr>
@@ -561,9 +611,9 @@
               </td>
               <td>100</td>
               <td>$71.80</td>
-              <td>$72.51</td>
-              <td class="pos">+0.99%</td>
-              <td class="history-src">live_quote</td>
+              <td>$70.80</td>
+              <td class="neg">-1.39%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
             </tr>
       <tr class="history-row" data-ticker="TNA-c" hidden>
         <td colspan="6">
@@ -590,12 +640,28 @@
             <td>$72.35</td>
             <td>$71.79</td>
             <td>200</td>
+          </tr>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$70.15</td>
+            <td>$71.79</td>
+            <td>100</td>
+          </tr>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$70.80</td>
+            <td>—</td>
+            <td>0</td>
           </tr></tbody>
           </table>
           
-          <div class="history-summary neutral">
-            <strong>Result:</strong> +0.99% (BREAKEVEN) at $72.51
-            · <span class="history-src">source: live_quote</span>
+          <div class="history-summary neg">
+            <strong>Result:</strong> -1.39% (LOSS) at $70.80
+            · <span class="history-src">source: snaptrade_fill_retro</span> · <strong>Realized $:</strong> <span class="neg">-$264.00</span> (bought 200 / sold 200)
           </div>
         </td>
       </tr>
@@ -607,10 +673,36 @@
               </td>
               <td>100</td>
               <td>$75.00</td>
-              <td>$81.30</td>
-              <td class="pos">+8.40%</td>
-              <td class="history-src">live_quote</td>
-            </tr><tr class="history-row" data-ticker="AFRM-c" hidden><td colspan="6"><em class="history-empty">No SnapTrade activity found for AFRM-c in last 90 days.</em></td></tr>
+              <td>$81.50</td>
+              <td class="pos">+8.67%</td>
+              <td class="history-src">snaptrade_fill_retro</td>
+            </tr>
+      <tr class="history-row" data-ticker="AFRM-c" hidden>
+        <td colspan="6">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Action</th><th>Shares</th><th>Price</th>
+                <th>Avg Cost</th><th>Running Shares</th>
+              </tr>
+            </thead>
+            <tbody>
+          <tr>
+            <td>9 Jul</td>
+            <td><span class="action-sell">SELL</span></td>
+            <td>100</td>
+            <td>$81.50</td>
+            <td>—</td>
+            <td>0</td>
+          </tr></tbody>
+          </table>
+          
+          <div class="history-summary pos">
+            <strong>Result:</strong> +8.67% (WIN) at $81.50
+            · <span class="history-src">source: snaptrade_fill_retro</span>
+          </div>
+        </td>
+      </tr>
             <tr class="position-row closed-row" data-ticker-row="XBI-c">
               <td class="ticker-cell">
                 <button type="button" class="hist-toggle" data-target="XBI-c" aria-expanded="false">▸</button>
@@ -1052,7 +1144,7 @@
         <div><span style="font-size:1.4rem;font-weight:700;color:#111827">89</span><br>
           <span style="font-size:0.7rem;color:#9ca3af;text-transform:uppercase">Watching</span></div>
       </div>
-      <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html?v=8d338d2" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
+      <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html?v=97eeecb" style="padding:8px 16px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;
          border-radius:8px;font-size:0.85rem;font-weight:600;text-decoration:none;">
         Open Watchlist →
       </a>
@@ -1085,15 +1177,15 @@
       </div>
       <div class="alerts-col">
         <div class="sub-label">Fear & Greed (15d)</div>
-        <div class="spark-row"><div class="spark-bar" style="height:15px;background:#f59e0b" title="2026-06-26: 25.5"></div><div class="spark-bar" style="height:14px;background:#ef4444" title="2026-06-27: 24.8"></div><div class="spark-bar" style="height:16px;background:#f59e0b" title="2026-06-30: 27.0"></div><div class="spark-bar" style="height:18px;background:#f59e0b" title="2026-07-01: 31.2"></div><div class="spark-bar" style="height:19px;background:#f59e0b" title="2026-07-02: 31.9"></div><div class="spark-bar" style="height:18px;background:#f59e0b" title="2026-07-03: 31.4"></div><div class="spark-bar" style="height:19px;background:#f59e0b" title="2026-07-04: 31.9"></div><div class="spark-bar" style="height:26px;background:#f59e0b" title="2026-07-07: 43.9"></div><div class="spark-bar" style="height:25px;background:#f59e0b" title="2026-07-08: 43.0"></div><div class="spark-bar" style="height:25px;background:#f59e0b" title="2026-07-09: 42.2"></div></div>
+        <div class="spark-row"><div class="spark-bar" style="height:14px;background:#ef4444" title="2026-06-27: 24.8"></div><div class="spark-bar" style="height:16px;background:#f59e0b" title="2026-06-30: 27.0"></div><div class="spark-bar" style="height:18px;background:#f59e0b" title="2026-07-01: 31.2"></div><div class="spark-bar" style="height:19px;background:#f59e0b" title="2026-07-02: 31.9"></div><div class="spark-bar" style="height:18px;background:#f59e0b" title="2026-07-03: 31.4"></div><div class="spark-bar" style="height:19px;background:#f59e0b" title="2026-07-04: 31.9"></div><div class="spark-bar" style="height:26px;background:#f59e0b" title="2026-07-07: 43.9"></div><div class="spark-bar" style="height:25px;background:#f59e0b" title="2026-07-08: 43.0"></div><div class="spark-bar" style="height:25px;background:#f59e0b" title="2026-07-09: 42.2"></div><div class="spark-bar" style="height:28px;background:#22c55e" title="2026-07-10: 47.2"></div></div>
         <div class="commodities-row">
         <div class="commodity-card">
           <span class="comm-label">SLV 1w</span>
-          <span class="comm-val neg">-1.2%</span>
+          <span class="comm-val pos">+1.1%</span>
         </div>
         <div class="commodity-card">
           <span class="comm-label">GLD 1w</span>
-          <span class="comm-val pos">+1.6%</span>
+          <span class="comm-val pos">+2.0%</span>
         </div></div>
       </div>
     </div>
@@ -1118,18 +1210,18 @@
       </div>
       <div class="ts-card">
         <div class="ts-label">Total W / L</div>
-        <div class="ts-val">30 / 46</div>
+        <div class="ts-val">31 / 47</div>
       </div>
     </div>
     <div class="streak-row">
       <span class="sub-label">Recent trades</span>
-      <div class="streak-dots"><span class="streak-dot dot-win" title="AMD win +519 (+5.3%)"></span><span class="streak-dot dot-loss" title="BEAM loss -848 (-9.3%)"></span><span class="streak-dot dot-loss" title="NUAI loss -880 (-13.2%)"></span><span class="streak-dot dot-loss" title="QLD loss -835 (-8.0%)"></span><span class="streak-dot dot-loss" title="TWLO loss -353 (-3.4%)"></span><span class="streak-dot dot-win" title="XBI win +1,016 (+6.9%)"></span><span class="streak-dot dot-win" title="AFRM win +630 (+8.4%)"></span><span class="streak-dot dot-flat" title="TNA neutral +71 (+1.0%)"></span><span class="streak-dot dot-win" title="TEM win +1,018 (+9.2%)"></span><span class="streak-dot dot-flat" title="LIME neutral +0 (+0.7%)"></span></div>
+      <div class="streak-dots"><span class="streak-dot dot-win" title="AMD win +519 (+5.3%)"></span><span class="streak-dot dot-loss" title="BEAM loss -848 (-9.3%)"></span><span class="streak-dot dot-loss" title="NUAI loss -880 (-13.2%)"></span><span class="streak-dot dot-loss" title="QLD loss -835 (-8.0%)"></span><span class="streak-dot dot-loss" title="TWLO loss -353 (-3.4%)"></span><span class="streak-dot dot-win" title="XBI win +1,016 (+6.9%)"></span><span class="streak-dot dot-win" title="AFRM win +630 (+8.7%)"></span><span class="streak-dot dot-loss" title="TNA loss +71 (-1.4%)"></span><span class="streak-dot dot-win" title="TEM win +1,018 (+3.0%)"></span><span class="streak-dot dot-win" title="LIME win +0 (+1.6%)"></span></div>
       <span class="ts-updated">Updated Thu 09 Jul</span>
     </div>
 </div>
 
 <div class="footer">
-  Generated 10 Jul 2026 00:10 UTC &middot;
+  Generated 10 Jul 2026 11:50 UTC &middot;
   <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent"
      style="color:#334155">github.com/AnanthSrinivasan/finviz-screener-agent</a>
 </div>

@@ -1,8 +1,8 @@
 {
   "consecutive_wins": 3,
   "consecutive_losses": 0,
-  "total_wins": 30,
-  "total_losses": 46,
+  "total_wins": 31,
+  "total_losses": 47,
   "current_sizing_mode": "normal",
   "sizing_override": null,
   "last_updated": "2026-07-09",
@@ -244,7 +244,7 @@
     {
       "ticker": "AFRM",
       "result": "win",
-      "result_pct": 8.4,
+      "result_pct": 8.67,
       "date": "2026-07-09",
       "side": "SELL",
       "source": "auto_detected",
@@ -252,8 +252,8 @@
     },
     {
       "ticker": "TNA",
-      "result": "neutral",
-      "result_pct": 0.99,
+      "result": "loss",
+      "result_pct": -1.39,
       "date": "2026-07-09",
       "side": "SELL",
       "source": "auto_detected",
@@ -262,7 +262,7 @@
     {
       "ticker": "TEM",
       "result": "win",
-      "result_pct": 9.19,
+      "result_pct": 2.96,
       "date": "2026-07-09",
       "side": "SELL",
       "source": "auto_detected",
@@ -270,8 +270,8 @@
     },
     {
       "ticker": "LIME",
-      "result": "neutral",
-      "result_pct": 0.7,
+      "result": "win",
+      "result_pct": 1.56,
       "date": "2026-07-09",
       "side": "SELL",
       "source": "auto_detected",
