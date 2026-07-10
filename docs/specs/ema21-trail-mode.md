@@ -15,7 +15,7 @@
 **Exit trigger in ema21 mode (v2 — user refinement 2026-07-10: "lower low is the problem under the 21 EMA"):** evaluated on the post-close run only (22:00 UTC pass, same data path as Layer 1b). Intraday runs do NOT exit on the trail while the mode is active (they still process floors below). Exit when EITHER:
 
 1. **Breakdown (primary):** daily close < 21 EMA **AND** daily close < the swing low — defined as `min(low of the prior 10 sessions, excluding today)`. A close below the EMA that holds above prior lows is a shakeout (OSCR-etched pattern) → HOLD. A close below the EMA that takes out the lows is trend damage → exit at that close.
-2. **Camping fallback:** 4 consecutive daily closes below the 21 EMA, even with no lower low — a dead trend must not squat under the EMA indefinitely on equal lows. Counter resets to 0 on any close back above the EMA.
+2. **Camping fallback:** 3 consecutive daily closes below the 21 EMA, even with no lower low (user 2026-07-10: 4 donates a day of drift for no information; floors cap worst case at peak×0.90 anyway) — a dead trend must not squat under the EMA indefinitely on equal lows. Counter resets to 0 on any close back above the EMA.
 
 Reference sanity: VIK 7/2 closed ABOVE its 21 EMA (the old ATR trail fired intraday) → ema21 mode holds. VIK 7/10 tagged the EMA intraday (low 98.44 vs 98.45), no close below → holds, counter 0.
 
@@ -31,8 +31,8 @@ Reference sanity: VIK 7/2 closed ABOVE its 21 EMA (the old ATR trail fired intra
 1. `agents/trading/rules.py`: pure fn `ema21_trail_verdict(closes, lows, current_close, atr_pct, peak_gain_pct, breach_count) -> {action: hold|exit|activate, reason, new_breach_count, ema21, swing_low}`. EMA helper exists (Layer 1b path). Swing low = `min(lows[-11:-1])`.
 2. `agents/trading/alpaca_monitor.py` post-close pass: activation check (atr ≤5, peak ≥20, mode not set) → set `trail_mode`; when mode set, replace the tier-trail sell decision with the verdict fn; floors (breakeven / loss-cap / peak×0.90 / hard stop) unchanged and still checked every run including intraday.
 3. A/B log: append `{date, ticker, close, ema21, atr_stop, atr_would_exit, ema21_exited, breach_count}` to `data/trail_mode_ab.json` each post-close run for every ema21-mode position.
-4. Slack on exit: `[PAPER] 📐 21EMA TRAIL EXIT {ticker} — close ${c} < 21EMA ${e} + lower low ${sl}` (or `camping 4d`).
-5. Tests `tests/test_ema21_trail.py`: VIK 7/2 hold (close above EMA) · EMA tag no close-below → hold · close<EMA but no lower low → HOLD (the shakeout case) · close<EMA + lower low → exit · 4-day camping → exit · reclaim resets counter · ATR 6% never activates · gap below peak×0.90 → floor exits regardless of mode.
+4. Slack on exit: `[PAPER] 📐 21EMA TRAIL EXIT {ticker} — close ${c} < 21EMA ${e} + lower low ${sl}` (or `camping 3d`).
+5. Tests `tests/test_ema21_trail.py`: VIK 7/2 hold (close above EMA) · EMA tag no close-below → hold · close<EMA but no lower low → HOLD (the shakeout case) · close<EMA + lower low → exit · 3-day camping → exit; 2 closes + reclaim → hold · reclaim resets counter · ATR 6% never activates · gap below peak×0.90 → floor exits regardless of mode.
 6. Run full suite, push, then trigger position-monitor workflow and verify logs per CLAUDE.md rule 3.
 
 ## Measurement (the point of the experiment)
