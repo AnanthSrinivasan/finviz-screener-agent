@@ -1029,15 +1029,16 @@ Stat strip at top shows counts for each tier including Hidden Growth. CSV export
    - **+30% floor**: `stop ≥ max(1.25/1.0×ATR trail, highest_price_seen × 0.90)` — 10%-from-peak guard for high-vol names.
    - **SMA5 stop filter**: if atr_pct ≤ 5% and `price >= SMA(5 daily closes)`, the sell is skipped for that run — trend still intact.
    - Target 1 / T2 alerts; 1×ATR fade alert (5pp dedup).
-4. **Post-close run only (≥21:00 UTC weekday)** — call `rules.check_ma_trail_alert` with last 60 daily Alpaca closes. Tier rules:
+4. **21 EMA trail mode check (paper only)** — `rules.ema21_trail_activates(atr_pct, peak_gain_pct)`: ATR ≤ 5% AND peak ≥ +20% → sets `trail_mode="ema21"` on the position (sticky for the life of the position). See §10.3e.
+5. **Post-close run only (≥21:00 UTC weekday)** — call `rules.check_ma_trail_alert` with last 60 daily Alpaca closes. **Skipped for ema21-mode positions** (the mode IS the trail decision there; a parallel "your call" alert would contradict it). Tier rules:
    - ATR% ≤ 5% → regime EMA close-below (21 EMA in GREEN/THRUST/CAUTION, 8 EMA in COOLING; GREEN/THRUST need 2 consecutive)
    - 5% < ATR% ≤ 8% → 8 EMA close-below (1 close)
    - ATR% > 8% → 10% trail from `highest_price_seen`
    - RED/DANGER/BLACKOUT → skipped (existing ATR stops are tighter)
    - Alert-only (`:warning: [PAPER] MA TRAIL`); does not place sell.
-5. Stop hit → market sell. SELL placement marks `pending_close=True` (entry kept so close-detection can compute `result_pct` from the actual fill).
-6. Stage 3/4 in latest screener CSV → market sell.
-7. Otherwise → hold, log P&L to Slack with `[PAPER]` context.
+6. Stop hit → market sell (ATR-mode positions; ema21-mode positions exit only via the trail verdict or floors — §10.3e). SELL placement marks `pending_close=True` (entry kept so close-detection can compute `result_pct` from the actual fill).
+7. Stage 3/4 in latest screener CSV → market sell.
+8. Otherwise → hold, log P&L to Slack with `[PAPER]` context.
 
 Saves `paper_stops.json` and `paper_trading_state.json` at end of run.
 
@@ -1133,6 +1134,20 @@ Helpers exported from `agents/trading/alpaca_monitor.py`: `process_target_peels(
 `agents/trading/position_monitor.apply_minervini_rules` emits a `stale_entry` event with the same thresholds (14d / peak < +4%). Alert-only — live system NEVER places broker orders (hard rule). Added `stale_entry` to `rules.CRITICAL_EVENT_KINDS` so it routes to the immediate Slack post (every 30 min during market hours), not the book digest. Dedup via `stale_alerted_date` on position state. Message: `💤 STALE — {TKR} {N}d open, peak only +{X.X}% · consider cutting (capital opportunity cost)`.
 
 Spec: `docs/specs/paper-auto-peel-and-live-dashboard.md`.
+
+### 10.3e 21 EMA Trail Mode — low-vol runners (2026-07-10, paper lab)
+
+**Problem (VIK 7/2):** on low-volatility compounders in orderly trends the ATR-from-peak tier trail measures noise. VIK (ATR 4.23%, peak +24%) was auto-sold at $100.07 on a ~1×ATR wobble while the 21 EMA that defined its entire 4-month advance never broke; 8 days later it traded $100.10. For the $150k goal the book must occasionally ride a +24% into a +45% (DAVE-class +41%/29d leg) — the ATR trail structurally cannot.
+
+**Scope: PAPER ONLY** (`alpaca_monitor.py`). Manual and live books unchanged; live adoption only after the measurement gate.
+
+- **Activation** (checked every run): `atr_pct ≤ 5.0` AND `peak_gain_pct ≥ +20` → `trail_mode="ema21"` + `trail_mode_since` + `ema21_close_breaches=0` in `paper_stops.json`. Sticky — never flips back if ATR drifts.
+- **Exit trigger** (`rules.ema21_trail_verdict`, post-close pass only — intraday runs never exit on the trail): EITHER **breakdown** — daily close < 21 EMA AND close < swing low (`min(low of prior 10 sessions, excluding today)`; a close below the EMA holding above prior lows is a shakeout → HOLD, the OSCR pattern) — OR **camping** — 3 consecutive closes below the EMA even with no lower low; counter resets on any close back above.
+- **Floors always win, every run incl. intraday** (`rules.ema21_mode_floor` — the ATR tier trail is deliberately excluded): breakeven `entry × 1.005`, hybrid loss-cap, and the +30% disaster floor `peak × 0.90` (gaps/crash days — the 21 EMA sits ~5–8% off peak on an ATR≤5 name so it normally fires first).
+- **A/B measurement** (the point of the experiment): every post-close run appends `{date, ticker, close, ema21, atr_stop, atr_would_exit, ema21_exited, breach_count}` to `data/trail_mode_ab.json` — `stop_price` keeps ratcheting via `apply_position_rules` as the shadow ATR-mode counterfactual. **Review gate: 8 weeks or 5 completed ema21-mode exits, whichever first**; only then discuss manual book / live.
+- **Slack on exit:** `:triangular_ruler: [PAPER] 21EMA TRAIL EXIT {TKR} — close $c < 21EMA $e + lower low $sl` (or camping reason). `close_source="ema21_trail"`. T1/T2 peels and stale-cull unchanged (mode governs only the trail on the remainder).
+
+Spec: `docs/specs/ema21-trail-mode.md`. Tests: `tests/test_ema21_trail.py` (16).
 
 ### 10.4 Separation from Real System
 
