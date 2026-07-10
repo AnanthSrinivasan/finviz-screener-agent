@@ -1,30 +1,12 @@
 {
-  "consecutive_wins": 3,
+  "consecutive_wins": 4,
   "consecutive_losses": 0,
-  "total_wins": 31,
+  "total_wins": 32,
   "total_losses": 47,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-07-09",
+  "last_updated": "2026-07-10",
   "recent_trades": [
-    {
-      "ticker": "SN",
-      "result": "win",
-      "result_pct": 2.12,
-      "date": "2026-06-04",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 223.2
-    },
-    {
-      "ticker": "ARKK",
-      "result": "neutral",
-      "result_pct": -0.93,
-      "date": "2026-06-04",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -160.0
-    },
     {
       "ticker": "ONDS",
       "result": "loss",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 0.18
+    },
+    {
+      "ticker": "SN",
+      "result": "win",
+      "result_pct": 9.63,
+      "date": "2026-07-10",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1337.5
+    },
+    {
+      "ticker": "FROG",
+      "result": "neutral",
+      "result_pct": 0.85,
+      "date": "2026-07-10",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 76.0
     }
   ],
   "market_state": "RED",
