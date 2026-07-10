@@ -42,7 +42,8 @@ Every post-close run, for each ema21-mode position, log BOTH verdicts — what t
 ## Tests (`tests/test_ema21_trail.py`)
 
 - VIK replay fixture: mode activates at +20% peak; does NOT exit on 7/2 (no close below 21 EMA); still holding through 7/10 intraday tag (low 98.44 vs EMA 98.45 — a tag is not a close).
-- Breakdown case: 2 consecutive closes below 21 EMA → exits at second close; breakeven floor honored.
+- Breakdown case: close below 21 EMA + close below 10-session swing low → exits at that close; breakeven floor honored. Close below EMA holding above swing low → HOLD (shakeout).
+- Camping case: 3 consecutive closes below 21 EMA with equal lows → exits on the third.
 - Gap-crash case: price gaps below `peak × 0.90` intraday → floor exits immediately, mode irrelevant.
 - One close below then reclaim → counter resets to 0.
 - ATR 6% name at +25% peak → mode never activates (tier trail as today).
