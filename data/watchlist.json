@@ -5929,7 +5929,12 @@
     "NMAX",
     "VOR",
     "ODD",
-    "FWDI"
+    "FWDI",
+    "TXG",
+    "ANET",
+    "LMND",
+    "ALIT",
+    "RPD"
   ],
   "auto_promoted": [
     {
@@ -7441,6 +7446,36 @@
     {
       "ticker": "FWDI",
       "added": "2026-07-04",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "TXG",
+      "added": "2026-07-11",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "ANET",
+      "added": "2026-07-11",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "LMND",
+      "added": "2026-07-11",
+      "days_seen": 5,
+      "screens": 4
+    },
+    {
+      "ticker": "ALIT",
+      "added": "2026-07-11",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "RPD",
+      "added": "2026-07-11",
       "days_seen": 3,
       "screens": 3
     }
