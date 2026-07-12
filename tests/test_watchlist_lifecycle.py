@@ -234,10 +234,13 @@ class TestUpdateWatchlist(unittest.TestCase):
                 "added": old_date, "source": "screener_auto",
             }
         ])
-        _update_watchlist(_df([]), "2026-04-23")
+        # `today` must be in the same frame as `added` — cutoff is now computed
+        # from the param (2026-07-12 determinism fix), not date.today().
+        _update_watchlist(_df([]), date.today().isoformat())
         e = self._read_watchlist()[0]
         self.assertEqual(e["status"], "archived")
         self.assertEqual(e["archive_reason"], "age_out")
+        self.assertEqual(e["priority"], "archived", "archive must reset priority (zombie-row fix)")
 
     # 3d / 3e — promotions
 

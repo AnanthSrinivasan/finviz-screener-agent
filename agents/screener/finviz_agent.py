@@ -3232,6 +3232,7 @@ def _update_watchlist(
         if (entry.get("ticker") in held_tickers
                 and entry.get("status") != "archived"):
             entry["status"] = "archived"
+            entry["priority"] = "archived"
             entry["archive_reason"] = "entered_position"
             entry["archived_date"] = today
             held_archived += 1
@@ -3240,7 +3241,12 @@ def _update_watchlist(
 
     # ── 3b: age-out only priority=watching screener_auto entries (>14 days). ──
     # Focus and entry-ready are never auto-archived — they earned their place.
-    cutoff = (date.today() - timedelta(days=14)).isoformat()
+    # Use the `today` param (not date.today()) so the function is deterministic
+    # for tests/replays — latent bug found in the 2026-07-12 audit.
+    try:
+        cutoff = (date.fromisoformat(today) - timedelta(days=14)).isoformat()
+    except (ValueError, TypeError):
+        cutoff = (date.today() - timedelta(days=14)).isoformat()
     archived_count = 0
     for entry in existing:
         if (entry.get("source") == "screener_auto"
@@ -3248,6 +3254,7 @@ def _update_watchlist(
                 and entry.get("priority") == "watching"
                 and entry.get("added", "9999") < cutoff):
             entry["status"] = "archived"
+            entry["priority"] = "archived"
             entry["archive_reason"] = "age_out"
             entry["archived_date"] = today
             archived_count += 1
@@ -3287,6 +3294,8 @@ def _update_watchlist(
                     and existing_entry.get("archive_reason") == "age_out"
                     and existing_entry.get("source") == "screener_auto"):
                 existing_entry["status"] = "watching"
+                if existing_entry.get("priority") in (None, "archived"):
+                    existing_entry["priority"] = "watching"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(ticker)
@@ -3333,6 +3342,8 @@ def _update_watchlist(
             if (existing_entry.get("status") == "archived"
                     and existing_entry.get("archive_reason") == "age_out"):
                 existing_entry["status"] = "watching"
+                if existing_entry.get("priority") in (None, "archived"):
+                    existing_entry["priority"] = "watching"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(hg_ticker)
@@ -3365,6 +3376,8 @@ def _update_watchlist(
             if (existing_entry.get("status") == "archived"
                     and existing_entry.get("archive_reason") == "age_out"):
                 existing_entry["status"] = "watching"
+                if existing_entry.get("priority") in (None, "archived"):
+                    existing_entry["priority"] = "watching"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(rl_ticker)
@@ -3397,6 +3410,8 @@ def _update_watchlist(
             if (existing_entry.get("status") == "archived"
                     and existing_entry.get("archive_reason") == "age_out"):
                 existing_entry["status"] = "watching"
+                if existing_entry.get("priority") in (None, "archived"):
+                    existing_entry["priority"] = "watching"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(ep_ticker)
@@ -3429,6 +3444,8 @@ def _update_watchlist(
             if (existing_entry.get("status") == "archived"
                     and existing_entry.get("archive_reason") == "age_out"):
                 existing_entry["status"] = "watching"
+                if existing_entry.get("priority") in (None, "archived"):
+                    existing_entry["priority"] = "watching"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(br_ticker)
