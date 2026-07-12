@@ -158,6 +158,30 @@ def passes_dollar_volume_gate(screeners, avg_vol, price,
     return av * px >= min_dollar_vol
 
 
+def classify_screener_tail(texts) -> tuple:
+    """(volume, price, change) from the last three screener-table cells.
+
+    Finviz reordered the v=111 table (observed 2026-07-12; live layout is now
+    Price@8 / Change@9 / Volume@10, previously Volume@8 / Price@9 / Change@10).
+    The old fixed indexes silently put the Change% string in the Price column
+    and the price in Volume — fail-opening the dollar-volume gates and zeroing
+    the Big Movers 9M share gate. Don't trust position — classify by format:
+    Change ends with '%'; Price always carries a decimal point ('16.95',
+    '1,712.00'); Volume is a comma-grouped integer with no decimal point.
+    Unrecognizable cells yield '' (downstream gates keep the row on missing data).
+    """
+    vol = price = change = ''
+    for t in texts:
+        t = (t or '').strip()
+        if t.endswith('%'):
+            change = t
+        elif '.' in t:
+            price = t
+        elif t and t not in ('-',):
+            vol = t
+    return vol, price, change
+
+
 def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
     combined = []
     seen = set()
@@ -184,22 +208,25 @@ def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
                 combined.append([c.text.strip() for c in cols])
                 seen.add(ticker)
                 new_data = True
+                vol_txt, price_txt, _chg = classify_screener_tail(
+                    [c.text for c in cols[8:11]])
                 ticker_meta[ticker] = {
                     'Company':    cols[2].text.strip(),
                     'Sector':     cols[3].text.strip(),
                     'Industry':   cols[4].text.strip(),
                     'Country':    cols[5].text.strip(),
                     'Market Cap': cols[6].text.strip(),
-                    'Volume':     cols[8].text.strip() if len(cols) > 8 else '',
-                    # Price lands at index 9 in both the v=111 default layout and the
-                    # v=151 custom layout (c=...,65,66) — used for the dollar-volume gate.
-                    'Price':      cols[9].text.strip() if len(cols) > 9 else '',
+                    'Volume':     vol_txt,
+                    'Price':      price_txt,
                 }
         if not new_data:
             break
         page += 1
         time.sleep(1 + random.uniform(0, 0.5))
 
+    # NOTE: the last three labels are positional and Finviz has reordered them
+    # over time — only 'Ticker' is consumed from this frame; the reliable
+    # Volume/Price live in ticker_meta via classify_screener_tail().
     columns = ['No.', 'Ticker', 'Company', 'Sector', 'Industry',
                'Country', 'Market Cap', 'P/E', 'Volume', 'Price', 'Change']
     df = pd.DataFrame(combined, columns=columns) if combined else pd.DataFrame(columns=columns)
@@ -3184,6 +3211,11 @@ def _update_rs_leaders_state(
     return actions
 
 
+# Hard cap on active entry-ready rows — the tier is a top-5 shortlist, not a
+# bucket (cockpit radar revamp spec §1, user-approved 2026-07-12).
+ENTRY_READY_CAP = 5
+
+
 def _update_watchlist(
     filter_df: pd.DataFrame,
     today: str,
@@ -3661,8 +3693,9 @@ def _update_watchlist(
         promoted_to_focus.append(t)
         log.info("Watchlist: auto-promoted %s to focus (Q=%.0f, Stage 2 perfect)", t, qs)
 
-    # ── 3e: auto-promote focus → entry-ready (Ready-to-Enter criteria, no cap). ──
-    # Narrow criteria self-limit. Excludes open positions so we don't re-flag held names.
+    # ── 3e: auto-promote focus → entry-ready (Ready-to-Enter criteria). ──
+    # Excludes open positions so we don't re-flag held names. The tier-wide
+    # ENTRY_READY_CAP is enforced in 3h after all promotions/demotions settle.
     open_positions = _load_open_positions()
     promoted_to_entry_ready: list[str] = []
     for entry in existing:
@@ -3746,6 +3779,40 @@ def _update_watchlist(
             demoted_from_entry_ready.append(t)
             log.info("Watchlist: demoted %s entry-ready → focus (no longer meets Ready-to-Enter criteria)", t)
 
+    # ── 3h: entry-ready hard cap (cockpit radar revamp spec §1, 2026-07-12). ──
+    # The tier must stay a top-5 shortlist, not a bucket: keep the 5 closest to
+    # trigger (|SMA20%| asc — at the 21 EMA beats extended), Q desc as tiebreak;
+    # names absent from today's screener rank last (proximity 99). Rest demote
+    # to focus — they keep their earned place, just not the radar slot.
+    capped_from_entry_ready: list[str] = []
+    active_entry_ready = [
+        e for e in existing
+        if e.get("priority") == "entry-ready" and e.get("status") != "archived"
+    ]
+    if len(active_entry_ready) > ENTRY_READY_CAP:
+        def _er_rank(entry):
+            t = entry.get("ticker", "")
+            rows = filter_df[filter_df['Ticker'] == t] if not filter_df.empty else pd.DataFrame()
+            if rows.empty:
+                return (99.0, 0.0)
+            row = rows.iloc[0]
+            try:
+                prox = abs(float(row.get('SMA20%')))
+            except (TypeError, ValueError):
+                prox = 99.0
+            qs = float(row.get('Quality Score', 0) or 0)
+            return (prox, -qs)
+
+        active_entry_ready.sort(key=_er_rank)
+        for entry in active_entry_ready[ENTRY_READY_CAP:]:
+            entry["priority"] = "focus"
+            entry["entry_ready_date"] = None
+            entry["demoted_from_entry_ready_date"] = today
+            entry["demote_reason"] = "entry-ready cap — outranked"
+            capped_from_entry_ready.append(entry.get("ticker", ""))
+        log.info("Watchlist: entry-ready cap %d — demoted %d outranked: %s",
+                 ENTRY_READY_CAP, len(capped_from_entry_ready), capped_from_entry_ready)
+
     wl_data["watchlist"] = existing
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
@@ -3767,6 +3834,7 @@ def _update_watchlist(
         "reactivated":             reactivated,
         "promoted_to_focus":       promoted_to_focus,
         "promoted_to_entry_ready": promoted_to_entry_ready,
+        "capped_from_entry_ready": capped_from_entry_ready,
     }
 
 

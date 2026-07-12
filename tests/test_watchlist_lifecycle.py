@@ -295,6 +295,68 @@ class TestUpdateWatchlist(unittest.TestCase):
         self.assertEqual(e["status"], "archived")
         self.assertEqual(e["archive_reason"], "entered_position")
 
+    # 3h — entry-ready hard cap (cockpit radar revamp spec §1)
+
+    def _er_entry(self, ticker, **over):
+        e = {
+            "ticker": ticker, "status": "watching", "priority": "entry-ready",
+            "added": "2026-07-01", "source": "screener_auto",
+            "entry_ready_date": "2026-07-08",
+            "last_seen_in_screener": "2026-07-09",
+        }
+        e.update(over)
+        return e
+
+    def test_entry_ready_cap_demotes_furthest_from_trigger(self):
+        # 7 active entry-ready, all still qualifying — proximity |SMA20%| ranks them.
+        self._write_watchlist([self._er_entry(f"T{i}") for i in range(7)])
+        rows = [_row(Ticker=f"T{i}", **{"SMA20%": 0.5 * (i + 1)}) for i in range(7)]
+        r = _update_watchlist(_df(rows), "2026-07-10")
+        self.assertEqual(sorted(r["capped_from_entry_ready"]), ["T5", "T6"])
+        by = {e["ticker"]: e for e in self._read_watchlist()}
+        for t in ("T0", "T1", "T2", "T3", "T4"):
+            self.assertEqual(by[t]["priority"], "entry-ready")
+        for t in ("T5", "T6"):
+            self.assertEqual(by[t]["priority"], "focus")
+            self.assertEqual(by[t]["demote_reason"], "entry-ready cap — outranked")
+            self.assertEqual(by[t]["demoted_from_entry_ready_date"], "2026-07-10")
+            self.assertIsNone(by[t]["entry_ready_date"])
+
+    def test_entry_ready_cap_q_breaks_proximity_tie(self):
+        # 6 entries at identical proximity — the lowest Q loses the slot.
+        self._write_watchlist([self._er_entry(f"T{i}") for i in range(6)])
+        rows = [
+            _row(Ticker=f"T{i}", **{"SMA20%": 1.0, "Quality Score": 100.0 - i})
+            for i in range(6)
+        ]
+        r = _update_watchlist(_df(rows), "2026-07-10")
+        self.assertEqual(r["capped_from_entry_ready"], ["T5"])
+
+    def test_entry_ready_cap_absent_from_screener_ranks_last(self):
+        # A name missing from today's screener (recent last_seen, so the stale
+        # timer hasn't fired) gets proximity 99 and loses the slot first.
+        self._write_watchlist(
+            [self._er_entry(f"T{i}") for i in range(5)] + [self._er_entry("GONE")]
+        )
+        rows = [_row(Ticker=f"T{i}", **{"SMA20%": 2.0}) for i in range(5)]
+        r = _update_watchlist(_df(rows), "2026-07-10")
+        self.assertEqual(r["capped_from_entry_ready"], ["GONE"])
+
+    def test_entry_ready_cap_ignores_archived_rows(self):
+        # 5 active + 3 archived entry-ready rows: count is 5, no cap demotion.
+        entries = [self._er_entry(f"T{i}") for i in range(5)]
+        entries += [
+            self._er_entry(f"A{i}", status="archived", archive_reason="entered_position")
+            for i in range(3)
+        ]
+        self._write_watchlist(entries)
+        rows = [_row(Ticker=f"T{i}") for i in range(5)]
+        r = _update_watchlist(_df(rows), "2026-07-10")
+        self.assertEqual(r["capped_from_entry_ready"], [])
+        by = {e["ticker"]: e for e in self._read_watchlist()}
+        for i in range(5):
+            self.assertEqual(by[f"T{i}"]["priority"], "entry-ready")
+
     # Hidden Growth entry path (parallel to technical add)
 
     # Held-position auto-archive (real + paper)

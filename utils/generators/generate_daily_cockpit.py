@@ -5,8 +5,9 @@ Daily Cockpit — one decision-first morning pane (data/daily.html).
 Spec: docs/specs/daily-cockpit.md. Replaces the daily chart "firehose" with a
 single page that answers, in order: what headspace am I in (discipline banner) ·
 can I trade today (gate) · what do I do with what I hold (book) · which names clear
-every gate (qualified) · what am I stalking (on deck) · where's money flowing
-(leadership) · am I improving (record).
+every gate (qualified) · what am I stalking (radar: top-5 entry-ready + top-5 focus)
+· where's money flowing (leadership: real 5d flow, then screenable bases) ·
+am I improving (record).
 
 Built around THIS user's documented leaks (round-tripping winners, hold-in-hope on
 losers, over-trading weak tapes): every block binds an abstract principle to a live
@@ -347,63 +348,175 @@ def render_qualified(cards: list, gate: dict) -> str:
     return note + f"<div class='cards'>{body}</div>"
 
 
-def render_ondeck(wl: list) -> str:
-    if not wl:
-        return ("<div class='empty'>Watchlist flushed — rebuilding from scratch "
-                "after the correction. New names populate from the next screener run.</div>")
-    tiers = {"entry-ready": [], "focus": [], "watching": []}
-    for it in wl:
-        tiers.setdefault(it.get("priority", "watching"), []).append(it)
-    body = ""
-    for tier in ("entry-ready", "focus", "watching"):
-        names = tiers.get(tier) or []
-        if not names:
+def radar_trigger(s20: float, dist: float, price: float) -> str:
+    """One-line action per radar name. Branch order: at the EMA beats everything
+    (that IS the entry); near the high the pivot is the trigger; extended above
+    the EMA means wait for the pullback level; below it means wait for reclaim."""
+    if abs(s20) <= 1.5:
+        return "at 21 EMA — buy the hold"
+    if dist >= -3:
+        pivot = price / (1 + dist / 100) if price > 0 else 0
+        return f"pivot ~${pivot:,.2f}" if pivot else "at pivot — buy the break of the 52w high"
+    if s20 > 1.5:
+        ema = price / (1 + s20 / 100) if price > 0 else 0
+        return f"pullback to ~${ema:,.2f}" if ema else "extended — wait for the 21 EMA pullback"
+    return "below 21 EMA — wait for reclaim"
+
+
+def radar_pick(wl: list, screener_rows: list, top_n: int = 5) -> dict:
+    """Top-N entry-ready + focus for the cockpit (spec: cockpit-radar-revamp §2).
+    Pure. Archived rows excluded (zombie defense); watching tier deliberately
+    absent — it lives in the gallery watchlist, not the morning pane. Ranked by
+    (proximity-to-trigger = |SMA20%| asc, Q desc); names missing from today's
+    screener rank last (proximity 99)."""
+    idx = {}
+    for r in screener_rows or []:
+        tk = (r.get("Ticker") or "").upper()
+        if tk:
+            idx[tk] = r
+    out = {"entry-ready": [], "focus": []}
+    for it in wl or []:
+        tier = it.get("priority")
+        if tier not in out or it.get("status") == "archived":
             continue
-        chips = " ".join(f"<span class='chip'>{i.get('ticker', '?')}</span>" for i in names[:25])
-        body += f"<div class='tier'><span class='tier-name'>{tier}</span> {chips}</div>"
-    return body or "<div class='empty'>No active watchlist names.</div>"
+        tk = (it.get("ticker") or "").upper()
+        row = idx.get(tk)
+        if row is None:
+            out[tier].append({"ticker": tk, "q": 0.0, "s20": None, "dist": None,
+                              "prox": 99.0, "trigger": "no fresh screener data — check chart"})
+            continue
+        s20 = _f(row.get("SMA20%"))
+        out[tier].append({
+            "ticker": tk, "q": _f(row.get("Quality Score")), "s20": s20,
+            "dist": _f(row.get("Dist From High%")), "prox": abs(s20),
+            "trigger": radar_trigger(s20, _f(row.get("Dist From High%")), _f(row.get("Price"))),
+        })
+    for tier in out:
+        out[tier].sort(key=lambda x: (x["prox"], -x["q"]))
+        out[tier] = out[tier][:top_n]
+    return out
 
 
-_LEAD_GROUPS = [
-    ("BASE", "base", "🎯 BASE", "tight — next leadership likely starts here. Screen these."),
-    ("PRE-BREAKOUT", "pre", "🔵 PRE-BREAKOUT", "approaching highs with room. Trigger on a volume breakout."),
-    ("EXTENDED", "ext", "🚀 EXTENDED", "already run — don't chase. Wait for a 21 EMA pullback."),
-    ("BROKEN", "broken", "❌ BROKEN", "downtrend — if a name here screens well, the group's wrong. Skip."),
-]
+def render_radar(radar: dict, gate: dict) -> str:
+    gate_open = gate["action"] in ("FULL SIZE", "HALF SIZE")
+    note = "" if gate_open else ("<div class='watchonly'>⚠ Gate is closed — "
+                                 "radar is WATCH-ONLY today, not a shopping list.</div>")
+    if not (radar.get("entry-ready") or radar.get("focus")):
+        return ("<div class='empty'>Radar empty — entry-ready and focus tiers have no "
+                "active names. They populate from the next screener run.</div>")
+
+    def table(names):
+        if not names:
+            return "<div class='empty'>None right now.</div>"
+        body = ""
+        for n in names:
+            s20 = _pct(n["s20"]) if n["s20"] is not None else "—"
+            dist = _pct(n["dist"]) if n["dist"] is not None else "—"
+            q = f"{n['q']:.0f}" if n["q"] else "—"
+            body += (
+                "<tr>"
+                f"<td class='bold'><a href='https://finviz.com/quote.ashx?t={n['ticker']}' target='_blank'>{n['ticker']}</a></td>"
+                f"<td class='mono'>{q}</td>"
+                f"<td class='mono'>{s20}</td>"
+                f"<td class='mono'>{dist}</td>"
+                f"<td>{n['trigger']}</td>"
+                "</tr>"
+            )
+        return ("<table class='tbl'><thead><tr><th>TKR</th><th>Q</th><th>21EMA</th>"
+                "<th>vs High</th><th>Trigger</th></tr></thead>"
+                f"<tbody>{body}</tbody></table>")
+
+    grid = (
+        f"<div class='radar-grid{'' if gate_open else ' radar-closed'}'>"
+        f"<div><div class='radar-h'>🎯 Top 5 Entry-Ready</div>{table(radar.get('entry-ready'))}</div>"
+        f"<div><div class='radar-h'>🔭 Top 5 Focus</div>{table(radar.get('focus'))}</div>"
+        "</div>"
+    )
+    return note + grid
+
+
+def leadership_flows(rotation: dict) -> dict:
+    """Pure split of etf_rotation.json into real 5d FLOW vs screenable structure
+    (spec: cockpit-radar-revamp §3 — structure ≠ flow; the old §5 sold the BASE
+    bucket as 'where money is flowing' and listed RS-22 laggards as leadership)."""
+    etfs = (rotation or {}).get("etfs") or []
+    flowing_in = sorted(
+        (e for e in etfs
+         if _f(e.get("rank_delta_5d")) < 0 and _f(e.get("rs_score")) >= 50),
+        key=lambda e: (_f(e.get("rank_delta_5d")), -_f(e.get("rs_score"))),
+    )[:5]
+    flowing_out = sorted(
+        (e for e in etfs if _f(e.get("rank_delta_5d")) > 0),
+        key=lambda e: -_f(e.get("rank_delta_5d")),
+    )[:3]
+    bases = [
+        e for e in etfs
+        if e.get("bucket") == "BASE"
+        and (_f(e.get("rs_score")) >= 50 or _f(e.get("rank_delta_5d")) < 0)
+    ]
+    scores = [_f(e.get("rs_score")) for e in etfs]
+    spread = (max(scores) - min(scores)) if scores else 0.0
+    leaders = sorted(etfs, key=lambda e: -_f(e.get("rs_score")))[:2]
+    return {"flowing_in": flowing_in, "flowing_out": flowing_out, "bases": bases,
+            "spread": spread, "spread_wide": spread >= 60, "leaders": leaders}
+
+
+def _delta_word(e: dict) -> str:
+    d = int(_f(e.get("rank_delta_5d")))
+    return f"up {-d}" if d < 0 else (f"down {d}" if d > 0 else "—")
 
 
 def render_leadership(rotation: dict) -> str:
-    """Compact, breathing bucket view. Full metrics table lives in etf_rotation.html."""
+    """Flow first, structure second. Full metrics table lives in etf_rotation.html."""
     etfs = (rotation or {}).get("etfs") or []
     if not etfs:
         return "<div class='empty'>Sector rotation data unavailable.</div>"
+    fl = leadership_flows(rotation)
     regime = rotation.get("regime", "")
     try:
         from agents.utils.etf_rotation_summary import REGIME_ADVICE
         advice = REGIME_ADVICE.get(regime, "")
     except Exception:
         advice = ""
-    by = {}
-    for e in etfs:
-        by.setdefault(e.get("bucket"), []).append(e)
-    head = f"<div class='lead-regime'>Regime: <b>{regime}</b>. {advice}</div>" if regime else ""
+
+    def line(e):
+        return (f"<span class='lchip lchip-flow' title='{e.get('name', '')}'>"
+                f"{e.get('ticker', '?')} · {_delta_word(e)} · RS {int(_f(e.get('rs_score')))}"
+                f" · {e.get('bucket', '—')}</span>")
+
     body = ""
-    for bucket, cls, label, meaning in _LEAD_GROUPS:
-        names = by.get(bucket) or []
-        if not names:
-            continue
-        names.sort(key=lambda x: (x.get("rs_rank") or 999))
+    if fl["flowing_in"]:
+        chips = " ".join(line(e) for e in fl["flowing_in"])
+        body += ("<div class='lead-group lead-in'><div class='lead-label'>💸 Money flowing IN (5d)"
+                 " <span class='lead-meaning'>climbing the RS ranks with strength already ≥50 — screen these groups first</span></div>"
+                 f"<div class='lead-chips'>{chips}</div></div>")
+    else:
+        body += ("<div class='lead-group lead-in'><div class='lead-label'>💸 Money flowing IN (5d)</div>"
+                 "<div class='lead-meaning'>No group is both climbing and strong right now.</div></div>")
+    if fl["flowing_out"]:
+        out_line = " · ".join(f"{e.get('ticker', '?')} {_delta_word(e)}" for e in fl["flowing_out"])
+        body += (f"<div class='lead-group lead-out'><div class='lead-label'>💨 Flowing OUT "
+                 f"<span class='lead-meaning'>{out_line}</span></div></div>")
+    if fl["bases"]:
         chips = " ".join(
-            f"<span class='lchip lchip-{cls}' title='{e.get('name', '')}'>{e.get('ticker', '?')}</span>"
-            for e in names
+            f"<span class='lchip lchip-base' title='{e.get('name', '')}'>"
+            f"{e.get('ticker', '?')} · RS {int(_f(e.get('rs_score')))} · {_delta_word(e)}</span>"
+            for e in fl["bases"]
         )
-        body += (
-            f"<div class='lead-group lead-{cls}'>"
-            f"<div class='lead-label'>{label} <span class='lead-meaning'>{meaning}</span></div>"
-            f"<div class='lead-chips'>{chips}</div></div>"
-        )
+        body += ("<div class='lead-group lead-base'><div class='lead-label'>🎯 Bases worth screening"
+                 " <span class='lead-meaning'>tight structure AND holding/gaining relative strength — weak bases are dropped</span></div>"
+                 f"<div class='lead-chips'>{chips}</div></div>")
+
+    spread_note = ""
+    if fl["spread_wide"] and fl["leaders"]:
+        tops = " and ".join(
+            f"{e.get('ticker', '?')} (RS {int(_f(e.get('rs_score')))})" for e in fl["leaders"])
+        spread_note = (f" …but the RS spread is wide ({fl['spread']:.0f} pts top to bottom) — "
+                       f"leaders exist: {tops}.")
+    head = (f"<div class='lead-regime'>Regime: <b>{regime}</b>. {advice}{spread_note}</div>"
+            if regime else "")
     foot = "<div class='lead-foot'><a href='etf_rotation.html'>Full rotation dashboard →</a></div>"
-    return head + body + foot
+    return body + head + foot
 
 
 def render_record(stats: dict) -> str:
@@ -463,9 +576,9 @@ a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
 .card-q{color:#15803d}
 .card-sub{font-size:.74rem;color:#6b7280;margin:4px 0 10px}
 .card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:#374151}
-.tier{margin-bottom:8px;font-size:.82rem}
-.tier-name{font-weight:700;text-transform:uppercase;font-size:.66rem;color:#6b7280;margin-right:8px}
-.chip{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:2px 8px;margin:2px;font-size:.78rem;font-weight:600}
+.radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.radar-closed{opacity:.55}
+.radar-h{font-size:.78rem;font-weight:700;color:#374151;margin-bottom:8px}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
 .stat-l{font-size:.66rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
@@ -473,12 +586,12 @@ a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
 .stat-s{font-size:.72rem;color:#6b7280;margin-top:4px}
 .lead-regime{font-size:.84rem;color:#374151;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
 .lead-group{background:#fff;border:1px solid #e5e7eb;border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.lead-base{border-left-color:#16a34a}.lead-pre{border-left-color:#2563eb}.lead-ext{border-left-color:#d97706}.lead-broken{border-left-color:#dc2626}
+.lead-in{border-left-color:#2563eb}.lead-out{border-left-color:#dc2626}.lead-base{border-left-color:#16a34a}
 .lead-label{font-size:.82rem;font-weight:700;color:#111827;margin-bottom:9px}
 .lead-meaning{font-weight:400;color:#6b7280;font-size:.76rem}
 .lead-chips{display:flex;flex-wrap:wrap;gap:7px}
 .lchip{display:inline-block;border-radius:6px;padding:4px 10px;font-size:.78rem;font-weight:700}
-.lchip-base{background:#dcfce7;color:#15803d}.lchip-pre{background:#dbeafe;color:#1d4ed8}.lchip-ext{background:#fef3c7;color:#92400e}.lchip-broken{background:#fee2e2;color:#b91c1c}
+.lchip-flow{background:#dbeafe;color:#1d4ed8}.lchip-base{background:#dcfce7;color:#15803d}
 .lead-foot{font-size:.74rem;margin-top:6px}
 .footer{margin-top:30px;font-size:.7rem;color:#9ca3af}
 """
@@ -502,7 +615,7 @@ def render_page(ctx: dict) -> str:
 {block("🚦 1 · The Gate — can I trade today?", render_gate(gate, ctx['market']))}
 {block("📓 2 · The Book — what do I do with what I hold?", render_book(ctx['book_rows'], ctx['account']))}
 {block("🎯 3 · Qualified Today — names that clear every gate", render_qualified(ctx['qualified'], gate))}
-{block("👀 4 · On Deck — watchlist", render_ondeck(ctx['watchlist']))}
+{block("🎯 4 · Radar — top 5 entry-ready · top 5 focus", render_radar(ctx['radar'], gate))}
 {block("🗺 5 · Leadership — where money is flowing", render_leadership(ctx['rotation']))}
 {block("📊 6 · The Record — am I improving?", render_record(ctx['record']))}
 <div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode · spec: docs/specs/daily-cockpit.md</div>
@@ -550,9 +663,9 @@ def build_context() -> dict:
     regime = rotation.get("regime", "")
     gate = gate_decision(market_state, regime, ts.get("current_sizing_mode"))
 
-    qualified = qualify_setups(load_screener_rows(), held)
-    if gate["action"] in ("NO NEW ENTRIES", "PAPER ONLY"):
-        pass  # still shown, but flagged watch-only in render
+    screener_rows = load_screener_rows()
+    qualified = qualify_setups(screener_rows, held)
+    radar = radar_pick(load_watchlist(), screener_rows)
 
     equity = _f(account.get("equity"))
     record = record_stats(ts, positions_file.get("closed_positions", []))
@@ -560,7 +673,7 @@ def build_context() -> dict:
     return {
         "market": market, "trading_state": ts, "rotation": rotation, "gate": gate,
         "book_rows": book_rows, "account": account, "equity": equity,
-        "qualified": qualified, "watchlist": load_watchlist(), "record": record,
+        "qualified": qualified, "radar": radar, "record": record,
     }
 
 

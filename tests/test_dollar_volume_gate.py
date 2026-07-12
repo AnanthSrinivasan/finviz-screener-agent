@@ -1,6 +1,7 @@
 import unittest
 
 from agents.screener.finviz_agent import (
+    classify_screener_tail,
     passes_dollar_volume_gate,
     passes_dollar_volume_prefilter,
     MIN_DOLLAR_VOL,
@@ -78,6 +79,39 @@ class TestDollarVolumePrefilter(unittest.TestCase):
     def test_missing_data_keeps(self):
         self.assertTrue(passes_dollar_volume_prefilter("Growth", 0, "12.00"))
         self.assertTrue(passes_dollar_volume_prefilter("Growth", None, None))
+
+
+class TestClassifyScreenerTail(unittest.TestCase):
+    """Regression for the 2026-07 Finviz screener-table reorder: Price/Change/
+    Volume must be identified by format, never by column position. The fixed
+    indexes had Change% landing in Price and the price in Volume — which
+    fail-opened both dollar-volume gates and zeroed the Big Movers 9M gate."""
+
+    def test_new_layout_price_change_volume(self):
+        # Live layout as of 2026-07-12: Price@8, Change@9, Volume@10.
+        vol, price, change = classify_screener_tail(["16.95", "-0.64%", "82,036,295"])
+        self.assertEqual(vol, "82,036,295")
+        self.assertEqual(price, "16.95")
+        self.assertEqual(change, "-0.64%")
+
+    def test_old_layout_volume_price_change(self):
+        # Pre-reorder layout: Volume@8, Price@9, Change@10.
+        vol, price, change = classify_screener_tail(["82,036,295", "16.95", "-0.64%"])
+        self.assertEqual(vol, "82,036,295")
+        self.assertEqual(price, "16.95")
+        self.assertEqual(change, "-0.64%")
+
+    def test_high_priced_name_with_comma_and_decimal(self):
+        # BRK.A-class: price has commas AND a decimal — still classified as price.
+        vol, price, change = classify_screener_tail(["1,712.00", "0.20%", "24,096"])
+        self.assertEqual(price, "1,712.00")
+        self.assertEqual(vol, "24,096")
+
+    def test_dash_and_empty_cells_yield_blank(self):
+        vol, price, change = classify_screener_tail(["-", "", None])
+        self.assertEqual((vol, price, change), ("", "", ""))
+        # Blank output keeps the row via the gates' missing-data rule.
+        self.assertTrue(passes_dollar_volume_prefilter("Growth", vol, price))
 
 
 if __name__ == "__main__":
