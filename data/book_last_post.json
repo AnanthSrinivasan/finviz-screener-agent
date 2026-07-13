@@ -1,4 +1,30 @@
 {
   "last_book_post_ts": "2026-07-13T18:57:51.583809Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "share_drift_partial_sell",
+      "ticker": "DAVE",
+      "message": "\ud83d\udfe1 PARTIAL SELL: DAVE\n   25 \u2192 10 shares (15 sold) \u2014 entry/targets unchanged",
+      "old_shares": 25.0,
+      "new_shares": 10.0,
+      "ts": "2026-07-13T20:18:30.117847Z"
+    },
+    {
+      "kind": "share_drift_partial_sell",
+      "ticker": "DDOG",
+      "message": "\ud83d\udfe1 PARTIAL SELL: DDOG\n   60 \u2192 30 shares (30 sold) \u2014 entry/targets unchanged",
+      "old_shares": 60.0,
+      "new_shares": 30.0,
+      "ts": "2026-07-13T20:18:30.117847Z"
+    },
+    {
+      "kind": "auto_closed",
+      "ticker": "SNOW",
+      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: SNOW\n   Entry $252.30 \u2192 $268.80 (quote) (+6.5%) \u2014 WIN\n   Streak: 5W / 0L",
+      "result_pct": 6.54,
+      "close_price": 268.8,
+      "close_source": "live_quote",
+      "ts": "2026-07-13T20:18:30.117847Z"
+    }
+  ]
 }
