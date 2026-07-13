@@ -625,29 +625,34 @@ def render_page(ctx: dict) -> str:
 # ---------------------------------------------------------------- orchestrator
 
 def _live_book():
-    """(rows, account) from SnapTrade; falls back to positions.json on failure."""
+    """(rows, account) from SnapTrade; falls back to positions.json on failure
+    OR when SnapTrade quietly returns no positions (missing creds / auth error
+    logs an ERROR but returns [] — without this the cockpit renders a false
+    '100% cash' book). A genuinely flat book is safe here: the monitor
+    auto-closes gone positions, so positions.json empties out too."""
     try:
         from agents.trading.position_monitor import fetch_positions
         from utils.generators.generate_live_portfolio import build_row, _fetch_account_balances
         positions = fetch_positions() or []
-        account = _fetch_account_balances() or {}
-        rows = [build_row(p) for p in positions]
-        return rows, account
+        if positions:
+            account = _fetch_account_balances() or {}
+            return [build_row(p) for p in positions], account
+        log.warning("SnapTrade returned no positions — falling back to positions.json")
     except Exception as e:
         log.warning("live book failed (%s) — falling back to positions.json", e)
-        pj = _load_json("positions.json", {}) or {}
-        rows = []
-        for p in pj.get("open_positions", []):
-            avg = _f(p.get("avg_cost") or p.get("entry_price"))
-            live = _f(p.get("current_price") or p.get("highest_price_seen") or avg)
-            shares = _f(p.get("shares"))
-            gain = ((live - avg) / avg * 100) if avg else 0
-            rows.append({
-                "ticker": p.get("ticker"), "shares": shares, "avg": avg, "live": live,
-                "gain": gain, "pl": (live - avg) * shares, "mv": live * shares,
-                "atr": _f(p.get("atr_pct")), "s20": 0.0, "stage": "?",
-            })
-        return rows, {}
+    pj = _load_json("positions.json", {}) or {}
+    rows = []
+    for p in pj.get("open_positions", []):
+        avg = _f(p.get("avg_cost") or p.get("entry_price"))
+        live = _f(p.get("current_price") or p.get("highest_price_seen") or avg)
+        shares = _f(p.get("shares"))
+        gain = ((live - avg) / avg * 100) if avg else 0
+        rows.append({
+            "ticker": p.get("ticker"), "shares": shares, "avg": avg, "live": live,
+            "gain": gain, "pl": (live - avg) * shares, "mv": live * shares,
+            "atr": _f(p.get("atr_pct")), "s20": 0.0, "stage": "?",
+        })
+    return rows, {}
 
 
 def build_context() -> dict:
