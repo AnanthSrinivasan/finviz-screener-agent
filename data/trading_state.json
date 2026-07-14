@@ -1,21 +1,12 @@
 {
-  "consecutive_wins": 5,
+  "consecutive_wins": 6,
   "consecutive_losses": 0,
-  "total_wins": 34,
+  "total_wins": 35,
   "total_losses": 47,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-07-13",
+  "last_updated": "2026-07-14",
   "recent_trades": [
-    {
-      "ticker": "NVDA",
-      "result": "neutral",
-      "result_pct": -0.29,
-      "date": "2026-06-04",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 4.0
-    },
     {
       "ticker": "DAVE",
       "result": "loss",
@@ -271,11 +262,20 @@
     {
       "ticker": "SNOW",
       "result": "win",
-      "result_pct": 6.54,
+      "result_pct": 5.81,
       "date": "2026-07-13",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 660.0
+    },
+    {
+      "ticker": "DDOG",
+      "result": "win",
+      "result_pct": 1.11,
+      "date": "2026-07-14",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 84.45
     }
   ],
   "market_state": "RED",
