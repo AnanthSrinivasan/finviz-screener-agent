@@ -75,16 +75,17 @@
     "trigger_q": 90.0,
     "trigger_dist": -9.854759332613138,
     "trigger_atr_mult": 2.1,
-    "rs_rating": 70,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-07-14",
-    "pullback_started": "2026-07-15",
+    "rs_rating": 67,
+    "current_status": "reacquired",
+    "last_active_date": "2026-07-17",
+    "pullback_started": null,
     "reacquired_dates": [
       "2026-06-13",
       "2026-06-25",
-      "2026-07-03"
+      "2026-07-03",
+      "2026-07-17"
     ],
-    "days_tracked": 8
+    "days_tracked": 9
   },
   "SEPN": {
     "first_triggered": "2026-06-09",
@@ -125,15 +126,16 @@
     "trigger_dist": -9.655596555965573,
     "trigger_atr_mult": 4.0,
     "rs_rating": 85,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-07-14",
-    "pullback_started": "2026-07-15",
+    "current_status": "reacquired",
+    "last_active_date": "2026-07-17",
+    "pullback_started": null,
     "reacquired_dates": [
       "2026-06-19",
       "2026-07-07",
-      "2026-07-13"
+      "2026-07-13",
+      "2026-07-17"
     ],
-    "days_tracked": 10
+    "days_tracked": 11
   },
   "ETON": {
     "first_triggered": "2026-06-12",
@@ -237,14 +239,15 @@
     "trigger_q": 80.0,
     "trigger_dist": -8.311636290807122,
     "trigger_atr_mult": 4.8,
-    "rs_rating": 91,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-07-14",
-    "pullback_started": "2026-07-15",
+    "rs_rating": 92,
+    "current_status": "reacquired",
+    "last_active_date": "2026-07-17",
+    "pullback_started": null,
     "reacquired_dates": [
-      "2026-07-03"
+      "2026-07-03",
+      "2026-07-17"
     ],
-    "days_tracked": 10
+    "days_tracked": 11
   },
   "AMD": {
     "first_triggered": "2026-06-23",

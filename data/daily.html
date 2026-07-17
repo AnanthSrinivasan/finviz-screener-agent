@@ -1,18 +1,66 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en"><head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Daily Cockpit</title><style>
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Daily Cockpit</title>
+
+<style>/* BASE_CSS v1 — one design system (docs/specs/cx-rehaul.md) */
+:root{
+  --bg:#0b1220; --surface:#101a2c; --surface2:#16233a; --border:#223049;
+  --text:#dbe4f0; --head:#f1f5f9; --muted:#8b98ab; --link:#60a5fa;
+  --green:#4ade80; --green-bg:#0b3b2b; --green-text:#6ee7b7; --green-strong:#15803d;
+  --red:#f87171; --red-bg:#431418; --red-text:#fca5a5; --red-strong:#b91c1c;
+  --amber:#fcd34d; --amber-bg:#3a2b09; --amber-strong:#b45309;
+  --blue-bg:#14233f; --blue-text:#93c5fd;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fc;color:#111827;padding:28px;max-width:1100px;margin:0 auto}
-h1{font-size:1.5rem;font-weight:800}
-.sub{color:#6b7280;font-size:.8rem;margin-bottom:18px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:var(--bg);color:var(--text);padding:20px;max-width:1280px;margin:0 auto}
+h1{font-size:1.35rem;font-weight:800;color:var(--head);margin-bottom:4px}
+h2{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+   letter-spacing:.08em;margin:26px 0 12px}
+.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:18px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-variant-numeric:tabular-nums}
+.bold{font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:var(--surface);
+     border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;
+        border-bottom:1px solid var(--border);text-transform:uppercase;
+        font-size:.64rem;letter-spacing:.05em;background:var(--surface2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.66rem;font-weight:700}
+.chip{display:inline-block;padding:3px 10px;margin:2px 4px;border-radius:999px;
+      background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:.8rem}
+.chip:hover{border-color:var(--link);text-decoration:none}
+.empty{color:var(--muted);font-size:.85rem;padding:18px;text-align:center;
+       background:var(--surface);border:1px dashed var(--border);border-radius:10px}
+.footer{margin-top:28px;font-size:.7rem;color:var(--muted)}
+details{margin:10px 0}
+details>summary{cursor:pointer;font-weight:700;color:var(--head);padding:8px 0;
+                font-size:.92rem;border-bottom:1px solid var(--border);list-style:none;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";color:var(--muted);font-size:.8rem}
+details[open]>summary::before{content:"▾ "}
+details>summary:hover{color:var(--link)}
+.heat-pos{background:var(--green-bg);color:var(--green-text)}
+.heat-neg{background:var(--red-bg);color:var(--red-text)}
+.heat-zero{color:var(--muted)}
+@media (max-width:640px){body{padding:12px}}
+
+body{max-width:1100px}
 .block{margin:22px 0}
-.block-h{font-size:.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
-.banner{background:#111827;color:#f9fafb;border-radius:12px;padding:18px 20px}
-.banner-line{font-size:1.02rem;font-weight:600}
-.banner-meta{font-size:.78rem;color:#9ca3af;margin-top:6px}
-.gate{border-radius:12px;padding:18px 20px;color:#fff}
+.block-h{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
+.banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.banner-line{font-size:1.02rem;font-weight:600;color:var(--head)}
+.banner-meta{font-size:.78rem;color:var(--muted);margin-top:6px}
+.gate{border-radius:12px;padding:16px 18px;color:#fff}
 .gate-green{background:#15803d}.gate-amber{background:#b45309}.gate-red{background:#b91c1c}
 .gate-top{display:flex;justify-content:space-between;align-items:baseline}
 .gate-state{font-size:.8rem;font-weight:700;opacity:.85;letter-spacing:.05em}
@@ -20,52 +68,62 @@ h1{font-size:1.5rem;font-weight:800}
 .gate-headline{font-size:.95rem;margin-top:6px}
 .gate-detail{font-size:.8rem;opacity:.9;margin-top:6px}
 .gate-foot{font-size:.74rem;opacity:.8;margin-top:10px}
-.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
-.tbl th{text-align:left;padding:9px 11px;color:#6b7280;font-weight:500;border-bottom:1px solid #e5e7eb;text-transform:uppercase;font-size:.64rem;letter-spacing:.05em;background:#f9fafb}
-.tbl td{padding:9px 11px;border-bottom:1px solid #f3f4f6}
-.tbl tr:last-child td{border-bottom:none}
-.bold{font-weight:700}.mono{font-variant-numeric:tabular-nums}
-a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
-.heat-pos{color:#15803d;font-weight:600}.heat-neg{color:#b91c1c;font-weight:600}.heat-zero{color:#6b7280}
+.cohort-pill{padding:1px 8px;border-radius:9px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.55)}
+.cohort-healthy{background:#15803d}.cohort-mixed{background:#b45309}
+.cohort-stress{background:#c2410c}.cohort-carnage{background:#b91c1c}
+.heat-pos{background:none;color:var(--green);font-weight:600}
+.heat-neg{background:none;color:var(--red);font-weight:600}
 .flagbar{margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}
 .flag{font-size:.78rem;font-weight:600;padding:6px 10px;border-radius:8px}
-.flag-cut{background:#fee2e2;color:#991b1b}.flag-scale{background:#fef3c7;color:#92400e}
-.empty{color:#6b7280;font-size:.86rem;padding:18px;text-align:center;background:#fff;border:1px dashed #e5e7eb;border-radius:10px}
-.empty.win{color:#15803d;border-color:#bbf7d0;background:#f0fdf4}
-.watchonly{font-size:.8rem;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.flag-cut{background:var(--red-bg);color:var(--red-text)}
+.flag-scale{background:var(--amber-bg);color:var(--amber)}
+.empty.win{color:var(--green-text);border-color:var(--green-bg);background:var(--green-bg)}
+.watchonly{font-size:.8rem;color:var(--amber);background:var(--amber-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
-.card-h{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem}
-.card-q{color:#15803d}
-.card-sub{font-size:.74rem;color:#6b7280;margin:4px 0 10px}
-.card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:#374151}
+.card-h{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;color:var(--head)}
+.card-q{color:var(--green)}
+.card-sub{font-size:.74rem;color:var(--muted);margin:4px 0 10px}
+.card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:var(--text)}
 .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
 .radar-closed{opacity:.55}
-.radar-h{font-size:.78rem;font-weight:700;color:#374151;margin-bottom:8px}
+.radar-h{font-size:.78rem;font-weight:700;color:var(--head);margin-bottom:8px}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
-.stat-l{font-size:.66rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
-.stat-v{font-size:1.3rem;font-weight:800;margin-top:4px}
-.stat-s{font-size:.72rem;color:#6b7280;margin-top:4px}
-.lead-regime{font-size:.84rem;color:#374151;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
-.lead-group{background:#fff;border:1px solid #e5e7eb;border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.lead-in{border-left-color:#2563eb}.lead-out{border-left-color:#dc2626}.lead-base{border-left-color:#16a34a}
-.lead-label{font-size:.82rem;font-weight:700;color:#111827;margin-bottom:9px}
-.lead-meaning{font-weight:400;color:#6b7280;font-size:.76rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat-v{font-size:1.3rem;font-weight:800;margin-top:4px;color:var(--head)}
+.stat-s{font-size:.72rem;color:var(--muted);margin-top:4px}
+.lead-regime{font-size:.84rem;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
+.lead-group{background:var(--surface);border:1px solid var(--border);border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.lead-in{border-left-color:var(--link)}.lead-out{border-left-color:var(--red)}.lead-base{border-left-color:var(--green)}
+.lead-label{font-size:.82rem;font-weight:700;color:var(--head);margin-bottom:9px}
+.lead-meaning{font-weight:400;color:var(--muted);font-size:.76rem}
 .lead-chips{display:flex;flex-wrap:wrap;gap:7px}
 .lchip{display:inline-block;border-radius:6px;padding:4px 10px;font-size:.78rem;font-weight:700}
-.lchip-flow{background:#dbeafe;color:#1d4ed8}.lchip-base{background:#dcfce7;color:#15803d}
+.lchip-flow{background:var(--blue-bg);color:var(--blue-text)}.lchip-base{background:var(--green-bg);color:var(--green-text)}
 .lead-foot{font-size:.74rem;margin-top:6px}
-.footer{margin-top:30px;font-size:.7rem;color:#9ca3af}
-</style></head><body>
+</style>
+</head><body>
+<style>
+.site-nav{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:#101a2c;border:1px solid #223049;border-radius:10px;padding:4px;
+  margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;
+  border-radius:8px;font-size:.84rem;font-weight:600;color:#a5b1c4;
+  text-decoration:none;white-space:nowrap;flex-shrink:0}
+.site-nav a:hover{color:#f1f5f9;background:#16233a;text-decoration:none}
+.site-nav a.nav-active{color:#f1f5f9;background:#1c3157}
+.site-nav::-webkit-scrollbar{height:0}
+</style><nav class="site-nav"><a href="../index.html?v=417290d">⌂</a><a href="daily.html?v=417290d" class="nav-active">☀️ Cockpit</a><a href="etf_rotation.html?v=417290d">💰 Flow</a><a href="live_portfolio.html?v=417290d">📓 Book</a><a href="claude_portfolio.html?v=417290d">🤖 Paper</a><a href="../watchlist.html?v=417290d">👀 Watchlist</a><a href="finviz_chart_grid_2026-07-17.html?v=417290d">🖼 Charts</a><a href="record.html?v=417290d">📈 Record</a></nav>
 <h1>☀️ Daily Cockpit</h1>
-<p class="sub">One pane, one decision · Thu 16 Jul 2026 · 21:32 UTC</p>
-<div class='banner'><div class='banner-line'>Capital preservation mode — today, NOT trading is the winning trade. Cash is a position.</div><div class='banner-meta'>NORMAL mode · 6W streak · $183,120 · 122% of $150,000 goal</div></div>
-<div class='block'><div class='block-h'>🚦 1 · The Gate — can I trade today?</div><div class='gate gate-red'><div class='gate-top'><span class='gate-state'>RED</span><span class='gate-action'>NO NEW ENTRIES</span></div><div class='gate-headline'>Gate closed. Manage the book — do not add risk.</div><div class='gate-detail'>ETF regime late-rotation</div><div class='gate-foot'>Position cap 5 · SPY 755 (+1.5% vs 50MA) · as of 2026-07-15</div></div></div>
-<div class='block'><div class='block-h'>📓 2 · The Book — what do I do with what I hold?</div><div class='flagbar'><span class='flag flag-scale'>💰 1 SCALE ½ — lock it, don't round-trip</span></div><table class='tbl'><thead><tr><th>TKR</th><th>Now</th><th>P/L%</th><th>$P/L</th><th>%Bk</th><th>ATR%</th><th>St</th><th>Verdict</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=DAVE' target='_blank'>DAVE</a></td><td class='mono'>$442.53</td><td class='mono heat-pos'>+53.1%</td><td class='mono heat-pos'>$1,535</td><td class='mono'>2%</td><td class='mono'>5.4</td><td class='mono'>2P</td><td>💰 PEEL ½ (T1 rule) · ext +20% S20</td></tr></tbody></table></div>
+<p class="subtitle">One pane, one decision · Fri 17 Jul 2026 · 08:33 UTC</p>
+
+<div class='banner'><div class='banner-line'>Capital preservation mode — today, NOT trading is the winning trade. Cash is a position.</div><div class='banner-meta'>NORMAL mode · 6W streak · $183,226 · 122% of $150,000 goal</div></div>
+<div class='block'><div class='block-h'>🚦 1 · The Gate — can I trade today?</div><div class='gate gate-red'><div class='gate-top'><span class='gate-state'>RED</span><span class='gate-action'>NO NEW ENTRIES</span></div><div class='gate-headline'>Gate closed. Manage the book — do not add risk.</div><div class='gate-detail'>ETF regime late-rotation</div><div class='gate-foot'>Position cap 5 · SPY 751 (+0.9% vs 50MA) · cohort <span class='cohort-pill cohort-carnage'>CARNAGE (46)</span> · as of 2026-07-17</div></div></div>
+<div class='block'><div class='block-h'>📓 2 · The Book — what do I do with what I hold?</div><div class='flagbar'><span class='flag flag-scale'>💰 1 SCALE ½ — lock it, don't round-trip</span></div><table class='tbl'><thead><tr><th>TKR</th><th>Now</th><th>P/L%</th><th>$P/L</th><th>%Bk</th><th>ATR%</th><th>St</th><th>Verdict</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=DAVE' target='_blank'>DAVE</a></td><td class='mono'>$447.46</td><td class='mono heat-pos'>+54.8%</td><td class='mono heat-pos'>$1,585</td><td class='mono'>2%</td><td class='mono'>5.3</td><td class='mono'>2P</td><td>💰 PEEL ½ (T1 rule)</td></tr></tbody></table></div>
 <div class='block'><div class='block-h'>🎯 3 · Qualified Today — names that clear every gate</div><div class='empty win'>0 setups clear every gate today. Nothing meets the standard — that's patience, not a miss.</div></div>
-<div class='block'><div class='block-h'>🎯 4 · Radar — top 5 entry-ready · top 5 focus</div><div class='watchonly'>⚠ Gate is closed — radar is WATCH-ONLY today, not a shopping list.</div><div class='radar-grid radar-closed'><div><div class='radar-h'>🎯 Top 5 Entry-Ready</div><table class='tbl'><thead><tr><th>TKR</th><th>Q</th><th>21EMA</th><th>vs High</th><th>Trigger</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=FRO' target='_blank'>FRO</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=LQDA' target='_blank'>LQDA</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=TGTX' target='_blank'>TGTX</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=AMN' target='_blank'>AMN</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=HALO' target='_blank'>HALO</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr></tbody></table></div><div><div class='radar-h'>🔭 Top 5 Focus</div><table class='tbl'><thead><tr><th>TKR</th><th>Q</th><th>21EMA</th><th>vs High</th><th>Trigger</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=CIEN' target='_blank'>CIEN</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=VG' target='_blank'>VG</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=NVT' target='_blank'>NVT</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=STX' target='_blank'>STX</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=LUNR' target='_blank'>LUNR</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr></tbody></table></div></div></div>
-<div class='block'><div class='block-h'>🗺 5 · Leadership — where money is flowing</div><div class='lead-group lead-in'><div class='lead-label'>💸 Money flowing IN (5d) <span class='lead-meaning'>climbing the RS ranks with strength already ≥50 — screen these groups first</span></div><div class='lead-chips'><span class='lchip lchip-flow' title='Oil & Gas E&P'>XOP · up 25 · RS 84 · NEUTRAL</span> <span class='lchip lchip-flow' title='Energy'>XLE · up 25 · RS 75 · NEUTRAL</span> <span class='lchip lchip-flow' title='NatGas'>FCG · up 15 · RS 51 · BROKEN</span> <span class='lchip lchip-flow' title='China Internet'>KWEB · up 14 · RS 86 · BROKEN</span> <span class='lchip lchip-flow' title='Medical Devices'>IHI · up 14 · RS 79 · BROKEN</span></div></div><div class='lead-group lead-out'><div class='lead-label'>💨 Flowing OUT <span class='lead-meaning'>ARKK down 20 · ITA down 17 · SMH down 17</span></div></div><div class='lead-group lead-base'><div class='lead-label'>🎯 Bases worth screening <span class='lead-meaning'>tight structure AND holding/gaining relative strength — weak bases are dropped</span></div><div class='lead-chips'><span class='lchip lchip-base' title='US Infrastructure'>PAVE · RS 44 · up 4</span> <span class='lchip lchip-base' title='Industrials'>XLI · RS 53 · down 9</span> <span class='lchip lchip-base' title='Cons Staples'>XLP · RS 55 · up 8</span></div></div><div class='lead-regime'>Regime: <b>late-rotation</b>. leadership is narrowing. Trim ≥+25% positions, skip extended names, take only fresh RS-rising leaders with peel-warn room. …but the RS spread is wide (97 pts top to bottom) — leaders exist: ARKG (RS 97) and HACK (RS 95).</div><div class='lead-foot'><a href='etf_rotation.html'>Full rotation dashboard →</a></div></div>
+<div class='block'><div class='block-h'>🎯 4 · Radar — top 5 entry-ready · top 5 focus</div><div class='watchonly'>⚠ Gate is closed — radar is WATCH-ONLY today, not a shopping list.</div><div class='radar-grid radar-closed'><div><div class='radar-h'>🎯 Top 5 Entry-Ready</div><table class='tbl'><thead><tr><th>TKR</th><th>Q</th><th>21EMA</th><th>vs High</th><th>Trigger</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=FRO' target='_blank'>FRO</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=LQDA' target='_blank'>LQDA</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=TGTX' target='_blank'>TGTX</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=HALO' target='_blank'>HALO</a></td><td class='mono'>—</td><td class='mono'>—</td><td class='mono'>—</td><td>no fresh screener data — check chart</td></tr></tbody></table></div><div><div class='radar-h'>🔭 Top 5 Focus</div><table class='tbl'><thead><tr><th>TKR</th><th>Q</th><th>21EMA</th><th>vs High</th><th>Trigger</th></tr></thead><tbody><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=BAP' target='_blank'>BAP</a></td><td class='mono'>72</td><td class='mono'>-0.4%</td><td class='mono'>-4.5%</td><td>at 21 EMA — buy the hold</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=NBIX' target='_blank'>NBIX</a></td><td class='mono'>106</td><td class='mono'>+1.0%</td><td class='mono'>-5.3%</td><td>at 21 EMA — buy the hold</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=NESR' target='_blank'>NESR</a></td><td class='mono'>94</td><td class='mono'>+1.8%</td><td class='mono'>-8.0%</td><td>pullback to ~$27.38</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=XMTR' target='_blank'>XMTR</a></td><td class='mono'>88</td><td class='mono'>+2.7%</td><td class='mono'>-3.5%</td><td>pullback to ~$93.89</td></tr><tr><td class='bold'><a href='https://finviz.com/quote.ashx?t=ECPG' target='_blank'>ECPG</a></td><td class='mono'>72</td><td class='mono'>+3.4%</td><td class='mono'>-2.4%</td><td>pivot ~$94.60</td></tr></tbody></table></div></div></div>
+<div class='block'><div class='block-h'>🗺 5 · Leadership — where money is flowing</div><div class='lead-group lead-in'><div class='lead-label'>💸 Money flowing IN (5d) <span class='lead-meaning'>climbing the RS ranks with strength already ≥50 — screen these groups first</span></div><div class='lead-chips'><span class='lchip lchip-flow' title='Oil & Gas E&P'>XOP · up 34 · RS 84 · NEUTRAL</span> <span class='lchip lchip-flow' title='Energy'>XLE · up 28 · RS 75 · NEUTRAL</span> <span class='lchip lchip-flow' title='China Internet'>KWEB · up 25 · RS 86 · BROKEN</span> <span class='lchip lchip-flow' title='NatGas'>FCG · up 22 · RS 51 · BROKEN</span> <span class='lchip lchip-flow' title='Software'>IGV · up 16 · RS 70 · BROKEN</span></div></div><div class='lead-group lead-out'><div class='lead-label'>💨 Flowing OUT <span class='lead-meaning'>SMH down 22 · URNM down 21 · ARKK down 20</span></div></div><div class='lead-group lead-base'><div class='lead-label'>🎯 Bases worth screening <span class='lead-meaning'>tight structure AND holding/gaining relative strength — weak bases are dropped</span></div><div class='lead-chips'><span class='lchip lchip-base' title='Industrials'>XLI · RS 53 · down 13</span> <span class='lchip lchip-base' title='Cons Staples'>XLP · RS 55 · up 15</span></div></div><div class='lead-regime'>Regime: <b>late-rotation</b>. leadership is narrowing. Trim ≥+25% positions, skip extended names, take only fresh RS-rising leaders with peel-warn room. …but the RS spread is wide (97 pts top to bottom) — leaders exist: ARKG (RS 97) and HACK (RS 95).</div><div class='lead-foot'><a href='etf_rotation.html'>Full rotation dashboard →</a></div></div>
 <div class='block'><div class='block-h'>📊 6 · The Record — am I improving?</div><div class='stat-grid'><div class='stat'><div class='stat-l'>Win rate</div><div class='stat-v'>43%</div><div class='stat-s'>35W / 47L</div></div><div class='stat'><div class='stat-l'>Avg win vs loss</div><div class='stat-v'>+11.0% / -5.6%</div><div class='stat-s'>payoff 2.0× — ⚠ winners must be bigger — tighten cuts / let winners run</div></div><div class='stat'><div class='stat-l'>Sizing mode</div><div class='stat-v'>NORMAL</div><div class='stat-s'>6W / 0L streak</div></div></div></div>
-<div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode · spec: docs/specs/daily-cockpit.md</div>
+<div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode</div>
+
 </body></html>

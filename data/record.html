@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>The Record</title>
+
+<style>/* BASE_CSS v1 — one design system (docs/specs/cx-rehaul.md) */
+:root{
+  --bg:#0b1220; --surface:#101a2c; --surface2:#16233a; --border:#223049;
+  --text:#dbe4f0; --head:#f1f5f9; --muted:#8b98ab; --link:#60a5fa;
+  --green:#4ade80; --green-bg:#0b3b2b; --green-text:#6ee7b7; --green-strong:#15803d;
+  --red:#f87171; --red-bg:#431418; --red-text:#fca5a5; --red-strong:#b91c1c;
+  --amber:#fcd34d; --amber-bg:#3a2b09; --amber-strong:#b45309;
+  --blue-bg:#14233f; --blue-text:#93c5fd;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:var(--bg);color:var(--text);padding:20px;max-width:1280px;margin:0 auto}
+h1{font-size:1.35rem;font-weight:800;color:var(--head);margin-bottom:4px}
+h2{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+   letter-spacing:.08em;margin:26px 0 12px}
+.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:18px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-variant-numeric:tabular-nums}
+.bold{font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:var(--surface);
+     border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;
+        border-bottom:1px solid var(--border);text-transform:uppercase;
+        font-size:.64rem;letter-spacing:.05em;background:var(--surface2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.66rem;font-weight:700}
+.chip{display:inline-block;padding:3px 10px;margin:2px 4px;border-radius:999px;
+      background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:.8rem}
+.chip:hover{border-color:var(--link);text-decoration:none}
+.empty{color:var(--muted);font-size:.85rem;padding:18px;text-align:center;
+       background:var(--surface);border:1px dashed var(--border);border-radius:10px}
+.footer{margin-top:28px;font-size:.7rem;color:var(--muted)}
+details{margin:10px 0}
+details>summary{cursor:pointer;font-weight:700;color:var(--head);padding:8px 0;
+                font-size:.92rem;border-bottom:1px solid var(--border);list-style:none;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";color:var(--muted);font-size:.8rem}
+details[open]>summary::before{content:"▾ "}
+details>summary:hover{color:var(--link)}
+.heat-pos{background:var(--green-bg);color:var(--green-text)}
+.heat-neg{background:var(--red-bg);color:var(--red-text)}
+.heat-zero{color:var(--muted)}
+@media (max-width:640px){body{padding:12px}}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab-btn{padding:10px 16px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface);color:var(--muted);font-size:.84rem;font-weight:700;cursor:pointer}
+.tab-btn.active{background:#1c3157;color:var(--head);border-color:var(--link)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.tab-frame{width:100%;height:calc(100vh - 190px);min-height:520px;border:1px solid var(--border);
+  border-radius:10px;background:#fff}
+.mirror-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+</style>
+</head><body>
+<style>
+.site-nav{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:#101a2c;border:1px solid #223049;border-radius:10px;padding:4px;
+  margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;
+  border-radius:8px;font-size:.84rem;font-weight:600;color:#a5b1c4;
+  text-decoration:none;white-space:nowrap;flex-shrink:0}
+.site-nav a:hover{color:#f1f5f9;background:#16233a;text-decoration:none}
+.site-nav a.nav-active{color:#f1f5f9;background:#1c3157}
+.site-nav::-webkit-scrollbar{height:0}
+</style><nav class="site-nav"><a href="../index.html?v=417290d">⌂</a><a href="daily.html?v=417290d">☀️ Cockpit</a><a href="etf_rotation.html?v=417290d">💰 Flow</a><a href="live_portfolio.html?v=417290d">📓 Book</a><a href="claude_portfolio.html?v=417290d">🤖 Paper</a><a href="../watchlist.html?v=417290d">👀 Watchlist</a><a href="finviz_chart_grid_2026-07-17.html?v=417290d">🖼 Charts</a><a href="record.html?v=417290d" class="nav-active">📈 Record</a></nav>
+<h1>📈 The Record — am I improving?</h1>
+<p class="subtitle">Performance · MAE/MFE · Trader Mirror in one place · 17 Jul 2026 08:33 UTC</p>
+<div class="tabs"><button class="tab-btn active" onclick="showTab('perf26', this)">Performance 2026 YTD</button><button class="tab-btn" onclick="showTab('perf2425', this)">Performance 2024–25</button><button class="tab-btn" onclick="showTab('mae', this)">MAE / MFE</button><button class="tab-btn" onclick="showTab('mirror', this)">Trader Mirror</button></div><div id="pane-perf26" class="tab-pane active"><iframe class="tab-frame" src="performance_2026.html" title="Performance 2026 YTD"></iframe></div><div id="pane-perf2425" class="tab-pane"><iframe class="tab-frame" data-src="performance_charts.html" title="Performance 2024–25"></iframe></div><div id="pane-mae" class="tab-pane"><iframe class="tab-frame" data-src="mae_analysis.html" title="MAE / MFE"></iframe></div><div id="pane-mirror" class="tab-pane"><div class="empty">Trader Mirror — no report generated yet. It will appear here on its next run.</div></div>
+<script>
+function showTab(key, btn) {
+  document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  var pane = document.getElementById('pane-' + key);
+  if (pane) pane.classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Lazy-load the iframe on first activation
+  if (pane) {
+    var f = pane.querySelector('iframe[data-src]');
+    if (f && !f.getAttribute('src')) f.setAttribute('src', f.getAttribute('data-src'));
+  }
+}
+</script>
+</body></html>

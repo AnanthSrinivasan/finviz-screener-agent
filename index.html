@@ -1,198 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Finviz Screener Agent</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #f8f9fc; color: #111827; min-height: 100vh; }
 
-  /* Hero */
-  .hero { padding: 48px 32px 40px; border-bottom: 1px solid #e5e7eb; background: #fff; }
-  .hero h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; color: #111827; }
-  .hero p { color: #6b7280; font-size: 0.88rem; margin-bottom: 24px; }
-  .hero-links { display: flex; gap: 12px; flex-wrap: wrap; }
-  .hero-btn { display: inline-flex; align-items: center; gap: 6px;
-               padding: 10px 20px; border-radius: 8px; font-size: 0.88rem;
-               font-weight: 600; text-decoration: none; transition: opacity .15s; }
-  .hero-btn:hover { opacity: .85; }
-  .btn-weekly { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-  .btn-daily  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-  .btn-cockpit { background: #111827; color: #fff; border: 1px solid #111827; font-weight: 700; }
-  .btn-dash   { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
-  .btn-perf   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
-  .btn-mae       { background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }
-  .btn-watchlist { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-  .btn-portfolio { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
-  .btn-live-portfolio { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-  .btn-etf       { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+<style>/* BASE_CSS v1 — one design system (docs/specs/cx-rehaul.md) */
+:root{
+  --bg:#0b1220; --surface:#101a2c; --surface2:#16233a; --border:#223049;
+  --text:#dbe4f0; --head:#f1f5f9; --muted:#8b98ab; --link:#60a5fa;
+  --green:#4ade80; --green-bg:#0b3b2b; --green-text:#6ee7b7; --green-strong:#15803d;
+  --red:#f87171; --red-bg:#431418; --red-text:#fca5a5; --red-strong:#b91c1c;
+  --amber:#fcd34d; --amber-bg:#3a2b09; --amber-strong:#b45309;
+  --blue-bg:#14233f; --blue-text:#93c5fd;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:var(--bg);color:var(--text);padding:20px;max-width:1280px;margin:0 auto}
+h1{font-size:1.35rem;font-weight:800;color:var(--head);margin-bottom:4px}
+h2{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+   letter-spacing:.08em;margin:26px 0 12px}
+.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:18px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+.mono{font-variant-numeric:tabular-nums}
+.bold{font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:var(--surface);
+     border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tbl th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;
+        border-bottom:1px solid var(--border);text-transform:uppercase;
+        font-size:.64rem;letter-spacing:.05em;background:var(--surface2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.66rem;font-weight:700}
+.chip{display:inline-block;padding:3px 10px;margin:2px 4px;border-radius:999px;
+      background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:.8rem}
+.chip:hover{border-color:var(--link);text-decoration:none}
+.empty{color:var(--muted);font-size:.85rem;padding:18px;text-align:center;
+       background:var(--surface);border:1px dashed var(--border);border-radius:10px}
+.footer{margin-top:28px;font-size:.7rem;color:var(--muted)}
+details{margin:10px 0}
+details>summary{cursor:pointer;font-weight:700;color:var(--head);padding:8px 0;
+                font-size:.92rem;border-bottom:1px solid var(--border);list-style:none;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";color:var(--muted);font-size:.8rem}
+details[open]>summary::before{content:"▾ "}
+details>summary:hover{color:var(--link)}
+.heat-pos{background:var(--green-bg);color:var(--green-text)}
+.heat-neg{background:var(--red-bg);color:var(--red-text)}
+.heat-zero{color:var(--muted)}
+@media (max-width:640px){body{padding:12px}}
 
-  /* Stats bar */
-  .stats { display: flex; gap: 32px; padding: 20px 32px;
-            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; background: #fff; }
-  .stat { display: flex; flex-direction: column; gap: 2px; }
-  .stat-val { font-size: 1.4rem; font-weight: 700; color: #111827; }
-  .stat-label { font-size: 0.72rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }
-
-  /* Sections */
-  .section { padding: 28px 32px; background: #fff; }
-  .section + .section { border-top: 1px solid #e5e7eb; }
-  .section h2 { font-size: 0.78rem; font-weight: 700; color: #6b7280;
-                 text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
-
-  /* Cards */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-  .card { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px;
-           border-radius: 10px; text-decoration: none; transition: border-color .15s, box-shadow .15s;
-           border: 1px solid #e5e7eb; background: #fff; }
-  .card:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
-  .card-weekly { background: #eff6ff; border-color: #dbeafe; }
-  .card-daily  { background: #f0fdf4; border-color: #dcfce7; }
-  .card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
-  .card-weekly .card-label { color: #1d4ed8; }
-  .card-daily  .card-label { color: #15803d; }
-  .card-date { font-size: 0.88rem; font-weight: 600; color: #111827; }
-  .card-ago  { font-size: 0.72rem; color: #9ca3af; }
-
-  /* Footer */
-  .footer { padding: 20px 32px; border-top: 1px solid #e5e7eb;
-             font-size: 0.72rem; color: #9ca3af; background: #fff; }
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:22px 20px;margin-bottom:18px}
+.hero p{color:var(--muted);font-size:.82rem;margin:4px 0 16px}
+.btn-cockpit{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;
+  border-radius:10px;background:#1c3157;border:1px solid var(--link);color:var(--head);
+  font-size:1rem;font-weight:800;text-decoration:none}
+.btn-cockpit:hover{background:#234070;text-decoration:none}
+.weekly-card{display:block;background:var(--surface);border:1px solid var(--border);
+  border-left:4px solid var(--link);border-radius:10px;padding:14px 16px;margin-bottom:18px;
+  text-decoration:none}
+.weekly-card:hover{border-color:var(--link);text-decoration:none}
+.weekly-card .wl{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;
+  font-weight:700;color:var(--link)}
+.weekly-card .wd{font-size:.95rem;font-weight:700;color:var(--head);margin-top:2px}
+.weekly-card .wa{font-size:.72rem;color:var(--muted)}
+.archive-links{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0}
+.archive-links a{font-size:.76rem;padding:5px 10px;border-radius:6px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);white-space:nowrap}
+.archive-links a:hover{border-color:var(--link);text-decoration:none}
 </style>
-</head>
-<body>
+</head><body>
+<style>
+.site-nav{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:#101a2c;border:1px solid #223049;border-radius:10px;padding:4px;
+  margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;
+  border-radius:8px;font-size:.84rem;font-weight:600;color:#a5b1c4;
+  text-decoration:none;white-space:nowrap;flex-shrink:0}
+.site-nav a:hover{color:#f1f5f9;background:#16233a;text-decoration:none}
+.site-nav a.nav-active{color:#f1f5f9;background:#1c3157}
+.site-nav::-webkit-scrollbar{height:0}
+</style><nav class="site-nav"><a href="index.html?v=417290d" class="nav-active">⌂</a><a href="data/daily.html?v=417290d">☀️ Cockpit</a><a href="data/etf_rotation.html?v=417290d">💰 Flow</a><a href="data/live_portfolio.html?v=417290d">📓 Book</a><a href="data/claude_portfolio.html?v=417290d">🤖 Paper</a><a href="watchlist.html?v=417290d">👀 Watchlist</a><a href="data/finviz_chart_grid_2026-07-17.html?v=417290d">🖼 Charts</a><a href="data/record.html?v=417290d">📈 Record</a></nav>
 
-<div class="hero">
-  <h1>📈 Finviz Screener Agent</h1>
-  <p>Daily momentum screener · Weekly persistence review · Auto-generated 16 Jul 2026 23:32 UTC</p>
-  <div class="hero-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/daily.html?v=baef529" class="hero-btn btn-cockpit">☀️ Daily Cockpit</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/dashboard.html?v=baef529" class="hero-btn btn-dash">Dashboard</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/live_portfolio.html?v=baef529" class="hero-btn btn-live-portfolio">Live Portfolio</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/claude_portfolio.html?v=baef529" class="hero-btn btn-portfolio">Claude Portfolio</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/watchlist.html?v=baef529" class="hero-btn btn-watchlist">Watchlist</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/etf_rotation.html?v=baef529" class="hero-btn btn-etf">ETF Rotation</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-11.html?v=baef529" class="hero-btn btn-weekly">Latest Weekly Review</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-16.html?v=baef529" class="hero-btn btn-daily">Latest Chart Gallery</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/performance_charts.html?v=baef529" class="hero-btn btn-perf">Performance 2024–25</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/performance_2026.html?v=baef529" class="hero-btn btn-perf">Performance 2026 YTD</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/mae_analysis.html?v=baef529" class="hero-btn btn-mae">MAE / MFE Analysis</a></div>
-</div>
 
-<div class="stats">
-  <div class="stat">
-    <span class="stat-val">50</span>
-    <span class="stat-label">Daily reports</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">13</span>
-    <span class="stat-label">Weekly reviews</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">2026-07-16</span>
-    <span class="stat-label">Last daily run</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">2026-07-11</span>
-    <span class="stat-label">Last weekly run</span>
-  </div>
-</div>
+<div class="hero"><h1>📈 Finviz Screener Agent</h1><p>Daily screener · position monitor · money flow · generated 17 Jul 2026 10:33 UTC</p><a class="btn-cockpit" href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/daily.html?v=417290d">☀️ Open Cockpit</a></div><a class="weekly-card" href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-11.html?v=417290d"><div class="wl">Latest Weekly Review</div><div class="wd">Sat 11 Jul 2026</div><div class="wa">6d ago</div></a><h2>📚 Report Archive</h2><details><summary>Weekly Reviews (13)</summary><div class="archive-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-11.html?v=417290d">2026-07-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-04.html?v=417290d">2026-07-04</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-27.html?v=417290d">2026-06-27</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-20.html?v=417290d">2026-06-20</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-13.html?v=417290d">2026-06-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-06.html?v=417290d">2026-06-06</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-02.html?v=417290d">2026-06-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-30.html?v=417290d">2026-05-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-23.html?v=417290d">2026-05-23</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-17.html?v=417290d">2026-05-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-16.html?v=417290d">2026-05-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-10.html?v=417290d">2026-05-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-09.html?v=417290d">2026-05-09</a></div></details><details><summary>Daily Chart Galleries (50)</summary><div class="archive-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-17.html?v=417290d">2026-07-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-16.html?v=417290d">2026-07-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-15.html?v=417290d">2026-07-15</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-14.html?v=417290d">2026-07-14</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-13.html?v=417290d">2026-07-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-10.html?v=417290d">2026-07-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-09.html?v=417290d">2026-07-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-08.html?v=417290d">2026-07-08</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-07.html?v=417290d">2026-07-07</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-06.html?v=417290d">2026-07-06</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-03.html?v=417290d">2026-07-03</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-02.html?v=417290d">2026-07-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-01.html?v=417290d">2026-07-01</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-30.html?v=417290d">2026-06-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-29.html?v=417290d">2026-06-29</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-26.html?v=417290d">2026-06-26</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-24.html?v=417290d">2026-06-24</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-23.html?v=417290d">2026-06-23</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-19.html?v=417290d">2026-06-19</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-18.html?v=417290d">2026-06-18</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-17.html?v=417290d">2026-06-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-16.html?v=417290d">2026-06-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-13.html?v=417290d">2026-06-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-12.html?v=417290d">2026-06-12</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-11.html?v=417290d">2026-06-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-10.html?v=417290d">2026-06-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-09.html?v=417290d">2026-06-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-08.html?v=417290d">2026-06-08</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-05.html?v=417290d">2026-06-05</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-04.html?v=417290d">2026-06-04</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-03.html?v=417290d">2026-06-03</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-02.html?v=417290d">2026-06-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-06-01.html?v=417290d">2026-06-01</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-31.html?v=417290d">2026-05-31</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-30.html?v=417290d">2026-05-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-29.html?v=417290d">2026-05-29</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-28.html?v=417290d">2026-05-28</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-27.html?v=417290d">2026-05-27</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-25.html?v=417290d">2026-05-25</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-22.html?v=417290d">2026-05-22</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-21.html?v=417290d">2026-05-21</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-19.html?v=417290d">2026-05-19</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-18.html?v=417290d">2026-05-18</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-15.html?v=417290d">2026-05-15</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-14.html?v=417290d">2026-05-14</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-13.html?v=417290d">2026-05-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-12.html?v=417290d">2026-05-12</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-11.html?v=417290d">2026-05-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-09.html?v=417290d">2026-05-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-05-08.html?v=417290d">2026-05-08</a></div></details><details><summary>Daily Screener Tables (51)</summary><div class="archive-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-17.html?v=417290d">2026-07-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-16.html?v=417290d">2026-07-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-15.html?v=417290d">2026-07-15</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-14.html?v=417290d">2026-07-14</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-13.html?v=417290d">2026-07-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-10.html?v=417290d">2026-07-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-09.html?v=417290d">2026-07-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-08.html?v=417290d">2026-07-08</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-07.html?v=417290d">2026-07-07</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-06.html?v=417290d">2026-07-06</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-03.html?v=417290d">2026-07-03</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-02.html?v=417290d">2026-07-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-07-01.html?v=417290d">2026-07-01</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-30.html?v=417290d">2026-06-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-29.html?v=417290d">2026-06-29</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-26.html?v=417290d">2026-06-26</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-25.html?v=417290d">2026-06-25</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-24.html?v=417290d">2026-06-24</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-23.html?v=417290d">2026-06-23</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-19.html?v=417290d">2026-06-19</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-18.html?v=417290d">2026-06-18</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-17.html?v=417290d">2026-06-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-16.html?v=417290d">2026-06-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-13.html?v=417290d">2026-06-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-12.html?v=417290d">2026-06-12</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-11.html?v=417290d">2026-06-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-10.html?v=417290d">2026-06-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-09.html?v=417290d">2026-06-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-08.html?v=417290d">2026-06-08</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-05.html?v=417290d">2026-06-05</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-04.html?v=417290d">2026-06-04</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-03.html?v=417290d">2026-06-03</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-02.html?v=417290d">2026-06-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-06-01.html?v=417290d">2026-06-01</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-31.html?v=417290d">2026-05-31</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-30.html?v=417290d">2026-05-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-29.html?v=417290d">2026-05-29</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-28.html?v=417290d">2026-05-28</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-27.html?v=417290d">2026-05-27</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-25.html?v=417290d">2026-05-25</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-22.html?v=417290d">2026-05-22</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-21.html?v=417290d">2026-05-21</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-19.html?v=417290d">2026-05-19</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-18.html?v=417290d">2026-05-18</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-15.html?v=417290d">2026-05-15</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-14.html?v=417290d">2026-05-14</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-13.html?v=417290d">2026-05-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-12.html?v=417290d">2026-05-12</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-11.html?v=417290d">2026-05-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-09.html?v=417290d">2026-05-09</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_screeners_2026-05-08.html?v=417290d">2026-05-08</a></div></details><details><summary>Weekly Persistence CSVs (13)</summary><div class="archive-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-07-11.csv?v=417290d">2026-07-11</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-07-04.csv?v=417290d">2026-07-04</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-06-27.csv?v=417290d">2026-06-27</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-06-20.csv?v=417290d">2026-06-20</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-06-13.csv?v=417290d">2026-06-13</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-06-06.csv?v=417290d">2026-06-06</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-06-02.csv?v=417290d">2026-06-02</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-30.csv?v=417290d">2026-05-30</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-23.csv?v=417290d">2026-05-23</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-17.csv?v=417290d">2026-05-17</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-16.csv?v=417290d">2026-05-16</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-10.csv?v=417290d">2026-05-10</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_persistence_2026-05-09.csv?v=417290d">2026-05-09</a></div></details><details><summary>Performance &amp; analysis (5)</summary><div class="archive-links"><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/record.html?v=417290d">📈 The Record (tabs)</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/performance_2026.html?v=417290d">Performance 2026 YTD</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/performance_charts.html?v=417290d">Performance 2024–25</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/mae_analysis.html?v=417290d">MAE / MFE Analysis</a><a href="https://ananthsrinivasan.github.io/finviz-screener-agent/dashboard.html?v=417290d">Retired positions dashboard (snapshot)</a></div></details><div class="footer">Generated 17 Jul 2026 10:33 UTC · <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent">github.com/AnanthSrinivasan/finviz-screener-agent</a></div>
 
-<div class='section'><h2>Weekly Reviews</h2><div class='cards'>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-11.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 11 Jul 2026</div>
-          <div class="card-ago">5d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-07-04.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 04 Jul 2026</div>
-          <div class="card-ago">12d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-27.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 27 Jun 2026</div>
-          <div class="card-ago">19d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-20.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 20 Jun 2026</div>
-          <div class="card-ago">26d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-13.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 13 Jun 2026</div>
-          <div class="card-ago">33d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-06.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 06 Jun 2026</div>
-          <div class="card-ago">40d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-06-02.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Tue 02 Jun 2026</div>
-          <div class="card-ago">44d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_weekly_2026-05-30.html?v=baef529" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">Sat 30 May 2026</div>
-          <div class="card-ago">47d ago</div>
-        </a></div></div>
-
-<div class="section">
-  <h2>Daily Chart Galleries</h2>
-  <div class="cards">
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-16.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Thu 16 Jul 2026</div>
-          <div class="card-ago">today</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-15.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Wed 15 Jul 2026</div>
-          <div class="card-ago">yesterday</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-14.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Tue 14 Jul 2026</div>
-          <div class="card-ago">2d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-13.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Mon 13 Jul 2026</div>
-          <div class="card-ago">3d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-10.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Fri 10 Jul 2026</div>
-          <div class="card-ago">6d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-09.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Thu 09 Jul 2026</div>
-          <div class="card-ago">7d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-08.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Wed 08 Jul 2026</div>
-          <div class="card-ago">8d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-07.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Tue 07 Jul 2026</div>
-          <div class="card-ago">9d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-06.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Mon 06 Jul 2026</div>
-          <div class="card-ago">10d ago</div>
-        </a>
-        <a href="https://ananthsrinivasan.github.io/finviz-screener-agent/data/finviz_chart_grid_2026-07-03.html?v=baef529" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">Fri 03 Jul 2026</div>
-          <div class="card-ago">13d ago</div>
-        </a></div>
-</div>
-
-<div class="footer">
-  Generated 16 Jul 2026 23:32 UTC · 
-  <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent" 
-     style="color:#9ca3af">github.com/AnanthSrinivasan/finviz-screener-agent</a>
-</div>
-
-</body>
-</html>
+</body></html>
