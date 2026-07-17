@@ -32,6 +32,7 @@ DATA_DIR           = os.environ.get("DATA_DIR", "data")
 HISTORY_FILE       = os.path.join(DATA_DIR, "market_monitor_history.json")
 TRADING_STATE_FILE = os.path.join(DATA_DIR, "trading_state.json")
 from utils.events import _append_recent_event
+from agents.utils.finviz_table import extract_ticker
 SLACK_WEBHOOK_ALERTS = os.environ.get("SLACK_WEBHOOK_MARKET_ALERTS", "")
 FETCH_DELAY        = int(os.environ.get("MONITOR_FETCH_DELAY", "7"))
 
@@ -202,7 +203,7 @@ def fetch_screener_count(session: requests.Session, url: str, label: str = "") -
         for row in first_page_soup.select('tr[valign="top"]'):
             cols = row.find_all('td')
             if len(cols) >= 2:
-                ticker = cols[1].text.strip()
+                ticker = extract_ticker(cols[1])
                 if ticker:
                     seen.add(ticker)
         if len(seen) < 20:
@@ -224,7 +225,7 @@ def fetch_screener_count(session: requests.Session, url: str, label: str = "") -
             for row in rows:
                 cols = row.find_all('td')
                 if len(cols) >= 2:
-                    ticker = cols[1].text.strip()
+                    ticker = extract_ticker(cols[1])
                     if ticker and ticker not in seen:
                         seen.add(ticker)
                         new_this_page += 1

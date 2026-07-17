@@ -12,6 +12,7 @@ import time
 import random
 import os
 import logging
+from agents.utils.finviz_table import extract_ticker
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -203,9 +204,10 @@ def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
                 if cols:
                     log.debug(f"Skipping row with unexpected col count: {len(cols)}")
                 continue
-            ticker = cols[1].text.strip()
+            ticker = extract_ticker(cols[1])
             if ticker and ticker not in seen:
-                combined.append([c.text.strip() for c in cols])
+                combined.append([cols[0].text.strip(), ticker]
+                                + [c.text.strip() for c in cols[2:]])
                 seen.add(ticker)
                 new_data = True
                 vol_txt, price_txt, _chg = classify_screener_tail(

@@ -31,13 +31,18 @@ from agents.alerts.earnings_alert import find_upcoming_earnings
 # ----------------------------
 
 def make_mock_screener_html(tickers: list) -> str:
-    """Build a minimal Finviz screener HTML page with the given tickers."""
+    """Build a minimal Finviz screener HTML page with the given tickers.
+
+    Mirrors the real post-2026-07-17 ticker cell: a company-logo link whose
+    fallback ``<span>`` holds the ticker's FIRST LETTER, then the real
+    ``a.tab-link``. A naive ``td.text`` read returns "AAAPL" for AAPL — the
+    doubled-first-letter regression this fixture exists to catch."""
     rows = ""
     for i, t in enumerate(tickers):
         rows += f"""
         <tr valign="top">
             <td>{i+1}</td>
-            <td>{t}</td>
+            <td align="left" data-boxover-ticker="{t}"><span class="flex items-center gap-1 pl-0.5"><a class="company-ticker" href="stock?t={t}&amp;ty=c"><img alt="{t} logo" src="https://logo.finviz.com/{t}.svg"><span>{t[0]}</span></img></a><a class="tab-link" href="stock?t={t}&amp;ty=c">{t}</a></span></td>
             <td>{t} Inc</td>
             <td>Technology</td>
             <td>Semiconductors</td>
@@ -1099,6 +1104,52 @@ class TestIsStageTransition(unittest.TestCase):
         row = self._row(ticker="AMAT", industry="Semiconductor Equipment & Materials")
         snap = self._snapshot(etf="SMH", rank_delta_5d=-7)
         self.assertTrue(_is_stage_transition(row, set(), set(), snap))
+
+
+# ----------------------------
+# Tests: screener-table ticker extraction (2026-07-17 logo-cell regression)
+# ----------------------------
+
+class TestExtractTicker(unittest.TestCase):
+    """Finviz added a logo element to the v=111 ticker cell whose fallback
+    <span> holds the ticker's first letter — bare td.text doubles it
+    ("AAPL" → "AAAPL") and every snapshot fetch 404s."""
+
+    def _td(self, html):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, "html.parser").find("td")
+
+    def test_logo_cell_text_is_doubled_but_extract_is_clean(self):
+        td = self._td(
+            '<td data-boxover-ticker="AAPL"><span>'
+            '<a class="company-ticker" href="stock?t=AAPL">'
+            '<img src="x.svg"><span>A</span></img></a>'
+            '<a class="tab-link" href="stock?t=AAPL">AAPL</a></span></td>')
+        from agents.utils.finviz_table import extract_ticker
+        self.assertEqual(td.text.strip(), "AAAPL")  # the bug shape
+        self.assertEqual(extract_ticker(td), "AAPL")
+
+    def test_tab_link_fallback_when_attr_missing(self):
+        td = self._td(
+            '<td><span><a class="company-ticker"><span>N</span></a>'
+            '<a class="tab-link">NVDA</a></span></td>')
+        from agents.utils.finviz_table import extract_ticker
+        self.assertEqual(extract_ticker(td), "NVDA")
+
+    def test_legacy_plain_cell(self):
+        from agents.utils.finviz_table import extract_ticker
+        self.assertEqual(extract_ticker(self._td("<td>MSFT</td>")), "MSFT")
+
+    @patch("agents.screener.finviz_agent.session")
+    def test_fetch_all_tickers_clean_on_logo_cells(self, mock_session):
+        from agents.screener.finviz_agent import fetch_all_tickers
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.text = make_mock_screener_html(["AAPL", "MSFT", "NVDA"])
+        mock_session.get.return_value = mock_resp
+        df, meta = fetch_all_tickers("http://fake-url", max_pages=1)
+        self.assertEqual(sorted(df["Ticker"].tolist()), ["AAPL", "MSFT", "NVDA"])
+        self.assertEqual(sorted(meta.keys()), ["AAPL", "MSFT", "NVDA"])
 
 
 if __name__ == "__main__":
