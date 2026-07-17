@@ -60,6 +60,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/sector_rotation_*.json data/sector_rotation_history.json data/etf_rotation.html data/etf_rotation.json
+          git add data/theme_rotation_history.json 2>/dev/null || true
           git diff --cached --quiet || git commit -m "chore: sector rotation $(date +%Y-%m-%d) [skip ci]"
           git push || true
 

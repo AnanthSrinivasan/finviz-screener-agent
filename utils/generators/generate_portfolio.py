@@ -13,7 +13,7 @@ utils/generators/portfolio_common.py; this file is the Alpaca adapter:
 Writes data/claude_portfolio.html. Invoked from agents/trading/alpaca_monitor.py
 so it refreshes hourly during market hours.
 
-Light theme only (see memory/feedback_light_theme.md).
+One design system (utils/generators/theme.py — spec docs/specs/cx-rehaul.md).
 """
 
 import datetime
@@ -344,8 +344,8 @@ if (points.length > 0) {{
       pointRadius: 0, borderWidth: 2 }}] }},
     options: {{ responsive: true, maintainAspectRatio: false,
       plugins: {{ legend: {{ display: false }} }},
-      scales: {{ x: {{ type: 'category', grid: {{ display: false }}, ticks: {{ color: '#6b7280', maxTicksLimit: 8 }} }},
-        y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
+      scales: {{ x: {{ type: 'category', grid: {{ display: false }}, ticks: {{ color: '#8b98ab', maxTicksLimit: 8 }} }},
+        y: {{ grid: {{ color: '#223049' }}, ticks: {{ color: '#8b98ab',
           callback: function(v){{ return '$' + v.toLocaleString(); }} }} }} }} }}
   }});
 }}
@@ -361,15 +361,21 @@ if (moCanvas && moLabels.length > 0) {{
     options: {{ responsive: true, maintainAspectRatio: false,
       onClick: function(evt, els) {{ if (els && els.length) {{ filterMonth(moKeys[els[0].index]); }} }},
       plugins: {{ legend: {{ display: false }} }},
-      scales: {{ x: {{ grid: {{ display: false }}, ticks: {{ color: '#6b7280' }} }},
-        y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
+      scales: {{ x: {{ grid: {{ display: false }}, ticks: {{ color: '#8b98ab' }} }},
+        y: {{ grid: {{ color: '#223049' }}, ticks: {{ color: '#8b98ab',
           callback: function(v){{ return '$' + v.toLocaleString(); }} }} }} }} }}
   }});
 }}
 """
+    try:
+        from utils.generators.nav import render_nav
+        nav = render_nav("paper")
+    except Exception:
+        nav = ""
     return page_shell("Claude Model Portfolio", "🤖 Claude Model Portfolio",
                       f"Alpaca paper account · auto-executed from daily screener · updated {updated}",
-                      body, extra_head=extra_head, extra_script=extra_script)
+                      body, extra_head=extra_head, extra_script=extra_script,
+                      nav=nav)
 
 
 def main() -> str | None:

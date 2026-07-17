@@ -119,6 +119,14 @@ def update_trading_state(record: dict, new_consecutive_weak_days: int = 0):
     if record["market_state"] == "THRUST":
         existing["last_thrust_date"] = record["date"]
 
+    # Cohort divergence dedup state (spec §2.3 — alert once per label change).
+    # Only touched when the cohort block computed this run; a failed cohort
+    # step leaves the previous dedup state intact.
+    cohort = record.get("cohort")
+    if cohort is not None:
+        existing["cohort_last_divergence_label"] = cohort.get(
+            "divergence_alerted_label")
+
     fg_val = record.get("fg") or 0
     if fg_val > 74:
         existing["last_extreme_greed_date"] = record["date"]
@@ -1254,6 +1262,20 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
 
     cycle_line = _build_cycle_chain(history) if history else ""
 
+    # Cohort Health line (spec §2.4) + inverse-divergence resilient note
+    # (spec §2.3 — index RED, cohort HEALTHY → one-liner, no separate alert).
+    cohort_line = ""
+    cohort = record.get("cohort")
+    if cohort:
+        try:
+            from agents.market import cohort_health
+            cohort_line = "\n" + cohort_health.format_cohort_line(cohort)
+            if cohort_health.is_resilient(state, cohort.get("label")):
+                cohort_line += ("\n🟢 Cohort resilient — your names are "
+                                "holding up better than the index.")
+        except Exception as e:
+            log.warning("Cohort Slack line skipped: %s", e)
+
     # Confidence context annotation
     confidence_context = record.get("confidence_context")
     post_thrust_floor = record.get("post_thrust_floor_active", False)
@@ -1282,8 +1304,9 @@ def send_state_change_alert(record: dict, prev_state: str | None, history: list 
         f"Adv / Dec (all movers): {ad_str}\n"
         f"5-day ratio: {record['ratio_5day']}\n"
         f"10-day ratio: {record['ratio_10day']}\n"
-        f"F&G: {fg_str} | SPY: {spy_str}\n\n"
-        f"{action}"
+        f"F&G: {fg_str} | SPY: {spy_str}"
+        + cohort_line
+        + f"\n\n{action}"
     )
 
     blocks = [
@@ -1353,6 +1376,7 @@ def run_market_monitor(date: datetime.date | None = None):
     consecutive_weak_days = 0
     extended_since_date = None
     days_below_21ema = 0
+    cohort_last_divergence_label = None
     if os.path.exists(TRADING_STATE_FILE):
         try:
             with open(TRADING_STATE_FILE) as f:
@@ -1361,6 +1385,7 @@ def run_market_monitor(date: datetime.date | None = None):
             consecutive_weak_days = ts.get("consecutive_weak_days", 0)
             extended_since_date = ts.get("extended_since_date")
             days_below_21ema = ts.get("days_below_21ema", 0)
+            cohort_last_divergence_label = ts.get("cohort_last_divergence_label")
         except Exception:
             pass
 
@@ -1398,8 +1423,33 @@ def run_market_monitor(date: datetime.date | None = None):
         else consecutive_weak_days + 1
     )
 
+    # ── Cohort Health Index (Phase 1 — informational only, spec
+    # docs/specs/cohort-health-index.md). NON-FATAL by contract: any failure
+    # → record written without the cohort block, monitor otherwise unchanged.
+    # Does NOT touch market_state, gate decisions, or sizing.
+    cohort = None
+    fire_cohort_divergence = False
+    try:
+        from agents.market import cohort_health
+        cohort = cohort_health.compute_cohort_health()
+        if cohort:
+            divergent = cohort_health.is_divergent(state, cohort["label"])
+            fire_cohort_divergence = cohort_health.should_alert_divergence(
+                state, cohort["label"], cohort_last_divergence_label)
+            cohort["divergence"] = divergent
+            # Dedup state: keep the alerted label while divergence holds;
+            # clear when it ends so a fresh episode re-alerts.
+            cohort["divergence_alerted_label"] = (
+                cohort["label"] if divergent else None)
+    except Exception as e:
+        log.warning("Cohort health step failed (non-fatal): %s", e)
+        cohort = None
+        fire_cohort_divergence = False
+
     # Build and save daily record
     record = build_daily_record(date, today_data, metrics, state, message, classify_ctx)
+    if cohort:
+        record["cohort"] = cohort
     save_daily(record)
 
     # Update rolling history (keep last 30 trading days)
@@ -1437,6 +1487,16 @@ def run_market_monitor(date: datetime.date | None = None):
         # Send confirmation alert when moving to GREEN from THRUST, CAUTION, or COOLING
         if state == "GREEN" and prev_state in ("THRUST", "CAUTION", "COOLING"):
             send_confirmation_alert(record)
+
+    # ⚠ COHORT DIVERGENCE — index bullish while cohort STRESS/CARNAGE
+    # (spec §2.3). Deduped once per label change; non-fatal.
+    if fire_cohort_divergence and cohort:
+        try:
+            from agents.market import cohort_health
+            cohort_health.send_divergence_alert(
+                state, cohort, SLACK_WEBHOOK_ALERTS)
+        except Exception as e:
+            log.warning("Cohort divergence alert failed (non-fatal): %s", e)
 
     # ── EventBridge: MarketDailySummary ──────────────────────────────────
     # Fires end-of-day market state to finviz-events bus.

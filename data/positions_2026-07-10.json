@@ -1,0 +1,125 @@
+{
+  "date": "2026-07-10",
+  "positions": [
+    {
+      "ticker": "DDOG",
+      "shares": 60.0,
+      "avg_cost": 252.98,
+      "current_price": 268.99,
+      "market_value": 16139.400000000001,
+      "pnl": 958.8,
+      "pnl_pct": 6.32,
+      "metrics": {
+        "price": 268.96,
+        "atr": 12.74,
+        "atr_pct": 4.74,
+        "pct_from_ma": 23.2,
+        "atr_multiple_ma": 4.9,
+        "dist_from_high": -3.49,
+        "rel_vol": 1.06,
+        "perf_month": 16.11,
+        "day_high": 271.15,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 5.4,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    },
+    {
+      "ticker": "FROG",
+      "shares": 100.0,
+      "avg_cost": 89.07,
+      "current_price": 95.44,
+      "market_value": 9544.0,
+      "pnl": 645.0,
+      "pnl_pct": 7.24,
+      "metrics": {
+        "price": 95.52,
+        "atr": 5.1,
+        "atr_pct": 5.34,
+        "pct_from_ma": 26.67,
+        "atr_multiple_ma": 5.0,
+        "dist_from_high": -3.73,
+        "rel_vol": 0.65,
+        "perf_month": 11.47,
+        "day_high": 96.62,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 5.7,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    },
+    {
+      "ticker": "DAVE",
+      "shares": 50.0,
+      "avg_cost": 284.34,
+      "current_price": 389.61,
+      "market_value": 19480.5,
+      "pnl": 5323.75,
+      "pnl_pct": 37.45,
+      "metrics": {
+        "price": 390.815,
+        "atr": 23.18,
+        "atr_pct": 5.93,
+        "pct_from_ma": 35.2,
+        "atr_multiple_ma": 5.93,
+        "dist_from_high": -4.45,
+        "rel_vol": 0.46,
+        "perf_month": 44.34,
+        "day_high": 390.815,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 6.0,
+      "peel_warn_mult": 18.1,
+      "peel_signal_mult": 24.2
+    },
+    {
+      "ticker": "SNOW",
+      "shares": 40.0,
+      "avg_cost": 252.3,
+      "current_price": 267.51,
+      "market_value": 10700.4,
+      "pnl": 604.8,
+      "pnl_pct": 5.99,
+      "metrics": {
+        "price": 267.42,
+        "atr": 12.89,
+        "atr_pct": 4.82,
+        "pct_from_ma": 28.76,
+        "atr_multiple_ma": 5.97,
+        "dist_from_high": -6.17,
+        "rel_vol": 0.41,
+        "perf_month": 11.25,
+        "day_high": 267.855,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 5.4,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    },
+    {
+      "ticker": "SN",
+      "shares": 100.0,
+      "avg_cost": 138.96,
+      "current_price": 148.69,
+      "market_value": 14869.0,
+      "pnl": 976.0,
+      "pnl_pct": 7.02,
+      "metrics": {
+        "price": 148.72,
+        "atr": 5.46,
+        "atr_pct": 3.67,
+        "pct_from_ma": 18.63,
+        "atr_multiple_ma": 5.07,
+        "dist_from_high": -3.45,
+        "rel_vol": 0.36,
+        "perf_month": 25.81,
+        "day_high": 150.11,
+        "day_low": 0.0
+      },
+      "stop_loss_pct": 4.8,
+      "peel_warn_mult": 7.5,
+      "peel_signal_mult": 10.0
+    }
+  ]
+}

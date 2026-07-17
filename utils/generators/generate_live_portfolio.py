@@ -14,7 +14,9 @@ utils/generators/portfolio_common.py; this file is the SnapTrade adapter:
 Writes data/live_portfolio.html. Invoked from agents/trading/position_monitor.py
 on every monitor run (3x daily book runs + every 30 min during market hours).
 
-Light theme only (see memory/feedback_light_theme.md).
+One design system (utils/generators/theme.py — spec docs/specs/cx-rehaul.md).
+Also absorbs the retired dashboard.html's one unique widget: the collapsed
+"Recent market events" feed from data/recent_events.json (cx-rehaul §A.4).
 """
 
 import datetime
@@ -115,7 +117,25 @@ def build_row(pos: dict, tech_lookup=None, entry_date: str = None,
 
 # ---------- HTML ----------
 
-def render_html(account: dict, rows: list, trades: list = None) -> str:
+def _render_recent_events(events: list) -> str:
+    """Collapsed market-events feed (folded in from the retired dashboard —
+    the only content live_portfolio didn't already cover). Empty → nothing."""
+    if not events:
+        return ""
+    rows = ""
+    for e in list(reversed(events))[:15]:
+        sev = (e.get("severity") or "low").lower()
+        color = {"high": "var(--red)", "med": "var(--amber)"}.get(sev, "var(--green)")
+        rows += (f"<div style='border-left:3px solid {color};padding:4px 10px;"
+                 f"margin:4px 0;font-size:.78rem'>"
+                 f"<span class='mono' style='color:var(--muted)'>{e.get('date', e.get('ts', ''))}</span> "
+                 f"{e.get('message', e.get('text', ''))}</div>")
+    return (f"<details><summary>📰 Recent market events ({min(len(events), 15)})"
+            "</summary>" + rows + "</details>")
+
+
+def render_html(account: dict, rows: list, trades: list = None,
+                recent_events: list = None) -> str:
     trades = trades or []
     equity = float(account.get("equity", 0) or 0)
     cash   = float(account.get("cash", 0) or 0)
@@ -184,6 +204,7 @@ def render_html(account: dict, rows: list, trades: list = None) -> str:
         + render_positions_section(rows, equity)
         + "<h2>Trade History (closed, from SnapTrade)</h2>"
         + render_trade_history(trades)
+        + _render_recent_events(recent_events or [])
         + "<div class='footer'>Data: SnapTrade (balances · positions · activities) "
           "+ Finviz (live quotes &amp; technicals) · refreshes on every position "
           "monitor run.</div>"
@@ -206,17 +227,23 @@ if (moCanvas && moLabels.length > 0) {{
       onClick: function(evt, els) {{ if (els && els.length) {{ filterMonth(moKeys[els[0].index]); }} }},
       plugins: {{ legend: {{ display: false }} }},
       scales: {{
-        x: {{ grid: {{ display: false }}, ticks: {{ color: '#6b7280' }} }},
-        y: {{ grid: {{ color: '#f3f4f6' }}, ticks: {{ color: '#6b7280',
+        x: {{ grid: {{ display: false }}, ticks: {{ color: '#8b98ab' }} }},
+        y: {{ grid: {{ color: '#223049' }}, ticks: {{ color: '#8b98ab',
                callback: function(v){{ return '$' + v.toLocaleString(); }} }} }}
       }}
     }}
   }});
 }}
 """
+    try:
+        from utils.generators.nav import render_nav
+        nav = render_nav("book")
+    except Exception:
+        nav = ""
     return page_shell("Live SnapTrade Portfolio", "📈 Live SnapTrade Portfolio",
                       f"Real-money book · SnapTrade + Finviz · refreshed {updated}",
-                      body, extra_head=extra_head, extra_script=extra_script)
+                      body, extra_head=extra_head, extra_script=extra_script,
+                      nav=nav)
 
 
 # ---------- placeholder + main ----------
@@ -324,7 +351,13 @@ def write_page() -> str | None:
                           stop_price=live_stops.get(p["ticker"]))
                 for p in positions]
         trades = closed_trades(_load_live_events())
-        html = render_html(account, rows, trades=trades)
+        try:
+            with open(os.path.join(DATA_DIR, "recent_events.json")) as f:
+                recent = json.load(f)
+            recent = recent if isinstance(recent, list) else recent.get("events", [])
+        except Exception:
+            recent = []
+        html = render_html(account, rows, trades=trades, recent_events=recent)
     except Exception as e:
         log.warning("Live portfolio render failed: %s", e)
         html = _placeholder_html(str(e))

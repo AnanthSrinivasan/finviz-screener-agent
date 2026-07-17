@@ -90,13 +90,6 @@ jobs:
           ALPACA_LIVE_BASE_URL: ${{ secrets.ALPACA_LIVE_BASE_URL }}
         run: python -m agents.trading.alpaca_monitor
 
-      - name: Regenerate dashboard
-        if: success()
-        env:
-          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
-          DATA_DIR: data
-        run: python utils/generators/generate_dashboard.py
-
       - name: Regenerate watchlist page
         if: success()
         env:

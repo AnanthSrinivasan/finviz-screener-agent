@@ -11,7 +11,8 @@ am I improving (record).
 
 Built around THIS user's documented leaks (round-tripping winners, hold-in-hope on
 losers, over-trading weak tapes): every block binds an abstract principle to a live
-number. Light theme only (memory/feedback_light_theme.md), plain-English
+number. One design system (utils/generators/theme.py — dark, dense, decision-first,
+spec docs/specs/cx-rehaul.md), plain-English
 (memory/feedback_plain_english_dashboards.md).
 
 Book pulls LIVE from SnapTrade (reusing position_monitor.fetch_positions +
@@ -263,13 +264,23 @@ def render_gate(gate: dict, market: dict) -> str:
     asof = market.get("date", "")
     sub = f"SPY {spy:.0f} ({_pct(spy50)} vs 50MA)" if spy else ""
     detail = f"<div class='gate-detail'>{gate['detail']}</div>" if gate["detail"] else ""
+    # Cohort Health (spec docs/specs/cohort-health-index.md §2.4) — read from
+    # the latest market-monitor record's `cohort` block; degrade to nothing
+    # when absent. Informational only — never changes the gate decision.
+    cohort = market.get("cohort") or {}
+    cohort_bit = ""
+    if cohort.get("label"):
+        label = str(cohort["label"]).upper()
+        score = cohort.get("cohort_score", "?")
+        cohort_bit = (f" · cohort <span class='cohort-pill "
+                      f"cohort-{label.lower()}'>{label} ({score})</span>")
     return (
         f"<div class='gate gate-{gate['color']}'>"
         f"<div class='gate-top'><span class='gate-state'>{gate['state']}</span>"
         f"<span class='gate-action'>{gate['action']}</span></div>"
         f"<div class='gate-headline'>{gate['headline']}</div>"
         f"{detail}"
-        f"<div class='gate-foot'>Position cap {gate['cap']} · {sub} · as of {asof}</div>"
+        f"<div class='gate-foot'>Position cap {gate['cap']} · {sub}{cohort_bit} · as of {asof}</div>"
         "</div>"
     )
 
@@ -539,17 +550,16 @@ def render_record(stats: dict) -> str:
 
 # ---------------------------------------------------------------- page assembly
 
+# Extends theme.BASE_CSS (dark, dense, decision-first — cx-rehaul §4). Only
+# cockpit-specific classes live here; tables/cards/links come from the base.
 COCKPIT_CSS = """
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fc;color:#111827;padding:28px;max-width:1100px;margin:0 auto}
-h1{font-size:1.5rem;font-weight:800}
-.sub{color:#6b7280;font-size:.8rem;margin-bottom:18px}
+body{max-width:1100px}
 .block{margin:22px 0}
-.block-h{font-size:.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
-.banner{background:#111827;color:#f9fafb;border-radius:12px;padding:18px 20px}
-.banner-line{font-size:1.02rem;font-weight:600}
-.banner-meta{font-size:.78rem;color:#9ca3af;margin-top:6px}
-.gate{border-radius:12px;padding:18px 20px;color:#fff}
+.block-h{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
+.banner{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.banner-line{font-size:1.02rem;font-weight:600;color:var(--head)}
+.banner-meta{font-size:.78rem;color:var(--muted);margin-top:6px}
+.gate{border-radius:12px;padding:16px 18px;color:#fff}
 .gate-green{background:#15803d}.gate-amber{background:#b45309}.gate-red{background:#b91c1c}
 .gate-top{display:flex;justify-content:space-between;align-items:baseline}
 .gate-state{font-size:.8rem;font-weight:700;opacity:.85;letter-spacing:.05em}
@@ -557,60 +567,53 @@ h1{font-size:1.5rem;font-weight:800}
 .gate-headline{font-size:.95rem;margin-top:6px}
 .gate-detail{font-size:.8rem;opacity:.9;margin-top:6px}
 .gate-foot{font-size:.74rem;opacity:.8;margin-top:10px}
-.tbl{width:100%;border-collapse:collapse;font-size:.82rem;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
-.tbl th{text-align:left;padding:9px 11px;color:#6b7280;font-weight:500;border-bottom:1px solid #e5e7eb;text-transform:uppercase;font-size:.64rem;letter-spacing:.05em;background:#f9fafb}
-.tbl td{padding:9px 11px;border-bottom:1px solid #f3f4f6}
-.tbl tr:last-child td{border-bottom:none}
-.bold{font-weight:700}.mono{font-variant-numeric:tabular-nums}
-a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}
-.heat-pos{color:#15803d;font-weight:600}.heat-neg{color:#b91c1c;font-weight:600}.heat-zero{color:#6b7280}
+.cohort-pill{padding:1px 8px;border-radius:9px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.55)}
+.cohort-healthy{background:#15803d}.cohort-mixed{background:#b45309}
+.cohort-stress{background:#c2410c}.cohort-carnage{background:#b91c1c}
+.heat-pos{background:none;color:var(--green);font-weight:600}
+.heat-neg{background:none;color:var(--red);font-weight:600}
 .flagbar{margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}
 .flag{font-size:.78rem;font-weight:600;padding:6px 10px;border-radius:8px}
-.flag-cut{background:#fee2e2;color:#991b1b}.flag-scale{background:#fef3c7;color:#92400e}
-.empty{color:#6b7280;font-size:.86rem;padding:18px;text-align:center;background:#fff;border:1px dashed #e5e7eb;border-radius:10px}
-.empty.win{color:#15803d;border-color:#bbf7d0;background:#f0fdf4}
-.watchonly{font-size:.8rem;color:#92400e;background:#fef3c7;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.flag-cut{background:var(--red-bg);color:var(--red-text)}
+.flag-scale{background:var(--amber-bg);color:var(--amber)}
+.empty.win{color:var(--green-text);border-color:var(--green-bg);background:var(--green-bg)}
+.watchonly{font-size:.8rem;color:var(--amber);background:var(--amber-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
-.card-h{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem}
-.card-q{color:#15803d}
-.card-sub{font-size:.74rem;color:#6b7280;margin:4px 0 10px}
-.card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:#374151}
+.card-h{display:flex;justify-content:space-between;font-weight:800;font-size:1.05rem;color:var(--head)}
+.card-q{color:var(--green)}
+.card-sub{font-size:.74rem;color:var(--muted);margin:4px 0 10px}
+.card-plan{display:flex;flex-wrap:wrap;gap:10px;font-size:.76rem;color:var(--text)}
 .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
 .radar-closed{opacity:.55}
-.radar-h{font-size:.78rem;font-weight:700;color:#374151;margin-bottom:8px}
+.radar-h{font-size:.78rem;font-weight:700;color:var(--head);margin-bottom:8px}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
-.stat-l{font-size:.66rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
-.stat-v{font-size:1.3rem;font-weight:800;margin-top:4px}
-.stat-s{font-size:.72rem;color:#6b7280;margin-top:4px}
-.lead-regime{font-size:.84rem;color:#374151;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
-.lead-group{background:#fff;border:1px solid #e5e7eb;border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.lead-in{border-left-color:#2563eb}.lead-out{border-left-color:#dc2626}.lead-base{border-left-color:#16a34a}
-.lead-label{font-size:.82rem;font-weight:700;color:#111827;margin-bottom:9px}
-.lead-meaning{font-weight:400;color:#6b7280;font-size:.76rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat-v{font-size:1.3rem;font-weight:800;margin-top:4px;color:var(--head)}
+.stat-s{font-size:.72rem;color:var(--muted);margin-top:4px}
+.lead-regime{font-size:.84rem;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;line-height:1.45}
+.lead-group{background:var(--surface);border:1px solid var(--border);border-left-width:4px;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.lead-in{border-left-color:var(--link)}.lead-out{border-left-color:var(--red)}.lead-base{border-left-color:var(--green)}
+.lead-label{font-size:.82rem;font-weight:700;color:var(--head);margin-bottom:9px}
+.lead-meaning{font-weight:400;color:var(--muted);font-size:.76rem}
 .lead-chips{display:flex;flex-wrap:wrap;gap:7px}
 .lchip{display:inline-block;border-radius:6px;padding:4px 10px;font-size:.78rem;font-weight:700}
-.lchip-flow{background:#dbeafe;color:#1d4ed8}.lchip-base{background:#dcfce7;color:#15803d}
+.lchip-flow{background:var(--blue-bg);color:var(--blue-text)}.lchip-base{background:var(--green-bg);color:var(--green-text)}
 .lead-foot{font-size:.74rem;margin-top:6px}
-.footer{margin-top:30px;font-size:.7rem;color:#9ca3af}
 """
 
 
 def render_page(ctx: dict) -> str:
+    from utils.generators.nav import render_nav
+    from utils.generators.theme import page_shell
+
     updated = datetime.datetime.now(datetime.timezone.utc).strftime("%a %d %b %Y · %H:%M UTC")
     gate = ctx["gate"]
 
     def block(title, html):
         return f"<div class='block'><div class='block-h'>{title}</div>{html}</div>"
 
-    return f"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Daily Cockpit</title><style>{COCKPIT_CSS}</style></head><body>
-<h1>☀️ Daily Cockpit</h1>
-<p class="sub">One pane, one decision · {updated}</p>
+    body = f"""
 {render_banner(ctx['trading_state'], gate, ctx['equity'])}
 {block("🚦 1 · The Gate — can I trade today?", render_gate(gate, ctx['market']))}
 {block("📓 2 · The Book — what do I do with what I hold?", render_book(ctx['book_rows'], ctx['account']))}
@@ -618,8 +621,12 @@ def render_page(ctx: dict) -> str:
 {block("🎯 4 · Radar — top 5 entry-ready · top 5 focus", render_radar(ctx['radar'], gate))}
 {block("🗺 5 · Leadership — where money is flowing", render_leadership(ctx['rotation']))}
 {block("📊 6 · The Record — am I improving?", render_record(ctx['record']))}
-<div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode · spec: docs/specs/daily-cockpit.md</div>
-</body></html>"""
+<div class="footer">Decision-first daily routine · book = live SnapTrade · gate = market state + ETF regime + sizing mode</div>"""
+
+    return page_shell("Daily Cockpit", render_nav("cockpit"), body,
+                      h1="☀️ Daily Cockpit",
+                      subtitle=f"One pane, one decision · {updated}",
+                      extra_css=COCKPIT_CSS)
 
 
 # ---------------------------------------------------------------- orchestrator

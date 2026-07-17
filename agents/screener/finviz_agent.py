@@ -947,6 +947,15 @@ def _build_card(t: str, row, finviz_base: str, top_sectors: set = None) -> str:
 </div>"""
 
 
+def _shared_nav_html() -> str:
+    """Shared site nav (cx-rehaul §A.1) — self-contained, non-fatal."""
+    try:
+        from utils.generators.nav import render_nav
+        return render_nav("charts")
+    except Exception:
+        return ""
+
+
 def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             excluded_df: pd.DataFrame | None = None,
                             base_building_tickers: list | None = None,
@@ -1573,6 +1582,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 </style>
 </head>
 <body>
+{_shared_nav_html()}
 <button class="pdf-btn" onclick="window.print()" title="Export PDF">⬇</button>
 <div class="page-title">Finviz Chart Gallery</div>
 <p class="page-sub">{today} · {total} tickers · ATR% &gt; {ATR_THRESHOLD} · Click any ticker or chart to open in Finviz</p>
@@ -3842,6 +3852,103 @@ def _update_watchlist(
 # Part 6: Main Execution
 # ----------------------------
 
+# ----------------------------
+# Signal Scorecard — fires log (docs/specs/signal-scorecard.md §2.1)
+# ----------------------------
+# One record per (date, block, ticker) into data/signal_fires.json so the
+# weekly agent can measure forward returns per callout block. Append-only
+# rolling 400 days, idempotent per day, non-fatal by contract — a fires-log
+# failure must never block the screener.
+
+SIGNAL_FIRES_PATH = os.path.join("data", "signal_fires.json")
+SIGNAL_FIRES_ROLLING_DAYS = 400
+
+# All 13 measured blocks (spec §2.1). Kept as a tuple so tests and the weekly
+# scorer can enumerate the expected universe.
+SIGNAL_BLOCKS = (
+    "ready_to_enter", "fresh_breakout", "hidden_growth", "htf_base_reclaim",
+    "power_play", "base_building", "stage_transition", "rotation_catalyst",
+    "recovery_leader", "episodic_pivot", "ema21_pullback", "rs_leader",
+    "big_movers",
+)
+
+
+def _fire_num(v):
+    """Best-effort float parse ('1,712.00' → 1712.0). None on missing/garbage —
+    a fire is still logged with null metrics rather than dropped."""
+    try:
+        f = float(str(v).replace(",", "").replace("$", "").strip())
+    except (TypeError, ValueError):
+        return None
+    return round(f, 4)
+
+
+def build_signal_fire_records(date: str, block_tickers: dict, meta: dict) -> list:
+    """Build fire records for one day.
+
+    block_tickers = {block_name: [tickers in rank order]} — rank 1 = first.
+    meta = {ticker: {"price", "q", "atr_pct"}} from the day's snapshot frame.
+    Missing meta never drops a fire (fields go null).
+    """
+    records = []
+    for block, tickers in block_tickers.items():
+        seen = set()
+        for i, t in enumerate(tickers or []):
+            t = str(t or "").strip().upper()
+            if not t or t in seen:
+                continue
+            seen.add(t)
+            m = meta.get(t) or {}
+            records.append({
+                "date": date,
+                "block": block,
+                "ticker": t,
+                "price": _fire_num(m.get("price")),
+                "q": _fire_num(m.get("q")),
+                "atr_pct": _fire_num(m.get("atr_pct")),
+                "rank_in_block": i + 1,
+            })
+    return records
+
+
+def record_signal_fires(records: list, date: str,
+                        path: str = SIGNAL_FIRES_PATH,
+                        rolling_days: int = SIGNAL_FIRES_ROLLING_DAYS) -> bool:
+    """Persist fires. Idempotent per day (a re-run replaces that date's
+    records), trims records older than `rolling_days`. Returns False and logs
+    on ANY failure — never raises (log failure never blocks the screener)."""
+    try:
+        import json as _json
+        existing = []
+        if os.path.exists(path):
+            with open(path) as f:
+                loaded = _json.load(f)
+            if isinstance(loaded, list):
+                existing = loaded
+            elif isinstance(loaded, dict):
+                existing = loaded.get("fires", []) or []
+        cutoff = (datetime.date.fromisoformat(date)
+                  - datetime.timedelta(days=rolling_days)).isoformat()
+        kept = [
+            r for r in existing
+            if isinstance(r, dict)
+            and r.get("date") != date
+            and str(r.get("date", "")) >= cutoff
+        ]
+        kept.extend(records)
+        parent = os.path.dirname(path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        with open(path, "w") as f:
+            _json.dump(kept, f, indent=2)
+        log.info("Signal fires logged: %d today, %d total (%s)",
+                 len(records), len(kept), path)
+        return True
+    except Exception as e:
+        log.error("Signal fires log failed (non-fatal): %s", e)
+        return False
+
+
 if __name__ == "__main__":
     today = datetime.date.today().strftime("%Y-%m-%d")
     log.info(f"=== Finviz agent starting — {today} ===")
@@ -4535,6 +4642,53 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("Episodic Pivot detection failed (non-fatal): %s", _e, exc_info=True)
         ep_fires = []
+
+    # ── Signal Scorecard fires log (spec §2.1) — one record per (date, block,
+    # ticker), all 13 blocks, idempotent per day, before Slack post. Non-fatal:
+    # the try/except plus record_signal_fires' own guard mean a fires-log
+    # problem can never block the run. Scored weekly by finviz_weekly_agent.
+    try:
+        _fires_meta = {}
+        for _, _frow in summary_df.iterrows():
+            _ft = str(_frow.get("Ticker", "")).strip().upper()
+            if _ft:
+                _fires_meta[_ft] = {
+                    "price": _frow.get("Price"),
+                    "q": _frow.get("Quality Score"),
+                    "atr_pct": _frow.get("ATR%"),
+                }
+        # Big Movers — same filter as the Slack top-of-message block:
+        # Power Move screen + 9M+ raw share volume, sorted by volume desc.
+        _bm_tickers: list = []
+        if not filter_df.empty and "Screeners" in filter_df.columns:
+            _bm_df = filter_df[filter_df["Screeners"].str.contains("Power Move", na=False)].copy()
+            if not _bm_df.empty and "Volume" in _bm_df.columns:
+                _bm_df["_vol_num"] = _bm_df["Volume"].apply(_parse_vol)
+                _bm_df = _bm_df[_bm_df["_vol_num"] >= 9_000_000]
+                _bm_tickers = _bm_df.sort_values("_vol_num", ascending=False)["Ticker"].tolist()
+        _block_tickers = {
+            "ready_to_enter":    [r["ticker"] for r in ready_to_enter],
+            "fresh_breakout":    [r["ticker"] for r in fresh_breakouts],
+            "hidden_growth":     [t for t, _, _ in hidden_growth_candidates],
+            "htf_base_reclaim":  [r["ticker"] for r in htf_base_reclaim],
+            "power_play":        [r["ticker"] for r in power_plays],
+            "base_building":     [r["ticker"] for r in base_building],
+            "stage_transition":  [r["ticker"] for r in stage_transition],
+            "rotation_catalyst": [r["ticker"] for r in rotation_catalyst],
+            "recovery_leader":   [r["ticker"] for r in recovery_leaders],
+            "episodic_pivot":    [f.ticker for f in (ep_fires or [])],
+            "ema21_pullback":    [r["ticker"] for r in ema21_pb],
+            # rs_leader fires = the NEW / REACQUIRED events actually surfaced in
+            # Slack. Already-active leaders re-pass the predicate daily — logging
+            # them every day would duplicate one signal across many days.
+            "rs_leader":         [d["ticker"] for d in rs_leaders_triggered
+                                  if rs_leaders_actions.get(d["ticker"]) in {"new", "reacquired"}],
+            "big_movers":        _bm_tickers,
+        }
+        record_signal_fires(
+            build_signal_fire_records(today, _block_tickers, _fires_meta), today)
+    except Exception as _e:
+        log.error("Signal fires step failed (non-fatal): %s", _e)
 
     # Step 6: Gallery (generated after signal lists so base_building and RS Leaders can be included)
     _rsl_gallery_tickers = [

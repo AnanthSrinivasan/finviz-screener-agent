@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conviction Research Report — FIGS | Apr 16, 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ---- Header ---- */
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .site-header h1 { font-size: 20px; font-weight: 700; color: #111827; }
+    .site-header .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .market-badge {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    /* ---- Layout ---- */
+    .container { max-width: 1060px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* ---- Section headings ---- */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* ---- Cards ---- */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+
+    /* ---- Conviction summary ---- */
+    .conviction-grid {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px 24px;
+      align-items: center;
+    }
+    .conviction-grid .label { font-size: 13px; color: #6b7280; }
+    .conviction-grid .value { font-size: 13px; font-weight: 600; }
+    .verdict-badge {
+      display: inline-block;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .verdict-high { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .verdict-mod  { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+    .verdict-skip { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* ---- Score badge ---- */
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      font-size: 22px;
+      font-weight: 800;
+      border: 3px solid;
+      flex-shrink: 0;
+    }
+    .score-high { background: #dcfce7; color: #166534; border-color: #16a34a; }
+    .score-mod  { background: #fef9c3; color: #854d0e; border-color: #ca8a04; }
+    .score-low  { background: #fee2e2; color: #991b1b; border-color: #dc2626; }
+
+    /* ---- Ticker hero ---- */
+    .ticker-hero {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .ticker-hero .meta { flex: 1; min-width: 260px; }
+    .ticker-hero .meta h2 { font-size: 24px; font-weight: 800; }
+    .ticker-hero .meta .tagline { color: #6b7280; font-size: 13px; margin-top: 2px; }
+    .ticker-hero .meta .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .ticker-hero .meta .price { font-size: 28px; font-weight: 700; }
+    .ticker-hero .meta .change-pos { color: #16a34a; font-size: 15px; font-weight: 600; }
+    .ticker-hero .meta .change-neg { color: #dc2626; font-size: 15px; font-weight: 600; }
+
+    /* ---- Tables ---- */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6b7280;
+      padding: 8px 10px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+    .pos { color: #16a34a; font-weight: 600; }
+    .neg { color: #dc2626; font-weight: 600; }
+    .neutral { color: #6b7280; }
+
+    /* ---- Score table ---- */
+    .score-table th:last-child,
+    .score-table td:last-child { text-align: center; }
+    .dot-1 { color: #dc2626; }
+    .dot-2 { color: #ca8a04; }
+    .dot-3 { color: #16a34a; }
+
+    /* ---- Two-column grid ---- */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ---- Key metrics row ---- */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .kpi .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af; }
+    .kpi .kpi-value { font-size: 17px; font-weight: 700; margin-top: 2px; color: #111827; }
+    .kpi .kpi-sub { font-size: 11px; color: #6b7280; margin-top: 1px; }
+
+    /* ---- Chart section ---- */
+    .chart-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+    .chart-box img { width: 100%; max-width: 820px; display: block; }
+
+    /* ---- Alert pills ---- */
+    .pill {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 2px 3px 2px 0;
+    }
+    .pill-green { background: #dcfce7; color: #166534; }
+    .pill-red   { background: #fee2e2; color: #991b1b; }
+    .pill-yellow{ background: #fef9c3; color: #854d0e; }
+    .pill-blue  { background: #dbeafe; color: #1e40af; }
+    .pill-gray  { background: #f3f4f6; color: #374151; }
+
+    /* ---- Bear case box ---- */
+    .bear-box {
+      background: #fff7f7;
+      border: 1px solid #fca5a5;
+      border-left: 4px solid #dc2626;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .bear-box h4 { color: #991b1b; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .bear-box ul { padding-left: 16px; }
+    .bear-box li { margin-bottom: 5px; font-size: 13px; color: #374151; }
+
+    /* ---- Bull case box ---- */
+    .bull-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-left: 4px solid #16a34a;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .bull-box h4 { color: #166534; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .bull-box ul { padding-left: 16px; }
+    .bull-box li { margin-bottom: 5px; font-size: 13px; color: #374151; }
+
+    /* ---- Entry verdict box ---- */
+    .verdict-box {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 4px;
+    }
+    .verdict-box.watchlist { background: #fef9c3; border: 1px solid #fde68a; }
+    .verdict-box.enter     { background: #dcfce7; border: 1px solid #bbf7d0; }
+    .verdict-box.skip      { background: #fee2e2; border: 1px solid #fca5a5; }
+    .verdict-box h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .verdict-box p  { font-size: 13px; color: #374151; }
+
+    /* ---- Footer ---- */
+    footer {
+      background: #ffffff;
+      border-top: 1px solid #e5e7eb;
+      padding: 16px 32px;
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    /* ---- Divider ---- */
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+
+    /* ---- Section spacer ---- */
+    .spacer { margin-top: 28px; }
+
+    /* ---- Catalyst highlight ---- */
+    .catalyst-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #2563eb;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #1e40af;
+    }
+    .catalyst-box strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================ HEADER -->
+<header class="site-header">
+  <div>
+    <h1>Conviction Research Report</h1>
+    <div class="sub">Generated: April 16, 2026 &nbsp;|&nbsp; Single-name deep-dive</div>
+  </div>
+  <span class="market-badge">&#x25CF;&nbsp; Market State: GREEN &nbsp;|&nbsp; Sizing: Normal</span>
+</header>
+
+<!-- ================================================================ MAIN -->
+<div class="container">
+
+  <!-- ---- Summary conviction table ---- -->
+  <div class="section-title">Research Summary</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Name</th>
+          <th>Sector</th>
+          <th>Price</th>
+          <th>52W Range</th>
+          <th>Mkt Cap</th>
+          <th>Score&nbsp;/27</th>
+          <th>Verdict</th>
+          <th>Chart</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="font-size:15px;">FIGS</strong></td>
+          <td>FIGS, Inc.</td>
+          <td>Healthcare Apparel</td>
+          <td><strong>$16.21</strong> <span class="pos">+5.4%</span></td>
+          <td>$3.77 &ndash; $17.48</td>
+          <td>$2.70B</td>
+          <td style="text-align:center;">
+            <span class="score-badge score-mod" style="width:42px;height:42px;font-size:16px;border-width:2px;">18</span>
+          </td>
+          <td><span class="verdict-badge verdict-mod">WATCHLIST</span></td>
+          <td><span class="pill pill-yellow">B &mdash; Developing</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;font-size:12px;color:#6b7280;">
+      Score 18/27 &rarr; MODERATE CONVICTION / Active Watchlist. Entry only on confirmed base breakout with volume above $17.50 (52-week high). Not a chase today despite intraday strength.
+    </div>
+  </div>
+
+  <!-- ================================================================ FIGS DEEP-DIVE CARD -->
+  <div class="spacer"></div>
+  <div class="section-title">FIGS, Inc. (NYSE: FIGS) &mdash; Deep-Dive Research</div>
+
+  <!-- Ticker hero -->
+  <div class="card">
+    <div class="ticker-hero">
+      <span class="score-badge score-mod">18</span>
+      <div class="meta">
+        <h2>FIGS &nbsp;<span style="font-size:14px;font-weight:400;color:#6b7280;">NYSE</span></h2>
+        <div class="tagline">Direct-to-consumer healthcare apparel &mdash; scrubwear, footwear, lab coats, loungewear</div>
+        <div class="price-row">
+          <span class="price">$16.21</span>
+          <span class="change-pos">+$0.82 (+5.36%) today</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="pill pill-green">Stage 2 Confirmed</span>
+          <span class="pill pill-green">EPS Beat 3 Qtrs</span>
+          <span class="pill pill-green">92% Inst Owned</span>
+          <span class="pill pill-yellow">Extended Today</span>
+          <span class="pill pill-red">P/E 87x</span>
+          <span class="pill pill-blue">Next Earnings ~May 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Price</div>
+      <div class="kpi-value">$16.21</div>
+      <div class="kpi-sub">+5.4% today</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">52-Week High</div>
+      <div class="kpi-value">$17.48</div>
+      <div class="kpi-sub">-7.3% from high</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">52-Week Low</div>
+      <div class="kpi-value">$3.77</div>
+      <div class="kpi-sub">+330% from low</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Market Cap</div>
+      <div class="kpi-value">$2.70B</div>
+      <div class="kpi-sub">Mid-cap</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">P/E (TTM)</div>
+      <div class="kpi-value" style="color:#dc2626;">87x</div>
+      <div class="kpi-sub">Fwd: 52x</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">EPS TTM</div>
+      <div class="kpi-value">$0.19</div>
+      <div class="kpi-sub">EPS Q/Q +819%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Rev Q/Q</div>
+      <div class="kpi-value" style="color:#16a34a;">+33%</div>
+      <div class="kpi-sub">Q4 2025 YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Short Float</div>
+      <div class="kpi-value">7.73%</div>
+      <div class="kpi-sub">~15.3M shares</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Inst Own</div>
+      <div class="kpi-value" style="color:#16a34a;">86.8%</div>
+      <div class="kpi-sub">Strong accumulation</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">SMA 50</div>
+      <div class="kpi-value" style="color:#16a34a;">$13.76</div>
+      <div class="kpi-sub">Price well above</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">SMA 200</div>
+      <div class="kpi-value" style="color:#16a34a;">$9.82</div>
+      <div class="kpi-sub">Rising strongly</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Analyst Target</div>
+      <div class="kpi-value">$17.19</div>
+      <div class="kpi-sub">Consensus Hold</div>
+    </div>
+  </div>
+
+  <!-- ---- Chart ---- -->
+  <div class="card">
+    <div class="section-title">Daily Chart (Finviz &mdash; Apr 16, 2026)</div>
+    <div class="chart-box">
+      <img src="https://charts2-node.finviz.com/chart.ashx?cs=l&t=FIGS&tf=d&s=linear&pm=0&am=0&ct=candle_stick&o[0][ot]=sma&o[0][op]=20&o[0][oc]=DC32B363&o[1][ot]=sma&o[1][op]=50&o[1][oc]=FF8F33C6&o[2][ot]=sma&o[2][op]=200&o[2][oc]=DCB3326D&o[3][ot]=patterns&o[3][op]=&o[3][oc]=000"
+           alt="FIGS Daily Chart" style="width:100%;" />
+    </div>
+    <div style="margin-top:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Reading</th>
+            <th>Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Price vs 50 SMA ($13.76)</td>
+            <td>$16.21 &mdash; <strong>+17.8% above</strong></td>
+            <td><span class="pill pill-green">Bullish</span></td>
+          </tr>
+          <tr>
+            <td>Price vs 200 SMA ($9.82)</td>
+            <td>$16.21 &mdash; <strong>+65% above</strong></td>
+            <td><span class="pill pill-green">Strong Stage 2</span></td>
+          </tr>
+          <tr>
+            <td>50 SMA slope</td>
+            <td>Steeply upward</td>
+            <td><span class="pill pill-green">Bullish</span></td>
+          </tr>
+          <tr>
+            <td>Price vs 21 EMA (~$14.70)</td>
+            <td>Extended ~10% above — not a PB entry</td>
+            <td><span class="pill pill-yellow">Wait for pullback</span></td>
+          </tr>
+          <tr>
+            <td>VCP Pattern</td>
+            <td>Post-earnings wedge consolidation (6 weeks) resolving upward today</td>
+            <td><span class="pill pill-green">Emerging breakout</span></td>
+          </tr>
+          <tr>
+            <td>Volume</td>
+            <td>2.28M today vs 3.52M avg &mdash; 65% of avg; accumulation phase</td>
+            <td><span class="pill pill-yellow">Confirm needed</span></td>
+          </tr>
+          <tr>
+            <td>Dist. from 52-week high</td>
+            <td>-7.3% ($17.48 high)</td>
+            <td><span class="pill pill-green">Near ATH zone</span></td>
+          </tr>
+          <tr>
+            <td>Climax run / structure break</td>
+            <td>Post-earnings gap Feb 27 was a climax move; wedge consolidation healthy</td>
+            <td><span class="pill pill-yellow">Moderate risk</span></td>
+          </tr>
+          <tr>
+            <td>Setup Rating</td>
+            <td><strong>B &mdash; Developing breakout, wait for $17.50 clear with volume</strong></td>
+            <td><span class="pill pill-yellow">B</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;font-size:12px;color:#374151;background:#f9fafb;border-radius:6px;padding:10px 12px;">
+        <strong>Pattern:</strong> Post-earnings gap-and-go (Feb 27, +24% day) followed by healthy 6-week descending wedge consolidation; today breaking out of wedge back toward 52-week high of $17.48. Stage 2 fully intact. Not a 21 EMA pullback entry &mdash; extended intraday. Ideal entry: on a reset to the 21 EMA (~$14.50-$15) or on a breakout above $17.50 on 2x+ average volume.
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- EPS Trend ---- -->
+  <div class="card">
+    <div class="section-title">EPS &amp; Revenue Trend (Last 6 Quarters)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Quarter</th>
+          <th>Revenue</th>
+          <th>Rev YoY</th>
+          <th>EPS (Diluted)</th>
+          <th>Gross Margin</th>
+          <th>Op Margin</th>
+          <th>Beat?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Q4 2025</strong> <span class="pill pill-blue" style="font-size:10px;">Latest</span></td>
+          <td><strong>$201.9M</strong></td>
+          <td class="pos">+33.0%</td>
+          <td><strong class="pos">$0.10</strong></td>
+          <td>62.9%</td>
+          <td class="pos">9.3%</td>
+          <td><span class="pill pill-green">BEAT +400%</span></td>
+        </tr>
+        <tr>
+          <td>Q3 2025</td>
+          <td>$151.7M</td>
+          <td class="pos">+8.2%</td>
+          <td class="pos">$0.05</td>
+          <td>69.9%</td>
+          <td class="pos">6.4%</td>
+          <td><span class="pill pill-green">Beat</span></td>
+        </tr>
+        <tr>
+          <td>Q2 2025</td>
+          <td>$152.6M</td>
+          <td class="pos">+9.1%</td>
+          <td class="pos">$0.04</td>
+          <td>67.0%</td>
+          <td class="pos">6.5%</td>
+          <td><span class="pill pill-green">Beat</span></td>
+        </tr>
+        <tr>
+          <td>Q1 2025</td>
+          <td>$124.9M</td>
+          <td class="neutral">+1.6%</td>
+          <td class="neutral">&mdash;</td>
+          <td>67.6%</td>
+          <td class="neg">-0.2%</td>
+          <td><span class="pill pill-yellow">In-line</span></td>
+        </tr>
+        <tr>
+          <td>Q4 2024</td>
+          <td>$151.8M</td>
+          <td class="neutral">+2.1%</td>
+          <td class="neutral">$0.01</td>
+          <td>67.3%</td>
+          <td class="neutral">5.9%</td>
+          <td><span class="pill pill-yellow">Slight beat</span></td>
+        </tr>
+        <tr>
+          <td>Q3 2024</td>
+          <td>$140.2M</td>
+          <td class="neg">-1.4%</td>
+          <td class="neg">-$0.01</td>
+          <td>67.1%</td>
+          <td class="neg">-6.2%</td>
+          <td><span class="pill pill-red">Miss</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:12px;background:#f0fdf4;border-radius:6px;padding:10px 12px;border:1px solid #bbf7d0;">
+      <strong style="color:#166534;">EPS Q/Q flag:</strong> EPS Q/Q growth of +818.87% (Finviz). Q4 2025 EPS $0.10 vs $0.01 prior Q4 (+900%). Full-year FY2025 EPS: $0.19 vs $0.02 FY2024 (+850%). This is a real profitability inflection, not a SNDK-style TTM distortion &mdash; but the massive Q/Q % is mechanical due to prior year's near-zero base. Trending correctly.
+    </div>
+  </div>
+
+  <!-- ---- Forward Estimates ---- -->
+  <div class="card">
+    <div class="section-title">Forward Estimates &amp; Analyst Revisions</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th>Revenue Est.</th>
+          <th>Rev Growth</th>
+          <th>EPS Est.</th>
+          <th>EPS Growth</th>
+          <th>Analysts</th>
+          <th>Recent Revision</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>FY 2026</strong></td>
+          <td>$719.7M</td>
+          <td class="pos">+14.0%</td>
+          <td><strong>$0.26</strong></td>
+          <td class="pos">+34.6%</td>
+          <td>11</td>
+          <td><span class="pill pill-green">Oppenheimer Upgrade H&rarr;B $22PT (Mar 20)</span></td>
+        </tr>
+        <tr>
+          <td><strong>FY 2027</strong></td>
+          <td>$774.5M</td>
+          <td class="pos">+7.6%</td>
+          <td><strong>$0.31</strong></td>
+          <td class="pos">+20.7%</td>
+          <td>11</td>
+          <td><span class="pill pill-yellow">Morgan Stanley Hold, PT raised $8&rarr;$15 (Apr 13)</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:12px;color:#374151;">
+      <strong>Company Guidance (Q4 2025 call):</strong> FY2026 net revenue growth 10-12% vs 2025; adjusted EBITDA margin 12.7-12.9%; operating margin 7.6-7.9% (highest since IPO). Analyst consensus $15.64 average target (7 analysts) with recent upgrades skewing higher ($17-22 range). Revenue acceleration in H2 2025 is real (Q4 at +33% YoY vs Q1 at +1.6%).
+    </div>
+  </div>
+
+  <!-- ---- Bull/Bear Two-column ---- -->
+  <div class="two-col">
+    <div class="bull-box">
+      <h4>Bull Case</h4>
+      <ul>
+        <li><strong>Profitability inflection:</strong> Net income surged from $2.7M (FY2024) to $34.3M (FY2025) &mdash; 12x improvement. FCF $53M.</li>
+        <li><strong>Revenue reacceleration:</strong> Q4 2025 +33% YoY after near-flat 2024. Not noise &mdash; driven by product, international, AOV.</li>
+        <li><strong>International optionality:</strong> $103.6M international in FY2025 (+27.5%); entered Japan, South Korea, 12 LatAm markets. Less than 17% of revenue &mdash; long runway.</li>
+        <li><strong>B2B/Teams lever:</strong> Bulk institutional sales channel largely untapped. Operating leverage if scales.</li>
+        <li><strong>Brand moat:</strong> FIONx/FIONluxe proprietary fabric, 99.5% bacterial resistance, premium positioning. Careismatic (40% share) is a legacy wholesale player &mdash; different market.</li>
+        <li><strong>TAM is large:</strong> Global medical scrubs market $54B (2025), growing at 10.5% CAGR to $129B by 2034. FIGS holds ~15% of branded U.S. premium scrubs &mdash; early innings internationally.</li>
+        <li><strong>Institutional accumulation:</strong> 86.8% institutional ownership, post-earnings re-rating from deep value to growth; short squeeze dynamics already demonstrated (Feb 27 +24%).</li>
+        <li><strong>Short squeeze residual:</strong> 7.73% short float (down from 14.8% pre-earnings) with further squeeze potential on any breakout above $17.50.</li>
+      </ul>
+    </div>
+    <div class="bear-box">
+      <h4>Bear Case</h4>
+      <ul>
+        <li><strong>Valuation stretched:</strong> P/E 87x TTM, forward P/E 52x. Simply Wall St DCF implies $9.81 fair value &mdash; 40% downside from current. One estimate: "123.7% overvalued."</li>
+        <li><strong>Tariff exposure:</strong> Q4 gross margin compressed 440bps YoY to 62.9%. $5.6M inventory write-off. Sourcing from Southeast Asia vulnerable to tariff escalation in 2026.</li>
+        <li><strong>Margin inconsistency:</strong> Gross margin fell from 71.8% (FY2021) to 66.5% (FY2025). Premiumization thesis requires margin recovery, not just revenue growth.</li>
+        <li><strong>IPO hangover history:</strong> IPO at $22 (May 2021), stock is still -26% from IPO price. Founder/PE lockup selling created persistent overhead supply (Tulco, LLC sold 16.6M shares at IPO). CEO/CFO on 10b5-1 plans.</li>
+        <li><strong>Analyst consensus is Hold:</strong> Average target $15.64 &mdash; consensus expects the stock is near fair value at current levels. Only 7 of 11 analysts have updated post-earnings.</li>
+        <li><strong>One-product company risk:</strong> 79% revenue from scrubwear. Non-scrub categories (footwear, loungewear, lab coats) have not meaningfully diversified revenue.</li>
+        <li><strong>Amazon/Walmart distribution creep:</strong> FIGS products appearing on Amazon and Walmart shelves risks DTC brand premium and margin erosion over time.</li>
+        <li><strong>Revenue deceleration ahead:</strong> FY2027 estimate +7.6% vs FY2026 +14% &mdash; growth decelerating. Could compress multiple.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ---- SNDK flag ---- -->
+  <div class="card" style="margin-top:18px;">
+    <div class="section-title">SNDK Pattern Check &mdash; TTM EPS Distortion Flag</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Check</th>
+          <th>FIGS Reading</th>
+          <th>Flag?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TTM EPS vs Q/Q EPS direction mismatch?</td>
+          <td>No. Both TTM ($0.19) and Q/Q (+819%) are strongly positive. FY2024 was $0.02 base, not negative.</td>
+          <td><span class="pill pill-green">No distortion</span></td>
+        </tr>
+        <tr>
+          <td>Spin-off / restructuring EPS distortion?</td>
+          <td>No recent spin-off. Pure organic improvement.</td>
+          <td><span class="pill pill-green">Clean</span></td>
+        </tr>
+        <tr>
+          <td>Large non-recurring items masking earnings?</td>
+          <td>$5.6M inventory write-off in Q4 (negative one-time). GAAP EPS $0.10 includes this.</td>
+          <td><span class="pill pill-yellow">Minor — manageable</span></td>
+        </tr>
+        <tr>
+          <td>Q/Q% inflated by near-zero base?</td>
+          <td>Yes &mdash; EPS Q/Q of +819% is mathematically inflated from $0.01&rarr;$0.10. Real story is 3 consecutive profitable quarters after restructuring.</td>
+          <td><span class="pill pill-yellow">Context needed</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:12px;color:#374151;background:#f9fafb;border-radius:6px;padding:10px 12px;">
+      <strong>Verdict:</strong> No SNDK-style TTM distortion. The Q/Q% is mechanically large due to prior year's near-zero base, but directionally correct. Trend is genuine: 3 consecutive profitable quarters (Q2-Q4 2025) after a loss year. Quality Score should use max(TTM, Q/Q) = TTM $0.19 / Q/Q +819% &mdash; both confirm full EPS score.
+    </div>
+  </div>
+
+  <!-- ---- Institutional ---- -->
+  <div class="card">
+    <div class="section-title">Institutional Ownership &amp; IPO Cycle</div>
+    <div class="two-col">
+      <div>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Inst. Ownership %</td><td class="pos"><strong>86.8%</strong></td></tr>
+            <tr><td>Insider Ownership %</td><td>9.82%</td></tr>
+            <tr><td>Institutions Count</td><td>~High (92.2% peak cited)</td></tr>
+            <tr><td>Recent Inst. Trend</td><td class="pos">Accumulation post-earnings</td></tr>
+            <tr><td>Notable Upgrades</td><td>Oppenheimer (Hold&rarr;Buy, $22PT), KeyBanc (Overweight, $17PT)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <thead>
+            <tr><th>IPO Cycle Metric</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>IPO Date</td><td>May 27, 2021</td></tr>
+            <tr><td>IPO Price</td><td>$22.00</td></tr>
+            <tr><td>Current vs IPO</td><td class="neg">-26% from $22</td></tr>
+            <tr><td>Current vs 52W Low</td><td class="pos">+330% from $3.77</td></tr>
+            <tr><td>IPO Cycle Phase</td><td><span class="pill pill-green">Post-washout recovery</span></td></tr>
+            <tr><td>Lock-up/Insider Overhang</td><td class="neg">CEO/CFO on 10b5-1; Tulco sold at IPO</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#374151;background:#f9fafb;border-radius:6px;padding:10px 12px;">
+      <strong>IPO Cycle Analysis:</strong> FIGS IPO'd at $22 in May 2021 with heavy seller-side (Tulco PE sold 16.6M shares at IPO). Stock collapsed to $3.77 (83% peak-to-trough). This is a classic IPO cycle completion: over-hype at IPO &rarr; multi-year washout &rarr; fundamental improvement &rarr; institutional re-rating. Post-washout recovery phase is the most attractive stage (like LULU 2009, CROX 2010). Lock-up overhang is effectively exhausted after 5 years. <strong>Phase: Early-to-mid re-rating.</strong>
+    </div>
+  </div>
+
+  <!-- ---- Short interest ---- -->
+  <div class="card">
+    <div class="section-title">Short Interest</div>
+    <div class="two-col">
+      <div>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Short Float %</td><td>7.73%</td></td></tr>
+            <tr><td>Short Shares</td><td>~15.3M</td></tr>
+            <tr><td>Pre-earnings short (Feb)</td><td class="neg">~14.8% of float</td></tr>
+            <tr><td>Trend</td><td>Decreasing post-squeeze (healthy)</td></tr>
+            <tr><td>Squeeze demonstrated?</td><td class="pos">Yes &mdash; Feb 27: +24% on earnings day</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:14px;font-size:13px;color:#374151;border:1px solid #e5e7eb;">
+        <strong>Short Interest Verdict:</strong><br/><br/>
+        At 7.73% short float, FIGS is in the "moderate squeeze potential" zone &mdash; not extreme enough to be a pure short squeeze play, but enough to add fuel on any breakout above $17.50. The pre-earnings short position of ~14.8% was already partially covered in the Feb 27 surge. Residual shorts are likely momentum traders who re-shorted the wedge. A clean break above $17.50 would force additional covering.
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- Next catalyst ---- -->
+  <div class="card">
+    <div class="section-title">Next Catalyst</div>
+    <div class="catalyst-box">
+      <strong>Q1 2026 Earnings (Est. ~May 2026)</strong>
+      KeyCorp estimates Q1 2026 EPS of $0.07 (vs Q1 2025 near breakeven). Confirmation of 10-12% FY2026 guidance on the call would be the key catalyst. Watch for gross margin guidance &mdash; tariff impact on sourcing costs is the primary risk variable. International revenue trajectory also critical (Japan/South Korea market reception).
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#374151;">
+      <strong>Secondary catalysts:</strong> (1) Any analyst upgrade above $20PT &mdash; Oppenheimer at $22 suggests room. (2) B2B/Teams segment announcement or material revenue contribution. (3) Additional Community Hub openings (4 planned for 2026) providing omnichannel growth narrative. (4) Short squeeze trigger above $17.50 all-time-high.
+    </div>
+  </div>
+
+  <!-- ================================================================ SCORING CARD -->
+  <div class="spacer"></div>
+  <div class="section-title">Conviction Score &mdash; 9 Dimensions (Max 27)</div>
+  <div class="card">
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>Reading</th>
+          <th style="text-align:center;">Score /3</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. EPS Beat Trend</strong></td>
+          <td>Q4 +400% beat; Q3 beat; Q2 beat; Q1 in-line; Q4'24 slight beat; Q3'24 miss</td>
+          <td style="text-align:center;"><strong class="dot-3">3</strong></td>
+          <td>3 consecutive strong beats after restructuring. Real inflection.</td>
+        </tr>
+        <tr>
+          <td><strong>2. Estimate Revisions</strong></td>
+          <td>Oppenheimer H&rarr;B $22 (Mar 20); Morgan Stanley PT $8&rarr;$15 (Apr 13); KeyBanc Overweight $17</td>
+          <td style="text-align:center;"><strong class="dot-3">3</strong></td>
+          <td>Broad upward revisions post-Q4. Direction is unanimous up.</td>
+        </tr>
+        <tr>
+          <td><strong>3. Revenue Acceleration</strong></td>
+          <td>Q4'25 +33% vs Q1'25 +1.6%. Clear reacceleration. FY2025 +13.6% after flat FY2024.</td>
+          <td style="text-align:center;"><strong class="dot-3">3</strong></td>
+          <td>AOV up $113&rarr;$120. International +55% Q4. Multi-dimensional.</td>
+        </tr>
+        <tr>
+          <td><strong>4. Institutional Adoption Phase</strong></td>
+          <td>86.8-92% institutional. Post-earnings institutional re-rating. High but growing.</td>
+          <td style="text-align:center;"><strong class="dot-2">2</strong></td>
+          <td>High inst% is a double edge: strong support but limited new buyer pool. Phase = mid-adoption.</td>
+        </tr>
+        <tr>
+          <td><strong>5. IPO Cycle Phase</strong></td>
+          <td>5 years post-IPO, post-washout recovery. IPO overhang (Tulco) fully digested.</td>
+          <td style="text-align:center;"><strong class="dot-3">3</strong></td>
+          <td>Post-washout = best IPO cycle entry phase. 83% trough-to-now move is early innings of re-rating.</td>
+        </tr>
+        <tr>
+          <td><strong>6. TAM Position</strong></td>
+          <td>$54B global scrubs market, 10.5% CAGR. FIGS has 15% U.S. branded premium share. International &lt;17% of revenue.</td>
+          <td style="text-align:center;"><strong class="dot-2">2</strong></td>
+          <td>TAM is real and large, but domestic penetration already moderate. International is the optionality.</td>
+        </tr>
+        <tr>
+          <td><strong>7. Short Interest</strong></td>
+          <td>7.73% short float, down from 14.8% pre-squeeze. Moderate residual.</td>
+          <td style="text-align:center;"><strong class="dot-2">2</strong></td>
+          <td>Helpful tailwind but not a squeeze-dominant thesis. Score 2.</td>
+        </tr>
+        <tr>
+          <td><strong>8. Stage 2 Alignment</strong></td>
+          <td>Price $16.21 vs SMA50 $13.76 vs SMA200 $9.82. All MAs rising, price above all. Textbook Stage 2.</td>
+          <td style="text-align:center;"><strong class="dot-3">3</strong></td>
+          <td>Perfect Weinstein Stage 2 alignment. Passes gate fully.</td>
+        </tr>
+        <tr>
+          <td><strong>9. SNDK Pattern (TTM distortion)</strong></td>
+          <td>No distortion. TTM $0.19 positive; Q/Q +819% is base-effect inflated but directionally correct.</td>
+          <td style="text-align:center;"><strong class="dot-2">2</strong></td>
+          <td>Clean earnings story, no accounting complexity. Minor penalty for the optical Q/Q inflation.</td>
+        </tr>
+        <tr style="background:#f9fafb;font-weight:700;font-size:14px;">
+          <td colspan="2"><strong>TOTAL CONVICTION SCORE</strong></td>
+          <td style="text-align:center;font-size:20px;"><strong>18 / 27</strong></td>
+          <td><span class="verdict-badge verdict-mod">MODERATE &mdash; WATCHLIST</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;font-size:12px;color:#6b7280;background:#f9fafb;border-radius:6px;padding:10px 12px;border:1px solid #e5e7eb;">
+      <strong>Scale:</strong> &nbsp;&gt;20 = HIGH conviction (enter on trigger) &nbsp;|&nbsp; 14-20 = MODERATE (watchlist, wait for setup) &nbsp;|&nbsp; &lt;14 = SKIP<br/>
+      <strong>Score 18/27 rationale:</strong> FIGS earns full marks on EPS beats, estimate revisions, revenue acceleration, IPO cycle phase, and Stage 2 alignment &mdash; the core momentum criteria. It loses points on high institutional saturation (limited new buyer expansion), domestic TAM penetration ceiling, moderate (not extreme) short interest, and a minor EPS optics note. The 3-point gap from HIGH conviction is primarily valuation risk (P/E 87x) and the fact the chart needs to confirm above $17.50 before full position sizing.
+    </div>
+  </div>
+
+  <!-- ================================================================ ENTRY VERDICT -->
+  <div class="spacer"></div>
+  <div class="section-title">Entry Verdict &amp; Trade Plan</div>
+  <div class="card">
+    <div class="verdict-box watchlist">
+      <h4>WATCHLIST &mdash; Do Not Chase Today</h4>
+      <p>
+        FIGS is a <strong>high-quality turnaround/growth story</strong> in confirmed Stage 2 with real earnings momentum. Market state is GREEN and sizing mode is Normal. However, today's +5.4% intraday move makes it an extended entry from the 21 EMA (&gt;10% above). The post-earnings wedge breakout needs volume confirmation (&gt;2x average) and ideally a daily close above $17.00 to warrant action.
+      </p>
+    </div>
+
+    <div style="margin-top:16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Entry Trigger</th>
+            <th>Stop Loss</th>
+            <th>Target 1</th>
+            <th>Target 2</th>
+            <th>R:R</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Breakout Entry</strong><br/><span class="pill pill-blue" style="font-size:10px;">Preferred</span></td>
+            <td>Daily close above $17.50 (52W high) on volume &ge;6M+</td>
+            <td>$14.50 (below 21 EMA and base)</td>
+            <td>$21.00 (+20%)</td>
+            <td>$24.50 (+40%)</td>
+            <td>2.3:1</td>
+          </tr>
+          <tr>
+            <td><strong>Pullback Entry</strong><br/><span class="pill pill-yellow" style="font-size:10px;">Alternate</span></td>
+            <td>Reset to 21 EMA ($14.50-$15.00) with tight candle + volume dry-up</td>
+            <td>$13.50 (below 50 SMA)</td>
+            <td>$18.00 (+18-24%)</td>
+            <td>$21.00 (+38%)</td>
+            <td>3.0:1</td>
+          </tr>
+          <tr>
+            <td><strong>Avoid</strong></td>
+            <td colspan="5" class="neg">Chasing today's intraday move above $16.21 without volume confirmation. Extended &gt;10% above 21 EMA.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;font-size:12px;color:#374151;background:#fef9c3;border-radius:6px;padding:10px 12px;border:1px solid #fde68a;">
+      <strong>Position Sizing:</strong> Normal market (GREEN) &rarr; standard position size per trading_state.json. Given P/E 87x and valuation risk, start with 50% of standard size on breakout trigger, scale to full on confirmation candle. Hard stop $-4,500 per rules engine. ATR-based dynamic stop applies per position monitor rules.
+    </div>
+
+    <div style="margin-top:12px;font-size:12px;color:#374151;">
+      <strong>Key watch variables:</strong> (1) Gross margin trend &mdash; needs to stabilize above 65% in Q1 2026. (2) International revenue trajectory &mdash; Japan/South Korea adoption rate. (3) Any tariff escalation guidance on Q1 call. (4) Insider selling pattern via 10b5-1 plans (CEO/CFO).
+    </div>
+  </div>
+
+</div>
+<!-- ================================================================ FOOTER -->
+<footer>
+  Research generated: April 16, 2026 &nbsp;|&nbsp; Data sources: Finviz, StockAnalysis.com, MarketBeat, Trefis, Investing.com, Simply Wall St &nbsp;|&nbsp;
+  For informational purposes only &mdash; not investment advice. Always verify with live data before trading.
+  &nbsp;|&nbsp; Market State: GREEN &nbsp;|&nbsp; Sizing: Normal
+</footer>
+
+</body>
+</html>

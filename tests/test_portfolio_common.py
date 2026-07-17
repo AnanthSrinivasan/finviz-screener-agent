@@ -85,7 +85,7 @@ class RenderTests(unittest.TestCase):
         self.assertIn("CUT: 1", html)
         self.assertIn("dead weight: 1", html)
         self.assertIn("data-action='peel'", html)
-        self.assertIn("price vs 20-day moving average", html)
+        self.assertIn("Price vs its 20-day moving average", html)  # tooltip carries the definition (legend is a one-liner now)
 
     def test_high_gain_high_vol_is_trail(self):
         html = pc.render_positions_section([self._row("DAVE", 11.0, atr=8.0)], 100000)

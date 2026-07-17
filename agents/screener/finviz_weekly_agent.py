@@ -7,6 +7,7 @@ import time
 import logging
 import random
 import datetime
+import statistics
 import requests
 import pandas as pd
 from collections import defaultdict
@@ -930,6 +931,463 @@ def _fng_context(score: float, prev_month: float) -> str:
 # Part 3: HTML Report
 # ----------------------------
 
+# ----------------------------
+# Signal Scorecard (docs/specs/signal-scorecard.md §2.2–2.3)
+# ----------------------------
+# Scores the daily screener's fires log (data/signal_fires.json, written by
+# finviz_agent.py §2.1) on forward returns per callout block, persists
+# data/signal_scorecard.json and renders the 📏 Signal Scorecard weekly
+# section. All render/score functions are pure (no network) — only
+# fetch_scorecard_bars touches Alpaca.
+
+SIGNAL_FIRES_PATH          = os.path.join(DATA_DIR, "signal_fires.json")
+SIGNAL_SCORECARD_PATH      = os.path.join(DATA_DIR, "signal_scorecard.json")
+SCORECARD_HORIZON_SESSIONS = 20    # ret_20d / hit10 / drawdown window
+SCORECARD_TRAILING_DAYS    = 90
+SCORECARD_FLAG_MIN_FIRES   = 20
+SCORECARD_FLAG_MIN_WEEKS   = 8
+SCORECARD_FLAG_HIT10_PCT   = 15.0
+SCORECARD_STATUS_OK        = "OK"
+SCORECARD_STATUS_REVIEW    = "REVIEW/RETIRE"
+ALPACA_BARS_URL            = "https://data.alpaca.markets/v2/stocks/bars"
+
+
+def load_signal_fires(path: str = SIGNAL_FIRES_PATH) -> list:
+    try:
+        with open(path) as f:
+            loaded = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+    if isinstance(loaded, list):
+        return [r for r in loaded if isinstance(r, dict)]
+    if isinstance(loaded, dict):
+        return [r for r in loaded.get("fires", []) or [] if isinstance(r, dict)]
+    return []
+
+
+def save_signal_fires(fires: list, path: str = SIGNAL_FIRES_PATH) -> None:
+    with open(path, "w") as f:
+        json.dump(fires, f, indent=2)
+
+
+def fetch_scorecard_bars(tickers: list, start_date: str) -> dict:
+    """Multi-symbol Alpaca daily bars from an EXPLICIT `start` (2026-07-10 rule:
+    bars with no start default to today and return null). Batches 100/call,
+    follows next_page_token. Returns {ticker: [{"t","c","h","l"}, ...]} sorted
+    ascending. Empty dict when creds missing."""
+    key = os.getenv("ALPACA_API_KEY")
+    secret = os.getenv("ALPACA_SECRET_KEY")
+    if not key or not secret:
+        log.warning("scorecard: missing Alpaca creds — skipping bar fetch")
+        return {}
+    headers = {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret}
+
+    out: dict = {}
+    clean = sorted({t for t in tickers if t and "-" not in t and "." not in t})
+    BATCH = 100
+    for i in range(0, len(clean), BATCH):
+        batch = clean[i:i + BATCH]
+        page_token = None
+        for _page in range(50):  # hard page cap — safety against runaway loops
+            params = {
+                "symbols": ",".join(batch),
+                "timeframe": "1Day",
+                "start": start_date,          # explicit start — never default
+                "limit": 10000,
+                "adjustment": "split",
+                "feed": "iex",
+            }
+            if page_token:
+                params["page_token"] = page_token
+            try:
+                r = requests.get(ALPACA_BARS_URL, params=params, headers=headers, timeout=30)
+            except Exception as e:
+                log.warning("scorecard: bars request error %s", e)
+                break
+            if r.status_code != 200:
+                log.warning("scorecard: bars HTTP %s — %s", r.status_code, r.text[:200])
+                break
+            payload = r.json()
+            for tk, rows in (payload.get("bars") or {}).items():
+                out.setdefault(tk, []).extend(rows or [])
+            page_token = payload.get("next_page_token")
+            if not page_token:
+                break
+    for tk in out:
+        out[tk].sort(key=lambda b: str(b.get("t", "")))
+    return out
+
+
+def _bar_date(b: dict) -> str:
+    return str(b.get("t", ""))[:10]
+
+
+def _close_on_or_before(bars: list, date: str):
+    """Last close at or before `date` — None when no bar qualifies."""
+    px = None
+    for b in bars or []:
+        if _bar_date(b) <= date:
+            try:
+                c = float(b.get("c") or 0)
+            except (TypeError, ValueError):
+                c = 0.0
+            if c > 0:
+                px = c
+        else:
+            break
+    return px
+
+
+def score_fire_outcome(fire: dict, bars: list, spy_bars: list = None,
+                       horizon: int = SCORECARD_HORIZON_SESSIONS):
+    """Forward-return outcome for one fire, or None when the fire is younger
+    than `horizon` sessions (score next week) or bars are unusable.
+
+    Entry = fire-date close (the screener runs post-close). Window = the next
+    `horizon` sessions. hit10 uses intraday highs; drawdown uses intraday lows.
+    Excess = ret_20d minus same-window SPY close-to-close return."""
+    if not bars or horizon < 5:
+        return None
+    fire_date = str(fire.get("date", ""))[:10]
+    idx = None
+    for i, b in enumerate(bars):
+        d = _bar_date(b)
+        if d > fire_date:
+            break
+        idx = i
+    if idx is None:
+        return None
+    try:
+        entry = float(bars[idx].get("c") or 0)
+    except (TypeError, ValueError):
+        return None
+    if entry <= 0:
+        return None
+    window = bars[idx + 1: idx + 1 + horizon]
+    if len(window) < horizon:
+        return None  # younger than horizon
+
+    def _f(b, k, fallback=0.0):
+        try:
+            v = float(b.get(k) or 0)
+        except (TypeError, ValueError):
+            v = 0.0
+        return v if v > 0 else fallback
+
+    ret_5d = (_f(window[4], "c", entry) / entry - 1.0) * 100.0
+    ret_20d = (_f(window[horizon - 1], "c", entry) / entry - 1.0) * 100.0
+    hit10 = any(_f(b, "h", 0.0) >= entry * 1.10 for b in window)
+    low = min(_f(b, "l", entry) for b in window)
+    max_dd = min(0.0, (low / entry - 1.0) * 100.0)
+
+    spy_ret = None
+    excess = None
+    if spy_bars:
+        spy_entry = _close_on_or_before(spy_bars, fire_date)
+        spy_exit = _close_on_or_before(spy_bars, _bar_date(window[-1]))
+        if spy_entry and spy_exit:
+            spy_ret = (spy_exit / spy_entry - 1.0) * 100.0
+            excess = ret_20d - spy_ret
+
+    return {
+        "ret_5d": round(ret_5d, 2),
+        "ret_20d": round(ret_20d, 2),
+        "hit10_20d": bool(hit10),
+        "max_drawdown_20d": round(max_dd, 2),
+        "spy_ret_20d": round(spy_ret, 2) if spy_ret is not None else None,
+        "excess_20d": round(excess, 2) if excess is not None else None,
+    }
+
+
+def score_pending_fires(fires: list, bars_by_ticker: dict, spy_bars: list,
+                        horizon: int = SCORECARD_HORIZON_SESSIONS) -> int:
+    """Attach `scored` to every unscored fire that is old enough. Fires already
+    carrying `scored` are never re-fetched or recomputed (scored-once cache).
+    Returns the number of fires newly scored."""
+    n = 0
+    for fire in fires:
+        if isinstance(fire.get("scored"), dict):
+            continue
+        outcome = score_fire_outcome(
+            fire, bars_by_ticker.get(str(fire.get("ticker", "")).upper()),
+            spy_bars, horizon=horizon)
+        if outcome is not None:
+            fire["scored"] = outcome
+            n += 1
+    return n
+
+
+def _scorecard_stats(fire_list: list) -> dict:
+    scored = [f["scored"] for f in fire_list if isinstance(f.get("scored"), dict)]
+    r5  = [s["ret_5d"] for s in scored if s.get("ret_5d") is not None]
+    r20 = [s["ret_20d"] for s in scored if s.get("ret_20d") is not None]
+    ex  = [s["excess_20d"] for s in scored if s.get("excess_20d") is not None]
+    hits = [bool(s.get("hit10_20d")) for s in scored]
+    return {
+        "n_fires": len(fire_list),
+        "n_scored": len(scored),
+        "median_ret_5d": round(statistics.median(r5), 2) if r5 else None,
+        "median_ret_20d": round(statistics.median(r20), 2) if r20 else None,
+        "median_excess_20d": round(statistics.median(ex), 2) if ex else None,
+        "win_rate_5d": round(100.0 * sum(1 for v in r5 if v > 0) / len(r5), 1) if r5 else None,
+        "hit10_rate": round(100.0 * sum(hits) / len(hits), 1) if hits else None,
+        "worst": round(min(r20), 2) if r20 else None,
+    }
+
+
+def aggregate_scorecard(fires: list, today: str, prev_scorecard: dict = None) -> dict:
+    """Per-block aggregates: lifetime (backfilled fires EXCLUDED by default —
+    lower confidence) and trailing 90 days. Flag rule (informational only,
+    nothing auto-disabled): lifetime n_fires ≥ 20 accumulated over ≥ 8 weeks
+    AND median_excess_20d ≤ 0 AND hit10_rate < 15% → REVIEW/RETIRE.
+    `newly_flagged` compares against the previous scorecard's status."""
+    prev_blocks = (prev_scorecard or {}).get("blocks", {})
+    cutoff_90 = (datetime.date.fromisoformat(today)
+                 - datetime.timedelta(days=SCORECARD_TRAILING_DAYS)).isoformat()
+    by_block: dict = {}
+    for f in fires:
+        block = str(f.get("block", "") or "")
+        if block:
+            by_block.setdefault(block, []).append(f)
+
+    blocks_out = {}
+    for block, flist in sorted(by_block.items()):
+        lifetime_fires = [f for f in flist if not f.get("backfilled")]
+        trailing_fires = [f for f in flist if str(f.get("date", "")) >= cutoff_90]
+        lifetime = _scorecard_stats(lifetime_fires)
+        trailing = _scorecard_stats(trailing_fires)
+
+        dates = sorted(str(f.get("date", "")) for f in lifetime_fires if f.get("date"))
+        first_fire = dates[0] if dates else None
+        last_fire = dates[-1] if dates else None
+        weeks_span = 0.0
+        if first_fire and last_fire:
+            span_days = (datetime.date.fromisoformat(last_fire)
+                         - datetime.date.fromisoformat(first_fire)).days
+            weeks_span = round(span_days / 7.0, 1)
+
+        flagged = (
+            lifetime["n_fires"] >= SCORECARD_FLAG_MIN_FIRES
+            and weeks_span >= SCORECARD_FLAG_MIN_WEEKS
+            and lifetime["median_excess_20d"] is not None
+            and lifetime["median_excess_20d"] <= 0
+            and lifetime["hit10_rate"] is not None
+            and lifetime["hit10_rate"] < SCORECARD_FLAG_HIT10_PCT
+        )
+        status = SCORECARD_STATUS_REVIEW if flagged else SCORECARD_STATUS_OK
+        prev_status = (prev_blocks.get(block) or {}).get("status")
+        newly_flagged = flagged and prev_status != SCORECARD_STATUS_REVIEW
+
+        # Fires/week histogram — last 12 weeks, oldest → newest (sparkline).
+        today_d = datetime.date.fromisoformat(today)
+        buckets = [0] * 12
+        for f in flist:
+            try:
+                age = (today_d - datetime.date.fromisoformat(str(f.get("date", "")))).days
+            except ValueError:
+                continue
+            wk = age // 7
+            if 0 <= wk < 12:
+                buckets[11 - wk] += 1
+
+        blocks_out[block] = {
+            "lifetime": lifetime,
+            "trailing_90d": trailing,
+            "first_fire_date": first_fire,
+            "last_fire_date": last_fire,
+            "weeks_span": weeks_span,
+            "status": status,
+            "newly_flagged": newly_flagged,
+            "fires_per_week": buckets,
+        }
+    return {
+        "date": today,
+        "horizon_sessions": SCORECARD_HORIZON_SESSIONS,
+        "trailing_days": SCORECARD_TRAILING_DAYS,
+        "blocks": blocks_out,
+    }
+
+
+def _sc_sparkline(counts: list) -> str:
+    """Unicode fires/week sparkline — no JS, prints fine."""
+    glyphs = "▁▂▃▄▅▆▇█"
+    peak = max(counts) if counts and max(counts) > 0 else 1
+    return "".join(
+        glyphs[min(len(glyphs) - 1, int(round((c / peak) * (len(glyphs) - 1))))]
+        for c in counts
+    )
+
+
+def _sc_fmt(v, suffix: str = "", signed: bool = False) -> str:
+    if v is None:
+        return "—"
+    if signed:
+        return f"{v:+.1f}{suffix}"
+    return f"{v:.1f}{suffix}"
+
+
+def _sorted_scorecard_blocks(scorecard: dict) -> list:
+    """(block, data) sorted by lifetime median_excess_20d desc, unrated last."""
+    def _key(item):
+        ex = item[1].get("lifetime", {}).get("median_excess_20d")
+        return (0, -ex) if ex is not None else (1, 0)
+    return sorted((scorecard.get("blocks") or {}).items(), key=_key)
+
+
+def render_signal_scorecard_html(scorecard: dict) -> str:
+    """📏 Signal Scorecard weekly section — table sorted by median_excess_20d,
+    red rows for REVIEW/RETIRE, amber tint for negative-excess blocks."""
+    items = _sorted_scorecard_blocks(scorecard)
+    if not items:
+        return ""
+    rows = ""
+    for block, d in items:
+        life = d.get("lifetime", {})
+        tr90 = d.get("trailing_90d", {})
+        status = d.get("status", SCORECARD_STATUS_OK)
+        ex = life.get("median_excess_20d")
+        row_cls = ""
+        if status == SCORECARD_STATUS_REVIEW:
+            row_cls = "sc-review"
+        elif ex is not None and ex < 0:
+            row_cls = "sc-under"
+        status_html = (
+            "<span class='sc-flag'>⚠ REVIEW/RETIRE</span>"
+            if status == SCORECARD_STATUS_REVIEW else
+            "<span class='sc-ok'>OK</span>"
+        )
+        new_tag = " <span class='sc-new'>new</span>" if d.get("newly_flagged") else ""
+        rows += (
+            f"<tr class='{row_cls}'>"
+            f"<td class='sc-block'>{block}</td>"
+            f"<td>{status_html}{new_tag}</td>"
+            f"<td class='center'>{life.get('n_fires', 0)} <span class='dim'>/ {life.get('n_scored', 0)} scored</span></td>"
+            f"<td class='center'>{tr90.get('n_fires', 0)}</td>"
+            f"<td class='center mono'>{_sc_fmt(life.get('median_ret_5d'), '%', signed=True)}</td>"
+            f"<td class='center mono'>{_sc_fmt(life.get('median_ret_20d'), '%', signed=True)}</td>"
+            f"<td class='center mono bold'>{_sc_fmt(ex, '%', signed=True)}</td>"
+            f"<td class='center mono'>{_sc_fmt(life.get('win_rate_5d'), '%')}</td>"
+            f"<td class='center mono'>{_sc_fmt(life.get('hit10_rate'), '%')}</td>"
+            f"<td class='center mono'>{_sc_fmt(life.get('worst'), '%', signed=True)}</td>"
+            f"<td class='sc-spark' title='fires/week, last 12 weeks'>{_sc_sparkline(d.get('fires_per_week', []))}</td>"
+            "</tr>"
+        )
+    horizon = scorecard.get("horizon_sessions", SCORECARD_HORIZON_SESSIONS)
+    return (
+        "<h2>📏 Signal Scorecard <span class='h2-sub'>— forward returns per callout block</span></h2>"
+        "<p class='lb-note'>Every daily-screener callout fire scored on "
+        f"{horizon}-session forward returns vs SPY (excess). Sorted by lifetime median excess. "
+        "Flag rule (informational — human decides, nothing auto-disabled): "
+        f"n ≥ {SCORECARD_FLAG_MIN_FIRES} over ≥ {SCORECARD_FLAG_MIN_WEEKS} weeks AND "
+        f"median excess ≤ 0 AND hit-10% rate &lt; {SCORECARD_FLAG_HIT10_PCT:.0f}% → REVIEW/RETIRE. "
+        "Backfilled fires are excluded from lifetime stats.</p>"
+        "<table class='lb-table sc-table'><thead><tr>"
+        "<th>Block</th><th>Status</th><th>Fires (life)</th><th>90d</th>"
+        "<th>Med 5d</th><th>Med 20d</th><th>Med excess 20d</th>"
+        "<th>Win 5d</th><th>Hit +10%</th><th>Worst 20d</th><th>Fires/wk</th>"
+        "</tr></thead><tbody>" + rows + "</tbody></table>"
+    )
+
+
+def render_signal_scorecard_slack(scorecard: dict) -> str:
+    """3 lines max: best block, worst block, newly-flagged REVIEW."""
+    blocks = scorecard.get("blocks") or {}
+    if not blocks:
+        return ""
+    rated = [
+        (b, d["lifetime"]["median_excess_20d"], d["lifetime"].get("n_scored", 0))
+        for b, d in blocks.items()
+        if d.get("lifetime", {}).get("median_excess_20d") is not None
+    ]
+    lines = []
+    if rated:
+        rated.sort(key=lambda x: x[1], reverse=True)
+        bb, bv, bn = rated[0]
+        lines.append(f"📏 *Signal Scorecard* · Best: `{bb}` {bv:+.1f}% median excess 20d (n={bn})")
+        if len(rated) > 1:
+            wb, wv, wn = rated[-1]
+            lines.append(f"Worst: `{wb}` {wv:+.1f}% median excess 20d (n={wn})")
+        newly = sorted(b for b, d in blocks.items() if d.get("newly_flagged"))
+        if newly:
+            lines.append("⚠ Newly flagged REVIEW/RETIRE: " + ", ".join(f"`{b}`" for b in newly))
+    else:
+        total = sum(d.get("lifetime", {}).get("n_fires", 0) for d in blocks.values())
+        lines.append(
+            f"📏 *Signal Scorecard*: {total} fires logged across {len(blocks)} blocks — "
+            "none past the 20-session horizon yet"
+        )
+    return "\n".join(lines[:3])
+
+
+SIGNAL_SCORECARD_CSS = """
+/* Signal Scorecard */
+.sc-table .sc-block { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; }
+.sc-ok   { color: #16a34a; font-size: 0.68rem; font-weight: 600; }
+.sc-flag { color: #dc2626; font-size: 0.68rem; font-weight: 700; }
+.sc-new  { background: #fee2e2; color: #b91c1c; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.sc-table tr.sc-review td { background: #fef2f2; }
+.sc-table tr.sc-review:hover td { background: #fee2e2; }
+.sc-table tr.sc-under td { background: #fffbeb; }
+.sc-table tr.sc-under:hover td { background: #fef3c7; }
+.sc-spark { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #6b7280; letter-spacing: 1px; font-size: 0.72rem; }
+.sc-table tr.sc-review td, .sc-table tr.sc-under td {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+"""
+
+
+def run_signal_scorecard(today: str,
+                         fires_path: str = SIGNAL_FIRES_PATH,
+                         scorecard_path: str = SIGNAL_SCORECARD_PATH) -> tuple:
+    """Weekly scoring orchestrator — returns (scorecard_html, scorecard_text).
+
+    Loads fires, fetches Alpaca bars for the unscored ones (explicit start),
+    caches outcomes back onto the fire records (scored once), persists the
+    aggregated scorecard JSON. Non-fatal by contract."""
+    fires = load_signal_fires(fires_path)
+    if not fires:
+        log.info("Signal scorecard: no fires logged yet — skipping section")
+        return "", ""
+
+    pending = [f for f in fires if not isinstance(f.get("scored"), dict)]
+    if pending:
+        dates = sorted(str(f.get("date", "")) for f in pending if f.get("date"))
+        start = (datetime.date.fromisoformat(dates[0])
+                 - datetime.timedelta(days=7)).isoformat() if dates else today
+        tickers = sorted({str(f.get("ticker", "")).upper() for f in pending}) + ["SPY"]
+        log.info("Signal scorecard: %d unscored fires, fetching bars for %d tickers from %s",
+                 len(pending), len(tickers), start)
+        bars_by_t = fetch_scorecard_bars(tickers, start)
+        n_new = score_pending_fires(fires, bars_by_t, bars_by_t.get("SPY", []))
+        log.info("Signal scorecard: newly scored %d fires", n_new)
+        if n_new:
+            save_signal_fires(fires, fires_path)
+
+    prev_scorecard = None
+    try:
+        with open(scorecard_path) as f:
+            prev_scorecard = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        prev_scorecard = None
+
+    scorecard = aggregate_scorecard(fires, today, prev_scorecard)
+    with open(scorecard_path, "w") as f:
+        json.dump(scorecard, f, indent=2)
+    log.info("Signal scorecard persisted: %s (%d blocks)",
+             scorecard_path, len(scorecard.get("blocks", {})))
+    return render_signal_scorecard_html(scorecard), render_signal_scorecard_slack(scorecard)
+
+
+def _shared_nav() -> str:
+    """Shared site nav (cx-rehaul §A.1) — self-contained, non-fatal."""
+    try:
+        from utils.generators.nav import render_nav
+        return render_nav("")
+    except Exception:
+        return ""
+
+
 def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
                           dates_found: list, strategist_note: str = "",
                           fng_data: dict = None, crypto_data: dict = None,
@@ -937,7 +1395,8 @@ def generate_weekly_html(persistence_df: pd.DataFrame, macro_data: dict,
                           etf_rotation_summary: dict = None,
                           positioning_html: str = "",
                           shortlist_html: str = "",
-                          book_review_html: str = "") -> str:
+                          book_review_html: str = "",
+                          scorecard_html: str = "") -> str:
     today      = datetime.date.today().strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
     out_html   = os.path.join(DATA_DIR, f"finviz_weekly_{today}.html")
@@ -1338,7 +1797,7 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-""" + SECTOR_SETUP_CSS + POSITIONING_CSS + SHORTLIST_CSS + BOOK_REVIEW_CSS
+""" + SECTOR_SETUP_CSS + POSITIONING_CSS + SHORTLIST_CSS + BOOK_REVIEW_CSS + SIGNAL_SCORECARD_CSS
 
     html = (
         "<!DOCTYPE html><html lang='en'><head>"
@@ -1349,7 +1808,8 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         f"<title>Finviz Weekly — {today}</title>"
         f"<style>{css}</style>"
         "</head><body>"
-        "<button class='pdf-btn' onclick='window.print()' title='Export PDF'>⬇</button>"
+        + _shared_nav()
+        + "<button class='pdf-btn' onclick='window.print()' title='Export PDF'>⬇</button>"
         "<h1>Finviz Weekly Review</h1>"
         f"<p class='subtitle'>{week_range} · {len(persistence_df)} tickers scanned · {len(dates_found)} trading days</p>"
         # §1 Positioning & Book Risk — am I positioned right?
@@ -1367,7 +1827,9 @@ h2    { font-size: .78rem; font-weight: 600; color: #6b7280; margin: 28px 0 10px
         + fng_html
         # §5 Strategist's Note — 3 bullets, demoted
         + ai_html
-        # Reference (demoted): character-change alerts + recurring-names board
+        # Reference (demoted): signal scorecard + character-change alerts +
+        # recurring-names board
+        + scorecard_html
         + cc_html
         + leaderboard_html
         + """<script>
@@ -1568,7 +2030,8 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
                        etf_rotation_summary: dict = None,
                        positioning_text: str = "",
                        shortlist_text: str = "",
-                       book_review_text: str = ""):
+                       book_review_text: str = "",
+                       scorecard_text: str = ""):
     if not SLACK_WEBHOOK_URL:
         log.info("SLACK_WEBHOOK_URL not set — skipping Slack.")
         return
@@ -1636,6 +2099,11 @@ def send_weekly_slack(persistence_df: pd.DataFrame, macro_data: dict,
         lead_parts.append(ctx.strip())
     if lead_parts:
         blocks.append(_section("\n\n".join(lead_parts)))
+        blocks.append({"type": "divider"})
+
+    # 📏 Signal Scorecard — 3 lines max (best / worst / newly-flagged REVIEW)
+    if scorecard_text:
+        blocks.append(_section(scorecard_text))
         blocks.append({"type": "divider"})
 
     # §5 Strategist's Note — 3 bullets
@@ -1904,16 +2372,37 @@ if __name__ == "__main__":
     strategist_note = generate_strategist_note(
         positioning_summary, shortlist_cards, state_str, fng_data, etf_regime)
 
+    # ── 📏 Signal Scorecard (spec §2.2–2.3) — score the daily screener's fires
+    # log on forward returns per block. Non-fatal: a scorecard failure must
+    # never break the weekly run.
+    scorecard_html, scorecard_text = "", ""
+    try:
+        scorecard_html, scorecard_text = run_signal_scorecard(today)
+    except Exception as e:
+        log.warning("Signal scorecard failed (non-fatal): %s", e)
+
     weekly_html = generate_weekly_html(
         persistence_df, macro_data, dates_found, strategist_note, fng_data,
         crypto_data, cc_results, etf_rotation_summary,
         positioning_html=positioning_html, shortlist_html=shortlist_html,
-        book_review_html=book_review_html)
+        book_review_html=book_review_html, scorecard_html=scorecard_html)
     log.info(f"Report: {weekly_html}")
 
     send_weekly_slack(
         persistence_df, macro_data, strategist_note, weekly_html, dates_found,
         fng_data, crypto_data, etf_rotation_summary,
         positioning_text=positioning_text, shortlist_text=shortlist_text,
-        book_review_text=book_review_text)
+        book_review_text=book_review_text, scorecard_text=scorecard_text)
+
+    # ── Trader Mirror (monthly — first Saturday of the month) ──
+    # Non-fatal by contract: a mirror failure must never break the weekly run.
+    try:
+        if datetime.date.today().day <= 7:
+            from agents.utils.trader_mirror import run_trader_mirror
+            log.info("First Saturday — running Trader Mirror for last month...")
+            run_trader_mirror(DATA_DIR, slack_webhook=SLACK_WEBHOOK_URL,
+                              pages_base=GITHUB_PAGES_BASE)
+    except Exception as e:
+        log.warning("Trader Mirror failed (non-fatal): %s", e)
+
     log.info("=== Done ===")

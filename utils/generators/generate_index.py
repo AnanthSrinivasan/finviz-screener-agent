@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # ----------------------------
-# Finviz Index Page Generator
+# Index Page Generator — the landing that gets out of the way
+# (spec: docs/specs/cx-rehaul.md §A.2)
 # ----------------------------
-# Scans the data/ folder and regenerates index.html at the repo root.
-# Run at the end of both daily and weekly workflows.
+# One primary button (☀️ Open Cockpit) + the shared nav. Below: latest weekly
+# card + the 📚 Report Archive — EVERY dated report stays reachable from here
+# (user condition 2026-07-15: nothing loses its home), grouped in <details>.
+# Also regenerates data/record.html (A.3) since both run at the same cadence.
 # ----------------------------
 
 import os
@@ -12,27 +15,17 @@ import glob
 import datetime
 import logging
 
+from utils.generators.nav import render_nav, _cache_q
+from utils.generators.theme import page_shell
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-DATA_DIR        = os.environ.get("DATA_DIR", "data")
+DATA_DIR = os.environ.get("DATA_DIR", "data")
 GITHUB_PAGES_BASE = os.environ.get("GITHUB_PAGES_BASE", "")
 
-# See generate_dashboard.py — auto cache-bust query for internal nav links.
-def _cache_q() -> str:
-    sha = os.environ.get("GITHUB_SHA") or os.environ.get("CACHE_BUST_SHA") or ""
-    if not sha:
-        try:
-            import subprocess
-            sha = subprocess.check_output(
-                ["git", "rev-parse", "--short", "HEAD"], text=True
-            ).strip()
-        except Exception:
-            sha = ""
-    return f"?v={sha[:7]}" if sha else ""
-
 CACHE_Q = _cache_q()
-OUTPUT_PATH     = "index.html"
+OUTPUT_PATH = "index.html"
 
 
 def scan_reports(data_dir: str) -> dict:
@@ -42,41 +35,33 @@ def scan_reports(data_dir: str) -> dict:
         "daily_gallery": [],
         "daily_summary": [],
         "persistence": [],
+        "trader_mirror": [],
     }
 
-    # Weekly HTML reports
-    for f in sorted(glob.glob(os.path.join(data_dir, "finviz_weekly_2*.html")), reverse=True):
-        date = _extract_date(f)
-        reports["weekly"].append({"date": date, "file": os.path.basename(f), "path": f})
-
-    # Daily chart galleries
-    for f in sorted(glob.glob(os.path.join(data_dir, "finviz_chart_grid_2*.html")), reverse=True):
-        date = _extract_date(f)
-        reports["daily_gallery"].append({"date": date, "file": os.path.basename(f), "path": f})
-
-    # Daily screener summaries
-    for f in sorted(glob.glob(os.path.join(data_dir, "finviz_screeners_2*.html")), reverse=True):
-        date = _extract_date(f)
-        reports["daily_summary"].append({"date": date, "file": os.path.basename(f), "path": f})
-
-    # Weekly persistence CSVs
-    for f in sorted(glob.glob(os.path.join(data_dir, "finviz_weekly_persistence_2*.csv")), reverse=True):
-        date = _extract_date(f)
-        reports["persistence"].append({"date": date, "file": os.path.basename(f), "path": f})
-
+    globs = {
+        "weekly": "finviz_weekly_2*.html",
+        "daily_gallery": "finviz_chart_grid_2*.html",
+        "daily_summary": "finviz_screeners_2*.html",
+        "persistence": "finviz_weekly_persistence_2*.csv",
+        "trader_mirror": "trader_mirror_2*.html",
+    }
+    for key, pattern in globs.items():
+        for f in sorted(glob.glob(os.path.join(data_dir, pattern)), reverse=True):
+            reports[key].append({"date": _extract_date(f),
+                                 "file": os.path.basename(f), "path": f})
     return reports
 
 
 def _extract_date(filepath: str) -> str:
-    match = re.search(r"(\d{4}-\d{2}-\d{2})", filepath)
-    return match.group(1) if match else "unknown"
+    match = re.search(r"(\d{4}-\d{2})(-\d{2})?", os.path.basename(filepath))
+    return (match.group(1) + (match.group(2) or "")) if match else "unknown"
 
 
 def _format_date(date_str: str) -> str:
     try:
         d = datetime.date.fromisoformat(date_str)
         return d.strftime("%a %d %b %Y")
-    except:
+    except Exception:
         return date_str
 
 
@@ -90,181 +75,102 @@ def _days_ago(date_str: str) -> str:
             return "yesterday"
         else:
             return f"{delta}d ago"
-    except:
+    except Exception:
         return ""
 
 
+INDEX_CSS = """
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:22px 20px;margin-bottom:18px}
+.hero p{color:var(--muted);font-size:.82rem;margin:4px 0 16px}
+.btn-cockpit{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;
+  border-radius:10px;background:#1c3157;border:1px solid var(--link);color:var(--head);
+  font-size:1rem;font-weight:800;text-decoration:none}
+.btn-cockpit:hover{background:#234070;text-decoration:none}
+.weekly-card{display:block;background:var(--surface);border:1px solid var(--border);
+  border-left:4px solid var(--link);border-radius:10px;padding:14px 16px;margin-bottom:18px;
+  text-decoration:none}
+.weekly-card:hover{border-color:var(--link);text-decoration:none}
+.weekly-card .wl{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;
+  font-weight:700;color:var(--link)}
+.weekly-card .wd{font-size:.95rem;font-weight:700;color:var(--head);margin-top:2px}
+.weekly-card .wa{font-size:.72rem;color:var(--muted)}
+.archive-links{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0}
+.archive-links a{font-size:.76rem;padding:5px 10px;border-radius:6px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);white-space:nowrap}
+.archive-links a:hover{border-color:var(--link);text-decoration:none}
+"""
+
+
+def _archive_group(title: str, items: list, base_url: str, label=None) -> str:
+    """One <details> group of dated links. Empty group renders nothing."""
+    if not items:
+        return ""
+    links = ""
+    for r in items:
+        path = f"{base_url}/data/{r['file']}" if base_url else f"data/{r['file']}"
+        text = label(r) if label else r["date"]
+        links += f'<a href="{path}{CACHE_Q}">{text}</a>'
+    return (f"<details><summary>{title} ({len(items)})</summary>"
+            f'<div class="archive-links">{links}</div></details>')
+
+
 def generate_index(reports: dict, base_url: str) -> str:
-    today = datetime.date.today().strftime("%Y-%m-%d")
     generated_at = datetime.datetime.now().strftime("%d %b %Y %H:%M UTC")
 
-    # Latest report cards
-    latest_weekly  = reports["weekly"][0]  if reports["weekly"]  else None
-    latest_gallery = reports["daily_gallery"][0] if reports["daily_gallery"] else None
+    def _url(path_in_data: str) -> str:
+        base = f"{base_url}/data/" if base_url else "data/"
+        return f"{base}{path_in_data}{CACHE_Q}"
 
-    def report_url(report):
-        path = f"{base_url}/data/{report['file']}" if base_url else f"data/{report['file']}"
-        return f"{path}{CACHE_Q}"
+    latest_weekly = reports["weekly"][0] if reports["weekly"] else None
 
-    # Build weekly cards
-    weekly_cards = ""
-    for r in reports["weekly"][:8]:
-        weekly_cards += f"""
-        <a href="{report_url(r)}" class="card card-weekly">
-          <div class="card-label">Weekly Review</div>
-          <div class="card-date">{_format_date(r['date'])}</div>
-          <div class="card-ago">{_days_ago(r['date'])}</div>
-        </a>"""
+    hero = (
+        '<div class="hero">'
+        "<h1>📈 Finviz Screener Agent</h1>"
+        f"<p>Daily screener · position monitor · money flow · generated {generated_at}</p>"
+        f'<a class="btn-cockpit" href="{_url("daily.html")}">☀️ Open Cockpit</a>'
+        "</div>"
+    )
 
-    # Build daily gallery cards
-    gallery_cards = ""
-    for r in reports["daily_gallery"][:10]:
-        gallery_cards += f"""
-        <a href="{report_url(r)}" class="card card-daily">
-          <div class="card-label">Chart Gallery</div>
-          <div class="card-date">{_format_date(r['date'])}</div>
-          <div class="card-ago">{_days_ago(r['date'])}</div>
-        </a>"""
-
-    # Latest links for hero section
-    dashboard_url = f"{base_url}/dashboard.html{CACHE_Q}" if base_url else f"dashboard.html{CACHE_Q}"
-
-    perf_url      = f"{base_url}/data/performance_charts.html{CACHE_Q}" if base_url else f"data/performance_charts.html{CACHE_Q}"
-    perf_2026_url = f"{base_url}/data/performance_2026.html{CACHE_Q}"  if base_url else f"data/performance_2026.html{CACHE_Q}"
-    mae_url       = f"{base_url}/data/mae_analysis.html{CACHE_Q}"      if base_url else f"data/mae_analysis.html{CACHE_Q}"
-    watchlist_url = f"{base_url}/watchlist.html{CACHE_Q}"              if base_url else f"watchlist.html{CACHE_Q}"
-    portfolio_url = f"{base_url}/data/claude_portfolio.html{CACHE_Q}"  if base_url else f"data/claude_portfolio.html{CACHE_Q}"
-    live_portfolio_url = f"{base_url}/data/live_portfolio.html{CACHE_Q}" if base_url else f"data/live_portfolio.html{CACHE_Q}"
-    etf_rotation_url = f"{base_url}/data/etf_rotation.html{CACHE_Q}"   if base_url else f"data/etf_rotation.html{CACHE_Q}"
-    cockpit_url   = f"{base_url}/data/daily.html{CACHE_Q}"             if base_url else f"data/daily.html{CACHE_Q}"
-
-    hero_links = f'<a href="{cockpit_url}" class="hero-btn btn-cockpit">☀️ Daily Cockpit</a>'
-    hero_links += f'<a href="{dashboard_url}" class="hero-btn btn-dash">Dashboard</a>'
-    hero_links += f'<a href="{live_portfolio_url}" class="hero-btn btn-live-portfolio">Live Portfolio</a>'
-    hero_links += f'<a href="{portfolio_url}" class="hero-btn btn-portfolio">Claude Portfolio</a>'
-    hero_links += f'<a href="{watchlist_url}" class="hero-btn btn-watchlist">Watchlist</a>'
-    hero_links += f'<a href="{etf_rotation_url}" class="hero-btn btn-etf">ETF Rotation</a>'
+    weekly_card = ""
     if latest_weekly:
-        hero_links += f'<a href="{report_url(latest_weekly)}" class="hero-btn btn-weekly">Latest Weekly Review</a>'
-    if latest_gallery:
-        hero_links += f'<a href="{report_url(latest_gallery)}" class="hero-btn btn-daily">Latest Chart Gallery</a>'
-    hero_links += f'<a href="{perf_url}" class="hero-btn btn-perf">Performance 2024–25</a>'
-    hero_links += f'<a href="{perf_2026_url}" class="hero-btn btn-perf">Performance 2026 YTD</a>'
-    hero_links += f'<a href="{mae_url}" class="hero-btn btn-mae">MAE / MFE Analysis</a>'
+        weekly_card = (
+            f'<a class="weekly-card" href="{_url(latest_weekly["file"])}">'
+            '<div class="wl">Latest Weekly Review</div>'
+            f'<div class="wd">{_format_date(latest_weekly["date"])}</div>'
+            f'<div class="wa">{_days_ago(latest_weekly["date"])}</div></a>'
+        )
 
-    total_daily  = len(reports["daily_gallery"])
-    total_weekly = len(reports["weekly"])
+    # 📚 Report Archive — every dated report keeps its home (user condition).
+    dash_href = f"{base_url}/dashboard.html{CACHE_Q}" if base_url else f"dashboard.html{CACHE_Q}"
+    perf_links = (
+        '<div class="archive-links">'
+        f'<a href="{_url("record.html")}">📈 The Record (tabs)</a>'
+        f'<a href="{_url("performance_2026.html")}">Performance 2026 YTD</a>'
+        f'<a href="{_url("performance_charts.html")}">Performance 2024–25</a>'
+        f'<a href="{_url("mae_analysis.html")}">MAE / MFE Analysis</a>'
+        f'<a href="{dash_href}">Retired positions dashboard (snapshot)</a>'
+        "</div>"
+    )
+    archive = (
+        "<h2>📚 Report Archive</h2>"
+        + _archive_group("Weekly Reviews", reports["weekly"], base_url)
+        + _archive_group("Daily Chart Galleries", reports["daily_gallery"], base_url)
+        + _archive_group("Daily Screener Tables", reports["daily_summary"], base_url)
+        + _archive_group("Trader Mirror (monthly)", reports["trader_mirror"], base_url)
+        + _archive_group("Weekly Persistence CSVs", reports["persistence"], base_url)
+        + f"<details><summary>Performance &amp; analysis ({4 + 1})</summary>{perf_links}</details>"
+    )
 
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>Finviz Screener Agent</title>
-<style>
-  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #f8f9fc; color: #111827; min-height: 100vh; }}
+    footer = (
+        '<div class="footer">Generated ' + generated_at + " · "
+        '<a href="https://github.com/AnanthSrinivasan/finviz-screener-agent">'
+        "github.com/AnanthSrinivasan/finviz-screener-agent</a></div>"
+    )
 
-  /* Hero */
-  .hero {{ padding: 48px 32px 40px; border-bottom: 1px solid #e5e7eb; background: #fff; }}
-  .hero h1 {{ font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; color: #111827; }}
-  .hero p {{ color: #6b7280; font-size: 0.88rem; margin-bottom: 24px; }}
-  .hero-links {{ display: flex; gap: 12px; flex-wrap: wrap; }}
-  .hero-btn {{ display: inline-flex; align-items: center; gap: 6px;
-               padding: 10px 20px; border-radius: 8px; font-size: 0.88rem;
-               font-weight: 600; text-decoration: none; transition: opacity .15s; }}
-  .hero-btn:hover {{ opacity: .85; }}
-  .btn-weekly {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
-  .btn-daily  {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
-  .btn-cockpit {{ background: #111827; color: #fff; border: 1px solid #111827; font-weight: 700; }}
-  .btn-dash   {{ background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }}
-  .btn-perf   {{ background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }}
-  .btn-mae       {{ background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }}
-  .btn-watchlist {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
-  .btn-portfolio {{ background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }}
-  .btn-live-portfolio {{ background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }}
-  .btn-etf       {{ background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }}
-
-  /* Stats bar */
-  .stats {{ display: flex; gap: 32px; padding: 20px 32px;
-            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; background: #fff; }}
-  .stat {{ display: flex; flex-direction: column; gap: 2px; }}
-  .stat-val {{ font-size: 1.4rem; font-weight: 700; color: #111827; }}
-  .stat-label {{ font-size: 0.72rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }}
-
-  /* Sections */
-  .section {{ padding: 28px 32px; background: #fff; }}
-  .section + .section {{ border-top: 1px solid #e5e7eb; }}
-  .section h2 {{ font-size: 0.78rem; font-weight: 700; color: #6b7280;
-                 text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }}
-
-  /* Cards */
-  .cards {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }}
-  .card {{ display: flex; flex-direction: column; gap: 4px; padding: 14px 16px;
-           border-radius: 10px; text-decoration: none; transition: border-color .15s, box-shadow .15s;
-           border: 1px solid #e5e7eb; background: #fff; }}
-  .card:hover {{ border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }}
-  .card-weekly {{ background: #eff6ff; border-color: #dbeafe; }}
-  .card-daily  {{ background: #f0fdf4; border-color: #dcfce7; }}
-  .card-label {{ font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }}
-  .card-weekly .card-label {{ color: #1d4ed8; }}
-  .card-daily  .card-label {{ color: #15803d; }}
-  .card-date {{ font-size: 0.88rem; font-weight: 600; color: #111827; }}
-  .card-ago  {{ font-size: 0.72rem; color: #9ca3af; }}
-
-  /* Footer */
-  .footer {{ padding: 20px 32px; border-top: 1px solid #e5e7eb;
-             font-size: 0.72rem; color: #9ca3af; background: #fff; }}
-</style>
-</head>
-<body>
-
-<div class="hero">
-  <h1>📈 Finviz Screener Agent</h1>
-  <p>Daily momentum screener · Weekly persistence review · Auto-generated {generated_at}</p>
-  <div class="hero-links">{hero_links}</div>
-</div>
-
-<div class="stats">
-  <div class="stat">
-    <span class="stat-val">{total_daily}</span>
-    <span class="stat-label">Daily reports</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">{total_weekly}</span>
-    <span class="stat-label">Weekly reviews</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">{reports["daily_gallery"][0]["date"] if reports["daily_gallery"] else "—"}</span>
-    <span class="stat-label">Last daily run</span>
-  </div>
-  <div class="stat">
-    <span class="stat-val">{reports["weekly"][0]["date"] if reports["weekly"] else "—"}</span>
-    <span class="stat-label">Last weekly run</span>
-  </div>
-</div>
-
-{"<div class='section'><h2>Weekly Reviews</h2><div class='cards'>" + weekly_cards + "</div></div>" if weekly_cards else ""}
-
-<div class="section">
-  <h2>Daily Chart Galleries</h2>
-  <div class="cards">{gallery_cards}</div>
-</div>
-
-<div class="footer">
-  Generated {generated_at} · 
-  <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent" 
-     style="color:#9ca3af">github.com/AnanthSrinivasan/finviz-screener-agent</a>
-</div>
-
-</body>
-</html>"""
-
-    return html
+    body = hero + weekly_card + archive + footer
+    return page_shell("Finviz Screener Agent", render_nav("home", at_root=True),
+                      body, extra_css=INDEX_CSS)
 
 
 def main():
@@ -279,8 +185,14 @@ def main():
 
     with open(OUTPUT_PATH, "w") as f:
         f.write(html)
-
     log.info(f"index.html written → {OUTPUT_PATH}")
+
+    # A.3 — regenerate data/record.html at the same cadence (non-fatal).
+    try:
+        from utils.generators.generate_record import write_page as _write_record
+        _write_record()
+    except Exception as e:
+        log.warning("record.html generation failed (non-fatal): %s", e)
 
 
 if __name__ == "__main__":

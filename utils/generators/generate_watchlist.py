@@ -228,10 +228,12 @@ def _table(entries: list[dict], quality: dict, table_id: str, include_priority_b
 
 
 def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = None) -> str:
+    from utils.generators.nav import render_nav
+    from utils.generators.theme import BASE_CSS
+
     today       = datetime.date.today().isoformat()
     generated   = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
-    index_url   = f"{GITHUB_PAGES_BASE}/index.html{CACHE_Q}" if GITHUB_PAGES_BASE else f"index.html{CACHE_Q}"
-    dash_url    = f"{GITHUB_PAGES_BASE}/dashboard.html{CACHE_Q}" if GITHUB_PAGES_BASE else f"dashboard.html{CACHE_Q}"
+    nav_html    = render_nav("watchlist", at_root=True)
 
     # Split watchlist into 4 tiers — entry-ready and focus are actionable, watching is radar.
     entry_ready = [e for e in watchlist if e.get("priority") == "entry-ready" and e.get("status") != "archived"]
@@ -284,109 +286,73 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
 <meta http-equiv="Expires" content="0">
 <title>Watchlist — {today}</title>
 <style>
-  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #f9fafb; color: #111827; min-height: 100vh; }}
-
-  .topbar {{ display: flex; align-items: center; gap: 16px; padding: 14px 28px;
-             background: #fff; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }}
-  .topbar h1 {{ font-size: 1.1rem; font-weight: 700; color: #111827; flex: 1; }}
-  .topbar-links {{ display: flex; gap: 10px; }}
-  .topbar-links a {{ font-size: 0.8rem; color: #2563eb; text-decoration: none; padding: 5px 10px;
-                     border: 1px solid #bfdbfe; border-radius: 6px; background: #eff6ff; }}
-  .topbar-links a:hover {{ background: #dbeafe; }}
-
-  .stats {{ display: flex; gap: 24px; padding: 16px 28px; background: #fff;
-            border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }}
+{BASE_CSS}
+  /* Watchlist-specific — thin extension of BASE_CSS (cx-rehaul §4) */
+  .stats {{ display: flex; gap: 24px; padding: 12px 0; flex-wrap: wrap; }}
   .stat {{ display: flex; flex-direction: column; gap: 2px; }}
-  .stat-val {{ font-size: 1.3rem; font-weight: 700; color: #111827; }}
-  .stat-label {{ font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; }}
+  .stat-val {{ font-size: 1.3rem; font-weight: 700; color: var(--head); }}
+  .stat-label {{ font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }}
 
-  .section {{ padding: 24px 28px; background: #fff; margin-top: 12px;
-              border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }}
-  .section-header {{ display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }}
-  .section-header h2 {{ font-size: 0.82rem; font-weight: 700; color: #374151;
-                        text-transform: uppercase; letter-spacing: .07em; }}
-  .section-count {{ font-size: 0.75rem; color: #9ca3af; }}
+  .section {{ padding: 16px; background: var(--surface); border: 1px solid var(--border);
+              border-left-width: 4px; border-radius: 10px; margin-top: 14px; }}
+  .section-header {{ display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }}
+  .section-header h2 {{ margin: 0; color: var(--head); }}
+  .section-count {{ font-size: 0.75rem; color: var(--muted); }}
 
   .csv-btn {{ margin-left: auto; padding: 6px 14px; font-size: 0.78rem; font-weight: 600;
-              color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0;
-              border-radius: 6px; cursor: pointer; text-decoration: none; }}
-  .csv-btn:hover {{ background: #dcfce7; }}
+              color: var(--green-text); background: var(--green-bg); border: 1px solid var(--border);
+              border-radius: 6px; cursor: pointer; }}
+  .csv-btn:hover {{ border-color: var(--green-text); }}
 
   .watchlist-table {{ width: 100%; border-collapse: collapse; font-size: 0.82rem; }}
-  .watchlist-table th {{ text-align: left; padding: 8px 10px; font-size: 0.7rem; font-weight: 700;
-                         text-transform: uppercase; letter-spacing: .05em; color: #6b7280;
-                         border-bottom: 2px solid #e5e7eb; }}
-  .watchlist-table td {{ padding: 9px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }}
-  .watchlist-table tr:hover td {{ background: #f9fafb; }}
+  .watchlist-table th {{ text-align: left; padding: 8px 10px; font-size: 0.68rem; font-weight: 700;
+                         text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+                         border-bottom: 2px solid var(--border); }}
+  .watchlist-table td {{ padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }}
+  .watchlist-table tr:hover td {{ background: var(--surface2); }}
 
   .col-ticker  {{ width: 90px; white-space: nowrap; }}
-  .col-note    {{ width: 200px; color: #374151; }}
-  .col-thesis  {{ color: #6b7280; font-size: 0.77rem; }}
-  .col-stop    {{ width: 60px; text-align: right; color: #dc2626; font-weight: 600; white-space: nowrap; }}
-  .col-q       {{ width: 40px; text-align: right; font-weight: 600; color: #111827; }}
-  .col-stage   {{ width: 80px; color: #6b7280; font-size: 0.75rem; }}
-  .col-age     {{ width: 50px; text-align: right; color: #9ca3af; font-size: 0.75rem; }}
+  .col-note    {{ width: 200px; color: var(--text); }}
+  .col-thesis  {{ color: var(--muted); font-size: 0.77rem; }}
+  .col-stop    {{ width: 60px; text-align: right; color: var(--red); font-weight: 600; white-space: nowrap; }}
+  .col-q       {{ width: 40px; text-align: right; font-weight: 600; color: var(--head); }}
+  .col-stage   {{ width: 80px; color: var(--muted); font-size: 0.75rem; }}
+  .col-age     {{ width: 50px; text-align: right; color: var(--muted); font-size: 0.75rem; }}
   .col-src     {{ width: 70px; }}
   .col-chart   {{ width: 60px; text-align: right; }}
 
-  .ticker-link {{ font-weight: 700; color: #2563eb; text-decoration: none; }}
-  .ticker-link:hover {{ text-decoration: underline; }}
-  .chart-link {{ color: #2563eb; font-size: 0.75rem; text-decoration: none; }}
-  .chart-link:hover {{ text-decoration: underline; }}
+  .ticker-link {{ font-weight: 700; }}
+  .chart-link {{ font-size: 0.75rem; }}
 
-  .badge {{ display: inline-block; padding: 1px 6px; border-radius: 4px;
-            font-size: 0.65rem; font-weight: 700; letter-spacing: .04em; }}
-  .badge-focus  {{ background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }}
-  .badge-er     {{ background: #dcfce7; color: #166534; border: 1px solid #86efac; }}
-  .badge-watch  {{ background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }}
-  .badge-auto   {{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }}
-  .badge-manual {{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }}
-  .badge-textbook {{ background: #fef3c7; color: #a16207; border: 1px solid #fde68a; }}
+  .badge-focus  {{ background: var(--amber-bg); color: var(--amber); }}
+  .badge-er     {{ background: var(--green-bg); color: var(--green-text); }}
+  .badge-watch  {{ background: var(--surface2); color: var(--muted); }}
+  .badge-auto   {{ background: var(--blue-bg); color: var(--blue-text); }}
+  .badge-manual {{ background: var(--green-bg); color: var(--green-text); }}
+  .badge-textbook {{ background: var(--amber-bg); color: var(--amber); }}
 
-  .entry-ready-section {{ background: #f0fdf4; border-color: #bbf7d0; }}
-  .entry-ready-section .section-header h2 {{ color: #166534; }}
-  .focus-section {{ background: #fffbeb; border-color: #fde68a; }}
-  .focus-section .section-header h2 {{ color: #92400e; }}
-  .hg-section {{ background: #faf5ff; border-color: #e9d5ff; }}
-  .hg-section .section-header h2 {{ color: #6b21a8; }}
+  .entry-ready-section {{ border-left-color: var(--green); }}
+  .focus-section {{ border-left-color: var(--amber); }}
+  .hg-section {{ border-left-color: #a78bfa; }}
 
   /* Hidden Growth criteria pills */
   .hg-pill {{ display: inline-block; padding: 1px 5px; margin-right: 3px;
               font-size: 0.6rem; font-weight: 600; border-radius: 3px;
-              background: #f3f4f6; color: #d1d5db; border: 1px solid #e5e7eb; }}
-  .hg-pill-on {{ background: #ede9fe; color: #6b21a8; border-color: #c4b5fd; }}
+              background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }}
+  .hg-pill-on {{ background: #2b2350; color: #c4b5fd; border-color: #7c6bd6; }}
 
-  .col-hg-score  {{ width: 45px; text-align: center; color: #6b21a8; }}
+  .col-hg-score  {{ width: 45px; text-align: center; color: #c4b5fd; }}
   .col-hg-crit   {{ width: 260px; }}
-  .col-hg-eps    {{ width: 210px; color: #374151; font-size: 0.75rem; white-space: nowrap; }}
-  .col-hg-inst   {{ width: 70px; text-align: right; color: #374151; font-size: 0.78rem; }}
-  .col-hg-appear {{ width: 55px; text-align: right; color: #9ca3af; font-size: 0.75rem; }}
+  .col-hg-eps    {{ width: 210px; color: var(--text); font-size: 0.75rem; white-space: nowrap; }}
+  .col-hg-inst   {{ width: 70px; text-align: right; color: var(--text); font-size: 0.78rem; }}
+  .col-hg-appear {{ width: 55px; text-align: right; color: var(--muted); font-size: 0.75rem; }}
 
-  details summary {{ cursor: pointer; list-style: none; }}
-  details summary::-webkit-details-marker {{ display: none; }}
-  .archived-toggle {{ display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem;
-                      color: #9ca3af; padding: 5px 10px; border: 1px solid #e5e7eb;
-                      border-radius: 6px; cursor: pointer; }}
-  .archived-toggle:hover {{ background: #f9fafb; }}
-  .archived-section {{ padding: 16px 28px; background: #f9fafb; border-top: 1px solid #e5e7eb; }}
-
-  .empty-msg {{ color: #9ca3af; font-size: 0.82rem; font-style: italic; padding: 12px 0; }}
-
-  .footer {{ padding: 16px 28px; font-size: 0.7rem; color: #9ca3af; border-top: 1px solid #e5e7eb;
-             background: #fff; margin-top: 12px; }}
+  .empty-msg {{ color: var(--muted); font-size: 0.82rem; font-style: italic; padding: 12px 0; }}
 </style>
 </head>
 <body>
-
-<div class="topbar">
-  <h1>📋 Watchlist — {today}</h1>
-  <div class="topbar-links">
-    <a href="{index_url}">← Home</a>
-    <a href="{dash_url}">Dashboard</a>
-  </div>
-</div>
+{nav_html}
+<h1>📋 Watchlist — {today}</h1>
 
 <div class="stats">
   <div class="stat">
@@ -409,10 +375,6 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
     <span class="stat-val">{n_archived}</span>
     <span class="stat-label">Archived</span>
   </div>
-  <div class="stat">
-    <span class="stat-val">{today}</span>
-    <span class="stat-label">Last updated</span>
-  </div>
 </div>
 
 <!-- ENTRY-READY -->
@@ -424,7 +386,7 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
       ⬇ TradingView
     </button>
     <button class="csv-btn" onclick="downloadCSV('tbl-entry-ready', 'entry_ready_{today}.csv')">
-      ⬇ Download CSV
+      ⬇ CSV
     </button>
   </div>
   {entry_ready_table}
@@ -439,7 +401,7 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
       ⬇ TradingView
     </button>
     <button class="csv-btn" onclick="downloadCSV('tbl-focus', 'focus_list_{today}.csv')">
-      ⬇ Download CSV
+      ⬇ CSV
     </button>
   </div>
   {focus_table}
@@ -449,7 +411,7 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
 <div class="section hg-section">
   <div class="section-header">
     <h2>🔬 Hidden Growth — {hg_date}</h2>
-    <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} (4+/6 criteria) — fundamental accumulation, overlaps with any tier</span>
+    <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} — fundamental accumulation, overlaps with any tier</span>
     <button class="csv-btn" onclick="downloadAllActive('{hg_tickers_csv}', 'hidden_growth_tv_{today}.txt')">
       ⬇ TradingView
     </button>
@@ -457,29 +419,24 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   {hg_table}
 </div>
 
-<!-- FULL WATCHLIST -->
-<div class="section">
-  <div class="section-header">
-    <h2>👁 Watching</h2>
-    <span class="section-count">{n_watching} ticker{"s" if n_watching != 1 else ""} — on radar, not yet actionable</span>
+<!-- WATCHING (radar tier — collapsed by default, cx-rehaul Principle 4) -->
+<details>
+  <summary>👁 Watching ({n_watching}) — on radar, not yet actionable</summary>
+  <div style="margin-top:12px">
     <button class="csv-btn" onclick="downloadAllActive('{all_tickers_csv}', 'watchlist_{today}.txt')">
-      ⬇ Export all for TradingView
+      ⬇ Export all active for TradingView
     </button>
+    {watching_table}
   </div>
-  {watching_table}
-</div>
+</details>
 
 <!-- ARCHIVED (collapsed) -->
-<div class="archived-section">
-  <details>
-    <summary>
-      <span class="archived-toggle">🗃 Archived ({n_archived}) — click to expand</span>
-    </summary>
-    <div style="margin-top:16px">
-      {archived_table}
-    </div>
-  </details>
-</div>
+<details>
+  <summary>🗃 Archived ({n_archived})</summary>
+  <div style="margin-top:12px">
+    {archived_table}
+  </div>
+</details>
 
 <div class="footer">
   Generated {generated} · Auto-archive: screener_auto entries expire after 14 days ·

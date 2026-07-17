@@ -31,12 +31,22 @@ from typing import Optional
 import pandas as pd
 import requests
 
+try:
+    from agents.utils import theme_flow
+except ImportError:  # run as `python agents/sector_rotation.py` without PYTHONPATH=.
+    try:
+        from utils import theme_flow  # type: ignore
+    except ImportError:
+        theme_flow = None  # themes disabled — page/Slack render exactly as before
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
 DATA_DIR             = os.environ.get("DATA_DIR", "data")
 ETF_MAP_FILE         = os.path.join(DATA_DIR, "sector_etf_map.json")
 HISTORY_FILE         = os.path.join(DATA_DIR, "sector_rotation_history.json")
+THEME_MAP_FILE       = os.path.join(DATA_DIR, "theme_map.json")
+THEME_HISTORY_FILE   = os.path.join(DATA_DIR, "theme_rotation_history.json")
 SLACK_WEBHOOK        = os.environ.get("SLACK_WEBHOOK_URL", "")
 ALPACA_API_KEY       = os.environ.get("ALPACA_API_KEY", "")
 ALPACA_SECRET_KEY    = os.environ.get("ALPACA_SECRET_KEY", "")
@@ -525,8 +535,165 @@ def _score(m: dict) -> float:
     return (10 - m["mult50"]) + (15 - m["range20"]) + (2 if m["s50_rising"] else 0)
 
 
-def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
-    """Render etf_rotation.html — one-page actionable ETF setup state."""
+# ------------------------------------------------------------------
+# Theme flow (Money Flow Dashboard — docs/specs/money-flow-dashboard.md)
+# ------------------------------------------------------------------
+def _closes_map(df: pd.DataFrame) -> dict:
+    """Alpaca bars DataFrame → {date_iso: close} for theme_flow."""
+    out: dict = {}
+    for t, c in zip(df["t"], df["c"]):
+        try:
+            out[t.date().isoformat()] = float(c)
+        except (AttributeError, TypeError, ValueError):
+            continue
+    return out
+
+
+def _load_q_scores(today: str) -> dict:
+    """
+    {ticker: Quality Score} from the latest finviz_screeners_*.csv with
+    date <= today (same resolver pattern as the executor). No network.
+    """
+    import csv as _csv
+    import glob as _glob
+    import re as _re
+    candidates = []
+    for p in _glob.glob(os.path.join(DATA_DIR, "finviz_screeners_*.csv")):
+        m = _re.search(r"finviz_screeners_(\d{4}-\d{2}-\d{2})\.csv$", os.path.basename(p))
+        if m and m.group(1) <= today:  # ISO dates sort lexicographically
+            candidates.append((m.group(1), p))
+    if not candidates:
+        return {}
+    candidates.sort(reverse=True)
+    out: dict = {}
+    try:
+        with open(candidates[0][1], newline="") as f:
+            for row in _csv.DictReader(f):
+                tk = row.get("Ticker")
+                try:
+                    out[tk] = int(round(float(row.get("Quality Score", ""))))
+                except (TypeError, ValueError):
+                    continue
+    except OSError:
+        return {}
+    return out
+
+
+_TIER_ORDER = {"entry-ready": 3, "focus": 2, "watching": 1}
+
+
+def _load_watchlist_tiers() -> dict:
+    """{ticker: tier} from data/watchlist.json (archived excluded, best tier wins)."""
+    try:
+        with open(os.path.join(DATA_DIR, "watchlist.json")) as f:
+            wl = json.load(f)
+    except (FileNotFoundError, ValueError, OSError):
+        return {}
+    out: dict = {}
+    for row in wl.get("watchlist", []) or []:
+        tk = row.get("ticker")
+        pr = row.get("priority")
+        if not tk or pr not in _TIER_ORDER:
+            continue
+        if _TIER_ORDER[pr] > _TIER_ORDER.get(out.get(tk), 0):
+            out[tk] = pr
+    return out
+
+
+def _load_held_tickers() -> set:
+    """Open tickers across manual book + paper + live stops files (badge only)."""
+    held: set = set()
+    try:
+        with open(os.path.join(DATA_DIR, "positions.json")) as f:
+            positions = json.load(f)
+        for pos in positions.get("open_positions", []) or []:
+            if pos.get("ticker"):
+                held.add(pos["ticker"])
+    except (FileNotFoundError, ValueError, OSError):
+        pass
+    for fname in ("paper_stops.json", "live_alpaca_stops.json"):
+        try:
+            with open(os.path.join(DATA_DIR, fname)) as f:
+                held.update(k for k in (json.load(f) or {}).keys())
+        except (FileNotFoundError, ValueError, OSError):
+            continue
+    return held
+
+
+def build_theme_payload(snap: dict, bars: dict, theme_map: dict,
+                        today: str) -> Optional[dict]:
+    """
+    Compute the full theme layer: synthetic indices, combined-pool RS with the
+    ETF universe, divergence, history-derived 5d deltas, stock flow rollup,
+    Money Line. `bars` must contain the theme constituent tickers + SPY.
+    Returns None when nothing is buildable. Caller wraps in try/except —
+    every failure path here is non-fatal to the ETF dashboard.
+    """
+    if theme_flow is None or not theme_map:
+        return None
+    if "SPY" not in bars:
+        log.warning("theme flow: SPY bars missing — skipping themes")
+        return None
+
+    spy_ret_20d = _ret(bars["SPY"]["c"], 20)
+    closes_by_ticker = {tk: _closes_map(bars[tk])
+                        for tk in theme_flow.theme_ticker_union(theme_map)
+                        if tk in bars}
+
+    theme_rows = theme_flow.compute_theme_rows(theme_map, closes_by_ticker, spy_ret_20d)
+    if not theme_rows:
+        log.warning("theme flow: no buildable themes — skipping")
+        return None
+
+    etf_rows = snap.get("etfs", [])
+    theme_flow.combined_pool_rs(theme_rows, etf_rows)
+
+    history = theme_flow.load_theme_history(THEME_HISTORY_FILE)
+    theme_flow.annotate_theme_history(theme_rows, history, today)
+    theme_flow.append_theme_history(theme_rows, THEME_HISTORY_FILE, today)
+
+    etf_rs_by = {r.get("etf"): r.get("rs_combined") for r in etf_rows if r.get("etf")}
+    for r in theme_rows:
+        r["divergence"] = theme_flow.divergence_for(r, etf_rs_by)
+
+    stock_rows = theme_flow.stock_flow_rollup(theme_rows)
+    theme_flow.enrich_stock_flow(
+        stock_rows,
+        q_by_ticker=_load_q_scores(today),
+        tier_by_ticker=_load_watchlist_tiers(),
+        held=_load_held_tickers(),
+    )
+
+    ml = theme_flow.money_line(theme_rows, etf_rows)
+
+    themes_out = [{
+        "theme_id":       r["theme_id"],
+        "name":           r["name"],
+        "ecosystem":      r["ecosystem"],
+        "ecosystem_name": r.get("ecosystem_name"),
+        "sibling_etf":    r.get("sibling_etf"),
+        "rs_score":       r.get("rs_score"),
+        "rank":           r.get("rank"),
+        "combined_rank":  r.get("combined_rank"),
+        "rank_delta_5d":  r.get("rank_delta_5d"),
+        "divergence":     r.get("divergence"),
+        "index":          r.get("index"),
+        "tickers":        r.get("tickers", []),
+    } for r in theme_rows]
+
+    return {
+        "themes":     themes_out,
+        "stock_flow": stock_rows[:theme_flow.FLOW_LEADERBOARD_SIZE],
+        "money_line": ml,
+    }
+
+
+def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict],
+                             themes: Optional[dict] = None) -> str:
+    """Render etf_rotation.html — Money Line + Flow Map + Stock Flow + ETF setup state.
+
+    `themes` is the payload from build_theme_payload (or None → the theme
+    sections are simply absent and the page renders as before the feature)."""
     regime = snapshot.get("regime", "unknown")
     action = regime_action(regime) or {}
     today = snapshot.get("date", "")
@@ -569,13 +736,13 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         Rank improving (delta < 0) is UP (rotating in). Rank falling (delta > 0)
         is DOWN (rotating out). One decoder ring, no sign confusion."""
         if d5 is None:
-            return '<span style="color:#9ca3af">—</span>'
+            return '<span style="color:#8b98ab">—</span>'
         d5 = int(d5)
         if d5 == 0:
-            return '<span style="color:#9ca3af">—</span>'
+            return '<span style="color:#8b98ab">—</span>'
         if d5 < 0:
-            return f'<span style="color:#16a34a;font-weight:700">up {-d5}</span>'
-        return f'<span style="color:#dc2626;font-weight:700">down {d5}</span>'
+            return f'<span style="color:#4ade80;font-weight:700">up {-d5}</span>'
+        return f'<span style="color:#f87171;font-weight:700">down {d5}</span>'
 
     def _rs_badge(e: dict) -> str:
         """RS chip + 5d-move pill for per-ETF cards."""
@@ -584,7 +751,7 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         d5 = e.get("rank_delta_5d")
         if rs is None and rk is None:
             return ""
-        bg = "#16a34a" if (rs or 0) >= 70 else ("#2563eb" if (rs or 0) >= 50 else ("#f59e0b" if (rs or 0) >= 30 else "#dc2626"))
+        bg = "#15803d" if (rs or 0) >= 70 else ("#1d4ed8" if (rs or 0) >= 50 else ("#b45309" if (rs or 0) >= 30 else "#b91c1c"))
         rk_txt = f" #{rk}/28" if rk else ""
         move_txt = f' <span style="font-size:11px;margin-left:6px">5d {_move_5d(d5)}</span>'
         return (
@@ -629,8 +796,8 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         if eps:
             ep_parts = " · ".join(f"{t} {emoji}" for t, emoji in eps[:5])
             ep_html = (
-                f'<div class="etf-ep" style="margin-top:6px;font-size:11px;color:#1d4ed8;'
-                f'background:#eff6ff;padding:4px 8px;border-radius:4px">'
+                f'<div class="etf-ep" style="margin-top:6px;font-size:11px;color:#93c5fd;'
+                f'background:#14233f;padding:4px 8px;border-radius:4px">'
                 f'⚡ EP setups: {ep_parts}</div>'
             )
         return (
@@ -725,19 +892,19 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
         is_smh_to_igv = smh_d5 >= 3 and igv_d5 <= -3
         is_igv_to_smh = igv_d5 >= 3 and smh_d5 <= -3
         if is_smh_to_igv:
-            box_bg, box_border, box_color = "#fef3c7", "#f59e0b", "#92400e"
+            box_bg, box_border, box_color = "#3a2b09", "#b45309", "#fcd34d"
             verdict = (
                 "🔄 <b>SMH weakening, IGV strengthening</b> — possible rotation. "
-                "<span style='color:#6b7280'>NOT proof of money flow; just relative strength.</span>"
+                "<span style='color:#8b98ab'>NOT proof of money flow; just relative strength.</span>"
             )
         elif is_igv_to_smh:
-            box_bg, box_border, box_color = "#dbeafe", "#2563eb", "#1e40af"
+            box_bg, box_border, box_color = "#14233f", "#2563eb", "#93c5fd"
             verdict = (
                 "🔄 <b>IGV weakening, SMH strengthening</b> — possible rotation back to semis."
             )
         else:
-            # Neutral: subtle gray box, no alarm
-            box_bg, box_border, box_color = "#f9fafb", "#e5e7eb", "#4b5563"
+            # Neutral: subtle dark box, no alarm
+            box_bg, box_border, box_color = "#101a2c", "#223049", "#a5b1c4"
             verdict = "⚖️ Pair stable — no significant 5d shift."
 
         rotation_banner = (
@@ -752,6 +919,133 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
             f'</div>'
         )
 
+    # ---------- Theme layer (Money Flow Dashboard — spec §5) ----------
+    money_line_html = ""
+    flow_map_html = ""
+    stock_flow_html = ""
+    if themes and theme_flow is not None:
+        ml_text = (themes.get("money_line") or {}).get("text", "")
+        if ml_text:
+            money_line_html = f'<div class="money-line">💰 {ml_text}</div>'
+
+        theme_rows = themes.get("themes") or []
+        n_themes = len(theme_rows)
+
+        def _theme_arrow(d5) -> str:
+            """Δ5d arrow at |Δ| ≥ 5 / ≥ 2 (rank climbing = up)."""
+            if d5 is None:
+                return "→"
+            d5 = int(d5)
+            if d5 <= -5:
+                return "↑↑"
+            if d5 <= -2:
+                return "↑"
+            if d5 >= 5:
+                return "↓↓"
+            if d5 >= 2:
+                return "↓"
+            return "→"
+
+        def _theme_tile(t: dict) -> str:
+            rs = t.get("rs_score")
+            bg = "#15803d" if (rs or 0) >= 70 else ("#1d4ed8" if (rs or 0) >= 50 else ("#b45309" if (rs or 0) >= 30 else "#b91c1c"))
+            d5 = t.get("rank_delta_5d")
+            spark = theme_flow.sparkline_svg((t.get("index") or {}).get("spark") or [])
+            div = t.get("divergence")
+            div_html = ""
+            if div is not None and t.get("sibling_etf") and abs(div) >= theme_flow.DIVERGENCE_MIN:
+                if div > 0:
+                    tip = "leaders running hotter than the ETF"
+                else:
+                    tip = "ETF strength is the laggards/weightings, not the leaders"
+                div_html = (
+                    f'<div class="tt-div">⚠ basket {div:+d} vs {t["sibling_etf"]}'
+                    f' — {tip}</div>'
+                )
+            chips = " ".join(
+                f'<a class="tk-chip" href="{_fv(tk)}" target="_blank">{tk}</a>'
+                for tk in t.get("tickers", []))
+            rs_txt = rs if rs is not None else "—"
+            return (
+                f'<div class="theme-tile">'
+                f'<div class="tt-head"><span class="tt-name">{t.get("name", "")}</span>'
+                f'<span class="rs-chip" style="background:{bg};color:#fff;font-size:11px;'
+                f'font-weight:700;padding:2px 8px;border-radius:4px">RS {rs_txt}</span></div>'
+                f'<div class="tt-move">{_theme_arrow(d5)} 5d {_move_5d(d5)}'
+                f' · theme rank #{t.get("rank", "—")}/{n_themes}</div>'
+                f'<div class="tt-spark">{spark}</div>'
+                f'{div_html}'
+                f'<div class="tt-tickers">{chips}</div>'
+                f'</div>'
+            )
+
+        eco_order: list = []
+        eco_groups: dict = {}
+        for t in theme_rows:
+            eco = t.get("ecosystem_name") or t.get("ecosystem") or "Other"
+            if eco not in eco_groups:
+                eco_groups[eco] = []
+                eco_order.append(eco)
+            eco_groups[eco].append(t)
+
+        def _eco_mean(eco: str) -> float:
+            vals = [t.get("rs_score") or 0 for t in eco_groups[eco]]
+            return sum(vals) / len(vals) if vals else 0.0
+
+        eco_order.sort(key=_eco_mean, reverse=True)
+        eco_blocks = []
+        for eco in eco_order:
+            tiles = "".join(_theme_tile(t) for t in eco_groups[eco])
+            eco_blocks.append(
+                f'<div class="eco-block"><div class="eco-head">{eco}'
+                f'<span class="eco-rs">mean RS {int(round(_eco_mean(eco)))}</span></div>'
+                f'<div class="theme-grid">{tiles}</div></div>'
+            )
+        if eco_blocks:
+            eco_blocks_html = "".join(eco_blocks)
+            flow_map_html = (
+                '<h2>🔥 Flow Map — theme baskets</h2>'
+                '<div class="subtitle">Synthetic equal-weight baskets (base-100 index). '
+                'RS is percentile-ranked in ONE pool with the ETF universe — a theme RS is '
+                'directly comparable to an ETF RS. Sparkline = last 60 sessions of the theme '
+                'index. ⚠ chip = basket-vs-sibling-ETF divergence of 5+ RS points.</div>'
+                f'{eco_blocks_html}'
+            )
+
+        sf = themes.get("stock_flow") or []
+        if sf:
+            sf_rows = []
+            for i, e in enumerate(sf, 1):
+                labels = e.get("theme_labels") or e.get("themes") or []
+                theme_chips = " ".join(f'<span class="theme-chip">{lb}</span>' for lb in labels)
+                q = e.get("q_score")
+                q_cell = str(q) if q is not None else "—"
+                badges = []
+                tier = e.get("watchlist_tier")
+                if tier:
+                    badges.append(f'<span class="tier-chip">{tier}</span>')
+                if e.get("held"):
+                    badges.append('<span class="held-chip">📌 held</span>')
+                badge_cell = " ".join(badges) if badges else "—"
+                sf_rows.append(
+                    f'<tr><td>#{i}</td>'
+                    f'<td><a href="{_fv(e["ticker"])}" target="_blank"><b>{e["ticker"]}</b></a></td>'
+                    f'<td>{theme_chips}</td><td><b>{e.get("flow_score", 0)}</b></td>'
+                    f'<td>{q_cell}</td><td>{badge_cell}</td></tr>'
+                )
+            sf_rows_html = "".join(sf_rows)
+            stock_flow_html = (
+                '<h2>🏆 Stock Flow Leaderboard — names inside the hottest themes</h2>'
+                '<div class="subtitle">flow_score = Σ over member themes of '
+                'max(0, theme RS − 50) / 50 — one red-hot theme (RS 95) ≈ 0.9; a name in '
+                'several hot themes stacks. Q from the latest screener CSV · tier from the '
+                'watchlist · 📌 = held (manual / paper / live book).</div>'
+                '<table><thead><tr><th>#</th><th>Ticker</th><th>Themes</th>'
+                '<th title="Σ max(0, theme RS − 50)/50 across member themes">Flow</th>'
+                '<th>Q</th><th>Tier / held</th></tr></thead>'
+                f'<tbody>{sf_rows_html}</tbody></table>'
+            )
+
     # Full table: bucket-grouped by default (most actionable order). Columns are
     # click-sortable in the browser via the tiny JS at the bottom of the page.
     table_order = ["BASE", "PRE-BREAKOUT", "EXTENDED", "BROKEN", "NEUTRAL"]
@@ -763,49 +1057,80 @@ def render_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
     entries = action.get("entries", "")
     held = action.get("held", "")
 
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>ETF Rotation — {today}</title>
+    # Shared nav + design system (cx-rehaul §A.1/§4). The page keeps its own
+    # Money-Flow CSS below — declared after BASE_CSS so page rules win.
+    try:
+        from utils.generators.nav import render_nav
+        from utils.generators.theme import BASE_CSS as _base_css
+        nav_html = render_nav("flow")
+    except Exception:
+        nav_html, _base_css = "", ""
+
+    return f"""<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>ETF Rotation — {today}</title>
 <style>
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#111827;padding:24px;max-width:1280px;margin:0 auto}}
-h1{{color:#111827;margin-bottom:4px}}
-h2{{color:#374151;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-top:28px}}
-.subtitle{{color:#6b7280;font-size:14px;margin-bottom:24px}}
-.regime{{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:24px}}
+{_base_css}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1220;color:#dbe4f0;padding:24px;max-width:1280px;margin:0 auto}}
+h1{{color:#f1f5f9;margin-bottom:4px}}
+h2{{color:#e2e8f0;border-bottom:1px solid #1f2a3d;padding-bottom:6px;margin-top:28px}}
+.subtitle{{color:#8b98ab;font-size:14px;margin-bottom:24px}}
+.regime{{background:#101a2c;border:1px solid #223049;border-radius:8px;padding:16px;margin-bottom:24px}}
 .regime-tag{{display:inline-block;background:#2563eb;color:#fff;padding:4px 12px;border-radius:4px;font-weight:bold;margin-bottom:8px;font-size:13px}}
-.regime-head{{font-weight:bold;color:#111827;margin-bottom:6px}}
-.action-row{{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:#374151}}
-.action-row b{{color:#111827}}
+.regime-head{{font-weight:bold;color:#f1f5f9;margin-bottom:6px}}
+.action-row{{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:#a5b1c4}}
+.action-row b{{color:#e2e8f0}}
+.money-line{{font-size:19px;font-weight:700;color:#f1f5f9;background:#101a2c;border:1px solid #223049;border-left:4px solid #60a5fa;border-radius:8px;padding:14px 18px;margin:0 0 20px 0;line-height:1.5}}
+.eco-block{{margin:18px 0}}
+.eco-head{{font-weight:700;color:#e2e8f0;font-size:15px;margin-bottom:8px}}
+.eco-rs{{margin-left:10px;color:#8b98ab;font-weight:400;font-size:12px}}
+.theme-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}}
+.theme-tile{{background:#101a2c;border:1px solid #223049;border-radius:6px;padding:12px}}
+.tt-head{{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}}
+.tt-name{{font-weight:700;color:#e2e8f0;font-size:13px}}
+.tt-move{{font-size:12px;color:#a5b1c4;margin-bottom:6px}}
+.tt-spark{{margin-bottom:6px}}
+.tt-spark svg{{display:block;width:100%;max-width:220px}}
+.tt-div{{font-size:11px;color:#fcd34d;background:#3a2b09;border-radius:4px;padding:4px 8px;margin-bottom:6px}}
+.tt-tickers{{display:flex;flex-wrap:wrap;gap:4px}}
+.tk-chip{{font-size:11px;font-weight:700;color:#93c5fd;background:#14233f;border-radius:4px;padding:2px 6px;text-decoration:none}}
+.tk-chip:hover{{background:#1c3157}}
+.theme-chip{{font-size:11px;color:#a5b1c4;background:#1a2740;border-radius:4px;padding:2px 6px;margin-right:2px;white-space:nowrap}}
+.tier-chip{{font-size:11px;font-weight:700;color:#6ee7b7;background:#0b3b2b;border-radius:4px;padding:2px 6px}}
+.held-chip{{font-size:11px;font-weight:700;color:#fcd34d;background:#3a2b09;border-radius:4px;padding:2px 6px}}
 .etf-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:12px 0}}
-.etf-card{{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px}}
+.etf-card{{background:#101a2c;border:1px solid #223049;border-radius:6px;padding:12px}}
 .etf-head{{display:flex;gap:8px;align-items:baseline;margin-bottom:6px}}
-.etf-tk{{font-weight:bold;font-size:16px;color:#2563eb;text-decoration:none}}
+.etf-tk{{font-weight:bold;font-size:16px;color:#60a5fa;text-decoration:none}}
 .etf-tk:hover{{text-decoration:underline}}
-.etf-name{{color:#374151;font-size:13px}}
-.etf-theme{{margin-left:auto;color:#9ca3af;font-size:11px}}
-.etf-metrics{{font-size:12px;color:#4b5563}}
+.etf-name{{color:#cbd5e1;font-size:13px}}
+.etf-theme{{margin-left:auto;color:#64748b;font-size:11px}}
+.etf-metrics{{font-size:12px;color:#a5b1c4}}
 table{{border-collapse:collapse;width:100%;font-size:12px;margin-top:12px}}
-th,td{{border:1px solid #e5e7eb;padding:5px 8px;text-align:left}}
-th{{background:#f3f4f6;color:#111827;position:sticky;top:0}}
+th,td{{border:1px solid #223049;padding:5px 8px;text-align:left}}
+th{{background:#16233a;color:#e2e8f0;position:sticky;top:0}}
 .bucket-tag{{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold}}
-.b-BASE{{background:#d1fae5;color:#065f46}}
-.b-PRE-BREAKOUT{{background:#dbeafe;color:#1e40af}}
-.b-EXTENDED{{background:#fef3c7;color:#92400e}}
-.b-BROKEN{{background:#fee2e2;color:#991b1b}}
-.b-NEUTRAL{{background:#f3f4f6;color:#4b5563}}
+.b-BASE{{background:#0b3b2b;color:#6ee7b7}}
+.b-PRE-BREAKOUT{{background:#172d54;color:#93c5fd}}
+.b-EXTENDED{{background:#3d2c08;color:#fcd34d}}
+.b-BROKEN{{background:#431418;color:#fca5a5}}
+.b-NEUTRAL{{background:#1e293b;color:#9ca3af}}
 .rs-board{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}}
-.rs-col-head{{font-weight:bold;color:#374151;margin-bottom:4px;font-size:13px}}
+.rs-col-head{{font-weight:bold;color:#cbd5e1;margin-bottom:4px;font-size:13px}}
 .rs-table{{width:100%;font-size:12px}}
-.rs-table th{{background:#f3f4f6;color:#111827;text-align:left;padding:4px 8px;border:1px solid #e5e7eb}}
-.rs-table td{{padding:4px 8px;border:1px solid #e5e7eb}}
+.rs-table th{{background:#16233a;color:#e2e8f0;text-align:left;padding:4px 8px;border:1px solid #223049}}
+.rs-table td{{padding:4px 8px;border:1px solid #223049}}
 .etf-rs{{margin:4px 0 6px 0}}
-.row-momentum td{{background:#fffbeb}}
-table.sortable th:hover{{background:#e5e7eb}}
-table.sortable th[data-sort="asc"]::after{{content:" ▲";color:#2563eb;font-size:10px}}
-table.sortable th[data-sort="desc"]::after{{content:" ▼";color:#2563eb;font-size:10px}}
+.row-momentum td{{background:#2a2208}}
+table.sortable th:hover{{background:#1e2c46}}
+table.sortable th[data-sort="asc"]::after{{content:" ▲";color:#60a5fa;font-size:10px}}
+table.sortable th[data-sort="desc"]::after{{content:" ▼";color:#60a5fa;font-size:10px}}
 @media (max-width:760px){{.rs-board{{grid-template-columns:1fr}}}}
 details{{margin-top:12px}}
-summary{{cursor:pointer;font-weight:bold;color:#374151;padding:4px 0}}
-a{{color:#2563eb}}
+summary{{cursor:pointer;font-weight:bold;color:#e2e8f0;padding:8px 0;font-size:16px;border-bottom:1px solid #1f2a3d}}
+summary:hover{{color:#60a5fa}}
+a{{color:#60a5fa}}
 </style></head><body>
+{nav_html}
 <h1>📊 ETF Rotation Dashboard</h1>
 <div class="subtitle">{today} · {len(etf_setups)} ETFs · regime auto-classified daily from <a href="https://github.com/AnanthSrinivasan/finviz-screener-agent/blob/main/agents/sector_rotation.py">sector_rotation.py</a></div>
 
@@ -819,7 +1144,10 @@ a{{color:#2563eb}}
 </div>
 </div>
 
+{money_line_html}
 {rotation_banner}
+{flow_map_html}
+{stock_flow_html}
 {sweet_spot_html}
 {rs_leaderboard_html}
 
@@ -832,11 +1160,13 @@ Bucket counts:
 <span class="bucket-tag b-NEUTRAL">NEUTRAL {len(by_bucket['NEUTRAL'])}</span>
 </div>
 
-<h2>📋 Full metrics — all {len(etf_setups)} ETFs</h2>
-<div class="subtitle">Click any column header to sort. Default: grouped by bucket (BASE → PRE-BREAKOUT → EXTENDED → BROKEN → NEUTRAL).</div>
+<details>
+<summary>📋 Full metrics — all {len(etf_setups)} ETFs (click to expand)</summary>
+<div class="subtitle" style="margin-top:8px">Click any column header to sort. Default: grouped by bucket (BASE → PRE-BREAKOUT → EXTENDED → BROKEN → NEUTRAL).</div>
 <table id="full-table" class="sortable">{SHARED_HEADER}
 <tbody>{full_table_rows}</tbody>
 </table>
+</details>
 
 <script>
 (function() {{
@@ -875,21 +1205,28 @@ Bucket counts:
 </body></html>"""
 
 
-def write_etf_rotation_html(snapshot: dict, etf_setups: list[dict]) -> str:
+def write_etf_rotation_html(snapshot: dict, etf_setups: list[dict],
+                            themes: Optional[dict] = None) -> str:
     fpath = os.path.join(DATA_DIR, "etf_rotation.html")
-    html = render_etf_rotation_html(snapshot, etf_setups)
+    html = render_etf_rotation_html(snapshot, etf_setups, themes=themes)
     with open(fpath, "w") as f:
         f.write(html)
     return fpath
 
 
-def write_etf_rotation_json(snapshot: dict, etf_setups: list[dict]) -> str:
+def write_etf_rotation_json(snapshot: dict, etf_setups: list[dict],
+                            themes: Optional[dict] = None) -> str:
     fpath = os.path.join(DATA_DIR, "etf_rotation.json")
     payload = {
         "date":   snapshot.get("date"),
         "regime": snapshot.get("regime"),
         "etfs":   etf_setups,
     }
+    if themes:
+        # Additive keys only (spec §3.3) — existing consumers of `etfs` unchanged.
+        payload["themes"]     = themes.get("themes", [])
+        payload["stock_flow"] = themes.get("stock_flow", [])
+        payload["money_line"] = themes.get("money_line", {})
     with open(fpath, "w") as f:
         json.dump(payload, f, indent=2)
     return fpath
@@ -939,7 +1276,7 @@ def signals(snapshot: dict) -> dict:
 # ------------------------------------------------------------------
 # Slack roll-up
 # ------------------------------------------------------------------
-def format_slack(snapshot: dict, sig: dict) -> str:
+def format_slack(snapshot: dict, sig: dict, themes: Optional[dict] = None) -> str:
     date = snapshot["date"]
     regime = snapshot["regime"]
     disp_pct = int(round(snapshot["dispersion_percentile_180d"] * 100))
@@ -947,6 +1284,11 @@ def format_slack(snapshot: dict, sig: dict) -> str:
         f"*Sector Rotation — {date}*",
         f"Phase: `{regime}` · Dispersion p{disp_pct}",
     ]
+    # 💰 Money Line — directly after the Phase line (spec §6). Non-fatal add.
+    if themes:
+        ml_text = (themes.get("money_line") or {}).get("text", "")
+        if ml_text:
+            lines.append(f"💰 {ml_text}")
     action = regime_action(regime)
     if action:
         lines.append(f"*{action['headline']}*")
@@ -981,6 +1323,24 @@ def format_slack(snapshot: dict, sig: dict) -> str:
 
     if not (sig["in"] or sig["out"] or sig["anticipation"]):
         lines.append("_No leadership changes today — universe in equilibrium._")
+
+    # 🏆 Stock flow rollup — top 5 by flow_score (spec §6). Non-fatal add.
+    if themes and themes.get("stock_flow"):
+        parts = []
+        for e in themes["stock_flow"][:5]:
+            labels = "·".join(e.get("theme_labels") or e.get("themes") or [])
+            extras = []
+            if e.get("q_score") is not None:
+                extras.append("Q{0}".format(e["q_score"]))
+            if e.get("watchlist_tier"):
+                extras.append(str(e["watchlist_tier"]))
+            if e.get("held"):
+                extras.append("held")
+            suffix = (", " + ", ".join(extras)) if extras else ""
+            parts.append("{0} ({1}{2})".format(e.get("ticker", "?"), labels, suffix))
+        if parts:
+            lines.append("*🏆 Stock flow:* " + " · ".join(parts))
+            lines.append("")
 
     # ⚡ Cross-mention: 🔥 EP setups in sectors that are also rotating in.
     # Sector rotation runs at 20:15 UTC (before screener at 20:30 UTC), so we
@@ -1114,12 +1474,43 @@ def main() -> int:
     log.info("Wrote snapshot %s (regime=%s, dispersion p%.0f)",
              fpath, snap["regime"], snap["dispersion_percentile_180d"] * 100)
 
+    # Theme layer availability (Money Flow Dashboard). Missing/invalid
+    # theme_map.json → theme_map is None → everything below behaves exactly
+    # as before the feature existed.
+    theme_map = None
+    theme_payload = None
+    if theme_flow is not None:
+        try:
+            theme_map = theme_flow.load_theme_map(THEME_MAP_FILE)
+        except Exception as e:  # pragma: no cover — load_theme_map already swallows
+            log.warning("theme map load failed (non-fatal): %s", e)
+            theme_map = None
+
     # ETF setup dashboard — re-uses same Alpaca bars universe for setup metrics.
     try:
         universe = load_universe()
         syms = universe_symbols(universe)
-        # Re-fetch with enough history for SMA200 (>= 280 calendar days)
-        etf_bars = fetch_bars(sorted(set(syms)), days=280)
+        # Re-fetch with enough history for SMA200 (>= 280 calendar days).
+        # ONE batched pass — theme constituent tickers (+ SPY for theme
+        # rel-strength) ride along in the same request (spec §4.1).
+        fetch_syms = set(syms)
+        if theme_map:
+            fetch_syms |= set(theme_flow.theme_ticker_union(theme_map))
+            fetch_syms.add("SPY")
+        etf_bars = fetch_bars(sorted(fetch_syms), days=280)
+        if theme_map:
+            try:
+                theme_payload = build_theme_payload(snap, etf_bars, theme_map, snap["date"])
+                if theme_payload:
+                    log.info("Theme flow: %d themes · %d stock-flow rows · money line: %s",
+                             len(theme_payload["themes"]),
+                             len(theme_payload["stock_flow"]),
+                             theme_payload["money_line"].get("text", ""))
+            except Exception as e:
+                log.error("Theme flow failed (non-fatal): %s", e)
+                theme_payload = None
+        # compute_etf_setups skips symbols not in the ETF universe meta,
+        # so theme tickers/SPY in etf_bars are ignored here.
         etf_setups = compute_etf_setups(etf_bars, universe)
         # Merge per-ETF RS rank + rs_score from the snapshot so dashboard surfaces them.
         _rs_by_etf = {e.get("etf"): e for e in snap.get("etfs", []) if e.get("etf")}
@@ -1132,8 +1523,8 @@ def main() -> int:
             s["rank_delta_5d"] = r.get("rank_delta_5d")
             s["is_20d_rs_high"] = r.get("is_20d_rs_high")
             s["decay_streak_days"] = r.get("decay_streak_days")
-        json_path = write_etf_rotation_json(snap, etf_setups)
-        html_path = write_etf_rotation_html(snap, etf_setups)
+        json_path = write_etf_rotation_json(snap, etf_setups, themes=theme_payload)
+        html_path = write_etf_rotation_html(snap, etf_setups, themes=theme_payload)
         bucket_counts: dict[str, int] = {}
         for e in etf_setups:
             bucket_counts[e["bucket"]] = bucket_counts.get(e["bucket"], 0) + 1
@@ -1146,7 +1537,7 @@ def main() -> int:
     force_slack = os.environ.get("FORCE_SLACK", "false").lower() == "true"
     if weekday in (0, 3) or force_slack:
         sig = signals(snap)
-        text = format_slack(snap, sig)
+        text = format_slack(snap, sig, themes=theme_payload)
         post_slack(text)
         log.info("Slack posted (%d in / %d out / %d anti / %d decay)",
                  len(sig["in"]), len(sig["out"]), len(sig["anticipation"]), len(sig["decay"]))

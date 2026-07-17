@@ -56,12 +56,6 @@ jobs:
           SNAPTRADE_USER_SECRET: ${{ secrets.SNAPTRADE_USER_SECRET }}
         run: python -m utils.generators.generate_daily_cockpit
 
-      - name: Regenerate dashboard
-        env:
-          GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}
-          DATA_DIR: data
-        run: python utils/generators/generate_dashboard.py
-
       - name: Regenerate watchlist page
         env:
           GITHUB_PAGES_BASE: ${{ secrets.PAGES_BASE_URL }}

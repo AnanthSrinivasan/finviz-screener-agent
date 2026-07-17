@@ -512,3 +512,12 @@ def run_premarket_alert():
 
 if __name__ == "__main__":
     run_premarket_alert()
+
+    # ── Morning Brief (cx-rehaul §5) — second message, same run ──────────────
+    # Runs AFTER (and independently of) the gap-up job: the brief must still
+    # post on RED/BLACKOUT days — "gate closed" IS the morning decision.
+    try:
+        from agents.alerts.morning_brief import run_morning_brief
+        run_morning_brief()
+    except Exception as _e:
+        log.warning("Morning brief failed (non-fatal): %s", _e)

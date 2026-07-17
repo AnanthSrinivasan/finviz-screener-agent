@@ -18,11 +18,14 @@ piece they share so the two never drift apart again:
 Each generator becomes a thin adapter: fetch from its source → normalize to the
 common row / event schema → call these renderers.
 
-Light theme only (see memory/feedback_light_theme.md).
+One design system: PORTFOLIO_CSS is a thin extension of theme.BASE_CSS and
+page_shell delegates to theme.page_shell (spec docs/specs/cx-rehaul.md §4).
 """
 
 import datetime
 import json
+
+from utils.generators.theme import page_shell as _theme_page_shell
 
 
 # ---------- formatters ----------
@@ -286,17 +289,11 @@ def render_stat_cards(cards: list) -> str:
     return html + "</div>"
 
 
+# One-liner — full definitions live in each column header's hover tooltip
+# (Principle 4, cx-rehaul: verbose legends → tooltip/one-liner).
 POSITIONS_LEGEND = (
-    "<div class='legend'><strong>Column key:</strong> "
-    "<b>Δ%</b> gain since entry · "
-    "<b>%Bk</b> position as % of book · "
-    "<b>ATR%</b> daily volatility (avg true range) · "
-    "<b>Stop</b> tracked stop price (ATR-tiered trail off peak) · "
-    "<b>Room</b> dollar distance from live price to stop · "
-    "<b>S20%</b> price vs 20-day moving average (+ above / − below) · "
-    "<b>St</b> Weinstein stage (2P = perfect Stage 2) · "
-    "<b>Verdict</b> action from the pos-review ladder. "
-    "Rows sort action-first; click a summary chip to filter.</div>"
+    "<div class='legend'>Rows sort action-first · click a summary chip to "
+    "filter · hover a column header for its definition.</div>"
 )
 
 
@@ -449,65 +446,51 @@ def render_trade_history(trades: list, table_id: str = "tradeTable") -> str:
 
 # ---------- shared CSS + JS ----------
 
+# Thin extension of theme.BASE_CSS — only portfolio-specific classes here.
 PORTFOLIO_CSS = """
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-       background: #f8f9fc; color: #111827; padding: 32px; max-width: 1500px; margin: 0 auto; }
-h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
-.subtitle { color: #6b7280; font-size: 0.82rem; margin-bottom: 24px; }
-h2 { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase;
-     letter-spacing: .08em; margin: 28px 0 14px; }
+body { max-width: 1500px; }
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
               gap: 12px; margin-bottom: 24px; }
-.stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-              padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.stat-label { font-size: 0.68rem; color: #9ca3af; text-transform: uppercase;
+.stat-card { background: var(--surface); border: 1px solid var(--border);
+              border-radius: 10px; padding: 14px 16px; }
+.stat-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase;
                letter-spacing: .06em; margin-bottom: 6px; }
-.stat-val { font-size: 1.35rem; font-weight: 700; color: #111827; }
-.stat-sub { font-size: 0.73rem; color: #6b7280; margin-top: 4px; }
-.pos-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: #fff;
-              border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
-.pos-table th { text-align: left; padding: 10px 12px; color: #6b7280; font-weight: 500;
-                 border-bottom: 1px solid #e5e7eb; text-transform: uppercase;
-                 font-size: 0.66rem; letter-spacing: .05em; background: #f9fafb; }
-.pos-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; }
+.stat-val { font-size: 1.35rem; font-weight: 700; color: var(--head); }
+.stat-sub { font-size: 0.73rem; color: var(--muted); margin-top: 4px; }
+.pos-table { width: 100%; border-collapse: collapse; font-size: 0.82rem;
+              background: var(--surface); border: 1px solid var(--border);
+              border-radius: 10px; overflow: hidden; }
+.pos-table th { text-align: left; padding: 9px 11px; color: var(--muted); font-weight: 600;
+                 border-bottom: 1px solid var(--border); text-transform: uppercase;
+                 font-size: 0.66rem; letter-spacing: .05em; background: var(--surface2); }
+.pos-table td { padding: 9px 11px; border-bottom: 1px solid var(--border); color: var(--text); }
 .pos-table tr:last-child td { border-bottom: none; }
-.pos-table tr:hover td { background: #f9fafb; }
-.bold { font-weight: 700; }
-.mono { font-variant-numeric: tabular-nums; }
-.num  { color: #9ca3af; }
-a { color: #2563eb; text-decoration: none; }
-a:hover { color: #1d4ed8; text-decoration: underline; }
-.heat { border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block; white-space: nowrap; min-width: 58px; text-align: right; }
-.heat-pos-strong { background: #bbf7d0; color: #166534; }
-.heat-pos        { background: #dcfce7; color: #15803d; }
-.heat-zero       { color: #6b7280; }
-.heat-neg        { background: #fee2e2; color: #b91c1c; }
-.heat-neg-strong { background: #fecaca; color: #991b1b; }
-.chart-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-               padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 24px; }
+.pos-table tr:hover td { background: var(--surface2); }
+.num  { color: var(--muted); }
+.heat { border-radius: 4px; font-weight: 600; padding: 2px 6px; display: inline-block;
+         white-space: nowrap; min-width: 58px; text-align: right; }
+.heat-pos-strong { background: var(--green-bg); color: var(--green); }
+.heat-pos        { background: var(--green-bg); color: var(--green-text); }
+.heat-zero       { color: var(--muted); }
+.heat-neg        { background: var(--red-bg); color: var(--red-text); }
+.heat-neg-strong { background: var(--red-bg); color: var(--red); }
+.chart-card { background: var(--surface); border: 1px solid var(--border);
+               border-radius: 10px; padding: 16px 18px; margin-bottom: 24px; }
 .chart-wrap { position: relative; height: 320px; }
-.empty { color: #6b7280; font-size: 0.88rem; padding: 24px; text-align: center;
-         background: #fff; border: 1px dashed #e5e7eb; border-radius: 10px; }
-.footer { margin-top: 32px; font-size: 0.7rem; color: #9ca3af; }
-.action-summary { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-                   padding: 14px 18px; margin: 18px 0; font-size: 0.88rem; }
-.action-summary strong { color: #111827; }
-.action-summary .hint { color: #9ca3af; font-size: 0.8rem; font-weight: 400; }
-.chip { display: inline-block; padding: 3px 10px; margin: 2px 4px; border-radius: 999px;
-         background: #f3f4f6; border: 1px solid #e5e7eb; color: #111827; font-size: 0.82rem; }
-.chip:hover { background: #eef2ff; border-color: #c7d2fe; text-decoration: none; }
-.chip-all { background: #fff; color: #6b7280; }
-.legend { font-size: 0.76rem; color: #6b7280; margin-top: 12px; line-height: 1.6; }
-.legend b { color: #374151; }
+.action-summary { background: var(--surface); border: 1px solid var(--border);
+                   border-radius: 10px; padding: 12px 16px; margin: 18px 0; font-size: 0.88rem; }
+.action-summary strong { color: var(--head); }
+.action-summary .hint { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
+.chip-all { color: var(--muted); }
+.legend { font-size: 0.76rem; color: var(--muted); margin-top: 12px; line-height: 1.6; }
 .sortable { cursor: pointer; user-select: none; }
-.sortable:hover { color: #2563eb; }
-.arrow { font-size: 0.7em; margin-left: 4px; color: #9ca3af; }
+.sortable:hover { color: var(--link); }
+.arrow { font-size: 0.7em; margin-left: 4px; color: var(--muted); }
 .month-row { cursor: pointer; }
-.month-row:hover td { background: #eef2ff; }
-.filter-bar { font-size: 0.8rem; color: #6b7280; margin-bottom: 12px; }
-.filter-bar strong { color: #2563eb; }
-.filter-bar .hint { color: #9ca3af; }
+.month-row:hover td { background: var(--surface2); }
+.filter-bar { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+.filter-bar strong { color: var(--link); }
+.filter-bar .hint { color: var(--muted); }
 """
 
 PORTFOLIO_JS = """
@@ -554,23 +537,11 @@ function sortTable(tableId, col, type, th) {
 
 
 def page_shell(title: str, h1: str, subtitle: str, body: str,
-               extra_head: str = "", extra_script: str = "") -> str:
-    """Standard light-theme HTML skeleton shared by both dashboards."""
-    return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>{title}</title>
-{extra_head}
-<style>{PORTFOLIO_CSS}</style>
-</head><body>
-<h1>{h1}</h1>
-<p class="subtitle">{subtitle}</p>
-{body}
-<script>{PORTFOLIO_JS}
-{extra_script}</script>
-</body></html>
-"""
+               extra_head: str = "", extra_script: str = "",
+               nav: str = "") -> str:
+    """Portfolio HTML skeleton — delegates to the shared theme shell."""
+    return _theme_page_shell(
+        title, nav, body, h1=h1, subtitle=subtitle,
+        extra_head=extra_head, extra_css=PORTFOLIO_CSS,
+        extra_script=PORTFOLIO_JS + "\n" + extra_script,
+    )

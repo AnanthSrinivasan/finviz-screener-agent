@@ -1,0 +1,97 @@
+{
+  "version": "2026-07-15",
+  "ecosystems": {
+    "E-CYBER": {"name": "Cybersecurity"},
+    "E-AIHW":  {"name": "AI Hardware & Infrastructure"},
+    "E-SPACE": {"name": "Space & Defense"},
+    "E-FINX":  {"name": "Fintech & Crypto"},
+    "E-FRONT": {"name": "Frontier"},
+    "E-HLTH":  {"name": "Health Tech"}
+  },
+  "themes": {
+    "T-CYBEND": {
+      "name": "Endpoint & Platform Security",
+      "ecosystem": "E-CYBER",
+      "sibling_etf": "HACK",
+      "tickers": ["CRWD", "PANW", "FTNT", "S"]
+    },
+    "T-CYBVULN": {
+      "name": "Vulnerability & Exposure Mgmt",
+      "ecosystem": "E-CYBER",
+      "sibling_etf": "HACK",
+      "tickers": ["TENB", "QLYS", "RPD"]
+    },
+    "T-CYBZT": {
+      "name": "Zero-Trust & Identity",
+      "ecosystem": "E-CYBER",
+      "sibling_etf": "HACK",
+      "tickers": ["OKTA", "CYBR", "ZS", "NET"]
+    },
+    "T-MEMSTOR": {
+      "name": "Memory & Storage",
+      "ecosystem": "E-AIHW",
+      "sibling_etf": null,
+      "tickers": ["MU", "WDC", "STX", "SNDK"]
+    },
+    "T-OPTNET": {
+      "name": "Optics & Networking",
+      "ecosystem": "E-AIHW",
+      "sibling_etf": "SMH",
+      "tickers": ["AAOI", "COHR", "LITE", "CIEN", "ANET"]
+    },
+    "T-AICOMP": {
+      "name": "AI Compute & Interconnect",
+      "ecosystem": "E-AIHW",
+      "sibling_etf": "SMH",
+      "tickers": ["NVDA", "AMD", "AVGO", "ALAB", "MRVL"]
+    },
+    "T-DCPOWER": {
+      "name": "Datacenter Power & Cooling",
+      "ecosystem": "E-AIHW",
+      "sibling_etf": "PAVE",
+      "tickers": ["VRT", "MOD", "PWR", "ETN"]
+    },
+    "T-SPACE": {
+      "name": "Space",
+      "ecosystem": "E-SPACE",
+      "sibling_etf": "UFO",
+      "tickers": ["RKLB", "ASTS", "LUNR", "RDW"]
+    },
+    "T-DRONE": {
+      "name": "Drones & Defense Tech",
+      "ecosystem": "E-SPACE",
+      "sibling_etf": "UFO",
+      "tickers": ["UMAC", "ONDS", "KTOS", "AVAV"]
+    },
+    "T-FINCON": {
+      "name": "Consumer Fintech",
+      "ecosystem": "E-FINX",
+      "sibling_etf": "ARKF",
+      "tickers": ["DAVE", "SOFI", "HOOD", "TOST"]
+    },
+    "T-CRYPTO": {
+      "name": "Crypto Infrastructure",
+      "ecosystem": "E-FINX",
+      "sibling_etf": "BLOK",
+      "tickers": ["COIN", "MSTR", "MARA", "CLSK"]
+    },
+    "T-QUANT": {
+      "name": "Quantum",
+      "ecosystem": "E-FRONT",
+      "sibling_etf": "QTUM",
+      "tickers": ["QBTS", "IONQ", "RGTI"]
+    },
+    "T-NUKE": {
+      "name": "Nuclear & Uranium",
+      "ecosystem": "E-FRONT",
+      "sibling_etf": "NLR",
+      "tickers": ["SMR", "OKLO", "CCJ", "LEU"]
+    },
+    "T-AIHEALTH": {
+      "name": "AI Health & Diagnostics",
+      "ecosystem": "E-HLTH",
+      "sibling_etf": "ARKG",
+      "tickers": ["TEM", "HIMS", "GH", "NTRA"]
+    }
+  }
+}

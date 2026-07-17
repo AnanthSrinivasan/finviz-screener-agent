@@ -48,9 +48,9 @@ class RenderHtmlTests(unittest.TestCase):
         self.assertIn("BBB", html)
         self.assertIn("PEEL", html)  # +20% gain → peel verdict
         self.assertIn("CUT", html)   # -10% gain → cut verdict
-        # light theme markers
-        self.assertIn("#f8f9fc", html)  # background
-        self.assertIn("#111827", html)  # text
+        # one-design-system markers (theme.BASE_CSS — cx-rehaul §4)
+        self.assertIn("BASE_CSS v1", html)
+        self.assertIn("--bg:#0b1220", html)
         # SnapTrade equity rendered
         self.assertIn("$100,000", html)
         # leverage computed from negative cash
@@ -138,7 +138,7 @@ class SummaryConsistencyTests(unittest.TestCase):
         html = glp.render_html({"equity": 100000, "cash": 0, "buying_power": 0}, rows)
         self.assertIn("2026-06-01", html)
         self.assertIn("18d", html)
-        self.assertIn("price vs 20-day moving average", html)
+        self.assertIn("Price vs its 20-day moving average", html)  # tooltip carries the definition (legend is a one-liner now)
         self.assertIn("filterAction", html)
 
 
