@@ -47,12 +47,12 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
 <body>
 <div class="page-wrap">
   <h1>Performance Overview — 2026 YTD</h1>
-  <div class="subtitle">Robinhood realized trades · <span class="sys-badge sys-confirmed">snaptrade fill</span> = real broker fill (RH CSV not yet re-uploaded) · <span class="sys-badge sys-estimated">estimated fill</span> = no broker fill yet · generated 2026-07-16 17:56</div>
+  <div class="subtitle">Robinhood realized trades · <span class="sys-badge sys-confirmed">snaptrade fill</span> = real broker fill (RH CSV not yet re-uploaded) · <span class="sys-badge sys-estimated">estimated fill</span> = no broker fill yet · generated 2026-07-17 16:53</div>
 
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-label">Realized P&amp;L</div>
-      <div class="stat-val neg">$-36,552</div>
+      <div class="stat-val neg">$-37,076</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Win Rate</div>
@@ -60,7 +60,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Win</div>
-      <div class="stat-val pos">+$668</div>
+      <div class="stat-val pos">+$658</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Loss</div>
@@ -68,7 +68,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
     </div>
     <div class="stat-card">
       <div class="stat-label">Profit Factor</div>
-      <div class="stat-val">0.49x</div>
+      <div class="stat-val">0.48x</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Trades</div>
@@ -76,7 +76,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
     </div>
     <div class="stat-card">
       <div class="stat-label">Best Trade</div>
-      <div class="stat-val pos" style="font-size:16px">GLW +$3,123</div>
+      <div class="stat-val pos" style="font-size:16px">SNDK +$2,878</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Worst Trade</div>
@@ -815,12 +815,12 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
         <tr>
           <td>May 18, 2026</td>
           <td class="ticker-col">GLW <span class="sys-badge sys-confirmed" title="SnapTrade fill confirmed — awaiting Robinhood CSV reconciliation">snaptrade fill</span></td>
-          <td>90</td>
-          <td>$17,981.48</td>
-          <td>$14,858.24</td>
-          <td class="pos pnl-col">+$3,123</td>
-          <td class="pos">+21.0%</td>
-          <td>Apr 17</td>
+          <td>60</td>
+          <td>$12,444.65</td>
+          <td>$9,845.09</td>
+          <td class="pos pnl-col">+$2,600</td>
+          <td class="pos">+26.4%</td>
+          <td>Apr 20</td>
         </tr>
         <tr>
           <td>May 18, 2026</td>
@@ -1472,7 +1472,7 @@ h1{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}
 <script>
 const eqCtx = document.getElementById('eqChart').getContext('2d');
 const eqLabels = ["Jan 02", "Jan 02", "Jan 02", "Jan 02", "Jan 05", "Jan 08", "Jan 13", "Jan 15", "Jan 20", "Jan 20", "Jan 21", "Jan 29", "Jan 29", "Jan 30", "Feb 02", "Feb 03", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 04", "Feb 05", "Feb 05", "Feb 05", "Feb 06", "Feb 11", "Feb 11", "Feb 11", "Feb 11", "Mar 05", "Mar 19", "Mar 19", "Mar 19", "Mar 20", "Mar 20", "Mar 23", "Mar 23", "Mar 23", "Mar 27", "Mar 27", "Apr 22", "Apr 22", "Apr 22", "Apr 24", "Apr 24", "Apr 27", "Apr 27", "Apr 30", "May 05", "May 07", "May 07", "May 07", "May 08", "May 12", "May 13", "May 15", "May 15", "May 15", "May 15", "May 15", "May 15", "May 15", "May 15", "May 18", "May 18", "May 18", "May 19", "May 19", "May 19", "May 19", "May 19", "May 19", "May 26", "May 26", "May 26", "May 28", "May 29", "May 29", "May 29", "May 29", "Jun 01", "Jun 01", "Jun 01", "Jun 01", "Jun 01", "Jun 01", "Jun 02", "Jun 02", "Jun 02", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 03", "Jun 04", "Jun 04", "Jun 04", "Jun 04", "Jun 04", "Jun 04", "Jun 05", "Jun 05", "Jun 05", "Jun 05", "Jun 05", "Jun 09", "Jun 09", "Jun 09", "Jun 09", "Jun 15", "Jun 16", "Jun 22", "Jun 22", "Jun 22", "Jun 23", "Jun 23", "Jun 23", "Jun 23", "Jun 23", "Jun 23", "Jun 25", "Jun 26", "Jul 09", "Jul 09", "Jul 09", "Jul 09", "Jul 10", "Jul 10", "Jul 13", "Jul 14"];
-const eqData   = [-0.42, -0.01, 2.39, 2.47, 324.75, 52.36, 573.84, -2141.44, -2171.96, -2535.98, -2403.5, -2217.82, -1630.35, -1076.41, -995.45, -1602.99, -3572.51, -4425.5, -5748.91, -5872.26, -7090.78, -12566.03, -13589.05, -14612.07, -19153.17, -21062.32, -21271.34, -22893.88, -22908.4, -20853.42, -21780.44, -22797.6, -22872.5, -26606.58, -38094.7, -37975.81, -37841.74, -37714.26, -38029.36, -38417.38, -37910.45, -37408.37, -36626.27, -36506.9, -36508.04, -36021.54, -36701.04, -37155.29, -37582.27, -37887.77, -38074.67, -38283.17, -39887.17, -39986.67, -38682.55, -38829.55, -39118.75, -39245.69, -38205.13, -37997.63, -38179.53, -37853.61, -38554.19, -38661.19, -35537.95, -35077.8, -37198.5, -39062.5, -39318.0, -39380.99, -40352.77, -40650.77, -41200.27, -42579.02, -41214.51, -41325.51, -42228.8, -43407.55, -42441.3, -42628.3, -42138.05, -42201.98, -41090.58, -40650.08, -40809.83, -40442.33, -40552.2, -40747.2, -41225.3, -41554.8, -40474.8, -38779.05, -38561.05, -38521.13, -37213.63, -37250.61, -37298.06, -37264.95, -37192.95, -37043.15, -36915.97, -34498.22, -34620.96, -35378.86, -35834.86, -36070.51, -36174.81, -38189.06, -39712.86, -40167.63, -40562.69, -40718.69, -37840.6, -37723.8, -38053.8, -36613.32, -37465.81, -37790.81, -37772.06, -38619.63, -39548.83, -39027.8, -38960.09, -38722.08, -39291.85, -40847.44, -39843.44, -39843.05, -40107.05, -39753.55, -39103.55, -39012.95, -37674.55, -37088.65, -36549.87];
+const eqData   = [-0.42, -0.01, 2.39, 2.47, 324.75, 52.36, 573.84, -2141.44, -2171.96, -2535.98, -2403.5, -2217.82, -1630.35, -1076.41, -995.45, -1602.99, -3572.51, -4425.5, -5748.91, -5872.26, -7090.78, -12566.03, -13589.05, -14612.07, -19153.17, -21062.32, -21271.34, -22893.88, -22908.4, -20853.42, -21780.44, -22797.6, -22872.5, -26606.58, -38094.7, -37975.81, -37841.74, -37714.26, -38029.36, -38417.38, -37910.45, -37408.37, -36626.27, -36506.9, -36508.04, -36021.54, -36701.04, -37155.29, -37582.27, -37887.77, -38074.67, -38283.17, -39887.17, -39986.67, -38682.55, -38829.55, -39118.75, -39245.69, -38205.13, -37997.63, -38179.53, -37853.61, -38554.19, -38661.19, -36061.62, -35601.47, -37722.17, -39586.17, -39841.67, -39904.66, -40876.44, -41174.44, -41723.94, -43102.69, -41738.18, -41849.18, -42752.47, -43931.22, -42964.97, -43151.97, -42661.72, -42725.65, -41614.25, -41173.75, -41333.5, -40966.0, -41075.87, -41270.87, -41748.97, -42078.47, -40998.47, -39302.72, -39084.72, -39044.8, -37737.3, -37774.28, -37821.73, -37788.62, -37716.62, -37566.82, -37439.64, -35021.89, -35144.63, -35902.53, -36358.53, -36594.18, -36698.48, -38712.73, -40236.53, -40691.3, -41086.36, -41242.36, -38364.27, -38247.47, -38577.47, -37136.99, -37989.48, -38314.48, -38295.73, -39143.3, -40072.5, -39551.47, -39483.76, -39245.75, -39815.52, -41371.11, -40367.11, -40366.72, -40630.72, -40277.22, -39627.22, -39536.62, -38198.22, -37612.32, -37073.54];
 const eqColors = eqData.map(v => v >= 0 ? '#16a34a' : '#dc2626');
 new Chart(eqCtx, {
   type: 'line',
@@ -1500,7 +1500,7 @@ new Chart(eqCtx, {
 
 const moCtx = document.getElementById('moChart').getContext('2d');
 const moLabels = ["Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026"];
-const moData   = [-1076.41, -21831.99, -15508.98, 1262.09, -5473.01, 2784.86, 3293.57];
+const moData   = [-1076.41, -21831.99, -15508.98, 1262.09, -5996.68, 2784.86, 3293.57];
 const moColors = ["#dc2626", "#dc2626", "#dc2626", "#16a34a", "#dc2626", "#16a34a", "#16a34a"];
 new Chart(moCtx, {
   type: 'bar',
