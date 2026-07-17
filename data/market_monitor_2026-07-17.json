@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-17",
+  "up_4_today": 258,
+  "down_4_today": 434,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3066,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.59,
+  "ratio_5day": 0.71,
+  "ratio_10day": 0.79,
+  "up_25_quarter": 316,
+  "down_25_quarter": 152,
+  "thrust_detected": false,
+  "fg": 42.6,
+  "spy_price": 743.35,
+  "spy_sma200_pct": 6.7,
+  "spy_sma50_pct": 0.93,
+  "spy_atr_mult_50": 0.84,
+  "spy_sma50_slope_10d": 1.0,
+  "spy_pct_from_20d_high": -0.62,
+  "qqq_sma50_pct": -1.77,
+  "qqq_atr_mult_50": -0.84,
+  "pct_above_50ma": 10.31,
+  "vix_close": 18.02,
+  "vix_change_pct": 7.71,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 52,
+  "days_below_21ema": 0,
+  "spy_close": 750.87,
+  "spy_21ema": 746.9080644536887,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 360,
+    "pct_down4_today": 37.2,
+    "pct_up4_today": 4.7,
+    "pct_above_20ma": 35.8,
+    "pct_above_50ma": 50.3,
+    "pct_within_10_of_52wk_high": 32.8,
+    "cohort_score": 46,
+    "label": "CARNAGE",
+    "worst": [
+      {
+        "ticker": "ASTS",
+        "chg_pct": -17.0,
+        "dollar_move": -11.23,
+        "close": 55.02
+      },
+      {
+        "ticker": "MXL",
+        "chg_pct": -16.3,
+        "dollar_move": -14.5,
+        "close": 74.31
+      },
+      {
+        "ticker": "ASTI",
+        "chg_pct": -15.8,
+        "dollar_move": -0.59,
+        "close": 3.14
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
