@@ -208,6 +208,35 @@ def fetch_positions() -> list:
     return all_positions
 
 
+def merge_position_history(existing: dict, fresh: dict) -> dict:
+    """Merge a fresh (rolling ~90d) activities fetch into the cumulative cache.
+
+    The cache must NEVER truncate: the portfolio page FIFO-replays it, and a
+    fill that falls out of the fetch window orphans every later SELL of that
+    lot — the 2026-07-18 bug where AAOI's real +$6k realized rendered as a
+    May loss because its Feb/Mar buys had aged out of the 90d overwrite.
+
+    Per ticker, records are deduped on (date, action, shares) — `date` carries
+    the full fill timestamp, so two same-second fills at different sizes stay
+    distinct. On a key collision the FRESH record wins (broker-side price
+    corrections propagate). Output sorted ascending by date per ticker."""
+    merged: dict = {}
+    for tkr, rows in (existing or {}).items():
+        for r in rows or []:
+            if isinstance(r, dict):
+                key = (r.get("date"), r.get("action"), r.get("shares"))
+                merged.setdefault(tkr, {})[key] = r
+    for tkr, rows in (fresh or {}).items():
+        for r in rows or []:
+            if isinstance(r, dict):
+                key = (r.get("date"), r.get("action"), r.get("shares"))
+                merged.setdefault(tkr, {})[key] = r
+    return {
+        tkr: sorted(by_key.values(), key=lambda r: str(r.get("date", "")))
+        for tkr, by_key in merged.items()
+    }
+
+
 def fetch_position_history(account_ids: list, days: int = 90) -> dict:
     """Fetch all BUY+SELL activities and group by ticker. Returns
     {ticker: [{date, action, shares, price}, ...]} sorted ascending by date.
@@ -1838,7 +1867,15 @@ if __name__ == "__main__":
     if account_ids:
         history = fetch_position_history(account_ids, days=90)
         try:
-            with open(os.path.join(DATA_DIR, "position_history.json"), "w") as f:
+            hist_path = os.path.join(DATA_DIR, "position_history.json")
+            existing = {}
+            try:
+                with open(hist_path) as f:
+                    existing = json.load(f).get("history", {}) or {}
+            except (FileNotFoundError, json.JSONDecodeError):
+                existing = {}
+            history = merge_position_history(existing, history)
+            with open(hist_path, "w") as f:
                 json.dump({"updated": datetime.datetime.utcnow().isoformat() + "Z",
                            "history": history}, f, indent=2)
         except Exception as e:

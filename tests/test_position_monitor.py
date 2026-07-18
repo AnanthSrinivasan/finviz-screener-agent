@@ -641,5 +641,54 @@ class RecentEventTests(unittest.TestCase):
 
 
 
+class TestMergePositionHistory(unittest.TestCase):
+    """The activities cache must be cumulative — a 90d overwrite orphans every
+    SELL whose BUY aged out of the window (2026-07-18: AAOI's real +$6k
+    realized rendered as a May loss on the live portfolio page)."""
+
+    def _fill(self, date, action="BUY", shares=10.0, price=100.0):
+        return {"date": date, "action": action, "shares": shares, "price": price}
+
+    def test_old_fills_never_dropped(self):
+        existing = {"AAOI": [self._fill("2026-02-01T10:00:00Z")]}
+        fresh = {"AAOI": [self._fill("2026-07-01T10:00:00Z", "SELL")]}
+        merged = pm.merge_position_history(existing, fresh)
+        self.assertEqual(len(merged["AAOI"]), 2)
+        self.assertEqual(merged["AAOI"][0]["date"], "2026-02-01T10:00:00Z")
+
+    def test_overlap_deduped(self):
+        row = self._fill("2026-06-01T10:00:00Z")
+        merged = pm.merge_position_history({"DAVE": [row]}, {"DAVE": [dict(row)]})
+        self.assertEqual(len(merged["DAVE"]), 1)
+
+    def test_fresh_price_wins_on_collision(self):
+        old = self._fill("2026-06-01T10:00:00Z", price=100.0)
+        corrected = self._fill("2026-06-01T10:00:00Z", price=100.5)
+        merged = pm.merge_position_history({"X": [old]}, {"X": [corrected]})
+        self.assertEqual(len(merged["X"]), 1)
+        self.assertEqual(merged["X"][0]["price"], 100.5)
+
+    def test_same_timestamp_different_shares_both_kept(self):
+        a = self._fill("2026-05-27T16:29:24Z", shares=10.0)
+        b = self._fill("2026-05-27T16:29:24Z", shares=20.0)
+        merged = pm.merge_position_history({"DAVE": [a]}, {"DAVE": [b]})
+        self.assertEqual(len(merged["DAVE"]), 2)
+
+    def test_sorted_and_new_tickers_added(self):
+        existing = {"A": [self._fill("2026-06-02T00:00:00Z")]}
+        fresh = {"A": [self._fill("2026-06-01T00:00:00Z")],
+                 "B": [self._fill("2026-06-03T00:00:00Z")]}
+        merged = pm.merge_position_history(existing, fresh)
+        self.assertEqual([r["date"][:10] for r in merged["A"]],
+                         ["2026-06-01", "2026-06-02"])
+        self.assertIn("B", merged)
+
+    def test_empty_inputs(self):
+        self.assertEqual(pm.merge_position_history({}, {}), {})
+        one = {"A": [self._fill("2026-06-01T00:00:00Z")]}
+        self.assertEqual(pm.merge_position_history(one, {}), one)
+        self.assertEqual(pm.merge_position_history({}, one), one)
+
+
 if __name__ == "__main__":
     unittest.main()
