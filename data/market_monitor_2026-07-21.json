@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-21",
+  "up_4_today": 473,
+  "down_4_today": 98,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2987,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 4.83,
+  "ratio_5day": 0.96,
+  "ratio_10day": 1.01,
+  "up_25_quarter": 284,
+  "down_25_quarter": 152,
+  "thrust_detected": false,
+  "fg": 41.0,
+  "spy_price": 748.28,
+  "spy_sma200_pct": 7.28,
+  "spy_sma50_pct": 0.44,
+  "spy_atr_mult_50": 0.4,
+  "spy_sma50_slope_10d": 0.79,
+  "spy_pct_from_20d_high": -0.98,
+  "qqq_sma50_pct": -1.45,
+  "qqq_atr_mult_50": -0.69,
+  "pct_above_50ma": 9.51,
+  "vix_close": 17.05,
+  "vix_change_pct": -8.58,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 56,
+  "days_below_21ema": 0,
+  "spy_close": 748.155,
+  "spy_21ema": 746.3556119138043,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 371,
+    "pct_down4_today": 2.7,
+    "pct_up4_today": 41.0,
+    "pct_above_20ma": 46.1,
+    "pct_above_50ma": 54.4,
+    "pct_within_10_of_52wk_high": 37.2,
+    "cohort_score": 60,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "RPD",
+        "chg_pct": -11.2,
+        "dollar_move": -1.34,
+        "close": 10.62
+      },
+      {
+        "ticker": "TENB",
+        "chg_pct": -9.7,
+        "dollar_move": -3.67,
+        "close": 34.07
+      },
+      {
+        "ticker": "AMC",
+        "chg_pct": -9.4,
+        "dollar_move": -0.23,
+        "close": 2.22
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
