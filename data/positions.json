@@ -13,10 +13,27 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 457.71,
-      "current_gain_pct": 61.25,
+      "current_gain_pct": 56.92,
       "first_entry_price": 279.69,
       "peak_gain_pct": 61.86,
       "target2_hit": true
+    },
+    {
+      "ticker": "CRWD",
+      "shares": 25,
+      "entry_price": 190.0,
+      "entry_date": "2026-07-21",
+      "stop_price": 184.81,
+      "breakeven_activated": false,
+      "target1": 212.8,
+      "target1_hit": false,
+      "target2": 237.5,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 200.0,
+      "current_gain_pct": 0.17,
+      "first_entry_price": 190.0,
+      "peak_gain_pct": 5.26
     }
   ],
   "closed_positions": [
