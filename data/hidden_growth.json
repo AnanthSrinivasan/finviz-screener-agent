@@ -1,5 +1,5 @@
 {
-  "date": "2026-07-20",
+  "date": "2026-07-21",
   "candidates": [
     {
       "ticker": "BTSG",
@@ -7,7 +7,7 @@
       "eps_yy_ttm": 290.87,
       "eps_qq": 144.76,
       "inst_trans": -17.14,
-      "appearances": 4,
+      "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
@@ -18,11 +18,11 @@
       }
     },
     {
-      "ticker": "LFST",
+      "ticker": "DAVE",
       "signal_score": 5,
-      "eps_yy_ttm": 164.03,
-      "eps_qq": 1900.0,
-      "inst_trans": 5.33,
+      "eps_yy_ttm": 311.59,
+      "eps_qq": 104.52,
+      "inst_trans": 10.53,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -34,11 +34,27 @@
       }
     },
     {
-      "ticker": "AMN",
+      "ticker": "AEHR",
       "signal_score": 4,
-      "eps_yy_ttm": 79.93,
-      "eps_qq": 5676.14,
-      "inst_trans": 12.23,
+      "eps_yy_ttm": -81.5,
+      "eps_qq": 143.11,
+      "inst_trans": 3.67,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "AIR",
+      "signal_score": 4,
+      "eps_yy_ttm": 1374.32,
+      "eps_qq": 784.77,
+      "inst_trans": 4.26,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -82,11 +98,11 @@
       }
     },
     {
-      "ticker": "DAVE",
+      "ticker": "DBRG",
       "signal_score": 4,
-      "eps_yy_ttm": 311.59,
-      "eps_qq": 104.52,
-      "inst_trans": 10.53,
+      "eps_yy_ttm": 52.29,
+      "eps_qq": 635.19,
+      "inst_trans": 3.38,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -114,15 +130,47 @@
       }
     },
     {
-      "ticker": "PTGX",
+      "ticker": "LASR",
       "signal_score": 4,
-      "eps_yy_ttm": -302.09,
-      "eps_qq": 129.01,
-      "inst_trans": 12.9,
-      "appearances": 3,
+      "eps_yy_ttm": 74.24,
+      "eps_qq": 106.49,
+      "inst_trans": 9.76,
+      "appearances": 2,
       "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "LFST",
+      "signal_score": 4,
+      "eps_yy_ttm": 164.03,
+      "eps_qq": 1900.0,
+      "inst_trans": 5.33,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "LQDA",
+      "signal_score": 4,
+      "eps_yy_ttm": 115.4,
+      "eps_qq": 216.05,
+      "inst_trans": 3.87,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
@@ -162,12 +210,12 @@
       }
     },
     {
-      "ticker": "AGPU",
+      "ticker": "PTGX",
       "signal_score": 3,
-      "eps_yy_ttm": -431.31,
-      "eps_qq": 93.37,
-      "inst_trans": 10.88,
-      "appearances": 1,
+      "eps_yy_ttm": -302.09,
+      "eps_qq": 129.01,
+      "inst_trans": 12.9,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -178,28 +226,12 @@
       }
     },
     {
-      "ticker": "AMC",
+      "ticker": "SBLK",
       "signal_score": 3,
-      "eps_yy_ttm": -7.77,
-      "eps_qq": 53.72,
-      "inst_trans": -0.27,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "ATAI",
-      "signal_score": 3,
-      "eps_yy_ttm": -178.33,
-      "eps_qq": 44.43,
-      "inst_trans": 15.65,
-      "appearances": 1,
+      "eps_yy_ttm": -37.75,
+      "eps_qq": 13323.08,
+      "inst_trans": 5.5,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -210,11 +242,11 @@
       }
     },
     {
-      "ticker": "PTRN",
+      "ticker": "WST",
       "signal_score": 3,
-      "eps_yy_ttm": -350.28,
-      "eps_qq": 83.13,
-      "inst_trans": 4.72,
+      "eps_yy_ttm": 17.11,
+      "eps_qq": 55.85,
+      "inst_trans": 3.77,
       "appearances": 2,
       "criteria": {
         "persistence": false,
