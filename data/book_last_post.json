@@ -1,28 +1,4 @@
 {
-  "last_book_post_ts": "2026-07-21T16:01:22.418139Z",
-  "events_since_last": [
-    {
-      "kind": "auto_added",
-      "ticker": "CRWD",
-      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: CRWD\n   25 shares @ $190.00 (from SnapTrade)\n   Auto-stop: $174.88 | T1: $212.80 | T2: $237.50\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
-      "ts": "2026-07-21T17:24:51.836574Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "DAVE",
-      "message": "\ud83d\udea8 STOP HIT: DAVE @ $433.48 \u2014 exit immediately (stop $433.95)",
-      "current_price": 433.48,
-      "stop_price": 433.95,
-      "ts": "2026-07-21T18:50:17.829085Z"
-    },
-    {
-      "kind": "fade",
-      "ticker": "DAVE",
-      "peak_gain_pct": 61.9,
-      "current_gain_pct": 53.3,
-      "given_back_pp": 8.6,
-      "message": ":warning: DAVE fading \u2014 peak +61.9%, now +53.3% (gave back 8.6pp)",
-      "ts": "2026-07-21T18:50:17.829085Z"
-    }
-  ]
+  "last_book_post_ts": "2026-07-22T15:17:29.748548Z",
+  "events_since_last": []
 }
