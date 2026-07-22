@@ -8,6 +8,14 @@
       "current_price": 426.63,
       "stop_price": 433.95,
       "ts": "2026-07-22T17:24:24.286684Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $422.41 \u2014 exit immediately (stop $433.95)",
+      "current_price": 422.41,
+      "stop_price": 433.95,
+      "ts": "2026-07-22T18:42:40.709160Z"
     }
   ]
 }
