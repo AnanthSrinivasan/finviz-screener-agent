@@ -1,4 +1,13 @@
 {
   "last_book_post_ts": "2026-07-22T15:58:41.024142Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $426.63 \u2014 exit immediately (stop $433.95)",
+      "current_price": 426.63,
+      "stop_price": 433.95,
+      "ts": "2026-07-22T17:24:24.286684Z"
+    }
+  ]
 }
