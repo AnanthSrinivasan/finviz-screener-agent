@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-22",
+  "up_4_today": 111,
+  "down_4_today": 238,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2971,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.47,
+  "ratio_5day": 1.0,
+  "ratio_10day": 0.85,
+  "up_25_quarter": 279,
+  "down_25_quarter": 137,
+  "thrust_detected": false,
+  "fg": 42.8,
+  "spy_price": 747.41,
+  "spy_sma200_pct": 7.1,
+  "spy_sma50_pct": 0.33,
+  "spy_atr_mult_50": 0.31,
+  "spy_sma50_slope_10d": 0.74,
+  "spy_pct_from_20d_high": -1.07,
+  "qqq_sma50_pct": -1.93,
+  "qqq_atr_mult_50": -0.96,
+  "pct_above_50ma": 9.39,
+  "vix_close": 16.64,
+  "vix_change_pct": -2.4,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 57,
+  "days_below_21ema": 0,
+  "spy_close": 747.49,
+  "spy_21ema": 746.4587381038428,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 372,
+    "pct_down4_today": 11.0,
+    "pct_up4_today": 4.8,
+    "pct_above_20ma": 38.4,
+    "pct_above_50ma": 53.5,
+    "pct_within_10_of_52wk_high": 32.0,
+    "cohort_score": 54,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "AGPU",
+        "chg_pct": -24.9,
+        "dollar_move": -2.38,
+        "close": 7.16
+      },
+      {
+        "ticker": "ADTN",
+        "chg_pct": -13.8,
+        "dollar_move": -1.68,
+        "close": 10.46
+      },
+      {
+        "ticker": "NAVN",
+        "chg_pct": -11.5,
+        "dollar_move": -3.05,
+        "close": 23.57
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
