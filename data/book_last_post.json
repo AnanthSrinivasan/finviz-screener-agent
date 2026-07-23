@@ -32,6 +32,22 @@
       "current_price": 183.44,
       "stop_price": 184.96,
       "ts": "2026-07-23T20:36:51.201079Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $406.87 \u2014 exit immediately (stop $433.95)",
+      "current_price": 406.87,
+      "stop_price": 433.95,
+      "ts": "2026-07-23T22:07:45.225987Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWD",
+      "message": "\ud83d\udea8 STOP HIT: CRWD @ $183.44 \u2014 exit immediately (stop $184.96)",
+      "current_price": 183.44,
+      "stop_price": 184.96,
+      "ts": "2026-07-23T22:07:45.225987Z"
     }
   ]
 }
