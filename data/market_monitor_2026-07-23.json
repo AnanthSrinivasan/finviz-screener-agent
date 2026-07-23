@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-23",
+  "up_4_today": 104,
+  "down_4_today": 266,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3043,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.39,
+  "ratio_5day": 1.02,
+  "ratio_10day": 0.82,
+  "up_25_quarter": 259,
+  "down_25_quarter": 166,
+  "thrust_detected": false,
+  "fg": 39.6,
+  "spy_price": 738.18,
+  "spy_sma200_pct": 5.73,
+  "spy_sma50_pct": -0.93,
+  "spy_atr_mult_50": -0.84,
+  "spy_sma50_slope_10d": 0.63,
+  "spy_pct_from_20d_high": -2.31,
+  "qqq_sma50_pct": -3.71,
+  "qqq_atr_mult_50": -1.78,
+  "pct_above_50ma": 8.51,
+  "vix_close": 18.7,
+  "vix_change_pct": 12.38,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 58,
+  "days_below_21ema": 0,
+  "spy_close": 738.06,
+  "spy_21ema": 745.6952164588305,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 374,
+    "pct_down4_today": 7.8,
+    "pct_up4_today": 3.7,
+    "pct_above_20ma": 33.7,
+    "pct_above_50ma": 51.9,
+    "pct_within_10_of_52wk_high": 30.2,
+    "cohort_score": 52,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "XMTR",
+        "chg_pct": -12.3,
+        "dollar_move": -12.16,
+        "close": 86.4
+      },
+      {
+        "ticker": "INV",
+        "chg_pct": -11.6,
+        "dollar_move": -0.39,
+        "close": 2.98
+      },
+      {
+        "ticker": "GRPN",
+        "chg_pct": -9.2,
+        "dollar_move": -2.58,
+        "close": 25.4
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
