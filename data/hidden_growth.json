@@ -1,22 +1,6 @@
 {
-  "date": "2026-07-22",
+  "date": "2026-07-23",
   "candidates": [
-    {
-      "ticker": "ATEX",
-      "signal_score": 4,
-      "eps_yy_ttm": 886.7,
-      "eps_qq": 99.47,
-      "inst_trans": 18.3,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
     {
       "ticker": "BLLN",
       "signal_score": 4,
@@ -39,7 +23,7 @@
       "eps_yy_ttm": 311.59,
       "eps_qq": 104.52,
       "inst_trans": 10.53,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -66,6 +50,38 @@
       }
     },
     {
+      "ticker": "KNSA",
+      "signal_score": 4,
+      "eps_yy_ttm": 509.31,
+      "eps_qq": 144.51,
+      "inst_trans": 3.47,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "KRMN",
+      "signal_score": 4,
+      "eps_yy_ttm": 417.85,
+      "eps_qq": 261.98,
+      "inst_trans": 18.18,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
       "ticker": "LASR",
       "signal_score": 4,
       "eps_yy_ttm": 74.24,
@@ -82,11 +98,11 @@
       }
     },
     {
-      "ticker": "LFST",
+      "ticker": "LQDA",
       "signal_score": 4,
-      "eps_yy_ttm": 164.03,
-      "eps_qq": 1900.0,
-      "inst_trans": 5.33,
+      "eps_yy_ttm": 115.4,
+      "eps_qq": 216.05,
+      "inst_trans": 3.87,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -98,11 +114,27 @@
       }
     },
     {
-      "ticker": "LQDA",
+      "ticker": "SUNE",
       "signal_score": 4,
-      "eps_yy_ttm": 115.4,
-      "eps_qq": 216.05,
-      "inst_trans": 3.87,
+      "eps_yy_ttm": 99.97,
+      "eps_qq": 98.87,
+      "inst_trans": 26.44,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "UMAC",
+      "signal_score": 4,
+      "eps_yy_ttm": 91.33,
+      "eps_qq": 203.99,
+      "inst_trans": 39.34,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -130,11 +162,11 @@
       }
     },
     {
-      "ticker": "WST",
+      "ticker": "SBLK",
       "signal_score": 3,
-      "eps_yy_ttm": 17.11,
-      "eps_qq": 55.85,
-      "inst_trans": 3.77,
+      "eps_yy_ttm": -37.75,
+      "eps_qq": 13323.08,
+      "inst_trans": 5.5,
       "appearances": 2,
       "criteria": {
         "persistence": false,
