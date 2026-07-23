@@ -1,28 +1,4 @@
 {
-  "last_book_post_ts": "2026-07-23T15:26:06.023394Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "DAVE",
-      "message": "\ud83d\udea8 STOP HIT: DAVE @ $393.72 \u2014 exit immediately (stop $433.95)",
-      "current_price": 393.72,
-      "stop_price": 433.95,
-      "ts": "2026-07-23T15:56:45.237289Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "CRWD",
-      "message": "\ud83d\udea8 STOP HIT: CRWD @ $182.84 \u2014 exit immediately (stop $184.96)",
-      "current_price": 182.84,
-      "stop_price": 184.96,
-      "ts": "2026-07-23T15:56:45.237289Z"
-    },
-    {
-      "kind": "warn_stop",
-      "ticker": "CRWD",
-      "message": "\ud83d\udfe1 WARN_STOP \u2014 CRWD ATR mult 0.60",
-      "alert_type": "WARN_STOP",
-      "ts": "2026-07-23T15:56:45.237289Z"
-    }
-  ]
+  "last_book_post_ts": "2026-07-23T16:07:03.761120Z",
+  "events_since_last": []
 }
