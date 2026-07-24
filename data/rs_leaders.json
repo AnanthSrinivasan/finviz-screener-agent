@@ -24,9 +24,9 @@
     "trigger_q": 78.0,
     "trigger_dist": -1.6547253497099956,
     "trigger_atr_mult": 2.4,
-    "rs_rating": 66,
+    "rs_rating": 81,
     "current_status": "active",
-    "last_active_date": "2026-07-23",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-06-13",
@@ -35,7 +35,7 @@
       "2026-07-10",
       "2026-07-22"
     ],
-    "days_tracked": 13
+    "days_tracked": 14
   },
   "ESTA": {
     "first_triggered": "2026-06-09",
@@ -44,8 +44,8 @@
     "trigger_dist": -9.854759332613138,
     "trigger_atr_mult": 2.1,
     "rs_rating": 67,
-    "current_status": "reacquired",
-    "last_active_date": "2026-07-17",
+    "current_status": "active",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-06-13",
@@ -53,7 +53,7 @@
       "2026-07-03",
       "2026-07-17"
     ],
-    "days_tracked": 9
+    "days_tracked": 10
   },
   "SEPN": {
     "first_triggered": "2026-06-09",
@@ -177,9 +177,9 @@
     "trigger_dist": -8.311636290807122,
     "trigger_atr_mult": 4.8,
     "rs_rating": 93,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
-    "pullback_started": null,
+    "pullback_started": "2026-07-24",
     "reacquired_dates": [
       "2026-07-03",
       "2026-07-17",
@@ -194,15 +194,15 @@
     "trigger_dist": -7.662658306541859,
     "trigger_atr_mult": 3.6,
     "rs_rating": 94,
-    "current_status": "reacquired",
-    "last_active_date": "2026-07-21",
+    "current_status": "active",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-07-06",
       "2026-07-09",
       "2026-07-21"
     ],
-    "days_tracked": 9
+    "days_tracked": 10
   },
   "ECPG": {
     "first_triggered": "2026-06-24",
@@ -395,14 +395,14 @@
     "trigger_dist": -8.690073486527472,
     "trigger_atr_mult": 1.9,
     "rs_rating": 68,
-    "current_status": "reacquired",
-    "last_active_date": "2026-07-22",
+    "current_status": "active",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-07-17",
       "2026-07-22"
     ],
-    "days_tracked": 9
+    "days_tracked": 10
   },
   "SNDX": {
     "first_triggered": "2026-07-07",
@@ -441,9 +441,9 @@
     "trigger_dist": -4.101880645638967,
     "trigger_atr_mult": 4.1,
     "rs_rating": 84,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
-    "pullback_started": null,
+    "pullback_started": "2026-07-24",
     "reacquired_dates": [
       "2026-07-17"
     ],
@@ -463,19 +463,6 @@
       "2026-07-22"
     ],
     "days_tracked": 6
-  },
-  "ABX": {
-    "first_triggered": "2026-07-08",
-    "trigger_state": "RED",
-    "trigger_q": 92.0,
-    "trigger_dist": -6.51125401929259,
-    "trigger_atr_mult": 4.9,
-    "rs_rating": 72,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-07-08",
-    "pullback_started": "2026-07-09",
-    "reacquired_dates": [],
-    "days_tracked": 1
   },
   "ANET": {
     "first_triggered": "2026-07-09",
@@ -619,14 +606,14 @@
     "trigger_dist": -3.787392018276581,
     "trigger_atr_mult": 3.2,
     "rs_rating": 61,
-    "current_status": "reacquired",
-    "last_active_date": "2026-07-23",
+    "current_status": "active",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-07-17",
       "2026-07-23"
     ],
-    "days_tracked": 5
+    "days_tracked": 6
   },
   "DDOG": {
     "first_triggered": "2026-07-17",
@@ -662,12 +649,12 @@
     "trigger_q": 97.0,
     "trigger_dist": -5.645812133759087,
     "trigger_atr_mult": 4.1,
-    "rs_rating": 90,
+    "rs_rating": 94,
     "current_status": "active",
-    "last_active_date": "2026-07-23",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 5
+    "days_tracked": 6
   },
   "RAL": {
     "first_triggered": "2026-07-17",
@@ -676,9 +663,9 @@
     "trigger_dist": -6.948680546346631,
     "trigger_atr_mult": 2.5,
     "rs_rating": 62,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
-    "pullback_started": null,
+    "pullback_started": "2026-07-24",
     "reacquired_dates": [
       "2026-07-22"
     ],
@@ -704,9 +691,9 @@
     "trigger_dist": -8.89057430581891,
     "trigger_atr_mult": 0.2,
     "rs_rating": 75,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
-    "pullback_started": null,
+    "pullback_started": "2026-07-24",
     "reacquired_dates": [],
     "days_tracked": 3
   },
@@ -717,9 +704,9 @@
     "trigger_dist": -9.922698453969081,
     "trigger_atr_mult": 0.9,
     "rs_rating": 83,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
-    "pullback_started": null,
+    "pullback_started": "2026-07-24",
     "reacquired_dates": [],
     "days_tracked": 3
   },
@@ -768,12 +755,14 @@
     "trigger_q": 92.0,
     "trigger_dist": -5.115355521936471,
     "trigger_atr_mult": 2.3,
-    "rs_rating": 61,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-07-22",
-    "pullback_started": "2026-07-23",
-    "reacquired_dates": [],
-    "days_tracked": 1
+    "rs_rating": 76,
+    "current_status": "reacquired",
+    "last_active_date": "2026-07-24",
+    "pullback_started": null,
+    "reacquired_dates": [
+      "2026-07-24"
+    ],
+    "days_tracked": 2
   },
   "VSXY": {
     "first_triggered": "2026-07-22",
@@ -795,8 +784,21 @@
     "trigger_dist": -8.518518518518514,
     "trigger_atr_mult": 1.8,
     "rs_rating": 62,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-07-23",
+    "pullback_started": "2026-07-24",
+    "reacquired_dates": [],
+    "days_tracked": 1
+  },
+  "NBIX": {
+    "first_triggered": "2026-07-24",
+    "trigger_state": "RED",
+    "trigger_q": 104.0,
+    "trigger_dist": -2.985980792581966,
+    "trigger_atr_mult": 2.2,
+    "rs_rating": 83,
+    "current_status": "active",
+    "last_active_date": "2026-07-24",
     "pullback_started": null,
     "reacquired_dates": [],
     "days_tracked": 1
