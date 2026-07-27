@@ -1,13 +1,13 @@
 {
-  "date": "2026-07-24",
+  "date": "2026-07-27",
   "candidates": [
     {
       "ticker": "BTSG",
       "signal_score": 5,
       "eps_yy_ttm": 290.87,
       "eps_qq": 144.76,
-      "inst_trans": -17.14,
-      "appearances": 3,
+      "inst_trans": -17.16,
+      "appearances": 4,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
@@ -20,9 +20,9 @@
     {
       "ticker": "RNG",
       "signal_score": 5,
-      "eps_yy_ttm": 321.5,
+      "eps_yy_ttm": 1070.33,
       "eps_qq": 215.14,
-      "inst_trans": 9.2,
+      "inst_trans": 9.92,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -38,7 +38,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 168.38,
       "eps_qq": 479.93,
-      "inst_trans": 5.0,
+      "inst_trans": 5.04,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -54,7 +54,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 311.59,
       "eps_qq": 104.52,
-      "inst_trans": 10.53,
+      "inst_trans": 10.88,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -70,7 +70,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 52.29,
       "eps_qq": 635.19,
-      "inst_trans": 3.38,
+      "inst_trans": 3.4,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -86,7 +86,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 298.19,
       "eps_qq": 50.72,
-      "inst_trans": 3.73,
+      "inst_trans": 4.63,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -98,17 +98,65 @@
       }
     },
     {
-      "ticker": "LQDA",
+      "ticker": "KNSA",
       "signal_score": 4,
-      "eps_yy_ttm": 115.4,
-      "eps_qq": 216.05,
-      "inst_trans": 3.87,
+      "eps_yy_ttm": 509.31,
+      "eps_qq": 144.51,
+      "inst_trans": 3.45,
       "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "KRMN",
+      "signal_score": 4,
+      "eps_yy_ttm": 417.85,
+      "eps_qq": 261.98,
+      "inst_trans": 18.83,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "LQDA",
+      "signal_score": 4,
+      "eps_yy_ttm": 115.4,
+      "eps_qq": 216.05,
+      "inst_trans": 3.88,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "NAVN",
+      "signal_score": 3,
+      "eps_yy_ttm": -85.01,
+      "eps_qq": 66.82,
+      "inst_trans": 0.21,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -134,7 +182,7 @@
       "signal_score": 3,
       "eps_yy_ttm": -37.75,
       "eps_qq": 13323.08,
-      "inst_trans": 5.5,
+      "inst_trans": 3.75,
       "appearances": 2,
       "criteria": {
         "persistence": false,
