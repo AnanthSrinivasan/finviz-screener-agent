@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-28",
+  "up_4_today": 338,
+  "down_4_today": 316,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3039,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 1.07,
+  "ratio_5day": 0.87,
+  "ratio_10day": 0.92,
+  "up_25_quarter": 291,
+  "down_25_quarter": 162,
+  "thrust_detected": false,
+  "fg": 38.5,
+  "spy_price": 740.86,
+  "spy_sma200_pct": 5.95,
+  "spy_sma50_pct": -0.54,
+  "spy_atr_mult_50": -0.49,
+  "spy_sma50_slope_10d": 0.3,
+  "spy_pct_from_20d_high": -1.95,
+  "qqq_sma50_pct": -5.76,
+  "qqq_atr_mult_50": -2.73,
+  "pct_above_50ma": 9.58,
+  "vix_close": 18.21,
+  "vix_change_pct": -2.46,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 63,
+  "days_below_21ema": 0,
+  "spy_close": 740.795,
+  "spy_21ema": 744.1734871998559,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 386,
+    "pct_down4_today": 26.9,
+    "pct_up4_today": 6.0,
+    "pct_above_20ma": 33.9,
+    "pct_above_50ma": 45.6,
+    "pct_within_10_of_52wk_high": 31.6,
+    "cohort_score": 46,
+    "label": "CARNAGE",
+    "worst": [
+      {
+        "ticker": "SANM",
+        "chg_pct": -17.6,
+        "dollar_move": -36.9,
+        "close": 172.37
+      },
+      {
+        "ticker": "STRL",
+        "chg_pct": -15.3,
+        "dollar_move": -96.89,
+        "close": 537.93
+      },
+      {
+        "ticker": "TE",
+        "chg_pct": -15.1,
+        "dollar_move": -0.74,
+        "close": 4.16
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
