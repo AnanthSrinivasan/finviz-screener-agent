@@ -1,16 +1,19 @@
 {
   "INCY": {
     "entry_price": 101.848841,
-    "highest_price_seen": 120.68,
-    "peak_gain_pct": 18.49,
-    "breakeven_activated": false,
+    "highest_price_seen": 128.13,
+    "peak_gain_pct": 25.8,
+    "breakeven_activated": true,
     "target1": 117.13,
     "target2": 132.4,
     "target1_hit": true,
     "t1_peeled": true,
     "t2_peeled": false,
     "atr_pct": 3.22,
-    "stop_price": 115.76,
-    "pending_close": true
+    "stop_price": 124.03,
+    "pending_close": true,
+    "trail_mode": "ema21",
+    "trail_mode_since": "2026-07-28",
+    "ema21_close_breaches": 0
   }
 }
