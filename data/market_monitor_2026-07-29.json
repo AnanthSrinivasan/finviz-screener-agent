@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-29",
+  "up_4_today": 176,
+  "down_4_today": 549,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3062,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.32,
+  "ratio_5day": 0.74,
+  "ratio_10day": 0.84,
+  "up_25_quarter": 290,
+  "down_25_quarter": 161,
+  "thrust_detected": false,
+  "fg": 32.3,
+  "spy_price": 729.46,
+  "spy_sma200_pct": 4.28,
+  "spy_sma50_pct": -2.02,
+  "spy_atr_mult_50": -1.74,
+  "spy_sma50_slope_10d": 0.18,
+  "spy_pct_from_20d_high": -3.44,
+  "qqq_sma50_pct": -7.56,
+  "qqq_atr_mult_50": -3.43,
+  "pct_above_50ma": 9.47,
+  "vix_close": 20.66,
+  "vix_change_pct": 13.45,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "DANGER",
+  "state_message": "Major breadth deterioration",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 64,
+  "days_below_21ema": 0,
+  "spy_close": 729.57,
+  "spy_21ema": 742.8458974591153,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 391,
+    "pct_down4_today": 36.6,
+    "pct_up4_today": 3.1,
+    "pct_above_20ma": 30.9,
+    "pct_above_50ma": 41.4,
+    "pct_within_10_of_52wk_high": 29.4,
+    "cohort_score": 41,
+    "label": "CARNAGE",
+    "worst": [
+      {
+        "ticker": "BAND",
+        "chg_pct": -29.2,
+        "dollar_move": -15.26,
+        "close": 36.92
+      },
+      {
+        "ticker": "VRT",
+        "chg_pct": -17.2,
+        "dollar_move": -46.35,
+        "close": 223.09
+      },
+      {
+        "ticker": "DBD",
+        "chg_pct": -17.2,
+        "dollar_move": -15.56,
+        "close": 75.13
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
