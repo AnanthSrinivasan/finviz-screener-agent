@@ -78,6 +78,29 @@
       "message": "\ud83d\udfe1 WARN_STOP \u2014 CRWD ATR mult -0.07",
       "alert_type": "WARN_STOP",
       "ts": "2026-07-29T20:14:25.266097Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "DAVE",
+      "message": "\ud83d\udea8 STOP HIT: DAVE @ $377.62 \u2014 exit immediately (stop $433.95)",
+      "current_price": 377.62,
+      "stop_price": 433.95,
+      "ts": "2026-07-29T22:30:54.428565Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWD",
+      "message": "\ud83d\udea8 STOP HIT: CRWD @ $179.50 \u2014 exit immediately (stop $185.28)",
+      "current_price": 179.5,
+      "stop_price": 185.28,
+      "ts": "2026-07-29T22:30:54.428565Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "CRWD",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 CRWD ATR mult -0.07",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-07-29T22:30:54.428565Z"
     }
   ]
 }
