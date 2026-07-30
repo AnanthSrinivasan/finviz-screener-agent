@@ -1,30 +1,11 @@
 {
   "open_positions": [
     {
-      "ticker": "DAVE",
-      "shares": 10,
-      "entry_price": 282.79,
-      "entry_date": "2026-06-11",
-      "stop_price": 433.95,
-      "breakeven_activated": true,
-      "target1": 339.35,
-      "target1_hit": true,
-      "target2": 395.91,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 457.71,
-      "current_gain_pct": 33.53,
-      "first_entry_price": 279.69,
-      "peak_gain_pct": 61.86,
-      "target2_hit": true,
-      "last_fade_alert_gain_pct": 32.46
-    },
-    {
       "ticker": "CRWD",
       "shares": 25,
       "entry_price": 190.0,
       "entry_date": "2026-07-21",
-      "stop_price": 185.28,
+      "stop_price": 185.31,
       "breakeven_activated": false,
       "target1": 212.8,
       "target1_hit": false,
@@ -32,9 +13,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 200.0,
-      "current_gain_pct": -5.53,
+      "current_gain_pct": -4.55,
       "first_entry_price": 190.0,
       "peak_gain_pct": 5.26
+    },
+    {
+      "ticker": "SN",
+      "shares": 50,
+      "entry_price": 160.75,
+      "entry_date": "2026-07-30",
+      "stop_price": 150.53,
+      "breakeven_activated": false,
+      "target1": 184.86,
+      "target1_hit": false,
+      "target2": 208.97,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 161.03,
+      "current_gain_pct": -0.47,
+      "first_entry_price": 160.75,
+      "peak_gain_pct": 0.17
     }
   ],
   "closed_positions": [
@@ -1977,6 +1975,29 @@
       "close_price": 255.79,
       "close_source": "snaptrade_fill",
       "result_pct": 1.11
+    },
+    {
+      "ticker": "DAVE",
+      "shares": 10,
+      "entry_price": 282.79,
+      "entry_date": "2026-06-11",
+      "stop_price": 433.95,
+      "breakeven_activated": true,
+      "target1": 339.35,
+      "target1_hit": true,
+      "target2": 395.91,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 457.71,
+      "current_gain_pct": 33.53,
+      "first_entry_price": 279.69,
+      "peak_gain_pct": 61.86,
+      "target2_hit": true,
+      "last_fade_alert_gain_pct": 32.46,
+      "close_date": "2026-07-30",
+      "close_price": 368.7,
+      "close_source": "live_quote",
+      "result_pct": 30.38
     }
   ]
 }

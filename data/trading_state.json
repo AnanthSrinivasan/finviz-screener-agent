@@ -1,21 +1,12 @@
 {
-  "consecutive_wins": 6,
+  "consecutive_wins": 7,
   "consecutive_losses": 0,
-  "total_wins": 35,
+  "total_wins": 36,
   "total_losses": 47,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-07-14",
+  "last_updated": "2026-07-30",
   "recent_trades": [
-    {
-      "ticker": "DAVE",
-      "result": "loss",
-      "result_pct": -1.23,
-      "date": "2026-06-05",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -32.6
-    },
     {
       "ticker": "CRWV",
       "result": "loss",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 84.45
+    },
+    {
+      "ticker": "DAVE",
+      "result": "win",
+      "result_pct": 30.38,
+      "date": "2026-07-30",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 859.15
     }
   ],
   "market_state": "DANGER",
