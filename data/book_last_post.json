@@ -1,4 +1,20 @@
 {
   "last_book_post_ts": "2026-07-30T15:24:41.413227Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "CRWD",
+      "message": "\ud83d\udea8 STOP HIT: CRWD @ $182.07 \u2014 exit immediately (stop $185.31)",
+      "current_price": 182.07,
+      "stop_price": 185.31,
+      "ts": "2026-07-30T15:53:32.014391Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "CRWD",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 CRWD ATR mult 0.16",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-07-30T15:53:32.014391Z"
+    }
+  ]
 }
