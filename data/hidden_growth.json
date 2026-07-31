@@ -1,28 +1,12 @@
 {
-  "date": "2026-07-30",
+  "date": "2026-07-31",
   "candidates": [
     {
-      "ticker": "BTSG",
-      "signal_score": 5,
-      "eps_yy_ttm": 290.87,
-      "eps_qq": 144.76,
-      "inst_trans": -17.16,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "AGEN",
+      "ticker": "AMN",
       "signal_score": 4,
-      "eps_yy_ttm": 120.02,
-      "eps_qq": 198.88,
-      "inst_trans": 6.5,
+      "eps_yy_ttm": 79.93,
+      "eps_qq": 5676.14,
+      "inst_trans": 8.92,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -39,7 +23,7 @@
       "eps_yy_ttm": 168.38,
       "eps_qq": 479.93,
       "inst_trans": 5.04,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -66,6 +50,38 @@
       }
     },
     {
+      "ticker": "IOT",
+      "signal_score": 4,
+      "eps_yy_ttm": 145.69,
+      "eps_qq": 294.1,
+      "inst_trans": 10.47,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "IRWD",
+      "signal_score": 4,
+      "eps_yy_ttm": 422.42,
+      "eps_qq": 205.34,
+      "inst_trans": 8.29,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "LQDA",
       "signal_score": 4,
       "eps_yy_ttm": 115.4,
@@ -82,59 +98,27 @@
       }
     },
     {
-      "ticker": "NEO",
-      "signal_score": 4,
-      "eps_yy_ttm": 50.58,
-      "eps_qq": 104.85,
-      "inst_trans": 5.33,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "RNG",
-      "signal_score": 4,
-      "eps_yy_ttm": 1070.33,
-      "eps_qq": 215.14,
-      "inst_trans": 9.92,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "VCEL",
-      "signal_score": 4,
-      "eps_yy_ttm": 602.15,
-      "eps_qq": 44.94,
-      "inst_trans": 6.13,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": false,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "AAMI",
+      "ticker": "CORT",
       "signal_score": 3,
-      "eps_yy_ttm": -2.79,
-      "eps_qq": 26.39,
-      "inst_trans": 0.87,
+      "eps_yy_ttm": -59.24,
+      "eps_qq": 23.91,
+      "inst_trans": 3.23,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "DDOG",
+      "signal_score": 3,
+      "eps_yy_ttm": -21.11,
+      "eps_qq": 115.46,
+      "inst_trans": 0.28,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -146,17 +130,17 @@
       }
     },
     {
-      "ticker": "CORT",
+      "ticker": "NET",
       "signal_score": 3,
-      "eps_yy_ttm": -64.76,
-      "eps_qq": 23.91,
-      "inst_trans": 3.23,
-      "appearances": 2,
+      "eps_yy_ttm": -4.5,
+      "eps_qq": 41.55,
+      "inst_trans": -0.44,
+      "appearances": 3,
       "criteria": {
-        "persistence": false,
+        "persistence": true,
         "eps_yy_strong": false,
         "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -183,7 +167,7 @@
       "eps_yy_ttm": -37.75,
       "eps_qq": 13323.08,
       "inst_trans": 3.75,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
