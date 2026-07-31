@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 200.0,
-      "current_gain_pct": -2.57,
+      "current_gain_pct": -1.03,
       "first_entry_price": 190.0,
       "peak_gain_pct": 5.26,
       "ma_trail_alerted_date": "2026-07-31",
@@ -29,7 +29,7 @@
       "shares": 50,
       "entry_price": 160.75,
       "entry_date": "2026-07-30",
-      "stop_price": 152.89,
+      "stop_price": 153.29,
       "breakeven_activated": false,
       "target1": 184.86,
       "target1_hit": false,
@@ -37,9 +37,43 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 163.87,
-      "current_gain_pct": 1.68,
+      "current_gain_pct": 1.27,
       "first_entry_price": 160.75,
       "peak_gain_pct": 1.94
+    },
+    {
+      "ticker": "DDOG",
+      "shares": 25,
+      "entry_price": 277.74,
+      "entry_date": "2026-07-31",
+      "stop_price": 252.54,
+      "breakeven_activated": false,
+      "target1": 319.4,
+      "target1_hit": false,
+      "target2": 361.06,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 278.66,
+      "current_gain_pct": -3.19,
+      "first_entry_price": 277.74,
+      "peak_gain_pct": 0.33
+    },
+    {
+      "ticker": "SNOW",
+      "shares": 5,
+      "entry_price": 302.89,
+      "entry_date": "2026-07-31",
+      "stop_price": 275.76,
+      "breakeven_activated": false,
+      "target1": 348.32,
+      "target1_hit": false,
+      "target2": 393.76,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 303.86,
+      "current_gain_pct": -1.83,
+      "first_entry_price": 302.89,
+      "peak_gain_pct": 0.32
     }
   ],
   "closed_positions": [
@@ -2002,9 +2036,9 @@
       "target2_hit": true,
       "last_fade_alert_gain_pct": 32.46,
       "close_date": "2026-07-30",
-      "close_price": 368.7,
-      "close_source": "live_quote",
-      "result_pct": 30.38
+      "close_price": 369.08,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 30.51
     }
   ]
 }
