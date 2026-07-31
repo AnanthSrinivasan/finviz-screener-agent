@@ -31,21 +31,6 @@
     "t1_peeled": false,
     "t2_peeled": false
   },
-  "BTSG": {
-    "stop_price": 67.24,
-    "entry_price": 72.84,
-    "atr_pct": 3.841931942919868,
-    "entry_date": "2026-07-30",
-    "highest_price_seen": 72.84,
-    "peak_gain_pct": 0.0,
-    "breakeven_activated": false,
-    "target1": 83.77,
-    "target2": 94.69,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "pending_close": true
-  },
   "DDOG": {
     "stop_price": 252.59,
     "entry_price": 268.71,
@@ -73,5 +58,18 @@
     "target1_hit": false,
     "t1_peeled": false,
     "t2_peeled": false
+  },
+  "FRO": {
+    "entry_price": 39.09,
+    "highest_price_seen": 39.78,
+    "peak_gain_pct": 1.77,
+    "breakeven_activated": false,
+    "target1": 46.91,
+    "target2": 54.73,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false,
+    "atr_pct": 3.63,
+    "stop_price": 36.94
   }
 }
