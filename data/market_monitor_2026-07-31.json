@@ -1,0 +1,73 @@
+{
+  "date": "2026-07-31",
+  "up_4_today": 152,
+  "down_4_today": 196,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3024,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.78,
+  "ratio_5day": 1.16,
+  "ratio_10day": 1.05,
+  "up_25_quarter": 258,
+  "down_25_quarter": 156,
+  "thrust_detected": false,
+  "fg": 42.5,
+  "spy_price": 747.03,
+  "spy_sma200_pct": 6.66,
+  "spy_sma50_pct": 0.25,
+  "spy_atr_mult_50": 0.2,
+  "spy_sma50_slope_10d": 0.08,
+  "spy_pct_from_20d_high": -1.16,
+  "qqq_sma50_pct": -3.79,
+  "qqq_atr_mult_50": -1.71,
+  "pct_above_50ma": 8.53,
+  "vix_close": 15.99,
+  "vix_change_pct": -6.44,
+  "trend_follow_active": true,
+  "spy_above_200d": true,
+  "market_state": "TREND-FOLLOW",
+  "state_message": "Steady uptrend \u2014 full size, entries allowed. SMA50 rising \u00b7 near 20d high \u00b7 participation 8.5% \u00b7 VIX 16.0",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 66,
+  "days_below_21ema": 0,
+  "spy_close": 746.79,
+  "spy_21ema": 743.103964844192,
+  "spy_20d_high": 754.94,
+  "cohort": {
+    "universe_size": 407,
+    "pct_down4_today": 10.1,
+    "pct_up4_today": 8.4,
+    "pct_above_20ma": 42.3,
+    "pct_above_50ma": 47.4,
+    "pct_within_10_of_52wk_high": 34.6,
+    "cohort_score": 54,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "CERS",
+        "chg_pct": -25.5,
+        "dollar_move": -0.73,
+        "close": 2.15
+      },
+      {
+        "ticker": "VCYT",
+        "chg_pct": -22.9,
+        "dollar_move": -13.7,
+        "close": 46.13
+      },
+      {
+        "ticker": "ALHC",
+        "chg_pct": -20.1,
+        "dollar_move": -3.75,
+        "close": 14.86
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
