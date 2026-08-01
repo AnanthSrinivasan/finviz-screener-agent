@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trader Mirror — 2026-07</title>
+<style>
+body { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+       background: #f8fafc; color: #111827; margin: 0; padding: 24px; }
+.wrap { max-width: 960px; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 4px; }
+.sub { color: #6b7280; font-size: 0.85rem; margin-bottom: 18px; }
+.verdict { background: #ffffff; border: 1px solid #e5e7eb; border-left: 4px solid #2563eb;
+           border-radius: 10px; padding: 14px 18px; font-size: 1.05rem; font-weight: 600;
+           margin-bottom: 18px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+         gap: 12px; margin-bottom: 20px; }
+.card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 12px 14px; }
+.card .label { font-size: 0.66rem; color: #9ca3af; text-transform: uppercase;
+               letter-spacing: .06em; margin-bottom: 5px; }
+.card .val { font-size: 1.2rem; font-weight: 700; }
+.card .sub2 { font-size: 0.72rem; color: #6b7280; margin-top: 3px; }
+table { border-collapse: collapse; width: 100%; background: #ffffff;
+        border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
+        font-size: 0.85rem; margin-bottom: 22px; }
+th { background: #f3f4f6; text-align: left; padding: 8px 10px; font-size: 0.7rem;
+     text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+td { padding: 8px 10px; border-top: 1px solid #f3f4f6; }
+.pos { color: #b91c1c; } .neg { color: #15803d; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 999px;
+       font-size: 0.7rem; font-weight: 600; }
+.tag-hold_in_hope { background: #fee2e2; color: #b91c1c; }
+.tag-round_trip { background: #ffedd5; color: #c2410c; }
+.tag-early_exit { background: #fef9c3; color: #a16207; }
+.tag-disciplined { background: #dcfce7; color: #15803d; }
+.tag-unscored { background: #f3f4f6; color: #6b7280; }
+.note { color: #6b7280; font-size: 0.78rem; }
+h2 { font-size: 1.0rem; margin: 20px 0 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🪞 Trader Mirror — 2026-07</h1>
+<div class="sub">You vs the rules engine — manual book, closed trades 2026-07-01 → 2026-07-31. System exits fill at the close after the signal (causal replay, no look-ahead).</div>
+<div class="verdict">You left $621 on the table in July.</div>
+<div class="cards"><div class="card"><div class="label">hold-in-hope</div><div class="val">$619</div><div class="sub2">1 trade(s) · FROG</div></div><div class="card"><div class="label">round-trip</div><div class="val">$0</div><div class="sub2">0 trade(s) · —</div></div><div class="card"><div class="label">early-exit</div><div class="val">$2</div><div class="sub2">1 trade(s) · LIME</div></div><div class="card"><div class="label">disciplined</div><div class="val">-$9,282</div><div class="sub2">7 trade(s) · AFRM, TNA, TEM, SN, SNOW</div></div><div class="card"><div class="label">discipline rate</div><div class="val">7 / 9</div><div class="sub2">unscored: 0</div></div></div>
+<h2>Per-trade scorecard</h2>
+<table>
+<tr><th>Ticker</th><th>Entry</th><th>Your exit</th><th>System exit</th><th>Delta $</th><th>Leak</th><th>Detail</th></tr>
+<tr><td><b>AFRM</b></td><td>$75.00 · 2026-06-25</td><td>$81.50 · 2026-07-09</td><td>$81.30 · 2026-07-08</td><td class="neg">-$20</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $20 — good exit</td></tr>
+<tr><td><b>TNA</b></td><td>$71.80 · 2026-06-17</td><td>$70.47 · 2026-07-09</td><td>$69.95 · 2026-07-08</td><td class="neg">-$105</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $105 — good exit</td></tr>
+<tr><td><b>TEM</b></td><td>$55.36 · 2026-06-25</td><td>$57.12 · 2026-07-09</td><td>$57.31 · 2026-07-08</td><td class="pos">$37</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">matched the system within $37</td></tr>
+<tr><td><b>LIME</b></td><td>$25.00 · 2026-07-01</td><td>$25.39 · 2026-07-09</td><td>$27.15 · 2026-07-27</td><td class="pos">$2</td><td><span class="tag tag-early_exit">early-exit</span></td><td class="note">sold $2 early — system exit was 2026-07-27 at $27.15</td></tr>
+<tr><td><b>SN</b></td><td>$138.96 · 2026-06-22</td><td>$152.34 · 2026-07-10</td><td>$146.49 · 2026-07-08</td><td class="neg">-$585</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $585 — good exit</td></tr>
+<tr><td><b>FROG</b></td><td>$89.07 · 2026-06-29</td><td>$89.98 · 2026-07-10</td><td>$96.17 · 2026-07-07</td><td class="pos">$619</td><td><span class="tag tag-hold_in_hope">hold-in-hope</span></td><td class="note">stop said out at $92.60 on 2026-07-07; actual exit $89.98 — held 3 extra days, cost $619</td></tr>
+<tr><td><b>SNOW</b></td><td>$252.30 · 2026-06-29</td><td>$266.95 · 2026-07-13</td><td>$268.01 · 2026-07-22</td><td class="pos">$42</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">matched the system within $43</td></tr>
+<tr><td><b>DDOG</b></td><td>$252.98 · 2026-06-30</td><td>$261.96 · 2026-07-14</td><td>$245.65 · 2026-07-22</td><td class="neg">-$979</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $979 — good exit</td></tr>
+<tr><td><b>DAVE</b></td><td>$282.79 · 2026-06-11</td><td>$389.57 · 2026-07-30</td><td>$287.26 · 2026-06-12</td><td class="neg">-$7,673</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $7,673 — good exit</td></tr>
+</table>
+<h2>3-month trend</h2>
+<table>
+<tr><th>Month</th><th>hold-in-hope</th><th>round-trip</th><th>early-exit</th><th>disciplined</th><th>Total left</th></tr>
+<tr><td><b>2026-07</b></td><td>$619 (1)</td><td>$0 (0)</td><td>$2 (1)</td><td>-$9,282 (7)</td><td>$621</td></tr>
+<tr><td colspan="6" class="note">Prior months build up as the mirror runs monthly.</td></tr>
+</table>
+</div>
+</body>
+</html>

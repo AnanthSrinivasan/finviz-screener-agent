@@ -1,0 +1,192 @@
+{
+  "month": "2026-07",
+  "window": {
+    "start": "2026-07-01",
+    "end": "2026-07-31"
+  },
+  "generated": "2026-08-01",
+  "trades": [
+    {
+      "ticker": "AFRM",
+      "entry_price": 75.0,
+      "entry_date": "2026-06-25",
+      "close_date": "2026-07-09",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -20.0,
+      "note": "beat the system by $20 \u2014 good exit",
+      "shares_sold": 100.0,
+      "actual_exit_price": 81.5,
+      "actual_exit_date": "2026-07-09",
+      "system_exit_price": 81.3,
+      "system_exit_date": "2026-07-08",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "TNA",
+      "entry_price": 71.8,
+      "entry_date": "2026-06-17",
+      "close_date": "2026-07-09",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -105.0,
+      "note": "beat the system by $105 \u2014 good exit",
+      "shares_sold": 200.0,
+      "actual_exit_price": 70.47,
+      "actual_exit_date": "2026-07-09",
+      "system_exit_price": 69.95,
+      "system_exit_date": "2026-07-08",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "TEM",
+      "entry_price": 55.36,
+      "entry_date": "2026-06-25",
+      "close_date": "2026-07-09",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": 37.0,
+      "note": "matched the system within $37",
+      "shares_sold": 200.0,
+      "actual_exit_price": 57.12,
+      "actual_exit_date": "2026-07-09",
+      "system_exit_price": 57.31,
+      "system_exit_date": "2026-07-08",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "LIME",
+      "entry_price": 25.0,
+      "entry_date": "2026-07-01",
+      "close_date": "2026-07-09",
+      "status": "scored",
+      "leak": "early_exit",
+      "delta_usd": 1.75,
+      "note": "sold $2 early \u2014 system exit was 2026-07-27 at $27.15",
+      "shares_sold": 1.0,
+      "actual_exit_price": 25.39,
+      "actual_exit_date": "2026-07-09",
+      "system_exit_price": 27.15,
+      "system_exit_date": "2026-07-27",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "SN",
+      "entry_price": 138.96,
+      "entry_date": "2026-06-22",
+      "close_date": "2026-07-10",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -585.0,
+      "note": "beat the system by $585 \u2014 good exit",
+      "shares_sold": 100.0,
+      "actual_exit_price": 152.34,
+      "actual_exit_date": "2026-07-10",
+      "system_exit_price": 146.49,
+      "system_exit_date": "2026-07-08",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "FROG",
+      "entry_price": 89.07,
+      "entry_date": "2026-06-29",
+      "close_date": "2026-07-10",
+      "status": "scored",
+      "leak": "hold_in_hope",
+      "delta_usd": 619.0,
+      "note": "stop said out at $92.60 on 2026-07-07; actual exit $89.98 \u2014 held 3 extra days, cost $619",
+      "shares_sold": 100.0,
+      "actual_exit_price": 89.98,
+      "actual_exit_date": "2026-07-10",
+      "system_exit_price": 96.17,
+      "system_exit_date": "2026-07-07",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "SNOW",
+      "entry_price": 252.3,
+      "entry_date": "2026-06-29",
+      "close_date": "2026-07-13",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": 42.5,
+      "note": "matched the system within $43",
+      "shares_sold": 40.0,
+      "actual_exit_price": 266.95,
+      "actual_exit_date": "2026-07-13",
+      "system_exit_price": 268.01,
+      "system_exit_date": "2026-07-22",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "DDOG",
+      "entry_price": 252.98,
+      "entry_date": "2026-06-30",
+      "close_date": "2026-07-14",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -978.75,
+      "note": "beat the system by $979 \u2014 good exit",
+      "shares_sold": 60.0,
+      "actual_exit_price": 261.96,
+      "actual_exit_date": "2026-07-14",
+      "system_exit_price": 245.65,
+      "system_exit_date": "2026-07-22",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "DAVE",
+      "entry_price": 282.79,
+      "entry_date": "2026-06-11",
+      "close_date": "2026-07-30",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -7673.1,
+      "note": "beat the system by $7,673 \u2014 good exit",
+      "shares_sold": 75.0,
+      "actual_exit_price": 389.57,
+      "actual_exit_date": "2026-07-30",
+      "system_exit_price": 287.26,
+      "system_exit_date": "2026-06-12",
+      "system_exit_kind": "stop"
+    }
+  ],
+  "buckets": {
+    "hold_in_hope": {
+      "count": 1,
+      "delta_usd": 619.0,
+      "tickers": [
+        "FROG"
+      ]
+    },
+    "round_trip": {
+      "count": 0,
+      "delta_usd": 0,
+      "tickers": []
+    },
+    "early_exit": {
+      "count": 1,
+      "delta_usd": 1.75,
+      "tickers": [
+        "LIME"
+      ]
+    },
+    "disciplined": {
+      "count": 7,
+      "delta_usd": -9282.35,
+      "tickers": [
+        "AFRM",
+        "TNA",
+        "TEM",
+        "SN",
+        "SNOW",
+        "DDOG",
+        "DAVE"
+      ]
+    }
+  },
+  "total_left_usd": 620.75,
+  "scored_count": 9,
+  "unscored_count": 0,
+  "disciplined_count": 7
+}

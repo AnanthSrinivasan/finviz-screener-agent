@@ -6647,7 +6647,13 @@
     "LMND",
     "ALIT",
     "RPD",
-    "NUAI"
+    "NUAI",
+    "RNG",
+    "ENVA",
+    "NAVN",
+    "LNC",
+    "PN",
+    "LVWR"
   ],
   "auto_promoted": [
     {
@@ -8195,6 +8201,42 @@
     {
       "ticker": "NUAI",
       "added": "2026-07-25",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "RNG",
+      "added": "2026-08-01",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "ENVA",
+      "added": "2026-08-01",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "NAVN",
+      "added": "2026-08-01",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "LNC",
+      "added": "2026-08-01",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "PN",
+      "added": "2026-08-01",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "LVWR",
+      "added": "2026-08-01",
       "days_seen": 4,
       "screens": 3
     }
