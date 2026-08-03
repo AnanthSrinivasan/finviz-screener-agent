@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-03",
+  "up_4_today": 564,
+  "down_4_today": 59,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3061,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 9.56,
+  "ratio_5day": 1.36,
+  "ratio_10day": 1.28,
+  "up_25_quarter": 277,
+  "down_25_quarter": 155,
+  "thrust_detected": true,
+  "fg": 45.8,
+  "spy_price": 757.67,
+  "spy_sma200_pct": 8.11,
+  "spy_sma50_pct": 1.67,
+  "spy_atr_mult_50": 1.38,
+  "spy_sma50_slope_10d": 0.1,
+  "spy_pct_from_20d_high": 0.0,
+  "qqq_sma50_pct": -2.05,
+  "qqq_atr_mult_50": -0.94,
+  "pct_above_50ma": 9.05,
+  "vix_close": 15.86,
+  "vix_change_pct": -0.81,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "THRUST",
+  "state_message": "Breadth thrust \u2014 564 stocks up 4%",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 69,
+  "days_below_21ema": 0,
+  "spy_close": 757.72,
+  "spy_21ema": 744.4326953154801,
+  "spy_20d_high": 757.72,
+  "cohort": {
+    "universe_size": 413,
+    "pct_down4_today": 1.7,
+    "pct_up4_today": 27.4,
+    "pct_above_20ma": 55.0,
+    "pct_above_50ma": 50.0,
+    "pct_within_10_of_52wk_high": 37.8,
+    "cohort_score": 62,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "TGTX",
+        "chg_pct": -10.9,
+        "dollar_move": -5.67,
+        "close": 46.2
+      },
+      {
+        "ticker": "KRYS",
+        "chg_pct": -8.4,
+        "dollar_move": -28.71,
+        "close": 312.37
+      },
+      {
+        "ticker": "CVI",
+        "chg_pct": -7.6,
+        "dollar_move": -2.72,
+        "close": 32.89
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
