@@ -61,8 +61,8 @@
   },
   "FRO": {
     "entry_price": 39.09,
-    "highest_price_seen": 39.78,
-    "peak_gain_pct": 1.77,
+    "highest_price_seen": 39.86,
+    "peak_gain_pct": 1.97,
     "breakeven_activated": false,
     "target1": 44.95,
     "target2": 50.82,
@@ -70,15 +70,15 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.63,
-    "stop_price": 36.94
+    "stop_price": 37.02
   },
   "DHT": {
     "entry_price": 18.55,
     "highest_price_seen": 18.94,
     "peak_gain_pct": 2.1,
     "breakeven_activated": false,
-    "target1": 22.26,
-    "target2": 25.97,
+    "target1": 21.33,
+    "target2": 24.12,
     "target1_hit": false,
     "t1_peeled": false,
     "t2_peeled": false,
@@ -89,24 +89,42 @@
     "stop_price": 28.2,
     "entry_price": 30.175,
     "atr_pct": 3.279231533620404,
-    "entry_date": "2026-07-31"
+    "entry_date": "2026-07-31",
+    "highest_price_seen": 30.18,
+    "peak_gain_pct": 0.02,
+    "breakeven_activated": false,
+    "target1": 34.7,
+    "target2": 39.23,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   },
   "ARW": {
-    "stop_price": 200.88,
+    "stop_price": 204.67,
     "entry_price": 216.73,
     "atr_pct": 3.6570162072309182,
-    "entry_date": "2026-07-31"
+    "entry_date": "2026-07-31",
+    "highest_price_seen": 220.52,
+    "peak_gain_pct": 1.75,
+    "breakeven_activated": false,
+    "target1": 249.24,
+    "target2": 281.75,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   },
   "IOT": {
-    "stop_price": 32.52,
+    "stop_price": 33.97,
     "entry_price": 37.28,
     "atr_pct": 6.385833109739735,
-    "entry_date": "2026-07-31"
-  },
-  "AMZN": {
-    "stop_price": 252.45,
-    "entry_price": 271.465,
-    "atr_pct": 3.5017306134472346,
-    "entry_date": "2026-07-31"
+    "entry_date": "2026-07-31",
+    "highest_price_seen": 38.73,
+    "peak_gain_pct": 3.89,
+    "breakeven_activated": false,
+    "target1": 41.75,
+    "target2": 46.6,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   }
 }
