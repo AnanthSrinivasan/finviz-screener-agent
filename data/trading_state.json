@@ -1,39 +1,12 @@
 {
-  "consecutive_wins": 7,
+  "consecutive_wins": 1,
   "consecutive_losses": 0,
-  "total_wins": 36,
-  "total_losses": 47,
-  "current_sizing_mode": "aggressive",
+  "total_wins": 38,
+  "total_losses": 48,
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-07-30",
+  "last_updated": "2026-08-06",
   "recent_trades": [
-    {
-      "ticker": "CRWV",
-      "result": "loss",
-      "result_pct": -15.78,
-      "date": "2026-06-05",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -1596.8
-    },
-    {
-      "ticker": "ARKG",
-      "result": "loss",
-      "result_pct": -5.01,
-      "date": "2026-06-05",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -550.0
-    },
-    {
-      "ticker": "XBI",
-      "result": "neutral",
-      "result_pct": -0.39,
-      "date": "2026-06-05",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -36.75
-    },
     {
       "ticker": "AMZN",
       "result": "loss",
@@ -276,6 +249,33 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 859.15
+    },
+    {
+      "ticker": "CRWD",
+      "result": "win",
+      "result_pct": 6.78,
+      "date": "2026-08-06",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 656.0
+    },
+    {
+      "ticker": "DDOG",
+      "result": "loss",
+      "result_pct": -13.81,
+      "date": "2026-08-06",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -958.75
+    },
+    {
+      "ticker": "SNOW",
+      "result": "win",
+      "result_pct": 5.96,
+      "date": "2026-08-06",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 359.8
     }
   ],
   "market_state": "TREND-FOLLOW",

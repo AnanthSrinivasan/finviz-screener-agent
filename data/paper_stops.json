@@ -25,7 +25,8 @@
     "target2": 349.32,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "NUE": {
     "stop_price": 263.05,
@@ -54,19 +55,6 @@
     "atr_pct": 3.63,
     "stop_price": 37.28
   },
-  "DHT": {
-    "entry_price": 18.55,
-    "highest_price_seen": 18.94,
-    "peak_gain_pct": 2.1,
-    "breakeven_activated": false,
-    "target1": 21.33,
-    "target2": 24.12,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "atr_pct": 3.6,
-    "stop_price": 17.6
-  },
   "ARW": {
     "stop_price": 213.03,
     "entry_price": 216.73,
@@ -94,5 +82,31 @@
     "target1_hit": false,
     "t1_peeled": false,
     "t2_peeled": false
+  },
+  "CRWD": {
+    "entry_price": 202.51,
+    "highest_price_seen": 207.56,
+    "peak_gain_pct": 2.49,
+    "breakeven_activated": false,
+    "target1": 243.01,
+    "target2": 283.51,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false,
+    "atr_pct": 4.63,
+    "stop_price": 188.81
+  },
+  "DELL": {
+    "entry_price": 428.773333,
+    "highest_price_seen": 455.34,
+    "peak_gain_pct": 6.2,
+    "breakeven_activated": false,
+    "target1": 514.53,
+    "target2": 600.28,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false,
+    "atr_pct": 7.8,
+    "stop_price": 415.91
   }
 }
