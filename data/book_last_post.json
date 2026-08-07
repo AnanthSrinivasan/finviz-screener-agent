@@ -1,4 +1,12 @@
 {
   "last_book_post_ts": "2026-08-07T14:19:31.457766Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "peel_warn",
+      "ticker": "SN",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 SN ATR mult 7.56x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-07T14:55:50.104187Z"
+    }
+  ]
 }
