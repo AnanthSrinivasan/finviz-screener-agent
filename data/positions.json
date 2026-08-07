@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 186.95,
-      "current_gain_pct": 11.92,
+      "current_gain_pct": 14.31,
       "first_entry_price": 160.75,
       "peak_gain_pct": 16.3
     },
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 54.6,
-      "current_gain_pct": 3.25,
+      "current_gain_pct": 0.94,
       "first_entry_price": 50.78,
       "peak_gain_pct": 7.52
     }
@@ -2023,9 +2023,9 @@
         "date": "2026-07-31"
       },
       "close_date": "2026-08-06",
-      "close_price": 206.68,
-      "close_source": "live_quote",
-      "result_pct": 6.78
+      "close_price": 205.81,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 6.33
     },
     {
       "ticker": "DDOG",
@@ -2044,9 +2044,9 @@
       "first_entry_price": 277.74,
       "peak_gain_pct": 5.29,
       "close_date": "2026-08-06",
-      "close_price": 239.39,
-      "close_source": "live_quote",
-      "result_pct": -13.81
+      "close_price": 239.16,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -13.89
     },
     {
       "ticker": "SNOW",
@@ -2065,9 +2065,9 @@
       "first_entry_price": 302.89,
       "peak_gain_pct": 6.94,
       "close_date": "2026-08-06",
-      "close_price": 319.91,
-      "close_source": "live_quote",
-      "result_pct": 5.96
+      "close_price": 319.54,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 5.84
     }
   ]
 }
