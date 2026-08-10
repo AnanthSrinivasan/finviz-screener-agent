@@ -56,8 +56,8 @@
   },
   "CRWD": {
     "entry_price": 202.51,
-    "highest_price_seen": 216.55,
-    "peak_gain_pct": 6.93,
+    "highest_price_seen": 226.03,
+    "peak_gain_pct": 11.61,
     "breakeven_activated": false,
     "target1": 232.89,
     "target2": 263.26,
@@ -65,12 +65,12 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 4.63,
-    "stop_price": 197.82
+    "stop_price": 211.97
   },
   "DELL": {
     "entry_price": 428.773333,
-    "highest_price_seen": 455.34,
-    "peak_gain_pct": 6.2,
+    "highest_price_seen": 474.89,
+    "peak_gain_pct": 10.76,
     "breakeven_activated": false,
     "target1": 480.23,
     "target2": 535.97,
@@ -78,12 +78,12 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 7.8,
-    "stop_price": 415.91
+    "stop_price": 424.72
   },
   "DHT": {
     "entry_price": 18.55,
-    "highest_price_seen": 18.8,
-    "peak_gain_pct": 1.35,
+    "highest_price_seen": 18.82,
+    "peak_gain_pct": 1.46,
     "breakeven_activated": false,
     "target1": 21.33,
     "target2": 24.12,
@@ -91,24 +91,20 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.83,
-    "stop_price": 17.38
+    "stop_price": 17.4
   },
   "NVDA": {
-    "stop_price": 208.65,
+    "stop_price": 208.8,
     "entry_price": 223.93,
     "atr_pct": 3.411323450616181,
-    "entry_date": "2026-08-07"
-  },
-  "TWLO": {
-    "stop_price": 214.97,
-    "entry_price": 241.56,
-    "atr_pct": 5.503978779840849,
-    "entry_date": "2026-08-07"
-  },
-  "SHEL": {
-    "stop_price": 85.03,
-    "entry_price": 88.49,
-    "atr_pct": 1.9548022598870056,
-    "entry_date": "2026-08-07"
+    "entry_date": "2026-08-07",
+    "highest_price_seen": 224.08,
+    "peak_gain_pct": 0.07,
+    "breakeven_activated": false,
+    "target1": 257.52,
+    "target2": 291.11,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   }
 }
