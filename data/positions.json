@@ -5,17 +5,17 @@
       "shares": 50,
       "entry_price": 160.75,
       "entry_date": "2026-07-30",
-      "stop_price": 180.82,
+      "stop_price": 181.33,
       "breakeven_activated": false,
       "target1": 184.86,
       "target1_hit": true,
       "target2": 208.97,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 190.54,
-      "current_gain_pct": 18.4,
+      "highest_price_seen": 191.1,
+      "current_gain_pct": 18.67,
       "first_entry_price": 160.75,
-      "peak_gain_pct": 18.53
+      "peak_gain_pct": 18.88
     },
     {
       "ticker": "HPE",
@@ -30,9 +30,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 56.39,
-      "current_gain_pct": 7.93,
+      "current_gain_pct": 7.74,
       "first_entry_price": 50.78,
       "peak_gain_pct": 11.05
+    },
+    {
+      "ticker": "CIBR",
+      "shares": 50,
+      "entry_price": 100.38,
+      "entry_date": "2026-08-11",
+      "stop_price": 95.64,
+      "breakeven_activated": false,
+      "target1": 120.46,
+      "target1_hit": false,
+      "target2": 140.53,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 100.84,
+      "current_gain_pct": -0.23,
+      "first_entry_price": 100.38,
+      "peak_gain_pct": 0.46
     }
   ],
   "closed_positions": [

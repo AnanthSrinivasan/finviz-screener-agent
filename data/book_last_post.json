@@ -1,4 +1,25 @@
 {
   "last_book_post_ts": "2026-08-11T15:28:50.941841Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_added",
+      "ticker": "CIBR",
+      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: CIBR\n   50 shares @ $100.38 (from SnapTrade)\n   Auto-stop: $90.22 | T1: $120.46 | T2: $140.53\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
+      "ts": "2026-08-11T16:24:56.786938Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "SN",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 SN ATR mult 8.37x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-11T16:24:56.786938Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CIBR",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CIBR ATR mult 4.26x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-11T16:24:56.786938Z"
+    }
+  ]
 }
