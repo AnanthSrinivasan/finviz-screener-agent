@@ -108,15 +108,31 @@
     "t2_peeled": false
   },
   "CVX": {
-    "stop_price": 185.6,
+    "stop_price": 186.64,
     "entry_price": 194.92,
     "atr_pct": 2.3908470576163356,
-    "entry_date": "2026-08-10"
+    "entry_date": "2026-08-10",
+    "highest_price_seen": 195.96,
+    "peak_gain_pct": 0.53,
+    "breakeven_activated": false,
+    "target1": 233.9,
+    "target2": 272.89,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   },
   "COP": {
-    "stop_price": 115.95,
+    "stop_price": 117.07,
     "entry_price": 123.05,
     "atr_pct": 2.8854750873770625,
-    "entry_date": "2026-08-10"
+    "entry_date": "2026-08-10",
+    "highest_price_seen": 124.17,
+    "peak_gain_pct": 0.91,
+    "breakeven_activated": false,
+    "target1": 147.66,
+    "target2": 172.27,
+    "target1_hit": false,
+    "t1_peeled": false,
+    "t2_peeled": false
   }
 }
