@@ -28,6 +28,20 @@
       "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CIBR ATR mult 4.16x",
       "alert_type": "PEEL",
       "ts": "2026-08-11T19:38:43.039033Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "SN",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 SN ATR mult 7.61x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-11T20:50:29.022431Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CIBR",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CIBR ATR mult 4.12x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-11T20:50:29.022431Z"
     }
   ]
 }
