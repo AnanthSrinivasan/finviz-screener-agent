@@ -531,7 +531,7 @@
     "runs": 5,
     "atr_pct_avg": 3.72,
     "calibrated": true,
-    "updated": "2026-08-10"
+    "updated": "2026-08-11"
   },
   "DAN": {
     "signal": 10.0,
@@ -2339,14 +2339,14 @@
   "XBI": {
     "signal": 10.0,
     "warn": 7.5,
-    "p50": 7.2,
-    "p75": 8.6,
+    "p50": 7.7,
+    "p75": 8.5,
     "p90": 8.6,
     "max_seen": 8.7,
-    "runs": 4,
-    "atr_pct_avg": 2.81,
+    "runs": 5,
+    "atr_pct_avg": 2.8,
     "calibrated": true,
-    "updated": "2026-06-26"
+    "updated": "2026-08-11"
   },
   "ROKU": {
     "signal": 10.0,
@@ -3196,7 +3196,7 @@
     "runs": 6,
     "atr_pct_avg": 3.11,
     "calibrated": true,
-    "updated": "2026-08-10"
+    "updated": "2026-08-11"
   },
   "LEGN": {
     "signal": 10.0,
@@ -6052,5 +6052,17 @@
     "atr_pct_avg": 4.92,
     "calibrated": true,
     "updated": "2026-08-08"
+  },
+  "CIBR": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 6.6,
+    "p75": 9.7,
+    "p90": 12.6,
+    "max_seen": 13.2,
+    "runs": 7,
+    "atr_pct_avg": 1.85,
+    "calibrated": true,
+    "updated": "2026-08-11"
   }
 }
