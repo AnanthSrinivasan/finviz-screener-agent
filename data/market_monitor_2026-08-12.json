@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-12",
+  "up_4_today": 246,
+  "down_4_today": 118,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3062,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 2.08,
+  "ratio_5day": 1.47,
+  "ratio_10day": 1.73,
+  "up_25_quarter": 352,
+  "down_25_quarter": 134,
+  "thrust_detected": false,
+  "fg": 62.1,
+  "spy_price": 772.49,
+  "spy_sma200_pct": 9.65,
+  "spy_sma50_pct": 3.27,
+  "spy_atr_mult_50": 3.2,
+  "spy_sma50_slope_10d": 0.46,
+  "spy_pct_from_20d_high": -0.55,
+  "qqq_sma50_pct": 1.43,
+  "qqq_atr_mult_50": 0.78,
+  "pct_above_50ma": 11.5,
+  "vix_close": 14.55,
+  "vix_change_pct": -4.78,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "COOLING",
+  "state_message": "Market cooling from GREEN \u2014 trim and tighten",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 78,
+  "days_below_21ema": 0,
+  "spy_close": 772.54,
+  "spy_21ema": 757.5572049571005,
+  "spy_20d_high": 773.16,
+  "cohort": {
+    "universe_size": 462,
+    "pct_down4_today": 4.5,
+    "pct_up4_today": 15.2,
+    "pct_above_20ma": 69.7,
+    "pct_above_50ma": 61.2,
+    "pct_within_10_of_52wk_high": 44.8,
+    "cohort_score": 70,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "ROLR",
+        "chg_pct": -14.4,
+        "dollar_move": -0.95,
+        "close": 5.67
+      },
+      {
+        "ticker": "LQDA",
+        "chg_pct": -10.6,
+        "dollar_move": -9.33,
+        "close": 78.76
+      },
+      {
+        "ticker": "TE",
+        "chg_pct": -10.3,
+        "dollar_move": -0.56,
+        "close": 4.9
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
