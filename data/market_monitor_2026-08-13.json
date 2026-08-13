@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-13",
+  "up_4_today": 312,
+  "down_4_today": 143,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3097,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 2.18,
+  "ratio_5day": 1.83,
+  "ratio_10day": 2.24,
+  "up_25_quarter": 388,
+  "down_25_quarter": 150,
+  "thrust_detected": false,
+  "fg": 66.1,
+  "spy_price": 777.88,
+  "spy_sma200_pct": 10.34,
+  "spy_sma50_pct": 3.93,
+  "spy_atr_mult_50": 3.9,
+  "spy_sma50_slope_10d": 0.5,
+  "spy_pct_from_20d_high": 0.0,
+  "qqq_sma50_pct": 2.66,
+  "qqq_atr_mult_50": 1.49,
+  "pct_above_50ma": 12.53,
+  "vix_close": 14.63,
+  "vix_change_pct": 0.55,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "CAUTION",
+  "state_message": "Recovering \u2014 build watchlist, half size",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 79,
+  "days_below_21ema": 0,
+  "spy_close": 777.84,
+  "spy_21ema": 759.4010954125224,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 468,
+    "pct_down4_today": 9.2,
+    "pct_up4_today": 10.7,
+    "pct_above_20ma": 71.4,
+    "pct_above_50ma": 61.5,
+    "pct_within_10_of_52wk_high": 45.1,
+    "cohort_score": 70,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "HTZ",
+        "chg_pct": -16.4,
+        "dollar_move": -0.46,
+        "close": 2.35
+      },
+      {
+        "ticker": "TPR",
+        "chg_pct": -16.3,
+        "dollar_move": -25.09,
+        "close": 128.42
+      },
+      {
+        "ticker": "WATT",
+        "chg_pct": -12.2,
+        "dollar_move": -2.07,
+        "close": 14.84
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
