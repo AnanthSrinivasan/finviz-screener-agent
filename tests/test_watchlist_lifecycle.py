@@ -178,18 +178,90 @@ class TestUpdateWatchlist(unittest.TestCase):
     # 3b — age-out protection
 
     def test_age_out_skips_focus_priority(self):
+        """3b (watching age-out) never touches focus. A focus name still seen in
+        the screener recently stays focus — the 3g-2 cold-archive only fires
+        after ≥15 trading days absent (covered separately below)."""
+        today = date.today().isoformat()
         old_date = (date.today() - timedelta(days=20)).isoformat()
+        recent = (date.today() - timedelta(days=1)).isoformat()
         self._write_watchlist([
             {
                 "ticker": "MRVL", "status": "watching", "priority": "focus",
                 "added": old_date, "source": "screener_auto",
                 "focus_promoted_date": old_date,
+                "last_seen_in_screener": recent,
             }
         ])
-        _update_watchlist(_df([]), "2026-04-23")
+        _update_watchlist(_df([]), today)
         e = self._read_watchlist()[0]
-        self.assertEqual(e["status"], "watching", "focus-priority must not be aged out")
+        self.assertEqual(e["status"], "watching", "focus-priority must not be aged out by 3b")
         self.assertEqual(e["priority"], "focus")
+
+    def test_focus_cold_archived_when_stale_in_screener(self):
+        """3g-2: focus absent from the screener ≥15 trading days is cold-archived
+        (archive_reason=age_out so it can reactivate), regardless of source."""
+        today = date.today().isoformat()
+        old_date = (date.today() - timedelta(days=40)).isoformat()
+        self._write_watchlist([
+            {
+                "ticker": "COLD", "status": "watching", "priority": "focus",
+                "added": old_date, "source": "hidden_growth_auto",
+                "last_seen_in_screener": old_date,
+            }
+        ])
+        _update_watchlist(_df([]), today)
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "archived")
+        self.assertEqual(e["priority"], "archived")
+        self.assertEqual(e["archive_reason"], "age_out")
+        self.assertIn("stale_cold", e.get("demote_reason", ""))
+
+    def test_focus_cold_archive_skips_freshly_demoted_entry_ready(self):
+        """A name demoted entry-ready→focus THIS run keeps its focus grace — 3g-2
+        must not archive it the same run on a pre-demotion last_seen."""
+        today = date.today().isoformat()
+        old_date = (date.today() - timedelta(days=40)).isoformat()
+        self._write_watchlist([
+            {
+                "ticker": "MU", "status": "watching", "priority": "entry-ready",
+                "added": old_date, "source": "screener_auto",
+                "last_seen_in_screener": old_date,
+            }
+        ])
+        _update_watchlist(_df([]), today)
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "watching", "soft-landed to focus, not archived")
+        self.assertEqual(e["priority"], "focus")
+
+    def test_age_out_archives_non_screener_auto_watching(self):
+        """3b now ages out watching from ANY auto source, not just screener_auto
+        (the guard that caused the 2026-08 bloat)."""
+        today = date.today().isoformat()
+        old_date = (date.today() - timedelta(days=20)).isoformat()
+        self._write_watchlist([
+            {
+                "ticker": "HG", "status": "watching", "priority": "watching",
+                "added": old_date, "source": "hidden_growth_auto",
+            }
+        ])
+        _update_watchlist(_df([]), today)
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "archived")
+        self.assertEqual(e["archive_reason"], "age_out")
+
+    def test_age_out_skips_manual_watching(self):
+        """Hand-entered manual rows are never auto-archived by 3b."""
+        today = date.today().isoformat()
+        old_date = (date.today() - timedelta(days=40)).isoformat()
+        self._write_watchlist([
+            {
+                "ticker": "MAN", "status": "watching", "priority": "watching",
+                "added": old_date, "source": "manual",
+            }
+        ])
+        _update_watchlist(_df([]), today)
+        e = self._read_watchlist()[0]
+        self.assertEqual(e["status"], "watching", "manual rows are never aged out")
 
     def test_age_out_skips_entry_ready_priority(self):
         """Entry-ready is never *aged out* (archived) — but it IS demoted to focus

@@ -3283,8 +3283,14 @@ def _update_watchlist(
     if held_archived:
         log.info("Watchlist: auto-archived %d entries now held as positions.", held_archived)
 
-    # ── 3b: age-out only priority=watching screener_auto entries (>14 days). ──
-    # Focus and entry-ready are never auto-archived — they earned their place.
+    # ── 3b: age-out any priority=watching auto-added entry (>14 days). ──
+    # Was restricted to source=="screener_auto" — that guard let every OTHER
+    # auto path (hidden_growth/breakout/rs_leader/rotation/stage_transition/…)
+    # pin names to the watching tier forever, the core of the 2026-08 watchlist
+    # bloat (420 active rows, ~280 mislabeled "manual"). Now ages out watching
+    # from ANY source except a literal hand-entered "manual". Focus/entry-ready
+    # still earn their place here; focus is cold-archived separately in 3g-2.
+    # Reactivation below un-archives age_out entries when they re-trigger.
     # Use the `today` param (not date.today()) so the function is deterministic
     # for tests/replays — latent bug found in the 2026-07-12 audit.
     try:
@@ -3293,7 +3299,7 @@ def _update_watchlist(
         cutoff = (date.today() - timedelta(days=14)).isoformat()
     archived_count = 0
     for entry in existing:
-        if (entry.get("source") == "screener_auto"
+        if (entry.get("source") != "manual"
                 and entry.get("status") == "watching"
                 and entry.get("priority") == "watching"
                 and entry.get("added", "9999") < cutoff):
@@ -3790,6 +3796,42 @@ def _update_watchlist(
             entry["demote_reason"] = "no longer meets Ready-to-Enter criteria"
             demoted_from_entry_ready.append(t)
             log.info("Watchlist: demoted %s entry-ready → focus (no longer meets Ready-to-Enter criteria)", t)
+
+    # ── 3g-2: cold-archive focus entries absent from screener ≥15 trading days. ──
+    # Focus "earned its place" so it gets more grace than watching's 14 calendar
+    # days, but a name that hasn't screened in ~3 weeks is no longer
+    # actionable-this-week and was previously pinned to focus forever (2026-08
+    # bloat audit: 351 focus rows, ~138 of them cold). Skips names in today's
+    # screener (last_seen is refreshed in 3f above) and hand-entered manual rows.
+    # Tagged archive_reason="age_out" so the reactivation paths below un-archive
+    # it automatically if it re-triggers any callout.
+    FOCUS_STALE_TDAYS = 15
+    focus_cold_archived = 0
+    for entry in existing:
+        if (entry.get("priority") != "focus"
+                or entry.get("status") == "archived"
+                or entry.get("source") == "manual"
+                # A name demoted entry-ready→focus in 3g THIS run just got its
+                # soft landing — give it the full focus grace, don't kill it
+                # the same run on a last_seen that predates the demotion.
+                or entry.get("demoted_from_entry_ready_date") == today):
+            continue
+        t = entry.get("ticker", "")
+        if t in screener_tickers:
+            continue
+        last_seen = entry.get("last_seen_in_screener") or entry.get("added")
+        if not last_seen:
+            continue
+        if _trading_days_between(last_seen, today) >= FOCUS_STALE_TDAYS:
+            entry["status"] = "archived"
+            entry["priority"] = "archived"
+            entry["archive_reason"] = "age_out"
+            entry["archived_date"] = today
+            entry["demote_reason"] = f"stale_cold — not in screener since {last_seen}"
+            focus_cold_archived += 1
+    if focus_cold_archived:
+        log.info("Watchlist: cold-archived %d stale focus entries (≥%d trading days absent).",
+                 focus_cold_archived, FOCUS_STALE_TDAYS)
 
     # ── 3h: entry-ready hard cap (cockpit radar revamp spec §1, 2026-07-12). ──
     # The tier must stay a top-5 shortlist, not a bucket: keep the 5 closest to

@@ -94,7 +94,7 @@ def _row(entry: dict, quality: dict, include_priority_badge: bool = False) -> st
     thesis   = entry.get("thesis", "")
     note     = entry.get("entry_note", "")
     stop     = entry.get("stop")
-    source   = entry.get("source", "manual")
+    source   = entry.get("source", "manual") or "manual"
     priority = entry.get("priority", "watching")
     age      = _days_on_list(added)
 
@@ -108,9 +108,12 @@ def _row(entry: dict, quality: dict, include_priority_badge: bool = False) -> st
 
     stop_str = f"${stop}" if stop else "—"
     q_str    = str(q_rank) if q_rank else "—"
+    # Any *_auto source (screener, hidden-growth, breakout, rs-leader, rotation,
+    # stage-transition, ema21-pb, htf-base-reclaim, …) was added by the system.
+    # Only a literal "manual" source is hand-entered.
     src_badge = (
-        '<span class="badge badge-auto">auto</span>' if source in ("screener_auto", "weekly_auto")
-        else '<span class="badge badge-manual">manual</span>'
+        '<span class="badge badge-manual">manual</span>' if source == "manual"
+        else '<span class="badge badge-auto">auto</span>'
     )
     focus_badge = '<span class="badge badge-focus">FOCUS</span> ' if (priority == "focus" and include_priority_badge) else ""
     textbook_badge = '<span class="badge badge-textbook" title="Textbook VCP — all criteria aligned">⭐</span> ' if textbook else ""
