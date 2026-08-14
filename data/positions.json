@@ -5,7 +5,7 @@
       "shares": 50,
       "entry_price": 160.75,
       "entry_date": "2026-07-30",
-      "stop_price": 181.33,
+      "stop_price": 181.5,
       "breakeven_activated": false,
       "target1": 184.86,
       "target1_hit": true,
@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 191.1,
-      "current_gain_pct": 17.31,
+      "current_gain_pct": 17.19,
       "first_entry_price": 160.75,
       "peak_gain_pct": 18.88
     },
@@ -22,7 +22,7 @@
       "shares": 200,
       "entry_price": 50.78,
       "entry_date": "2026-08-04",
-      "stop_price": 60.22,
+      "stop_price": 60.33,
       "breakeven_activated": true,
       "target1": 56.87,
       "target1_hit": true,
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 63.44,
-      "current_gain_pct": 17.79,
+      "current_gain_pct": 16.78,
       "first_entry_price": 50.78,
       "peak_gain_pct": 24.93,
       "last_fade_alert_gain_pct": 18.43
@@ -48,26 +48,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 102.23,
-      "current_gain_pct": 1.64,
+      "current_gain_pct": -0.22,
       "first_entry_price": 100.38,
       "peak_gain_pct": 1.66
     },
     {
-      "ticker": "XBI",
-      "shares": 40,
-      "entry_price": 158.44,
-      "entry_date": "2026-08-11",
-      "stop_price": 152.86,
+      "ticker": "CVX",
+      "shares": 50,
+      "entry_price": 199.82,
+      "entry_date": "2026-08-14",
+      "stop_price": 192.37,
       "breakeven_activated": false,
-      "target1": 190.13,
+      "target1": 239.78,
       "target1_hit": false,
-      "target2": 221.82,
+      "target2": 279.75,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 160.64,
-      "current_gain_pct": -1.03,
-      "first_entry_price": 158.44,
-      "peak_gain_pct": 1.39
+      "highest_price_seen": 201.09,
+      "current_gain_pct": 0.44,
+      "first_entry_price": 199.82,
+      "peak_gain_pct": 0.64
     }
   ],
   "closed_positions": [
@@ -2103,6 +2103,27 @@
       "close_price": 319.54,
       "close_source": "snaptrade_fill_retro",
       "result_pct": 5.84
+    },
+    {
+      "ticker": "XBI",
+      "shares": 40,
+      "entry_price": 158.44,
+      "entry_date": "2026-08-11",
+      "stop_price": 152.86,
+      "breakeven_activated": false,
+      "target1": 190.13,
+      "target1_hit": false,
+      "target2": 221.82,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 160.64,
+      "current_gain_pct": -1.03,
+      "first_entry_price": 158.44,
+      "peak_gain_pct": 1.39,
+      "close_date": "2026-08-14",
+      "close_price": 155.66,
+      "close_source": "live_quote",
+      "result_pct": -1.75
     }
   ]
 }
