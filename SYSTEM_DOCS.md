@@ -981,15 +981,16 @@ Priority lifecycle: `watching → focus → entry-ready` (and optionally `archiv
 
 **Dashboard page — `utils/generators/generate_watchlist.py` → `watchlist.html`**
 
-Regenerated in `daily-finviz.yml` after the watchlist mutation. Reads `data/watchlist.json` AND `data/hidden_growth.json`. Renders 5 sections top-to-bottom:
+Regenerated in `daily-finviz.yml` after the watchlist mutation. Reads `data/watchlist.json` AND `data/hidden_growth.json`.
 
-1. **🎯 Ready to Enter** (green) — `priority=entry-ready`, sorted by `entry_ready_date`
-2. **📌 Focus List** (amber) — `priority=focus`, sorted by `focus_promoted_date`
-3. **🔬 Hidden Growth Today** (purple) — today's 3+/6 or 4+/6 candidates from `hidden_growth.json`. Each row shows: score (`5/6`), lit/unlit criteria pills (`persistence`, `TTM+`, `Q/Q+`, `Inst+`, `S2`, `IPO`), EPS TTM/Q/Q with ⚠ distortion flag, Inst Trans, appearances. When the ticker is also on the watchlist, a tier badge (`ENTRY-READY` / `FOCUS` / `WATCH`) overlays the ticker cell — makes the two-axis overlap visible (e.g. a ticker that is both `entry-ready` AND Hidden Growth = highest conviction). **Distorted-TTM path (May 2026):** threshold lowers to 3/6 when `eps_qq_strong=True` AND `eps_yy_strong=False`.
-4. **👁 Watching** — everything else, sorted by `added` desc
-5. **🗃 Archived** (collapsed by default)
+**2026-08-14 redesign (act-now + break-by-setup):** the old flat `Focus List` + `Watching` tables were a 200+-name wall with no signal for *what to actually trade* — the user called it useless. Replaced by:
 
-Stat strip at top shows counts for each tier including Hidden Growth. CSV export available for Ready-to-Enter, Focus, and full active watchlist (for TradingView import).
+1. **🎯 Ready to Trade** (green) — `priority=entry-ready`, sorted by Quality Score. The act-now buy list (passes the tightest gate). Full table with note/thesis/stop/Q/stage. CSV + TradingView export.
+2. **🗂 Setups by Category** (blue) — every active non-entry-ready row grouped by `source` into ordered compact cards via `_category_grid` / `_category_card`. Order = `CATEGORY_ORDER` (Fresh Breakout · 21 EMA Pullback · RS Leader · Stage Transition · Rotation Catalyst · HTF Base Reclaim · Hidden Growth · Recovery Leader · Episodic Pivot · Screener · Weekly · Manual; unknown sources get a `•` card). Each card shows the top **`CATEGORY_CAP = 3`** names by Quality Score (`_q_of`, unscored sort last), with a badge showing the **full tracked count** and a `+N more tracked (off-page)` line — the rest stay in `watchlist.json`, just not rendered. This is how the user browses by the setup type they trade instead of scrolling 200 names.
+3. **🔬 Hidden Growth Today** (purple) — today's 3+/6 or 4+/6 candidates from `hidden_growth.json` (richer fundamental lens, distinct from the category card). Each row: score (`5/6`), lit/unlit criteria pills (`persistence`, `TTM+`, `Q/Q+`, `Inst+`, `S2`, `IPO`), EPS TTM/Q/Q with ⚠ distortion flag, Inst Trans, appearances. Tier badge overlays the ticker when it's also on the watchlist. **Distorted-TTM path (May 2026):** threshold lowers to 3/6 when `eps_qq_strong=True` AND `eps_yy_strong=False`.
+4. **🗃 Archived** (collapsed by default).
+
+Stat strip: Ready-to-Trade · Setup-Categories · Tracked (active) · Hidden Growth · Archived. CSV/TradingView export for Ready-to-Trade and all-active. Tests: `tests/test_watchlist_dashboard.py` (category grouping/cap + label). The `_days_on_list`, `_row`, `_table` helpers are unchanged (reused by Ready-to-Trade + Archived + HG).
 
 ### 10.2 Paper Executor — `alpaca_executor.py`
 
