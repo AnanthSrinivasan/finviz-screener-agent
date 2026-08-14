@@ -230,6 +230,93 @@ def _table(entries: list[dict], quality: dict, table_id: str, include_priority_b
     </table>"""
 
 
+# Setup categories for the browse grid (2026-08-14 redesign — user asked for a
+# short act-now list + break-by-setup instead of a 200-name flat wall). Ordered
+# tightest / most-actionable first. (source_key, emoji, label). A watchlist row's
+# category is its `source` (the signal that put it there).
+CATEGORY_ORDER = [
+    ("breakout_auto",          "🚀", "Fresh Breakout"),
+    ("ema21_pb_auto",          "🎯", "21 EMA Pullback"),
+    ("rs_leader_auto",         "🛡️", "RS Leader"),
+    ("stage_transition_auto",  "🌱", "Stage Transition"),
+    ("rotation_catalyst_auto", "🌊", "Rotation Catalyst"),
+    ("htf_base_reclaim_auto",  "🌀", "HTF Base Reclaim"),
+    ("hidden_growth_auto",     "🔬", "Hidden Growth"),
+    ("recovery_leader_auto",   "🐉", "Recovery Leader"),
+    ("episodic_pivot_auto",    "⚡", "Episodic Pivot"),
+    ("screener_auto",          "📊", "Screener (technical)"),
+    ("weekly_auto",            "📅", "Weekly"),
+    ("manual",                 "✋", "Manual"),
+]
+CATEGORY_CAP = 3  # names shown per setup category (rest stay tracked, off-page)
+
+
+def _q_of(ticker: str, quality: dict) -> float:
+    """Numeric Quality Score for ranking; -1 when the name has no fresh screener
+    quality (so unscored names sort last within a category)."""
+    q = quality.get(ticker, {}) or {}
+    v = q.get("q_rank")
+    if v is None:
+        v = q.get("quality_score")
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return -1.0
+
+
+def _category_card(emoji: str, label: str, entries: list[dict], quality: dict, cap: int) -> str:
+    """One compact setup-category card: top `cap` names by Quality Score."""
+    ranked = sorted(entries, key=lambda e: _q_of(e.get("ticker", ""), quality), reverse=True)
+    shown = ranked[:cap]
+    rows = ""
+    for e in shown:
+        t = e.get("ticker", "")
+        qd = quality.get(t, {}) or {}
+        qv = _q_of(t, quality)
+        q_str = str(int(qv)) if qv >= 0 else "—"
+        stage = qd.get("stage_label", "")
+        star = "⭐ " if qd.get("textbook_vcp") else ""
+        age = _days_on_list(e.get("added", ""))
+        rows += f"""<div class="cat-row">
+          <a href="{FINVIZ_QUOTE.format(ticker=t)}" target="_blank" class="cat-tk">{star}{t}</a>
+          <span class="cat-q">{q_str}</span>
+          <span class="cat-stage">{stage}</span>
+          <span class="cat-age">{age}</span>
+          <a href="{FINVIZ_CHART.format(ticker=t)}" target="_blank" class="cat-ch" title="chart">↗</a>
+        </div>"""
+    more = len(ranked) - len(shown)
+    more_html = f'<div class="cat-more">+{more} more tracked (off-page)</div>' if more > 0 else ""
+    return f"""<div class="cat-card">
+      <div class="cat-head">{emoji} {label} <span class="cat-n">{len(ranked)}</span></div>
+      <div class="cat-rows">{rows}</div>
+      {more_html}
+    </div>"""
+
+
+def _category_grid(entries: list[dict], quality: dict, cap: int = CATEGORY_CAP) -> tuple[str, int]:
+    """Group active (non-entry-ready) rows by source into ordered setup cards.
+    Returns (grid_html, n_categories)."""
+    by_source: dict[str, list[dict]] = {}
+    for e in entries:
+        by_source.setdefault(e.get("source") or "manual", []).append(e)
+    cards = ""
+    n = 0
+    for key, emoji, label in CATEGORY_ORDER:
+        grp = by_source.get(key)
+        if grp:
+            cards += _category_card(emoji, label, grp, quality, cap)
+            n += 1
+    # future-proof: any unknown source still gets a card
+    known = {k for k, _, _ in CATEGORY_ORDER}
+    for key, grp in by_source.items():
+        if key not in known and grp:
+            cards += _category_card("•", key, grp, quality, cap)
+            n += 1
+    if not cards:
+        cards = '<p class="empty-msg">No setups tracked right now.</p>'
+    return f'<div class="cat-grid">{cards}</div>', n
+
+
 def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = None) -> str:
     from utils.generators.nav import render_nav
     from utils.generators.theme import BASE_CSS
@@ -238,22 +325,18 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
     generated   = datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC")
     nav_html    = render_nav("watchlist", at_root=True)
 
-    # Split watchlist into 4 tiers — entry-ready and focus are actionable, watching is radar.
+    # Entry-ready is the act-now list; everything else active is grouped by
+    # setup category (2026-08-14 redesign). Watching + focus both feed the grid.
     entry_ready = [e for e in watchlist if e.get("priority") == "entry-ready" and e.get("status") != "archived"]
-    focus_list  = [e for e in watchlist if e.get("priority") == "focus"        and e.get("status") != "archived"]
-    watching    = [e for e in watchlist if e.get("priority") not in ("focus", "entry-ready")
-                                          and e.get("status") != "archived"]
+    grid_source = [e for e in watchlist if e.get("priority") != "entry-ready"  and e.get("status") != "archived"]
     archived    = [e for e in watchlist if e.get("status") == "archived"]
 
-    entry_ready.sort(key=lambda e: e.get("entry_ready_date", e.get("added", "")), reverse=True)
-    focus_list.sort(key=lambda e: e.get("focus_promoted_date", e.get("added", "")), reverse=True)
-    watching.sort(key=lambda e: e.get("added", ""), reverse=True)
+    entry_ready.sort(key=lambda e: _q_of(e.get("ticker", ""), quality), reverse=True)
     archived.sort(key=lambda e: e.get("archived_date", e.get("added", "")), reverse=True)
 
-    entry_ready_table = _table(entry_ready, quality, "tbl-entry-ready", include_priority_badge=False)
-    focus_table       = _table(focus_list,  quality, "tbl-focus",       include_priority_badge=False)
-    watching_table    = _table(watching,    quality, "tbl-watching",    include_priority_badge=False)
-    archived_table    = _table(archived,    quality, "tbl-archived",    include_priority_badge=False)
+    entry_ready_table    = _table(entry_ready, quality, "tbl-entry-ready", include_priority_badge=False)
+    category_grid, n_cat = _category_grid(grid_source, quality)
+    archived_table       = _table(archived, quality, "tbl-archived", include_priority_badge=False)
 
     # Hidden Growth section — reads today's snapshot, annotates with tier if ticker is on watchlist
     hg = hidden_growth or {"date": "", "candidates": []}
@@ -266,16 +349,14 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
     hg_table = _hg_table(hg_candidates, tier_by_ticker)
     hg_date  = hg.get("date") or today
 
-    # All active tickers for CSV (entry-ready first, then focus, then watching)
-    active_all = entry_ready + focus_list + watching
+    # All active tickers for CSV (entry-ready first, then the rest of the grid)
+    active_all = entry_ready + grid_source
     all_tickers_csv         = ",".join(e.get("ticker", "") for e in active_all)
     entry_ready_tickers_csv = ",".join(e.get("ticker", "") for e in entry_ready)
-    focus_tickers_csv       = ",".join(e.get("ticker", "") for e in focus_list)
     hg_tickers_csv          = ",".join(c.get("ticker", "") for c in hg_candidates)
 
     n_entry_ready = len(entry_ready)
-    n_focus       = len(focus_list)
-    n_watching    = len(watching)
+    n_active      = len(active_all)
     n_archived    = len(archived)
     n_hg          = len(hg_candidates)
 
@@ -351,6 +432,25 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   .col-hg-appear {{ width: 55px; text-align: right; color: var(--muted); font-size: 0.75rem; }}
 
   .empty-msg {{ color: var(--muted); font-size: 0.82rem; font-style: italic; padding: 12px 0; }}
+
+  /* Setups-by-category grid (2026-08-14 redesign) */
+  .setups-section {{ border-left-color: var(--blue-text, #60a5fa); }}
+  .cat-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }}
+  .cat-card {{ background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }}
+  .cat-head {{ display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--head);
+               font-size: 0.9rem; margin-bottom: 8px; }}
+  .cat-n {{ margin-left: auto; font-size: 0.68rem; font-weight: 600; color: var(--muted);
+            background: var(--surface); border: 1px solid var(--border); padding: 1px 8px; border-radius: 10px; }}
+  .cat-rows {{ display: flex; flex-direction: column; }}
+  .cat-row {{ display: grid; grid-template-columns: 1fr 34px 82px 42px 16px; align-items: center; gap: 6px;
+              padding: 5px 2px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }}
+  .cat-row:last-child {{ border-bottom: none; }}
+  .cat-tk {{ font-weight: 700; white-space: nowrap; }}
+  .cat-q {{ text-align: right; font-weight: 600; color: var(--head); }}
+  .cat-stage {{ color: var(--muted); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+  .cat-age {{ text-align: right; color: var(--muted); font-size: 0.72rem; }}
+  .cat-ch {{ text-align: right; font-size: 0.8rem; }}
+  .cat-more {{ margin-top: 8px; font-size: 0.7rem; color: var(--muted); font-style: italic; }}
 </style>
 </head>
 <body>
@@ -360,15 +460,15 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
 <div class="stats">
   <div class="stat">
     <span class="stat-val">{n_entry_ready}</span>
-    <span class="stat-label">Entry-Ready</span>
+    <span class="stat-label">Ready to Trade</span>
   </div>
   <div class="stat">
-    <span class="stat-val">{n_focus}</span>
-    <span class="stat-label">Focus (act now)</span>
+    <span class="stat-val">{n_cat}</span>
+    <span class="stat-label">Setup Categories</span>
   </div>
   <div class="stat">
-    <span class="stat-val">{n_watching}</span>
-    <span class="stat-label">Watching</span>
+    <span class="stat-val">{n_active}</span>
+    <span class="stat-label">Tracked (active)</span>
   </div>
   <div class="stat">
     <span class="stat-val">{n_hg}</span>
@@ -380,58 +480,44 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
   </div>
 </div>
 
-<!-- ENTRY-READY -->
+<!-- READY TO TRADE (the act-now list) -->
 <div class="section entry-ready-section">
   <div class="section-header">
-    <h2>🎯 Ready to Enter</h2>
-    <span class="section-count">{n_entry_ready} ticker{"s" if n_entry_ready != 1 else ""} — Stage 2 + VCP tight pullback, act now</span>
-    <button class="csv-btn" onclick="downloadAllActive('{entry_ready_tickers_csv}', 'entry_ready_tv_{today}.txt')">
+    <h2>🎯 Ready to Trade</h2>
+    <span class="section-count">{n_entry_ready} ticker{"s" if n_entry_ready != 1 else ""} — passing the tightest gate (Stage 2 + VCP tight pullback, not extended). Buy candidates now.</span>
+    <button class="csv-btn" onclick="downloadAllActive('{entry_ready_tickers_csv}', 'ready_to_trade_tv_{today}.txt')">
       ⬇ TradingView
     </button>
-    <button class="csv-btn" onclick="downloadCSV('tbl-entry-ready', 'entry_ready_{today}.csv')">
+    <button class="csv-btn" onclick="downloadCSV('tbl-entry-ready', 'ready_to_trade_{today}.csv')">
       ⬇ CSV
     </button>
   </div>
   {entry_ready_table}
 </div>
 
-<!-- FOCUS LIST -->
-<div class="section focus-section">
+<!-- SETUPS BY CATEGORY (browse — top {CATEGORY_CAP} by Quality per setup) -->
+<div class="section setups-section">
   <div class="section-header">
-    <h2>📌 Focus List</h2>
-    <span class="section-count">{n_focus} ticker{"s" if n_focus != 1 else ""} — actionable this week</span>
-    <button class="csv-btn" onclick="downloadAllActive('{focus_tickers_csv}', 'focus_list_tv_{today}.txt')">
-      ⬇ TradingView
-    </button>
-    <button class="csv-btn" onclick="downloadCSV('tbl-focus', 'focus_list_{today}.csv')">
-      ⬇ CSV
+    <h2>🗂 Setups by Category</h2>
+    <span class="section-count">Top {CATEGORY_CAP} by Quality Score per setup — the number badge is the full count still tracked. Pick the setup type you trade.</span>
+    <button class="csv-btn" onclick="downloadAllActive('{all_tickers_csv}', 'watchlist_all_active_{today}.txt')">
+      ⬇ Export all active
     </button>
   </div>
-  {focus_table}
+  {category_grid}
 </div>
 
-<!-- HIDDEN GROWTH TODAY -->
+<!-- HIDDEN GROWTH TODAY (fundamental lens — richer detail than the category card) -->
 <div class="section hg-section">
   <div class="section-header">
     <h2>🔬 Hidden Growth — {hg_date}</h2>
-    <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} — fundamental accumulation, overlaps with any tier</span>
+    <span class="section-count">{n_hg} research candidate{"s" if n_hg != 1 else ""} — today's fundamental-accumulation fires with criteria breakdown</span>
     <button class="csv-btn" onclick="downloadAllActive('{hg_tickers_csv}', 'hidden_growth_tv_{today}.txt')">
       ⬇ TradingView
     </button>
   </div>
   {hg_table}
 </div>
-
-<!-- WATCHING (radar tier — collapsed by default, cx-rehaul Principle 4) -->
-<details>
-  <summary>👁 Watching ({n_watching}) — on radar, not yet actionable</summary>
-  <div style="margin-top:12px">
-    <button class="csv-btn" onclick="downloadAllActive('{all_tickers_csv}', 'watchlist_{today}.txt')">
-      ⬇ Export all active for TradingView
-    </button>
-    {watching_table}
-  </div>
-</details>
 
 <!-- ARCHIVED (collapsed) -->
 <details>
@@ -442,8 +528,8 @@ def generate(watchlist: list[dict], quality: dict, hidden_growth: dict | None = 
 </details>
 
 <div class="footer">
-  Generated {generated} · Auto-archive: screener_auto entries expire after 14 days ·
-  Promote to Focus via position-monitor workflow_dispatch (watchlist_action=focus)
+  Generated {generated} · Ready-to-Trade = entry-ready gate · categories capped at top {CATEGORY_CAP} by Q (rest tracked off-page) ·
+  Auto-archive: watching ages out at 14 days, focus cold-archives at 15 trading days absent from the screener
 </div>
 
 <script>

@@ -43,7 +43,7 @@ class TestWatchlistDashboard(unittest.TestCase):
     def test_entry_ready_section_rendered(self):
         wl = [self._wl("entry-ready", "MU")]
         html = generate(wl, {}, {"date": "2026-04-23", "candidates": []})
-        self.assertIn("Ready to Enter", html)
+        self.assertIn("Ready to Trade", html)
         self.assertIn("tbl-entry-ready", html)
         self.assertIn("entry-ready-section", html)
         self.assertIn("MU", html)
@@ -127,11 +127,38 @@ class TestWatchlistDashboard(unittest.TestCase):
         ]
         hg = {"date": "2026-04-23", "candidates": [self._hg("X"), self._hg("Y"), self._hg("Z")]}
         html = generate(wl, {}, hg)
-        # Order in the HTML: Entry-Ready then Focus then Watching
-        self.assertIn("Entry-Ready", html)
+        # Ready-to-Trade hero + Setups-by-category grid + Hidden Growth
+        self.assertIn("Ready to Trade", html)
+        self.assertIn("Setups by Category", html)
         self.assertIn("Hidden Growth", html)
         # 3 HG candidates → stat card should show 3
         self.assertIn(">3</span>", html)
+
+
+    def test_category_grid_groups_by_source_and_caps(self):
+        # 5 rs_leader names with distinct Q — only top 3 by Q should render as
+        # cat-rows, and the badge count must show the full 5.
+        wl = [self._wl("focus", f"RS{i}", source="rs_leader_auto") for i in range(5)]
+        quality = {f"RS{i}": {"q_rank": 50 + i} for i in range(5)}  # RS4 highest
+        html = generate(wl, quality, {"date": "x", "candidates": []})
+        self.assertIn("RS Leader", html)
+        self.assertIn('<span class="cat-n">5</span>', html)  # full count in badge
+        # Top 3 by Q are RS4, RS3, RS2 — shown as cat-rows
+        for t in ("RS4", "RS3", "RS2"):
+            self.assertIn(f'class="cat-tk">{t}</a>', html)
+        # RS1, RS0 are below the cap — not rendered as cat-rows
+        for t in ("RS1", "RS0"):
+            self.assertNotIn(f'class="cat-tk">{t}</a>', html)
+        self.assertIn("+2 more tracked", html)
+
+    def test_category_grid_uses_source_labels(self):
+        wl = [
+            self._wl("focus", "HGN", source="hidden_growth_auto"),
+            self._wl("watching", "BRK", source="breakout_auto"),
+        ]
+        html = generate(wl, {}, {"date": "x", "candidates": []})
+        self.assertIn("🔬 Hidden Growth", html)
+        self.assertIn("🚀 Fresh Breakout", html)
 
 
 if __name__ == "__main__":
