@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-14T21:53:21.027680Z",
+  "updated": "2026-08-17T13:54:33.644786Z",
   "history": {
     "DDOG": [
       {
@@ -961,6 +961,12 @@
         "action": "BUY",
         "shares": 40.0,
         "price": 158.439
+      },
+      {
+        "date": "2026-08-14T13:44:08Z",
+        "action": "SELL",
+        "shares": 40.0,
+        "price": 155.15
       }
     ],
     "TWLO": [
@@ -8355,6 +8361,14 @@
         "action": "BUY",
         "shares": 50.0,
         "price": 100.74
+      }
+    ],
+    "CVX": [
+      {
+        "date": "2026-08-14T13:42:17Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 199.815
       }
     ]
   }
