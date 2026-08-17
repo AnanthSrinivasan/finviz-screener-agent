@@ -28,6 +28,7 @@ import requests
 import sys
 
 from agents.trading import trading_profile as tp
+from agents.screener.finviz_agent import _is_ready_to_enter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -304,8 +305,15 @@ def load_screener_csv(today: str) -> list:
                 else:
                     row[col] = {}
 
-            # Parse numeric fields
-            for col in ("Quality Score", "ATR%", "SMA50%", "EPS Y/Y TTM", "Rel Volume", "Appearances"):
+            # Parse numeric fields. Dist From High%/SMA20%/SMA200% added
+            # 2026-08-17 alongside the Ready-to-Enter gate wiring — that
+            # predicate reads them and previously got raw CSV strings here,
+            # which raises ValueError on any row with a blank technical
+            # field (snapshot-fetch gaps happen — see repo history on the
+            # 2026-06-29 Finviz snapshot break). Missing → 0.0, same
+            # fail-closed convention as the other fields in this loop.
+            for col in ("Quality Score", "ATR%", "SMA50%", "SMA20%", "SMA200%",
+                        "Dist From High%", "EPS Y/Y TTM", "Rel Volume", "Appearances"):
                 try:
                     row[col] = float(row.get(col, "") or 0)
                 except (ValueError, TypeError):
@@ -464,6 +472,43 @@ def get_current_price(symbol: str) -> float:
 # ----------------------------
 # Step 4: Position sizing
 # ----------------------------
+MAX_CANDIDATES = 10
+
+
+def select_candidates(rows: list, open_positions: set) -> list:
+    """
+    Return today's buy candidate pool: rows passing the same Ready-to-Enter
+    gate that drives the Slack 🎯 Ready to Enter block and the watchlist
+    entry-ready tier, sorted by Quality Score desc, capped at MAX_CANDIDATES.
+
+    Before 2026-08-17 this was a bare Q≥60 + Stage 2 filter with no VCP,
+    RVol, dist-band, or peel-safe check — it could admit setups the system's
+    own gate rejects (high RVol chases, extended-ATR names) AND bump a real
+    Ready-to-Enter name out of the top-10-by-Q cut on a single Quality Score
+    point (the DELL miss — see docs memory 2026-08-17). Buys should never
+    diverge from what's on the radar.
+
+    Watchlist-merged rows (from daily_quality, no Dist/SMA20/VCP data) fail
+    `_is_ready_to_enter` for lack of data and are excluded here by design —
+    they still surface on the watchlist/cockpit for manual review, just not
+    for auto-buy.
+
+    One bad row (unparseable field, unexpected type) is logged and skipped
+    rather than allowed to take down the whole run — a single malformed
+    ticker should never block every other entry today.
+    """
+    sorted_rows = sorted(rows, key=lambda r: r.get("Quality Score", 0), reverse=True)
+    pre_filtered = []
+    for r in sorted_rows:
+        try:
+            if _is_ready_to_enter(r, open_positions):
+                pre_filtered.append(r)
+        except Exception as e:
+            log.warning("select_candidates: skipping %s — gate check failed: %s",
+                        r.get("Ticker", "?"), e)
+    return pre_filtered[:MAX_CANDIDATES]
+
+
 def compute_allocation(quality_score: float, vcp_dict: dict, portfolio_equity: float) -> float:
     """
     Returns dollar allocation based on Quality Score tier.
@@ -844,19 +889,9 @@ if __name__ == "__main__":
     total_deployed  = 0.0
     pending_positions = set(open_positions)  # track adds during this run
 
-    # Sort by Quality Score descending, cap at top 10 candidates for Claude evaluation
-    sorted_rows = sorted(rows, key=lambda r: r.get("Quality Score", 0), reverse=True)
-    MAX_CANDIDATES = 10
     slots_needed = max_pos - len(open_positions)
-    # Pre-filter to Q≥60 + Stage 2 before capping, so we cap meaningful candidates only
-    pre_filtered = [
-        r for r in sorted_rows
-        if r.get("Quality Score", 0) >= 60
-        and (r.get("Stage", {}) if isinstance(r.get("Stage"), dict) else {}).get("stage", 0) == 2
-        and (r.get("Ticker", "").strip() not in open_positions)
-    ]
-    log.info("%d candidates after Q≥60 + Stage 2 filter, evaluating top %d", len(pre_filtered), MAX_CANDIDATES)
-    sorted_rows = pre_filtered[:MAX_CANDIDATES]
+    sorted_rows = select_candidates(rows, open_positions)
+    log.info("%d candidates pass Ready-to-Enter gate (capped at %d)", len(sorted_rows), MAX_CANDIDATES)
 
     # Market-state gate: in RED/DANGER/BLACKOUT (or sizing=suspended), don't trade —
     # but post a Slack alert listing the would-have-bought candidates so the human

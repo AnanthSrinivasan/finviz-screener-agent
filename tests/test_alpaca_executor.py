@@ -13,6 +13,116 @@ from unittest.mock import patch
 from agents.trading import alpaca_executor as ae
 
 
+def _row(**over):
+    """Build a candidate row with sensible defaults for Ready-to-Enter."""
+    base = {
+        "Ticker": "MU",
+        "Quality Score": 100.0,
+        "Stage": {"stage": 2, "perfect": True},
+        "VCP": {"confidence": 85, "vcp_possible": True},
+        "Dist From High%": -5.0,
+        "ATR%": 5.5,
+        "Rel Volume": 0.8,
+        "SMA20%": 1.0,
+        "SMA50%": 4.0,
+        "SMA200%": 10.0,
+    }
+    base.update(over)
+    return base
+
+
+class SelectCandidatesTests(unittest.TestCase):
+    """
+    Regression coverage for the 2026-08-17 fix: the executor's buy candidate
+    pool must be the Ready-to-Enter gate, not a bare Q>=60 + Stage 2 filter.
+    Pinned to the real 2026-05-18 DELL miss — DELL (Q99, clean setup) lost its
+    slot to AMD (Q100) under the old raw-Q top-10 cut, while BTSG/MTSI/PWR/
+    VRT/VIK were bought that day despite most failing VCP/RVol/dist/ATR gates.
+    """
+
+    def test_dell_class_setup_is_admitted(self):
+        dell = _row(Ticker="DELL", **{
+            "Quality Score": 99.0, "ATR%": 5.3, "Dist From High%": -9.8,
+            "Rel Volume": 0.63, "VCP": {"confidence": 85, "vcp_possible": True},
+            "SMA20%": 5.4, "SMA50%": 23.8, "SMA200%": 61.1,
+        })
+        out = ae.select_candidates([dell], set())
+        self.assertEqual([r["Ticker"] for r in out], ["DELL"])
+
+    def test_high_rvol_chase_is_rejected(self):
+        # MTSI 2026-05-18: Q109, Stage 2, but RVol 1.64 > 1.2 cap.
+        mtsi = _row(Ticker="MTSI", **{
+            "Quality Score": 109.0, "ATR%": 5.3, "Dist From High%": -11.2,
+            "Rel Volume": 1.64, "VCP": {"confidence": 55, "vcp_possible": True},
+        })
+        out = ae.select_candidates([mtsi], set())
+        self.assertEqual(out, [])
+
+    def test_weak_vcp_is_rejected(self):
+        # VRT 2026-05-18: Q103, Stage 2, but VCP confidence 55 < 70.
+        vrt = _row(Ticker="VRT", **{
+            "Quality Score": 103.0, "ATR%": 5.5, "Dist From High%": -10.6,
+            "Rel Volume": 1.08, "VCP": {"confidence": 55, "vcp_possible": True},
+        })
+        out = ae.select_candidates([vrt], set())
+        self.assertEqual(out, [])
+
+    def test_extended_atr_and_dist_is_rejected(self):
+        # SNDK 2026-05-18: Q115 (#1 by raw Q) but ATR 7.8% > 7% cap and
+        # dist -16.7% outside the -12% band — exactly the class the old
+        # bare Q+Stage filter would rank first and buy.
+        sndk = _row(Ticker="SNDK", **{
+            "Quality Score": 115.0, "ATR%": 7.8, "Dist From High%": -16.7,
+            "Rel Volume": 0.78, "VCP": {"confidence": 70, "vcp_possible": True},
+        })
+        out = ae.select_candidates([sndk], set())
+        self.assertEqual(out, [])
+
+    def test_higher_q_worse_setup_no_longer_beats_clean_setup(self):
+        dell = _row(Ticker="DELL", **{
+            "Quality Score": 99.0, "ATR%": 5.3, "Dist From High%": -9.8,
+            "Rel Volume": 0.63, "VCP": {"confidence": 85, "vcp_possible": True},
+        })
+        sndk = _row(Ticker="SNDK", **{
+            "Quality Score": 115.0, "ATR%": 7.8, "Dist From High%": -16.7,
+            "Rel Volume": 0.78, "VCP": {"confidence": 70, "vcp_possible": True},
+        })
+        out = ae.select_candidates([sndk, dell], set())
+        self.assertEqual([r["Ticker"] for r in out], ["DELL"])
+
+    def test_watchlist_merged_row_missing_technicals_is_excluded(self):
+        # merge_watchlist_rows() builds a minimal row with no Dist From
+        # High%/SMA20%/VCP confidence — must fail the gate, not sneak in on
+        # the old Q>=60+Stage2 check.
+        wl_row = {
+            "Ticker": "ABCD", "Quality Score": 90.0, "ATR%": 4.0,
+            "Rel Volume": 1.0, "Appearances": 1.0, "Sector": "", "Screeners": "",
+            "Stage": {"stage": 2, "perfect": True}, "VCP": {}, "_source": "watchlist",
+        }
+        out = ae.select_candidates([wl_row], set())
+        self.assertEqual(out, [])
+
+    def test_open_position_excluded(self):
+        dell = _row(Ticker="DELL")
+        out = ae.select_candidates([dell], {"DELL"})
+        self.assertEqual(out, [])
+
+    def test_malformed_row_is_skipped_not_fatal(self):
+        # A row with a blank technical field (snapshot-fetch gap on some
+        # tickers some days — has happened in production) must not crash
+        # the whole run; it's logged and skipped, other candidates proceed.
+        bad = _row(Ticker="BAD", **{"Dist From High%": ""})
+        dell = _row(Ticker="DELL")
+        out = ae.select_candidates([bad, dell], set())
+        self.assertEqual([r["Ticker"] for r in out], ["DELL"])
+
+    def test_caps_at_max_candidates(self):
+        rows = [_row(Ticker=f"T{i}", **{"Quality Score": 100.0 - i}) for i in range(15)]
+        out = ae.select_candidates(rows, set())
+        self.assertEqual(len(out), ae.MAX_CANDIDATES)
+        self.assertEqual(out[0]["Ticker"], "T0")  # highest Q first
+
+
 class EntryPeelWarnTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
