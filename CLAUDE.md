@@ -350,7 +350,8 @@ Daily ~33-ETF RS snapshot. Pulls bars from Alpaca, computes 1d/5d/20d returns + 
 | ATR exit signal | ATR multiple from 50MA <= -1.5 (structural breakdown, not just pullback) |
 | Peel (scale out) | ATR multiple from 50MA tiers: low/mid/high/extreme (warn at ~75% of signal) |
 | Entry gate (extended) | `alpaca_executor.py` blocks new entry when ATR multiple > per-ticker `peel_warn` (from `peel_calibration.json`), **capped at the ATR% tier warn — calibration can only tighten, never loosen** (2026-06-12: raw calibrated warns 10.3/8.7 waved ALAB +58.7%/MU +49.7% above 50SMA into the live dry-run; same rule as the screener's 2026-05-29 v2 cal-cap). Falls back to tier warn when uncalibrated. Slack notes `calibrated` / `tier-cap` / `tier` source. |
-| Paper market-state gate | `alpaca_executor.py` reads `market_state` from `market_monitor_history.json` (single source of truth — replaced the old SPY/SMA200 check). RED/DANGER/BLACKOUT → no buys, but still posts a Slack alert listing top-5 would-have candidates ("your call"). CAUTION/COOLING → half size. GREEN/THRUST → full. Sizing mode overlays: `suspended` blocks entirely, `reduced` clamps size_mul ≤ 0.25, `aggressive` boosts to 1.25× in GREEN/THRUST. |
+| Executor candidate pool = Ready-to-Enter (2026-08-17) | `select_candidates()` in `alpaca_executor.py` gates buys through `_is_ready_to_enter()` — the same predicate driving the Slack 🎯 Ready to Enter block and the watchlist entry-ready tier. Before this fix it was a bare Q≥60 + Stage 2 filter with no VCP/RVol/dist-band/peel-safe check (the DELL miss — Ready-to-Enter rank 4/20 at $238.03 on 2026-05-18, but ranked 12th on raw Q and lost its buy slot to AMD by one point; paper bought 5 names that day that fail the Ready-to-Enter gate outright, didn't enter DELL until $428.77). 91-day replay: 694 old-only slots rejected (extended/high-RVol chases), 640 new-only slots admitted (clean setups the raw-Q cut missed). Shipped to both paper and live same day — pure tightening. `load_screener_csv()` also fixed to numeric-parse `Dist From High%`/`SMA20%`/`SMA200%` (previously raw strings, would throw on a blank technical field); one bad row now logs and skips instead of crashing the run. Tests: `tests/test_alpaca_executor.py::SelectCandidatesTests`. |
+| Paper market-state gate | `alpaca_executor.py` reads `market_state` from `market_monitor_history.json` (single source of truth — replaced the old SPY/SMA200 check). RED/DANGER/BLACKOUT → no buys, but still posts a Slack alert listing the top 5 would-have candidates from that run's gated pool ("your call"). CAUTION/COOLING → half size. GREEN/THRUST → full. Sizing mode overlays: `suspended` blocks entirely, `reduced` clamps size_mul ≤ 0.25, `aggressive` boosts to 1.25× in GREEN/THRUST. |
 | No averaging down | Rule 4 — BUY blocked if price < existing entry |
 | Averaging up | BUY on existing position when price > entry → merges shares, recomputes weighted avg, recalculates T1/T2 |
 | Initial stop (paper) | `alpaca_executor.py` sets stop = `entry − 2×ATR$` at buy time |
@@ -440,7 +441,10 @@ gallery `🔥 Power Moves` section (via `_classify_ticker`) is unchanged.
 
 Two actionable callouts in the daily Slack message, ordered by urgency:
 
-**🎯 Ready to Enter** — top-of-message, top 5 by Quality Score. All must pass:
+**🎯 Ready to Enter** — top-of-message, top 10 by Quality Score (`READY_TO_ENTER_DISPLAY_CAP`,
+raised from 5 on 2026-08-17 to match `alpaca_executor.MAX_CANDIDATES` — the Slack cap used to
+be tighter than the executor's real candidate pool, so paper/live could buy a name that never
+appeared in Slack; see the DELL-miss fix below). All must pass:
 Stage 2 perfect · VCP conf ≥70 · Q ≥80 · dist from 52w high -1% to -12% ·
 ATR% ≤7% · RVol ≤1.2 · **peel-safe (SMA50% / ATR% ≤ tier warn)** · not in `positions.json` open positions.
 (Dist gate softened from -10% → -12% May 2026 — MTSI/RMBS class missed by 0.02-0.33pp.
