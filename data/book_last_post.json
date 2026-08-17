@@ -1,4 +1,13 @@
 {
   "last_book_post_ts": "2026-08-17T17:56:44.727201Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "HPE",
+      "message": "\ud83d\udea8 STOP HIT: HPE @ $57.76 \u2014 exit immediately (stop $60.37)",
+      "current_price": 57.76,
+      "stop_price": 60.37,
+      "ts": "2026-08-17T17:57:59.216902Z"
+    }
+  ]
 }
