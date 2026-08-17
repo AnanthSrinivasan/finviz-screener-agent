@@ -1,30 +1,12 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 2,
-  "total_wins": 38,
+  "consecutive_wins": 2,
+  "consecutive_losses": 0,
+  "total_wins": 40,
   "total_losses": 50,
-  "current_sizing_mode": "reduced",
+  "current_sizing_mode": "normal",
   "sizing_override": null,
   "last_updated": "2026-08-17",
   "recent_trades": [
-    {
-      "ticker": "ZVRA",
-      "result": "loss",
-      "result_pct": -3.85,
-      "date": "2026-06-09",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -147.0
-    },
-    {
-      "ticker": "INGM",
-      "result": "win",
-      "result_pct": 4.29,
-      "date": "2026-06-15",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 379.5
-    },
     {
       "ticker": "SPCX",
       "result": "win",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -265.0
+    },
+    {
+      "ticker": "SN",
+      "result": "win",
+      "result_pct": 13.13,
+      "date": "2026-08-17",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 1055.0
+    },
+    {
+      "ticker": "HPE",
+      "result": "win",
+      "result_pct": 14.69,
+      "date": "2026-08-17",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 746.0
     }
   ],
   "market_state": "TREND-FOLLOW",
