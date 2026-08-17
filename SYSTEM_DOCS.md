@@ -1004,7 +1004,7 @@ Stat strip: Ready-to-Trade · Setup-Categories · Tracked (active) · Hidden Gro
    - Sizing overlays from `paper_trading_state.json`: `reduced` clamps `size_mul ≤ 0.25`; `aggressive` boosts any `size_mul == 1.0` state to 1.25× (covers GREEN / THRUST / TREND-FOLLOW).
 2. Cancel stale GTC buy orders older than 2 days (avoids fills on outdated entries)
 3. Load today's enriched CSV + merge watchlist tickers from `daily_quality_YYYY-MM-DD.json` — ensures high-Q watchlist names get evaluated even if not in today's raw screener
-4. Pre-filter: Q≥60 + Stage 2, cap at top 10 candidates by Q score
+4. **Candidate pool = the Ready-to-Enter gate** (`select_candidates()`, 2026-08-17 — was a bare Q≥60 + Stage 2 filter with no VCP/RVol/dist-band/peel-safe check; see "Executor Ready-to-Enter gate fix" below), sorted by Q desc, capped at `MAX_CANDIDATES = 10`. Malformed rows (blank technical field) are logged and skipped, not fatal.
 5. Fetch open positions + account equity from Alpaca
 6. Gate: `effective_max_positions(market_state)` — GREEN/THRUST/TREND-FOLLOW: 10, CAUTION/STEADY-UPTREND: 7, default (COOLING/RED/DANGER/EXTENDED/BLACKOUT): 5. Weekend guard: executor exits immediately on Sat/Sun with a Slack notice.
 7. For each candidate not already held:
@@ -1017,6 +1017,37 @@ Stat strip: Ready-to-Trade · Setup-Categories · Tracked (active) · Hidden Gro
 10. Slack: BUY placements + end-of-run summary only (no SKIP noise)
 
 **No Claude API call** — BUY decision is purely Q+Stage+VCP scoring. Claude removed to eliminate per-ticker API cost.
+
+**Executor Ready-to-Enter gate fix (2026-08-17 — the DELL miss):** before this
+fix, step 4's candidate pool was `Q≥60 + Stage 2` (not even "perfect") with no
+VCP, RVol, dist-band, or peel-safe check — it never called `_is_ready_to_enter()`,
+the predicate that drives the Slack 🎯 Ready to Enter block and the watchlist
+entry-ready tier. Two failure modes: (a) the buyer could admit setups the
+system's own gate rejects (high-RVol chases, extended-ATR names), and (b) a real
+Ready-to-Enter name could get bumped out of the raw top-10-by-Quality-Score cut
+by a single Q point from a worse setup. Reference case: DELL was Ready-to-Enter
+rank 4 of 20 at $238.03 on 2026-05-18 (TREND-FOLLOW, full size allowed) but
+ranked 12th by raw Q, losing its slot to AMD by one point; the paper book bought
+BTSG/MTSI/PWR/SNDK/VIK/VRT that day instead, 5 of which fail the Ready-to-Enter
+gate outright. Paper didn't enter DELL until 2026-08-07 at $428.77 — +19.7% of
+the +106% move from the day the system's own radar first named it. Fix:
+`select_candidates()` (`agents/trading/alpaca_executor.py`) now filters through
+`_is_ready_to_enter()` directly, sorts by Q desc, caps at `MAX_CANDIDATES`.
+Watchlist-merged rows (from `daily_quality.json`, missing Dist/SMA20/VCP data)
+now fail the gate for lack of data and are excluded from auto-buy — they still
+surface on the watchlist/cockpit for manual review. Side fix:
+`load_screener_csv()` previously left `Dist From High%`/`SMA20%`/`SMA200%` as
+raw CSV strings (only `Quality Score`/`ATR%`/`SMA50%`/etc were numeric-parsed);
+any row with a blank technical field would throw `float('')` inside the new
+gate check, so those three fields were added to the parse loop and the per-row
+gate check in `select_candidates()` is wrapped so one bad row logs and skips
+instead of taking down the run. 91-day replay (recovered screener CSVs,
+2026-04 through 2026-08) against the shipped logic: 694 ticker-day slots the
+old filter would have bought that the new gate rejects (top offenders
+BTSG/SNDK/AMD/MRVL/ROKU-class), 640 slots the new gate admits that the old
+top-10-by-Q cut missed (FRO/AUPH/TSM/ANET/LRCX-class). Ships to both paper and
+live — pure tightening, can't newly admit anything the old logic wouldn't have.
+Tests: `tests/test_alpaca_executor.py::SelectCandidatesTests`.
 
 **Quality Score tiers for sizing:**
 
