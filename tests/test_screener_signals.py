@@ -165,6 +165,43 @@ class TestReadyToEnterSlackBlock(unittest.TestCase):
 
     @patch("agents.screener.finviz_agent.requests.post")
     @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
+    def test_shows_up_to_ten_not_five(self, mock_post):
+        # 2026-08-17 fix: Slack used to hard-cap at 5 while the executor's
+        # real candidate pool goes to 10 (alpaca_executor.MAX_CANDIDATES) —
+        # on a busy day paper/live could buy a name that never appeared in
+        # Slack. Pin 8 names all rendering, proving the cap is >5.
+        mock_post.return_value.ok = True
+        ready = [
+            {"ticker": f"T{i}", "q": 100 - i, "vcp": 80, "dist": -5, "atr": 5.0, "rvol": 0.8}
+            for i in range(8)
+        ]
+        send_slack_notification(
+            summary_df=pd.DataFrame([{"Ticker": "T0"}]),
+            filter_df=pd.DataFrame([{"Ticker": "T0", "Quality Score": 100,
+                                     "Market Cap": "506B", "ATR%": 5.5, "Screeners": "Growth",
+                                     "EPS Y/Y TTM": 410, "EPS Q/Q": 756, "Inst Trans": 0, "Sector": "Technology"}]),
+            gallery_html="/tmp/g.html",
+            today="2026-04-23",
+            ai_summary="",
+            ready_to_enter=ready,
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        text_blobs = [b.get("text", {}).get("text", "") for b in payload["blocks"]
+                      if b.get("type") == "section"]
+        joined = "\n".join(text_blobs)
+        for i in range(8):
+            self.assertIn(f"T{i}", joined)
+
+    def test_display_cap_matches_executor_max_candidates(self):
+        # The two constants live in separate modules (finviz_agent.py can't
+        # import alpaca_executor.py — circular import, executor already
+        # imports from finviz_agent) and must be kept in sync by hand.
+        from agents.trading.alpaca_executor import MAX_CANDIDATES
+        from agents.screener.finviz_agent import READY_TO_ENTER_DISPLAY_CAP
+        self.assertEqual(READY_TO_ENTER_DISPLAY_CAP, MAX_CANDIDATES)
+
+    @patch("agents.screener.finviz_agent.requests.post")
+    @patch("agents.screener.finviz_agent.SLACK_WEBHOOK_URL", "https://hook/test")
     def test_no_ready_to_enter_block_when_empty(self, mock_post):
         mock_post.return_value.ok = True
         send_slack_notification(

@@ -1806,7 +1806,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
     # ready_to_enter is a list of dicts: {ticker, q, vcp, dist, atr, rvol}
     if ready_to_enter:
         lines = []
-        for r in ready_to_enter[:5]:
+        for r in ready_to_enter[:READY_TO_ENTER_DISPLAY_CAP]:
             tb = " :star:" if r.get("textbook") else ""
             lines.append(
                 f"`{r['ticker']}`{tb} Q{r['q']:.0f} · VCP {r['vcp']:.0f}% · "
@@ -3227,6 +3227,15 @@ def _update_rs_leaders_state(
 # bucket (cockpit radar revamp spec §1, user-approved 2026-07-12).
 ENTRY_READY_CAP = 5
 
+# Cap on names shown in the Slack "Ready to Enter" block. Must match (or
+# exceed) alpaca_executor.MAX_CANDIDATES (2026-08-17) — the Slack block was
+# hard-capped at 5 while the executor's real candidate pool goes to 10, so
+# on a day with >5 qualifying names and >5 open slots, paper/live could buy
+# a name that never showed up in Slack. Not imported directly (would create
+# a circular import: alpaca_executor already imports from this module) —
+# keep the two constants in sync by hand if either changes.
+READY_TO_ENTER_DISPLAY_CAP = 10
+
 
 def _update_watchlist(
     filter_df: pd.DataFrame,
@@ -4274,7 +4283,7 @@ if __name__ == "__main__":
                     "rvol": float(row.get("Rel Volume", 0) or 0),
                 })
         ready_to_enter.sort(key=lambda r: r["q"], reverse=True)
-        ready_to_enter = ready_to_enter[:5]
+        ready_to_enter = ready_to_enter[:READY_TO_ENTER_DISPLAY_CAP]
         fresh_breakouts.sort(key=lambda r: r["q"], reverse=True)
         fresh_breakouts = fresh_breakouts[:5]
         # Power Play: sort by strongest runup first (perf_q then perf_m).
