@@ -1,4 +1,28 @@
 {
   "last_book_post_ts": "2026-08-17T13:54:33.808146Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "auto_closed",
+      "ticker": "CIBR",
+      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: CIBR\n   Entry $100.56 \u2192 $97.91 (quote) (-2.6%) \u2014 LOSS\n   Streak: 0W / 2L",
+      "result_pct": -2.64,
+      "close_price": 97.91,
+      "close_source": "live_quote",
+      "ts": "2026-08-17T14:30:46.134182Z"
+    },
+    {
+      "kind": "sizing_mode",
+      "ticker": "\u2014",
+      "message": "\u26a0\ufe0f SIZING REDUCED \u2014 2 consecutive losses. Max 5% position size until streak breaks.",
+      "ts": "2026-08-17T14:30:46.134182Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "HPE",
+      "message": "\ud83d\udea8 STOP HIT: HPE @ $57.58 \u2014 exit immediately (stop $60.37)",
+      "current_price": 57.58,
+      "stop_price": 60.37,
+      "ts": "2026-08-17T14:30:46.134182Z"
+    }
+  ]
 }

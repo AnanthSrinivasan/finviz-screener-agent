@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 191.1,
-      "current_gain_pct": 14.42,
+      "current_gain_pct": 15.09,
       "first_entry_price": 160.75,
       "peak_gain_pct": 18.88
     },
@@ -30,44 +30,27 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 63.44,
-      "current_gain_pct": 13.05,
+      "current_gain_pct": 13.39,
       "first_entry_price": 50.78,
       "peak_gain_pct": 24.93,
       "last_fade_alert_gain_pct": 13.05
-    },
-    {
-      "ticker": "CIBR",
-      "shares": 100,
-      "entry_price": 100.56,
-      "entry_date": "2026-08-11",
-      "stop_price": 97.21,
-      "breakeven_activated": false,
-      "target1": 120.67,
-      "target1_hit": false,
-      "target2": 140.78,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 102.23,
-      "current_gain_pct": -2.5,
-      "first_entry_price": 100.38,
-      "peak_gain_pct": 1.66
     },
     {
       "ticker": "CVX",
       "shares": 50,
       "entry_price": 199.82,
       "entry_date": "2026-08-14",
-      "stop_price": 193.2,
+      "stop_price": 193.39,
       "breakeven_activated": false,
       "target1": 239.78,
       "target1_hit": false,
       "target2": 279.75,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 201.56,
-      "current_gain_pct": 0.59,
+      "highest_price_seen": 201.83,
+      "current_gain_pct": 0.93,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 0.87
+      "peak_gain_pct": 1.01
     }
   ],
   "closed_positions": [
@@ -2124,6 +2107,27 @@
       "close_price": 155.15,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -2.08
+    },
+    {
+      "ticker": "CIBR",
+      "shares": 100,
+      "entry_price": 100.56,
+      "entry_date": "2026-08-11",
+      "stop_price": 97.21,
+      "breakeven_activated": false,
+      "target1": 120.67,
+      "target1_hit": false,
+      "target2": 140.78,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 102.23,
+      "current_gain_pct": -2.5,
+      "first_entry_price": 100.38,
+      "peak_gain_pct": 1.66,
+      "close_date": "2026-08-17",
+      "close_price": 97.91,
+      "close_source": "live_quote",
+      "result_pct": -2.64
     }
   ]
 }
