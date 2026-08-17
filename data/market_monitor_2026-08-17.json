@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-17",
+  "up_4_today": 146,
+  "down_4_today": 194,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3028,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.75,
+  "ratio_5day": 1.53,
+  "ratio_10day": 2.14,
+  "up_25_quarter": 381,
+  "down_25_quarter": 115,
+  "thrust_detected": false,
+  "fg": 60.0,
+  "spy_price": 772.67,
+  "spy_sma200_pct": 9.46,
+  "spy_sma50_pct": 3.13,
+  "spy_atr_mult_50": 3.32,
+  "spy_sma50_slope_10d": 0.53,
+  "spy_pct_from_20d_high": -0.87,
+  "qqq_sma50_pct": 2.43,
+  "qqq_atr_mult_50": 1.47,
+  "pct_above_50ma": 12.58,
+  "vix_close": 15.19,
+  "vix_change_pct": 6.6,
+  "trend_follow_active": true,
+  "spy_above_200d": true,
+  "market_state": "TREND-FOLLOW",
+  "state_message": "Steady uptrend \u2014 full size, entries allowed. SMA50 rising \u00b7 near 20d high \u00b7 participation 12.6% \u00b7 VIX 15.2",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 83,
+  "days_below_21ema": 0,
+  "spy_close": 772.62,
+  "spy_21ema": 761.9994176896554,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 286,
+    "pct_down4_today": 6.6,
+    "pct_up4_today": 11.5,
+    "pct_above_20ma": 83.6,
+    "pct_above_50ma": 77.3,
+    "pct_within_10_of_52wk_high": 55.2,
+    "cohort_score": 80,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "UMAC",
+        "chg_pct": -11.4,
+        "dollar_move": -3.86,
+        "close": 30.13
+      },
+      {
+        "ticker": "SION",
+        "chg_pct": -9.0,
+        "dollar_move": -0.58,
+        "close": 5.89
+      },
+      {
+        "ticker": "TENB",
+        "chg_pct": -8.0,
+        "dollar_move": -3.07,
+        "close": 35.27
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
