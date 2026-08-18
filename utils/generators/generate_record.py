@@ -3,7 +3,7 @@
 Record page — data/record.html (spec: docs/specs/cx-rehaul.md §A.3).
 
 One "how am I doing" page replacing three index buttons: client-side tabs over
-Performance 2026 YTD · Performance 2024-25 · MAE/MFE · Trader Mirror archive.
+Performance (YTD/Lifetime/per-year tabs) · Performance 2024-25 · MAE/MFE · Trader Mirror archive.
 Existing artifacts are EMBEDDED (lazy-loaded iframes), not rewritten — this
 page is pure chrome. Tabs whose artifact is missing render a note instead.
 
@@ -66,7 +66,7 @@ def _tab_defs(data_dir: str = None) -> list:
 
     mirrors = trader_mirror_files(d)
     return [
-        ("perf26", "Performance 2026 YTD", _have("performance_2026.html")),
+        ("perf26", "Performance", _have("performance_2026.html")),
         ("perf2425", "Performance 2024–25", _have("performance_charts.html")),
         ("mae", "MAE / MFE", _have("mae_analysis.html")),
         ("mirror", "Trader Mirror",

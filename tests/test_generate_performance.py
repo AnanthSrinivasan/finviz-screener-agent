@@ -9,7 +9,9 @@ import unittest
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.generate_performance import compute_trades, compute_stats, load_system_closed, merge_trades
+from utils.generate_performance import (
+    compute_trades, compute_stats, load_system_closed, merge_trades, _period_slices,
+)
 
 
 def _rows(*entries):
@@ -123,6 +125,51 @@ class StatsTests(unittest.TestCase):
         self.assertEqual(stats["n_trades"], 1)
         self.assertAlmostEqual(stats["total_pnl"], 200, places=0)
         self.assertAlmostEqual(stats["prior_pnl"], 100, places=0)
+
+
+class PeriodSlicingTests(unittest.TestCase):
+    """2026-08-18: the page rendered an all-time trade list under a '2026 YTD'
+    title — lifetime P&L (+$69,857) read as this year's, while 2026 was
+    actually −$20,579, and Best Trade showed a COIN cycle closed in Jul 2025.
+    Periods are now explicit slices."""
+
+    def _t(self, year, pnl, ticker="X", month=6):
+        return {"pnl": pnl, "prior_period": False, "ticker": ticker,
+                "sell_date": datetime.date(year, month, 1), "pnl_pct": 0}
+
+    def test_ytd_first_then_lifetime_then_years_desc(self):
+        this_year = datetime.date.today().year
+        trades = [self._t(this_year, 10), self._t(2025, 20), self._t(2024, 30)]
+        keys = [k for k, _lbl, _sub in _period_slices(trades)]
+        self.assertEqual(keys, ["ytd", "lifetime", "2025", "2024"])
+
+    def test_ytd_slice_excludes_prior_years(self):
+        this_year = datetime.date.today().year
+        trades = [self._t(this_year, 10), self._t(2025, 999)]
+        slices = dict((k, sub) for k, _lbl, sub in _period_slices(trades))
+        self.assertEqual([t["pnl"] for t in slices["ytd"]], [10])
+
+    def test_lifetime_keeps_everything(self):
+        this_year = datetime.date.today().year
+        trades = [self._t(this_year, 10), self._t(2025, 20), self._t(2024, 30)]
+        slices = dict((k, sub) for k, _lbl, sub in _period_slices(trades))
+        self.assertEqual(len(slices["lifetime"]), 3)
+
+    def test_best_trade_is_scoped_to_its_period(self):
+        # The exact COIN/SLV shape: a huge 2025 win must not be the YTD best.
+        this_year = datetime.date.today().year
+        trades = [self._t(this_year, 2055, "COIN"), self._t(2025, 15120, "COIN")]
+        slices = dict((k, sub) for k, _lbl, sub in _period_slices(trades))
+        self.assertEqual(compute_stats(slices["ytd"])["best_trade"]["pnl"], 2055)
+        self.assertEqual(compute_stats(slices["lifetime"])["best_trade"]["pnl"], 15120)
+
+    def test_no_ytd_tab_when_no_trades_this_year(self):
+        keys = [k for k, _lbl, _sub in _period_slices([self._t(2024, 30)])]
+        self.assertEqual(keys, ["lifetime", "2024"])
+
+    def test_empty_trades_still_yields_lifetime(self):
+        keys = [k for k, _lbl, _sub in _period_slices([])]
+        self.assertEqual(keys, ["lifetime"])
 
 
 class SystemClosedSourceTests(unittest.TestCase):

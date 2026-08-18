@@ -95,7 +95,7 @@ class ThemeSmokeTests(unittest.TestCase):
             html = gr.render_page(tmp)
         self.assertIn(MARKER, html)
         self.assertIn(NAV, html)
-        for label in ("Performance 2026 YTD", "Performance 2024–25",
+        for label in ("Performance", "Performance 2024–25",
                       "MAE / MFE", "Trader Mirror"):
             self.assertIn(label, html)
 

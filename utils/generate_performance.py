@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-Performance charts generator — Robinhood 2026 YTD.
+Performance charts generator — Robinhood realized trades.
+
+Renders one page with period tabs: YTD (default) · Lifetime · each prior year.
 
 Reads data/RH-2026.csv, does FIFO P&L matching per ticker, and writes
 data/performance_charts.html with:
@@ -332,6 +334,30 @@ def compute_stats(trades: list[dict]) -> dict:
     }
 
 
+def _period_slices(trades: list[dict]) -> list[tuple]:
+    """Return ordered [(key, label, trades_in_period)] for the period tabs.
+
+    Added 2026-08-18: this page rendered a single all-time trade list under a
+    "2026 YTD" title, so lifetime stats were being read as this year's — the
+    headline showed +$69,857 while 2026 was actually −$20,579, and Best Trade
+    surfaced a COIN cycle that closed in July 2025. Slices are now explicit:
+    YTD first (the default question), then Lifetime, then each prior year
+    descending. Each slice carries its own stats, charts and trade table.
+    """
+    years = sorted({t["sell_date"].year for t in trades}, reverse=True)
+    this_year = datetime.date.today().year
+    out: list[tuple] = []
+    if this_year in years:
+        out.append((f"ytd", f"{this_year} YTD",
+                    [t for t in trades if t["sell_date"].year == this_year]))
+    out.append(("lifetime", "Lifetime", list(trades)))
+    for y in years:
+        if y == this_year:
+            continue
+        out.append((str(y), str(y), [t for t in trades if t["sell_date"].year == y]))
+    return out
+
+
 def _equity_curve_js(trades: list[dict]) -> tuple[str, str]:
     """Return (labels_json, data_json) for the cumulative P&L chart."""
     cumulative = 0.0
@@ -400,26 +426,57 @@ def _trade_rows(trades: list[dict]) -> str:
     return rows
 
 
-def generate_html(trades: list[dict], stats: dict) -> str:
+def _period_payload(trades: list[dict]) -> dict:
+    """Everything the page needs to render one period, ready for JSON embed."""
+    stats = compute_stats(trades)
     eq_labels, eq_data = _equity_curve_js(trades)
     mo_labels, mo_data, mo_colors = _monthly_pnl_js(trades)
-    rows = _trade_rows(trades)
 
     best  = stats["best_trade"]
     worst = stats["worst_trade"]
-    best_str  = f"{best['ticker']} {_fmt_pnl(best['pnl'])}" if best else "—"
-    worst_str = f"{worst['ticker']} {_fmt_pnl(worst['pnl'])}" if worst else "—"
-
-    pf = stats["profit_factor"]
-    pf_str = f"{pf:.2f}x" if pf != float("inf") else "∞"
+    pf    = stats["profit_factor"]
 
     prior_note = ""
     if stats["prior_pnl"] != 0:
-        prior_note = f"""
-        <div class="prior-note">
-          ⚠ {_fmt_pnl(stats['prior_pnl'])} from sells with cost basis in a prior period
-          (excluded from stats above, included in equity curve).
-        </div>"""
+        prior_note = (
+            '<div class="prior-note">&#9888; ' + _fmt_pnl(stats["prior_pnl"])
+            + " from sells with cost basis in a prior period "
+            + "(excluded from stats above, included in equity curve).</div>"
+        )
+
+    return {
+        "pnl":        _fmt_pnl(stats["total_pnl"]),
+        "pnl_class":  _pnl_class(stats["total_pnl"]),
+        "win_rate":   f"{stats['win_rate']}%",
+        "avg_win":    _fmt_pnl(stats["avg_win"]),
+        "avg_loss":   _fmt_pnl(stats["avg_loss"]),
+        "pf":         f"{pf:.2f}x" if pf != float("inf") else "∞",
+        "wl":         f"{stats['n_wins']}W / {stats['n_losses']}L",
+        "best":       f"{best['ticker']} {_fmt_pnl(best['pnl'])}" if best else "—",
+        "worst":      f"{worst['ticker']} {_fmt_pnl(worst['pnl'])}" if worst else "—",
+        "prior_note": prior_note,
+        "rows":       _trade_rows(trades),
+        "eq":         {"labels": json.loads(eq_labels), "data": json.loads(eq_data)},
+        "mo":         {"labels": json.loads(mo_labels), "data": json.loads(mo_data),
+                       "colors": json.loads(mo_colors)},
+    }
+
+
+def generate_html(trades: list[dict], stats: dict) -> str:
+    periods  = _period_slices(trades)
+    payloads = {}
+    for key, label, sub in periods:
+        payloads[key] = _period_payload(sub)
+        payloads[key]["label"] = label
+    default_key    = periods[0][0] if periods else "lifetime"
+    periods_js     = json.dumps(payloads)
+    default_key_js = json.dumps(default_key)
+
+    period_btns = "".join(
+        '<button class="pbtn{active}" data-period="{k}" onclick="showPeriod(\'{k}\')">{lbl}</button>'.format(
+            active=" active" if k == default_key else "", k=k, lbl=lbl)
+        for k, lbl, _sub in periods
+    )
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -431,7 +488,7 @@ def generate_html(trades: list[dict], stats: dict) -> str:
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Performance Overview — 2026 YTD</title>
+<title>Performance Overview</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
@@ -440,6 +497,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 .subtitle{{color:#6b7280;font-size:13px;margin-bottom:24px}}
 .stat-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}}
+.period-bar{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}}
+.pbtn{{padding:8px 16px;border-radius:8px;border:1px solid #d1d5db;background:#fff;
+  color:#374151;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}}
+.pbtn:hover{{background:#f3f4f6}}
+.pbtn.active{{background:#2563eb;color:#fff;border-color:#2563eb}}
 .stat-card{{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px}}
 .stat-label{{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-bottom:6px}}
 .stat-val{{font-size:22px;font-weight:700;color:#111827}}
@@ -471,49 +533,51 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 </head>
 <body>
 <div class="page-wrap">
-  <h1>Performance Overview — 2026 YTD</h1>
+  <h1>Performance Overview — <span id="periodTitle"></span></h1>
   <div class="subtitle">Robinhood realized trades · <span class="sys-badge sys-confirmed">snaptrade fill</span> = real broker fill (RH CSV not yet re-uploaded) · <span class="sys-badge sys-estimated">estimated fill</span> = no broker fill yet · generated {now}</div>
+
+  <div class="period-bar">{period_btns}</div>
 
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-label">Realized P&amp;L</div>
-      <div class="stat-val {_pnl_class(stats['total_pnl'])}">{_fmt_pnl(stats['total_pnl'])}</div>
+      <div class="stat-val" id="sPnl"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Win Rate</div>
-      <div class="stat-val">{stats['win_rate']}%</div>
+      <div class="stat-val" id="sWinRate"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Win</div>
-      <div class="stat-val pos">{_fmt_pnl(stats['avg_win'])}</div>
+      <div class="stat-val pos" id="sAvgWin"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg Loss</div>
-      <div class="stat-val neg">{_fmt_pnl(stats['avg_loss'])}</div>
+      <div class="stat-val neg" id="sAvgLoss"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Profit Factor</div>
-      <div class="stat-val">{pf_str}</div>
+      <div class="stat-val" id="sPf"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Trades</div>
-      <div class="stat-val">{stats['n_wins']}W / {stats['n_losses']}L</div>
+      <div class="stat-val" id="sWl"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Best Trade</div>
-      <div class="stat-val pos" style="font-size:16px">{best_str}</div>
+      <div class="stat-val pos" style="font-size:16px" id="sBest"></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Worst Trade</div>
-      <div class="stat-val neg" style="font-size:16px">{worst_str}</div>
+      <div class="stat-val neg" style="font-size:16px" id="sWorst"></div>
     </div>
   </div>
 
-  {prior_note}
+  <div id="priorNote"></div>
 
   <div class="charts-row">
     <div class="chart-card">
-      <h2>Cumulative P&amp;L — 2026 YTD</h2>
+      <h2>Cumulative P&amp;L — <span id="eqTitle"></span></h2>
       <canvas id="eqChart"></canvas>
     </div>
     <div class="chart-card">
@@ -532,7 +596,7 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
           <th>Proceeds</th><th>Cost Basis</th><th>P&amp;L $</th><th>P&amp;L %</th><th>First Buy</th>
         </tr>
       </thead>
-      <tbody>{rows}</tbody>
+      <tbody id="tradeRows"></tbody>
     </table>
     </div>
   </div>
@@ -541,25 +605,20 @@ h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:4px}}
 </div>
 
 <script>
-const eqCtx = document.getElementById('eqChart').getContext('2d');
-const eqLabels = {eq_labels};
-const eqData   = {eq_data};
-const eqColors = eqData.map(v => v >= 0 ? '#16a34a' : '#dc2626');
-new Chart(eqCtx, {{
+const PERIODS = {periods_js};
+
+const eqChart = new Chart(document.getElementById('eqChart').getContext('2d'), {{
   type: 'line',
-  data: {{
-    labels: eqLabels,
-    datasets: [{{
-      data: eqData,
+  data: {{ labels: [], datasets: [{{
+      data: [],
       borderColor: '#2563eb',
       backgroundColor: 'rgba(37,99,235,0.07)',
       borderWidth: 2,
       pointRadius: 3,
-      pointBackgroundColor: eqColors,
+      pointBackgroundColor: [],
       fill: true,
       tension: 0.3,
-    }}]
-  }},
+  }}] }},
   options: {{
     plugins: {{ legend: {{ display: false }} }},
     scales: {{
@@ -569,20 +628,9 @@ new Chart(eqCtx, {{
   }}
 }});
 
-const moCtx = document.getElementById('moChart').getContext('2d');
-const moLabels = {mo_labels};
-const moData   = {mo_data};
-const moColors = {mo_colors};
-new Chart(moCtx, {{
+const moChart = new Chart(document.getElementById('moChart').getContext('2d'), {{
   type: 'bar',
-  data: {{
-    labels: moLabels,
-    datasets: [{{
-      data: moData,
-      backgroundColor: moColors,
-      borderRadius: 4,
-    }}]
-  }},
+  data: {{ labels: [], datasets: [{{ data: [], backgroundColor: [], borderRadius: 4 }}] }},
   options: {{
     plugins: {{ legend: {{ display: false }} }},
     scales: {{
@@ -591,6 +639,45 @@ new Chart(moCtx, {{
     }}
   }}
 }});
+
+function showPeriod(key) {{
+  const p = PERIODS[key];
+  if (!p) return;
+
+  document.getElementById('periodTitle').textContent = p.label;
+  document.getElementById('eqTitle').textContent     = p.label;
+
+  const pnlEl = document.getElementById('sPnl');
+  pnlEl.textContent = p.pnl;
+  pnlEl.className   = 'stat-val ' + p.pnl_class;
+  document.getElementById('sWinRate').textContent = p.win_rate;
+  document.getElementById('sAvgWin').textContent  = p.avg_win;
+  document.getElementById('sAvgLoss').textContent = p.avg_loss;
+  document.getElementById('sPf').textContent      = p.pf;
+  document.getElementById('sWl').textContent      = p.wl;
+  document.getElementById('sBest').textContent    = p.best;
+  document.getElementById('sWorst').textContent   = p.worst;
+
+  document.getElementById('priorNote').innerHTML = p.prior_note;
+  document.getElementById('tradeRows').innerHTML = p.rows;
+
+  eqChart.data.labels = p.eq.labels;
+  eqChart.data.datasets[0].data = p.eq.data;
+  eqChart.data.datasets[0].pointBackgroundColor =
+    p.eq.data.map(v => v >= 0 ? '#16a34a' : '#dc2626');
+  eqChart.update();
+
+  moChart.data.labels = p.mo.labels;
+  moChart.data.datasets[0].data = p.mo.data;
+  moChart.data.datasets[0].backgroundColor = p.mo.colors;
+  moChart.update();
+
+  document.querySelectorAll('.pbtn').forEach(function(b) {{
+    b.classList.toggle('active', b.dataset.period === key);
+  }});
+}}
+
+showPeriod({default_key_js});
 </script>
 </body>
 </html>"""
