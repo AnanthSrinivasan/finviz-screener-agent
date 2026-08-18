@@ -1113,9 +1113,23 @@ This makes the data freshness honest: a SnapTrade fill is broker truth, not a pl
 
 **Auto-regenerate:** wired into `position-monitor.yml` after every monitor tick — `data/performance_2026.html` is committed alongside `positions.json` so closes appear on the page within the next monitor cycle.
 
-**Output:** `data/performance_2026.html` (light theme, Chart.js). Sections: KPI stat cards, monthly P&L bar, cumulative equity curve, per-trade table. Links back to `performance_charts.html`.
+**Output:** `data/performance_2026.html` (light theme, Chart.js). Sections: period tabs, KPI stat cards, monthly P&L bar, cumulative equity curve, per-trade table. Links back to `performance_charts.html`.
 
-**Index hero bar:** two buttons — *Performance 2024–25* (`performance_charts.html`) and *Performance 2026 YTD* (`performance_2026.html`).
+**Period tabs (2026-08-18 — `_period_slices`):** the page was titled "2026 YTD"
+but rendered **every closed trade ever recorded** — `load_snaptrade_partial_realized`
+emits all cycles from `position_history.json` with no year filter, and
+`compute_stats` never filtered by sell date. The headline read +$69,857 / 39.8% /
+156W-236L as "2026 YTD" when those were lifetime figures; true 2026 YTD is
+−$20,579 on 139 trades. Best Trade showed COIN +$15,121, a real cycle bought
+2024-12-16 and **sold 2025-07-23** — right number, wrong year. (Worst Trade SLV
+−$11,488, sold 2026-03-20, happened to be genuinely 2026.) Now the trade list is
+sliced explicitly: **YTD** (default) · **Lifetime** · each prior year descending.
+Each slice carries its own stats, equity curve, monthly bars and trade table;
+switching is client-side over one embedded JSON payload, so it stays a single
+generated artifact. `<title>` and the record.html tab label dropped the hardcoded
+year. Tests: `tests/test_generate_performance.py::PeriodSlicingTests`.
+
+**Index hero bar:** two buttons — *Performance 2024–25* (`performance_charts.html`) and *Performance* (`performance_2026.html`).
 
 ### 10.5 Claude Model Portfolio — `utils/generators/generate_portfolio.py`
 
