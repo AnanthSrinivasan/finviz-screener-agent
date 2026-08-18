@@ -2,20 +2,20 @@
   "open_positions": [
     {
       "ticker": "CVX",
-      "shares": 50,
-      "entry_price": 199.82,
+      "shares": 70,
+      "entry_price": 201.31,
       "entry_date": "2026-08-14",
-      "stop_price": 195.33,
+      "stop_price": 197.52,
       "breakeven_activated": false,
-      "target1": 239.78,
+      "target1": 241.57,
       "target1_hit": false,
-      "target2": 279.75,
+      "target2": 281.83,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 203.63,
-      "current_gain_pct": 1.46,
+      "highest_price_seen": 206.12,
+      "current_gain_pct": 1.72,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 1.91
+      "peak_gain_pct": 2.39
     }
   ],
   "closed_positions": [
