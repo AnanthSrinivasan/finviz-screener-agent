@@ -1,5 +1,5 @@
 {
-  "date": "2026-08-17",
+  "date": "2026-08-18",
   "candidates": [
     {
       "ticker": "HNGE",
@@ -15,22 +15,6 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "AXTI",
-      "signal_score": 5,
-      "eps_yy_ttm": 104.53,
-      "eps_qq": 208.25,
-      "inst_trans": 9.83,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
@@ -50,51 +34,19 @@
       }
     },
     {
-      "ticker": "SNDK",
+      "ticker": "DBRG",
       "signal_score": 5,
-      "eps_yy_ttm": 785.83,
-      "eps_qq": 28017.46,
-      "inst_trans": -0.62,
+      "eps_yy_ttm": 6043.85,
+      "eps_qq": 1100.21,
+      "inst_trans": 4.89,
       "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "ALAB",
-      "signal_score": 4,
-      "eps_yy_ttm": 256.17,
-      "eps_qq": 190.33,
-      "inst_trans": 6.65,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "ARX",
-      "signal_score": 4,
-      "eps_yy_ttm": 0.0,
-      "eps_qq": 795.5,
-      "inst_trans": 7.73,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
+        "ipo_lifecycle": false
       }
     },
     {
@@ -119,7 +71,7 @@
       "eps_yy_ttm": 113.1,
       "eps_qq": 99.88,
       "inst_trans": 4.09,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -136,22 +88,6 @@
       "eps_qq": 99.06,
       "inst_trans": 6.03,
       "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "DBRG",
-      "signal_score": 4,
-      "eps_yy_ttm": 6043.85,
-      "eps_qq": 1100.21,
-      "inst_trans": 4.89,
-      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -210,28 +146,12 @@
       }
     },
     {
-      "ticker": "GEV",
-      "signal_score": 4,
-      "eps_yy_ttm": 738.05,
-      "eps_qq": 32.85,
-      "inst_trans": 0.54,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": false,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
       "ticker": "HRI",
       "signal_score": 4,
       "eps_yy_ttm": 67.75,
       "eps_qq": 148.62,
       "inst_trans": 8.21,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -306,22 +226,6 @@
       }
     },
     {
-      "ticker": "MSGE",
-      "signal_score": 4,
-      "eps_yy_ttm": 82.3,
-      "eps_qq": 63.16,
-      "inst_trans": 6.85,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "MSGS",
       "signal_score": 4,
       "eps_yy_ttm": 134.25,
@@ -338,6 +242,38 @@
       }
     },
     {
+      "ticker": "NMAX",
+      "signal_score": 4,
+      "eps_yy_ttm": 0.0,
+      "eps_qq": 103.81,
+      "inst_trans": 3.5,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "P",
+      "signal_score": 4,
+      "eps_yy_ttm": 75.68,
+      "eps_qq": 263.4,
+      "inst_trans": -0.43,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "PAY",
       "signal_score": 4,
       "eps_yy_ttm": 50.31,
@@ -347,6 +283,22 @@
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "PTGX",
+      "signal_score": 4,
+      "eps_yy_ttm": 44.59,
+      "eps_qq": 518.89,
+      "inst_trans": 11.72,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
@@ -370,33 +322,33 @@
       }
     },
     {
-      "ticker": "SBLK",
+      "ticker": "ROKU",
       "signal_score": 4,
-      "eps_yy_ttm": 141.62,
-      "eps_qq": 432900.0,
-      "inst_trans": 4.19,
-      "appearances": 1,
+      "eps_yy_ttm": 668.39,
+      "eps_qq": 1440.03,
+      "inst_trans": -5.02,
+      "appearances": 3,
       "criteria": {
-        "persistence": false,
+        "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
     },
     {
-      "ticker": "AEHR",
-      "signal_score": 3,
-      "eps_yy_ttm": -81.5,
-      "eps_qq": 143.11,
-      "inst_trans": 1.47,
-      "appearances": 3,
+      "ticker": "SBLK",
+      "signal_score": 4,
+      "eps_yy_ttm": 141.62,
+      "eps_qq": 432900.0,
+      "inst_trans": 4.19,
+      "appearances": 2,
       "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
+        "persistence": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -408,38 +360,6 @@
       "eps_qq": 23.91,
       "inst_trans": 4.22,
       "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "EXPD",
-      "signal_score": 3,
-      "eps_yy_ttm": 12.05,
-      "eps_qq": 50.83,
-      "inst_trans": -3.99,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "FCFS",
-      "signal_score": 3,
-      "eps_yy_ttm": 34.84,
-      "eps_qq": 58.11,
-      "inst_trans": 7.55,
-      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -466,38 +386,6 @@
       }
     },
     {
-      "ticker": "HRMY",
-      "signal_score": 3,
-      "eps_yy_ttm": -0.83,
-      "eps_qq": 88.57,
-      "inst_trans": 4.71,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "IVZ",
-      "signal_score": 3,
-      "eps_yy_ttm": -173.65,
-      "eps_qq": 2853.26,
-      "inst_trans": 1.91,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "NAVN",
       "signal_score": 3,
       "eps_yy_ttm": -85.01,
@@ -514,12 +402,12 @@
       }
     },
     {
-      "ticker": "PTGX",
+      "ticker": "U",
       "signal_score": 3,
-      "eps_yy_ttm": 44.59,
-      "eps_qq": 518.89,
-      "inst_trans": 11.72,
-      "appearances": 2,
+      "eps_yy_ttm": -27.86,
+      "eps_qq": 79.32,
+      "inst_trans": 5.95,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
