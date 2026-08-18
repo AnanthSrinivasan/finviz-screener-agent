@@ -1,37 +1,4 @@
 {
-  "last_book_post_ts": "2026-08-17T17:56:44.727201Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "HPE",
-      "message": "\ud83d\udea8 STOP HIT: HPE @ $57.76 \u2014 exit immediately (stop $60.37)",
-      "current_price": 57.76,
-      "stop_price": 60.37,
-      "ts": "2026-08-17T17:57:59.216902Z"
-    },
-    {
-      "kind": "auto_closed",
-      "ticker": "SN",
-      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: SN\n   Entry $160.75 \u2192 $181.85 (quote) (+13.1%) \u2014 WIN\n   Streak: 1W / 0L",
-      "result_pct": 13.13,
-      "close_price": 181.85,
-      "close_source": "live_quote",
-      "ts": "2026-08-17T18:50:56.161891Z"
-    },
-    {
-      "kind": "auto_closed",
-      "ticker": "HPE",
-      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: HPE\n   Entry $50.78 \u2192 $58.24 (quote) (+14.7%) \u2014 WIN\n   Streak: 2W / 0L",
-      "result_pct": 14.69,
-      "close_price": 58.24,
-      "close_source": "live_quote",
-      "ts": "2026-08-17T18:50:56.161891Z"
-    },
-    {
-      "kind": "sizing_mode",
-      "ticker": "\u2014",
-      "message": ":information_source: Sizing mode \u2192 normal.",
-      "ts": "2026-08-17T18:50:56.161891Z"
-    }
-  ]
+  "last_book_post_ts": "2026-08-18T08:25:33.836174Z",
+  "events_since_last": []
 }

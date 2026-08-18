@@ -5,7 +5,7 @@
       "shares": 50,
       "entry_price": 199.82,
       "entry_date": "2026-08-14",
-      "stop_price": 194.93,
+      "stop_price": 195.33,
       "breakeven_activated": false,
       "target1": 239.78,
       "target1_hit": false,
@@ -2090,9 +2090,9 @@
       "first_entry_price": 100.38,
       "peak_gain_pct": 1.66,
       "close_date": "2026-08-17",
-      "close_price": 97.91,
-      "close_source": "live_quote",
-      "result_pct": -2.64
+      "close_price": 98.16,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -2.39
     },
     {
       "ticker": "SN",
@@ -2111,9 +2111,9 @@
       "first_entry_price": 160.75,
       "peak_gain_pct": 18.88,
       "close_date": "2026-08-17",
-      "close_price": 181.85,
-      "close_source": "live_quote",
-      "result_pct": 13.13
+      "close_price": 182.22,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 13.36
     },
     {
       "ticker": "HPE",
@@ -2133,9 +2133,9 @@
       "peak_gain_pct": 24.93,
       "last_fade_alert_gain_pct": 13.05,
       "close_date": "2026-08-17",
-      "close_price": 58.24,
-      "close_source": "live_quote",
-      "result_pct": 14.69
+      "close_price": 57.92,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 14.06
     }
   ]
 }
