@@ -189,9 +189,19 @@ def _dict_field(v):
         return {}
 
 
-def qualify_setups(rows: list, held: set, top_n: int = 3) -> list:
+def qualify_setups(rows: list, held: set, top_n: int = 5) -> list:
     """Ready-to-Enter gate over screener CSV rows (CLAUDE.md criteria).
-    Pure: rows are dicts with the screener CSV columns. Returns trade-plan cards."""
+    Pure: rows are dicts with the screener CSV columns. Returns trade-plan cards.
+
+    Ranked by RS Rating, NOT by Quality Score. Q>=80 is already the *gate*;
+    ranking by it again double-counts quality and, because Q is 30 points of
+    market cap plus 20 of EPS, systematically floats big slow profitable names
+    above real momentum leaders. On 2026-08-19 that put AGNC (Q114, RS 17,
+    +8.8% quarter, a mortgage REIT) at #1 and NVDA (Q104, RS 25, -0.2%
+    quarter) at #8, while SNOW (RS 93, +89% quarter) sat at #12 and NESR
+    (RS 93, +375% year) at #17 — so a top-3 view showed only slow value names
+    and no leaders at all. Same root cause as the TWST miss: Quality Score is
+    a quality filter, not a leadership ranking."""
     held = {t.upper() for t in (held or set())}
     out = []
     for r in rows:
@@ -199,6 +209,7 @@ def qualify_setups(rows: list, held: set, top_n: int = 3) -> list:
         if not tk or tk in held:
             continue
         q = _f(r.get("Quality Score"))
+        rs = _f(r.get("RS Rating"))
         atr = _f(r.get("ATR%"))
         dist = _f(r.get("Dist From High%"))
         rvol = _f(r.get("Rel Volume"))
@@ -222,12 +233,12 @@ def qualify_setups(rows: list, held: set, top_n: int = 3) -> list:
         price = _f(r.get("_price"))  # optional; CSV has no price col, left blank
         stop_pct = max(8.0, 2 * atr)  # -8% MAE floor, widened for volatile names
         out.append({
-            "ticker": tk, "q": q, "atr": atr, "dist": dist, "rvol": rvol,
+            "ticker": tk, "q": q, "rs": rs, "atr": atr, "dist": dist, "rvol": rvol,
             "vcp": vcp, "s20": s20, "stop_pct": stop_pct,
             "company": r.get("Company", ""), "sector": r.get("Sector", ""),
             "price": price,
         })
-    out.sort(key=lambda x: -x["q"])
+    out.sort(key=lambda x: (-x["rs"], -x["q"]))
     return out[:top_n]
 
 

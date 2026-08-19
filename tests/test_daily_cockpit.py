@@ -102,6 +102,24 @@ class TestQualify(unittest.TestCase):
         out = cp.qualify_setups([self._row(**{"ATR%": "4", "SMA50%": "20"})], held=set())
         self.assertEqual(out, [])
 
+    def test_ranked_by_rs_not_quality_score(self):
+        """Q>=80 is the GATE; ranking by it again buries the leaders.
+
+        Real 2026-08-19 case: AGNC (Q114, RS 17 — a mortgage REIT up 8.8% on
+        the quarter) ranked #1 while SNOW (Q102, RS 93, +89% quarter) ranked
+        #12, so the top-3 view showed only slow value names. Rank by RS.
+        """
+        slow = self._row(Ticker="AGNC", **{"Quality Score": "114", "RS Rating": "17"})
+        leader = self._row(Ticker="SNOW", **{"Quality Score": "102", "RS Rating": "93"})
+        out = cp.qualify_setups([slow, leader], held=set())
+        self.assertEqual([c["ticker"] for c in out], ["SNOW", "AGNC"])
+
+    def test_quality_score_breaks_rs_ties(self):
+        a = self._row(Ticker="AAA", **{"Quality Score": "85", "RS Rating": "90"})
+        b = self._row(Ticker="BBB", **{"Quality Score": "95", "RS Rating": "90"})
+        out = cp.qualify_setups([a, b], held=set())
+        self.assertEqual([c["ticker"] for c in out], ["BBB", "AAA"])
+
     def test_top_n_cap(self):
         rows = [self._row(Ticker=f"T{i}", **{"Quality Score": str(80 + i)}) for i in range(6)]
         out = cp.qualify_setups(rows, held=set(), top_n=3)
