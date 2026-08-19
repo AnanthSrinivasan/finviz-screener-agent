@@ -1,21 +1,6 @@
 {
-  "updated": "2026-08-19T20:31:27.733586Z",
+  "updated": "2026-08-19T21:28:00.694944Z",
   "events": [
-    {
-      "ts": "2026-04-27T19:52:40.975216Z",
-      "date": "2026-04-27",
-      "category": "position_close",
-      "title": "AAOI closed +35.0% \u2014 WIN",
-      "severity": "low",
-      "detail": "Entry $100.00 \u2192 $135.00 (fill)"
-    },
-    {
-      "ts": "2026-04-27T19:52:40.977237Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "PL breakeven stop set at $100.50",
-      "severity": "low"
-    },
     {
       "ts": "2026-04-27T19:52:40.996230Z",
       "date": "2026-04-27",
@@ -351,6 +336,20 @@
     },
     {
       "ts": "2026-08-19T20:31:27.733586Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.46x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T21:27:59.245997Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 5.61x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T21:28:00.694944Z",
       "date": "2026-08-19",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.46x",
