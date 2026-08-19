@@ -1002,6 +1002,7 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
                             power_plays: list | None = None,
                             ema21_pullbacks: list | None = None,
                             recovery_leaders: list | None = None,
+                            momentum_leaders: list | None = None,
                             rotation_catalyst: list | None = None,
                             episodic_pivots: list | None = None) -> str:
     today = datetime.date.today().strftime("%Y-%m-%d")
@@ -1125,6 +1126,41 @@ def generate_finviz_gallery(tickers: list, filter_df: pd.DataFrame,
     <span class="section-sub-inline">V-recovery, price above 50/200 MAs but 50/200 cross pending — watch only, size half</span>
   </summary>
   <div class="chart-grid" style="margin-top:12px">{"".join(rl_cards)}</div>
+</details>"""
+
+    momentum_leader_html = ""
+    if momentum_leaders:
+        _row_lookup_ml: dict = {}
+        for _df in ([filter_df] + ([all_df] if all_df is not None and not all_df.empty else [])):
+            for _, _r in _df.iterrows():
+                _t = _r.get("Ticker", "")
+                if _t and _t not in _row_lookup_ml:
+                    _row_lookup_ml[_t] = _r
+        ml_cards = []
+        for e in momentum_leaders:
+            t = e["ticker"]
+            _r = _row_lookup_ml.get(t)
+            if _r is None:
+                continue
+            card = _build_card(t, _r, FINVIZ_BASE, top_sectors)
+            ml_badge = (
+                f'<span style="font-size:9px;background:#7c3aed;color:#fff;'
+                f'padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">'
+                f'RS {e.get("rs_rating", 0)}</span>'
+            )
+            card = card.replace(
+                f'class="ticker-link">{t}</a>',
+                f'class="ticker-link">{t}</a>' + ml_badge,
+            )
+            ml_cards.append(card)
+        if ml_cards:
+            momentum_leader_html = f"""
+<details class="section-collapsible" open>
+  <summary>
+    ⚡ Momentum Leader <span class="section-count">{len(ml_cards)}</span>
+    <span class="section-sub-inline">strongest RS in the tape — no ATR/RVol cap by design, still peel-safe · watch only, size half</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">{"".join(ml_cards)}</div>
 </details>"""
 
     # 🌊 Rotation Catalyst — sector-tailwind setups (spec §1). Collapsible.
@@ -1625,6 +1661,7 @@ h2 {{ font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-ite
 {rs_leaders_html}
 {stage_transition_html}
 {recovery_leader_html}
+{momentum_leader_html}
 {rotation_catalyst_html}
 {episodic_pivot_html}
 {htf_base_reclaim_html}
@@ -1765,6 +1802,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                              ema21_pb: list | None = None,
                              stage_transition: list | None = None,
                              recovery_leaders: list | None = None,
+                             momentum_leaders: list | None = None,
                              rotation_catalyst: list | None = None,
                              episodic_pivots: list | None = None):
     if not SLACK_WEBHOOK_URL:
@@ -1830,7 +1868,7 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
             parts.append(f"*{r['Ticker']}* ({chg}, {r['_vol'] / 1_000_000:.0f}M)")
         blocks.append({
             "type": "section",
-            "text": {"type": "mrkdwn", "text": ":fire: *Big Movers (9M+ vol, 10%+):* " + "  ·  ".join(parts)}
+            "text": {"type": "mrkdwn", "text": ":fire: *Big Movers (9M+ sh or $150M+, 10%+):* " + "  ·  ".join(parts)}
         })
         blocks.append({"type": "divider"})
 
@@ -1984,6 +2022,28 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
                 "type": "mrkdwn",
                 "text": ":dragon: *Recovery Leader* (V-recovery, 50/200 cross pending — watch only, size half):\n"
                         + "\n".join(lines),
+            }
+        })
+        blocks.append({"type": "divider"})
+
+    # ⚡ Momentum Leader — RS-driven lane. No ATR/RVol cap by design (the whole
+    # point: the tape's strongest names never look "quiet"), peel-safe kept hard.
+    # momentum_leaders is list of dicts: {ticker, q, rs_rating, atr, rvol, dist, sma50, perf_q}
+    if momentum_leaders:
+        lines = []
+        for r in momentum_leaders[:5]:
+            lines.append(
+                f"`{r['ticker']}` RS {r['rs_rating']} · Q{r['q']:.0f} · "
+                f"dist {r['dist']:+.1f}% · PerfQ {r['perf_q']:+.0f}% · "
+                f"ATR {r['atr']:.1f}% · RVol {r['rvol']:.2f}x · "
+                f"`/stock-research {r['ticker']}`"
+            )
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":zap: *Momentum Leader* (strongest RS in the tape — watch only, size half; "
+                        "wide ATR means a wider stop):\n" + "\n".join(lines),
             }
         })
         blocks.append({"type": "divider"})
@@ -2684,6 +2744,75 @@ _RECOVERY_LEADER_EXCLUDED_SECTORS = {
 }
 
 
+MOMENTUM_LEADER_RS_MIN = 85
+MOMENTUM_LEADER_Q_MIN = 60
+MOMENTUM_LEADER_MIN_DIST = -15.0
+
+
+def _is_momentum_leader(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
+    """
+    ⚡ Momentum Leader — the strongest names in the tape, surfaced without the
+    quiet-setup filters that every other Stage 2 block imposes.
+
+    Ready-to-Enter, Fresh Breakout and Rotation Catalyst all describe a
+    *resting* stock: ATR ≤ 7-8, RVol ≤ 1.2, VCP ≥ 70, 1-12% below the high. A
+    name up 300%+ on the year is almost never resting, so it fails those gates
+    nearly every day it exists — the system was structurally blind to its own
+    biggest winners. TWST is the reference case: 15 screener appearances
+    between 2026-06-24 and 2026-08-13, RS 87-98, never once admitted to a
+    Slack block or the watchlist, while it ran $99 -> $125+ (+337% on the year).
+
+    This lane drops the ATR and RVol caps and leans on relative strength
+    instead. It does NOT drop peel-safe (user decision 2026-08-19) — that gate
+    is the one thing keeping this from becoming a top-chasing block, and it is
+    what correctly held TWST out on 2026-06-26 at mult 8.63 while admitting it
+    on 2026-08-04 at mult 2.64.
+
+    Watch-only / half-size framing, like Recovery Leader: these sit further
+    from a sane stop than a VCP setup, so size must reflect that.
+
+    All must hold:
+      - Stage 2 (perfect not required — leaders dip the SMA20 on the way up)
+      - RS Rating ≥ MOMENTUM_LEADER_RS_MIN (85)
+      - Q ≥ 60 (a real company, but not the ≥80 quiet-setup bar — pre-profit
+        biotech and recent IPOs cap out well below 80 on EPS/market-cap points)
+      - dist from 52w high ≥ -15% (leading, not repairing)
+      - NO ATR cap, NO RVol cap — that is the entire point of the lane
+      - peel-safe (sma50 / atr ≤ peel_warn) — kept hard
+      - not held · not already in another callout
+    """
+    ticker = row.get("Ticker") if hasattr(row, "get") else None
+    if not ticker or ticker in open_positions_tickers or ticker in exclude_tickers:
+        return False
+
+    stage_d = row.get("Stage") or {}
+    if not isinstance(stage_d, dict) or stage_d.get("stage") != 2:
+        return False
+
+    rs_rating = row.get("RS Rating")
+    if rs_rating is None or pd.isna(rs_rating) or float(rs_rating) < MOMENTUM_LEADER_RS_MIN:
+        return False
+
+    qs = row.get("Quality Score")
+    if qs is None or pd.isna(qs) or float(qs) < MOMENTUM_LEADER_Q_MIN:
+        return False
+
+    dist = row.get("Dist From High%")
+    if dist is None or pd.isna(dist) or float(dist) < MOMENTUM_LEADER_MIN_DIST:
+        return False
+
+    atr = row.get("ATR%")
+    sma50 = row.get("SMA50%")
+    if atr is None or pd.isna(atr) or float(atr) <= 0:
+        return False
+    if sma50 is None or pd.isna(sma50):
+        return False
+    if (float(sma50) / float(atr)) > _peel_warn_for(ticker, float(atr)):
+        return False
+
+    return True
+
+
 def _is_recovery_leader(row, open_positions_tickers: set, exclude_tickers: set) -> bool:
     """
     🐉 Recovery Leader — V-recovery runners where price has reclaimed everything
@@ -3279,6 +3408,7 @@ def _update_watchlist(
     ema21_pb_tickers: list | None = None,
     stage_transition_tickers: list | None = None,
     recovery_leader_tickers: list | None = None,
+    momentum_leader_tickers: list | None = None,
     rotation_catalyst_tickers: list | None = None,
     episodic_pivot_tickers: list | None = None,
 ):
@@ -3524,6 +3654,41 @@ def _update_watchlist(
         by_ticker[ep_ticker] = ep_entry
         ep_added.append(ep_ticker)
         log.info("Watchlist: added %s via Episodic Pivot (source=episodic_pivot_auto)", ep_ticker)
+
+    # ── Momentum Leader entry path (10th): the tape's strongest RS names. ──
+    # Enters at its OWN tier priority=momentum (not watching/focus) so a
+    # high-ATR leader is never confused with a quiet coiled setup on the
+    # watchlist or cockpit — they need different sizing and a wider stop.
+    ml_added: list[str] = []
+    for ml_ticker in (momentum_leader_tickers or []):
+        if ml_ticker in by_ticker:
+            existing_entry = by_ticker[ml_ticker]
+            existing_entry["last_momentum_fire_date"] = today
+            if (existing_entry.get("status") == "archived"
+                    and existing_entry.get("archive_reason") == "age_out"):
+                existing_entry["status"] = "watching"
+                existing_entry["priority"] = "momentum"
+                existing_entry["reactivated_date"] = today
+                existing_entry["archive_reason"] = None
+                reactivated.append(ml_ticker)
+                log.info("Watchlist: reactivated %s via Momentum Leader", ml_ticker)
+            continue
+        ml_entry = {
+            "ticker":      ml_ticker,
+            "entry_note":  "Momentum leader — strongest RS in the tape. Wide ATR: size half, stop wider than a VCP setup.",
+            "entry_price": None,
+            "stop":        None,
+            "thesis":      "RS leadership lane — no ATR/RVol cap, peel-safe enforced",
+            "added":       today,
+            "status":      "watching",
+            "priority":    "momentum",
+            "source":      "momentum_leader_auto",
+            "last_momentum_fire_date": today,
+        }
+        existing.append(ml_entry)
+        by_ticker[ml_ticker] = ml_entry
+        ml_added.append(ml_ticker)
+        log.info("Watchlist: added %s via Momentum Leader (source=momentum_leader_auto)", ml_ticker)
 
     # ── Fresh Breakout entry path: breakout-from-base (parallel to technical/HG adds). ──
     # Ticker enters at priority=watching with source=breakout_auto. Catches stocks
@@ -3912,15 +4077,16 @@ def _update_watchlist(
     with open(watchlist_path, "w") as f:
         json.dump(wl_data, f, indent=2)
     log.info(
-        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader) + %d (episodic_pivot), "
+        "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader) + %d (episodic_pivot) + %d (momentum_leader), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(ep_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(ep_added), len(ml_added), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
         "added":                   added,
         "hg_added":                hg_added,
         "br_added":                br_added,
+        "ml_added":                ml_added,
         "rsl_added":               rsl_added,
         "htf_added":               htf_added,
         "st_added":                st_added,
@@ -4612,6 +4778,48 @@ if __name__ == "__main__":
     except Exception as _e:
         log.error("Rotation Catalyst detection failed (non-fatal): %s", _e)
 
+    # ⚡ Momentum Leader — RS-driven lane for names too strong to look "quiet".
+    # Every other Stage 2 block gates on ATR/RVol/VCP and so rejects the tape's
+    # biggest winners by construction (the TWST miss — see _is_momentum_leader).
+    # Peel-safe stays hard so this can never become a top-chasing block.
+    # 10th watchlist entry path, own tier.
+    momentum_leaders: list[dict] = []
+    try:
+        exclude_from_ml = (
+            {r["ticker"] for r in ready_to_enter}
+            | {r["ticker"] for r in fresh_breakouts}
+            | {r["ticker"] for r in power_plays}
+            | {r["ticker"] for r in base_building}
+            | {r["ticker"] for r in htf_base_reclaim}
+            | {d["ticker"] for d in rs_leaders_triggered}
+            | {r["ticker"] for r in ema21_pb}
+            | {r["ticker"] for r in stage_transition}
+            | {r["ticker"] for r in rotation_catalyst}
+            | {r["ticker"] for r in recovery_leaders}
+        )
+        if not summary_df.empty:
+            for _, row in summary_df.iterrows():
+                if _is_momentum_leader(row, open_positions_tickers, exclude_from_ml):
+                    momentum_leaders.append({
+                        "ticker":    row["Ticker"],
+                        "q":         float(row.get("Quality Score") or 0),
+                        "rs_rating": int(row.get("RS Rating") or 0),
+                        "atr":       float(row.get("ATR%") or 0),
+                        "rvol":      float(row.get("Rel Volume") or 0),
+                        "dist":      float(row.get("Dist From High%") or 0),
+                        "sma50":     float(row.get("SMA50%") or 0),
+                        "perf_q":    float(row.get("Perf Quarter") or 0),
+                    })
+            # Rank by relative strength — this lane is about leadership, not
+            # setup tightness, so RS leads and Q breaks ties.
+            momentum_leaders.sort(key=lambda r: (r["rs_rating"], r["q"]), reverse=True)
+            momentum_leaders = momentum_leaders[:5]
+        if momentum_leaders:
+            log.info("Momentum Leader: %s",
+                     [(r["ticker"], r["rs_rating"]) for r in momentum_leaders])
+    except Exception as _e:
+        log.error("Momentum Leader detection failed (non-fatal): %s", _e)
+
     # ⚡ Episodic Pivot — Pradeep SB lane (pullback-reversal on drying volume).
     # Scans tickers seen in any screener over last 20 trading days (~300-500 universe).
     # Two-stage filter: cheap Finviz pre-filter → Alpaca bars for bar-shape gate.
@@ -4794,6 +5002,7 @@ if __name__ == "__main__":
         power_plays=power_plays,
         ema21_pullbacks=ema21_pb,
         recovery_leaders=recovery_leaders,
+        momentum_leaders=momentum_leaders,
         rotation_catalyst=rotation_catalyst,
         episodic_pivots=ep_fires,
     )
@@ -4812,6 +5021,7 @@ if __name__ == "__main__":
         ema21_pb=ema21_pb,
         stage_transition=stage_transition,
         recovery_leaders=recovery_leaders,
+        momentum_leaders=momentum_leaders,
         rotation_catalyst=rotation_catalyst,
         episodic_pivots=ep_fires,
     )
@@ -4829,6 +5039,7 @@ if __name__ == "__main__":
         ema21_pb_tickers=[r["ticker"] for r in ema21_pb],
         stage_transition_tickers=[r["ticker"] for r in stage_transition],
         recovery_leader_tickers=[r["ticker"] for r in recovery_leaders],
+        momentum_leader_tickers=[r["ticker"] for r in momentum_leaders],
         rotation_catalyst_tickers=[r["ticker"] for r in rotation_catalyst],
         episodic_pivot_tickers=[f.ticker for f in (ep_fires or [])],
     )

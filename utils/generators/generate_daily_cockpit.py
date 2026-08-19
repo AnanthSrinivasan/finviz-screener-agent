@@ -439,7 +439,7 @@ def radar_pick(wl: list, screener_rows: list, top_n: int = 5) -> dict:
         tk = (r.get("Ticker") or "").upper()
         if tk:
             idx[tk] = r
-    out = {"entry-ready": [], "focus": []}
+    out = {"entry-ready": [], "focus": [], "momentum": []}
     for it in wl or []:
         tier = it.get("priority")
         if tier not in out or it.get("status") == "archived":
@@ -495,6 +495,7 @@ def render_radar(radar: dict, gate: dict) -> str:
         f"<div class='radar-grid{'' if gate_open else ' radar-closed'}'>"
         f"<div><div class='radar-h'>🎯 Top 5 Entry-Ready</div>{table(radar.get('entry-ready'))}</div>"
         f"<div><div class='radar-h'>🔭 Top 5 Focus</div>{table(radar.get('focus'))}</div>"
+        f"<div><div class='radar-h'>⚡ Momentum Leaders</div>{table(radar.get('momentum'))}</div>"
         "</div>"
     )
     return note + grid

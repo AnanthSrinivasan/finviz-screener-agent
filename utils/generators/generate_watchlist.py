@@ -243,6 +243,7 @@ CATEGORY_ORDER = [
     ("htf_base_reclaim_auto",  "🌀", "HTF Base Reclaim"),
     ("hidden_growth_auto",     "🔬", "Hidden Growth"),
     ("recovery_leader_auto",   "🐉", "Recovery Leader"),
+    ("momentum_leader_auto",   "⚡", "Momentum Leader"),
     ("episodic_pivot_auto",    "⚡", "Episodic Pivot"),
     ("screener_auto",          "📊", "Screener (technical)"),
     ("weekly_auto",            "📅", "Weekly"),
