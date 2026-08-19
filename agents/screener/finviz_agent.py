@@ -3660,6 +3660,7 @@ def _update_watchlist(
     # high-ATR leader is never confused with a quiet coiled setup on the
     # watchlist or cockpit — they need different sizing and a wider stop.
     ml_added: list[str] = []
+    ml_promoted: list[str] = []
     for ml_ticker in (momentum_leader_tickers or []):
         if ml_ticker in by_ticker:
             existing_entry = by_ticker[ml_ticker]
@@ -3667,11 +3668,28 @@ def _update_watchlist(
             if (existing_entry.get("status") == "archived"
                     and existing_entry.get("archive_reason") == "age_out"):
                 existing_entry["status"] = "watching"
-                existing_entry["priority"] = "momentum"
                 existing_entry["reactivated_date"] = today
                 existing_entry["archive_reason"] = None
                 reactivated.append(ml_ticker)
                 log.info("Watchlist: reactivated %s via Momentum Leader", ml_ticker)
+            # A name found earlier by another lane that NOW qualifies as a
+            # momentum leader must actually move to the momentum tier —
+            # otherwise the tier only ever holds brand-new adds and the whole
+            # point (telling a high-ATR leader apart from a quiet coiled
+            # setup at a glance) is lost. `source` moves with it so the
+            # watchlist category grid, which groups by source, agrees with the
+            # tier instead of filing it under the lane that found it first.
+            # entry-ready is never demoted — that tier outranks this one.
+            if (existing_entry.get("status") != "archived"
+                    and existing_entry.get("priority") not in ("entry-ready", "momentum")):
+                existing_entry["prev_source"] = existing_entry.get("source")
+                existing_entry["prev_priority"] = existing_entry.get("priority")
+                existing_entry["priority"] = "momentum"
+                existing_entry["source"] = "momentum_leader_auto"
+                existing_entry["momentum_promoted_date"] = today
+                ml_promoted.append(ml_ticker)
+                log.info("Watchlist: promoted %s to momentum tier (was %s/%s)",
+                         ml_ticker, existing_entry["prev_priority"], existing_entry["prev_source"])
             continue
         ml_entry = {
             "ticker":      ml_ticker,
@@ -4079,7 +4097,7 @@ def _update_watchlist(
     log.info(
         "Watchlist updated — added %d (tech) + %d (hidden growth) + %d (breakout) + %d (rs_leader) + %d (htf_base_reclaim) + %d (stage_transition) + %d (recovery_leader) + %d (episodic_pivot) + %d (momentum_leader), "
         "reactivated %d, focus-promoted %d, entry-ready %d",
-        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(ep_added), len(ml_added), len(reactivated),
+        len(added), len(hg_added), len(br_added), len(rsl_added), len(htf_added), len(st_added), len(rl_added), len(ep_added), len(ml_added) + len(ml_promoted), len(reactivated),
         len(promoted_to_focus), len(promoted_to_entry_ready),
     )
     return {
@@ -4087,6 +4105,7 @@ def _update_watchlist(
         "hg_added":                hg_added,
         "br_added":                br_added,
         "ml_added":                ml_added,
+        "ml_promoted":             ml_promoted,
         "rsl_added":               rsl_added,
         "htf_added":               htf_added,
         "st_added":                st_added,

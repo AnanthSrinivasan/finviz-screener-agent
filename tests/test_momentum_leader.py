@@ -94,5 +94,80 @@ class MomentumLeaderTests(unittest.TestCase):
         self.assertFalse(_is_momentum_leader(_row(Ticker=None), set(), set()))
 
 
+class MomentumTierPromotionTests(unittest.TestCase):
+    """The momentum tier must hold every current momentum leader, not just the
+    ones this lane discovered first.
+
+    Found in the 2026-08-19 production run: PSNL fired as a Momentum Leader but
+    had been added earlier by Rotation Catalyst, so it kept
+    source=rotation_catalyst_auto while carrying priority=momentum. The
+    watchlist category grid groups by source, so the tier and the card
+    disagreed — and an existing *active* row never changed tier at all.
+
+    NOTE: _update_watchlist resolves "data/watchlist.json" relative to the CWD
+    and does NOT honour DATA_DIR, so these tests chdir into a temp tree. An
+    earlier version of this file set DATA_DIR only and mutated the real
+    watchlist.
+    """
+
+    def setUp(self):
+        import os, tempfile
+        self.prev_cwd = os.getcwd()
+        self.dir = tempfile.mkdtemp()
+        os.makedirs(os.path.join(self.dir, "data"))
+        self.path = os.path.join(self.dir, "data", "watchlist.json")
+
+    def tearDown(self):
+        import os, shutil
+        os.chdir(self.prev_cwd)
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def _run(self, rows):
+        import json, os
+        import pandas as pd
+        from agents.screener import finviz_agent as fa
+        with open(self.path, "w") as f:
+            json.dump({"watchlist": rows}, f)
+        os.chdir(self.dir)
+        try:
+            fa._update_watchlist(pd.DataFrame(), "2026-08-19",
+                                 momentum_leader_tickers=["PSNL"])
+        finally:
+            os.chdir(self.prev_cwd)
+        with open(self.path) as f:
+            return {r["ticker"]: r for r in json.load(f)["watchlist"]}
+
+    def test_existing_focus_row_moves_to_momentum_tier_with_source(self):
+        out = self._run([{"ticker": "PSNL", "status": "watching",
+                          "priority": "focus", "source": "rotation_catalyst_auto",
+                          "added": "2026-08-01"}])
+        row = out["PSNL"]
+        self.assertEqual(row["priority"], "momentum")
+        self.assertEqual(row["source"], "momentum_leader_auto",
+                         "source must move with the tier or the category grid mis-files it")
+        self.assertEqual(row["prev_source"], "rotation_catalyst_auto")
+        self.assertEqual(row["prev_priority"], "focus")
+
+    def test_entry_ready_is_never_demoted(self):
+        # last_seen_in_screener must be current, or the unrelated stale-demotion
+        # rule (entry-ready -> focus after 5 absent days) fires first and this
+        # asserts the wrong thing.
+        out = self._run([{"ticker": "PSNL", "status": "watching",
+                          "priority": "entry-ready", "source": "screener_auto",
+                          "added": "2026-08-01",
+                          "entry_ready_date": "2026-08-19",
+                          "last_seen_in_screener": "2026-08-19"}])
+        self.assertEqual(out["PSNL"]["priority"], "entry-ready")
+        self.assertEqual(out["PSNL"]["source"], "screener_auto")
+
+    def test_promotion_is_idempotent(self):
+        out = self._run([{"ticker": "PSNL", "status": "watching",
+                          "priority": "momentum", "source": "momentum_leader_auto",
+                          "prev_source": "rotation_catalyst_auto",
+                          "added": "2026-08-01"}])
+        self.assertEqual(out["PSNL"]["prev_source"], "rotation_catalyst_auto",
+                         "re-firing must not overwrite the original source record")
+
+
 if __name__ == "__main__":
     unittest.main()
