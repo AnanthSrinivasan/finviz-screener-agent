@@ -1,20 +1,6 @@
 {
-  "updated": "2026-08-19T21:28:00.694944Z",
+  "updated": "2026-08-19T21:53:27.678448Z",
   "events": [
-    {
-      "ts": "2026-04-27T19:52:40.996230Z",
-      "date": "2026-04-27",
-      "category": "retro_patch",
-      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-04-27T19:53:08.185093Z",
-      "date": "2026-04-27",
-      "category": "target_hit",
-      "title": "NVDA T1 +20% hit \u2014 consider selling half",
-      "severity": "low"
-    },
     {
       "ts": "2026-04-27T19:53:08.185826Z",
       "date": "2026-04-27",
@@ -350,6 +336,20 @@
     },
     {
       "ts": "2026-08-19T21:28:00.694944Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.46x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T21:53:26.298546Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 5.61x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T21:53:27.678448Z",
       "date": "2026-08-19",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.46x",
