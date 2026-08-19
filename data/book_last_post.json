@@ -1,4 +1,19 @@
 {
   "last_book_post_ts": "2026-08-19T18:59:49.774037Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 5.42x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-19T19:28:31.180779Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.48x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-19T19:28:31.180779Z"
+    }
+  ]
 }
