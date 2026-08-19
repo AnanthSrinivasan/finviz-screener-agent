@@ -83,7 +83,12 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          for f in data/paper_stops.json data/live_alpaca_stops.json data/live_alpaca_trading_state.json; do
+          # paper_trading_state.json MUST stay in this list: the paper pass
+          # writes streaks/sizing every run, and omitting it here silently
+          # discarded them — the file sat frozen at 2026-05-03 for 3.5 months
+          # while paper traded all summer, so sizing_mode never left "normal"
+          # and the 3-consecutive-losses suspension could never fire.
+          for f in data/paper_stops.json data/paper_trading_state.json data/live_alpaca_stops.json data/live_alpaca_trading_state.json; do
             if [ -f "$f" ]; then
               git add "$f"
             fi
