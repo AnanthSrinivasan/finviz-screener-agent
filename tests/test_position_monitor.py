@@ -38,12 +38,22 @@ class PeelThresholdTests(unittest.TestCase):
         self.assertEqual(pm.get_peel_thresholds(12.0), (8.5, 10.0))
         self.assertEqual(pm.get_peel_thresholds(50.0), (8.5, 10.0))
 
-    def test_calibrated_override_used_when_present(self):
+    def test_calibrated_override_is_capped_at_tier(self):
         pm._PEEL_CALIBRATION_CACHE = {
             "SMCI": {"calibrated": True, "warn": 9.5, "signal": 13.2},
         }
-        # Even though ATR=3% would normally hit low tier, calibration wins
-        self.assertEqual(pm.get_peel_thresholds(3.0, ticker="SMCI"), (9.5, 13.2))
+        # Calibration may only TIGHTEN the tier, never loosen it. This case
+        # used to assert (9.5, 13.2) — "calibration wins" — which is the hole
+        # that let a live ARKG position at ATR mult 5.28 log as "healthy"
+        # against a real tier signal of 4.0 (2026-08-19). Same cap the
+        # screener and executor have enforced since May/June 2026.
+        self.assertEqual(pm.get_peel_thresholds(3.0, ticker="SMCI"), (3.0, 4.0))
+
+    def test_calibration_may_still_tighten(self):
+        pm._PEEL_CALIBRATION_CACHE = {
+            "TIGHT": {"calibrated": True, "warn": 2.0, "signal": 2.5},
+        }
+        self.assertEqual(pm.get_peel_thresholds(3.0, ticker="TIGHT"), (2.0, 2.5))
 
     def test_uncalibrated_ticker_falls_back_to_tier(self):
         pm._PEEL_CALIBRATION_CACHE = {
@@ -692,3 +702,59 @@ class TestMergePositionHistory(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PeelThresholdCalibrationCapTests(unittest.TestCase):
+    """Per-ticker calibration may only TIGHTEN the ATR% tier, never loosen it.
+
+    The screener (_peel_warn_for, 2026-05-29) and the executor entry gate
+    (2026-06-12) both enforce this cap. position_monitor — the copy managing
+    real money — was missed and returned calibrated values unconditionally.
+
+    utils/calibrate_peel.py floors an under-sampled ticker at warn 7.5 /
+    signal 10.0, which for a low-vol name whose tier is 3.0/4.0 is a hole, not
+    a calibration. On 2026-08-19 a live ARKG position (ATR 3.40%, calibrated
+    off 4 runs to 7.5/10.0) sat at ATR mult 5.28 — past the tier signal of
+    4.0 — and the monitor logged it "healthy". 506 of 507 calibrated tickers
+    were looser than their tier; XTIA's warn was 212.1 against a tier of 8.5.
+    """
+
+    def setUp(self):
+        from agents.trading import position_monitor as pm
+        self.pm = pm
+        self._prev_cache = pm._PEEL_CALIBRATION_CACHE
+
+    def tearDown(self):
+        self.pm._PEEL_CALIBRATION_CACHE = self._prev_cache
+
+    def _cal(self, **entries):
+        self.pm._PEEL_CALIBRATION_CACHE = entries
+
+    def test_loose_calibration_is_capped_at_tier(self):
+        self._cal(ARKG={"calibrated": True, "warn": 7.5, "signal": 10.0})
+        self.assertEqual(self.pm.get_peel_thresholds(3.40, "ARKG"), (3.0, 4.0))
+
+    def test_absurd_calibration_is_capped(self):
+        """XTIA real value — warn 212.1 on a 12.6% ATR name."""
+        self._cal(XTIA={"calibrated": True, "warn": 212.1, "signal": 282.7})
+        warn, signal = self.pm.get_peel_thresholds(12.60, "XTIA")
+        self.assertLessEqual(warn, 8.5)
+        self.assertLessEqual(signal, 10.0)
+
+    def test_tighter_calibration_is_respected(self):
+        """Calibration may still tighten — that direction is the point of it."""
+        self._cal(AAA={"calibrated": True, "warn": 2.0, "signal": 2.5})
+        self.assertEqual(self.pm.get_peel_thresholds(3.40, "AAA"), (2.0, 2.5))
+
+    def test_mixed_direction_caps_only_the_loose_side(self):
+        self._cal(AAA={"calibrated": True, "warn": 2.0, "signal": 99.0})
+        self.assertEqual(self.pm.get_peel_thresholds(3.40, "AAA"), (2.0, 4.0))
+
+    def test_uncalibrated_ticker_uses_tier(self):
+        self._cal()
+        self.assertEqual(self.pm.get_peel_thresholds(3.40, "ZZZZ"), (3.0, 4.0))
+        self.assertEqual(self.pm.get_peel_thresholds(9.0, "ZZZZ"), (6.5, 8.0))
+
+    def test_no_ticker_uses_tier(self):
+        self._cal()
+        self.assertEqual(self.pm.get_peel_thresholds(3.40), (3.0, 4.0))

@@ -156,7 +156,7 @@ The position monitor has two layers:
 - Hard stop: $-4,500 per position (SLV Feb 2026 rule)
 - ATR exit: ATR multiple from SMA50 <= -1.5
 - Dynamic stop: 5% base + (ATR% × 0.5). Tightens to 3% base in RED/DANGER market state.
-- Peel warn/signal: per-ticker calibrated from `data/peel_calibration.json` (p75 as signal, floor 10x; p75×0.75 as warn, floor 7.5x). Falls back to ATR% tier table if ticker not calibrated: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
+- Peel warn/signal: per-ticker calibrated from `data/peel_calibration.json` (p75 as signal, floor 10x; p75×0.75 as warn, floor 7.5x), **capped at the ATR% tier — calibration can only tighten, never loosen** (2026-08-19; the screener `_peel_warn_for` got this cap 2026-05-29 and the executor entry gate 2026-06-12, but `position_monitor.get_peel_thresholds` — the copy managing real money — was missed). The under-sampled floor of 7.5/10.0 is a hole for a low-vol name whose tier is 3.0/4.0: a live ARKG position (ATR 3.40%, calibrated off 4 runs) sat at ATR mult 5.28, past the tier signal, and logged "healthy". **506 of 507 calibrated tickers were looser than their tier** (XTIA warn 212.1 vs tier 8.5), so the monitor had effectively no peel discipline on any calibrated name. Falls back to ATR% tier table if ticker not calibrated: low(≤4%): 3/4x · mid(≤7%): 5/6x · high(≤10%): 6.5/8x · extreme: 8.5/10x
 - AI commentary via Claude API
 
 **Layer 1b — ATR%-tiered, regime-adaptive MA trail (runs post-close only, 22:00 UTC):**

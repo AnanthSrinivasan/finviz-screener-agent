@@ -128,7 +128,27 @@ def snaptrade_get(path: str, params: dict = None) -> dict | list | None:
 # ----------------------------
 
 def get_peel_thresholds(atr_pct: float, ticker: str = None) -> tuple:
+    """Per-ticker calibrated peel thresholds, CAPPED at the ATR% tier.
+
+    Calibration may only ever TIGHTEN the tier, never loosen it — the same
+    rule already enforced in the screener (`_peel_warn_for`, 2026-05-29) and
+    the executor entry gate (2026-06-12). This third copy was missed, and it
+    is the one managing real money.
+
+    `utils/calibrate_peel.py` floors an under-sampled ticker's warn at 7.5 and
+    signal at 10.0. For a low-vol name whose tier says 3.0/4.0 that floor is
+    not a calibration, it is a hole: ARKG (ATR 3.40%, calibrated off just 4
+    runs to warn 7.5 / signal 10.0) sat at ATR mult 5.28 on 2026-08-19 —
+    past the tier signal of 4.0 — and the monitor logged it "healthy", so no
+    trim alert would have fired until 7.5.
+    """
     global _PEEL_CALIBRATION_CACHE
+    tier_warn, tier_signal = 7.0, 10.0
+    for tier in PEEL_THRESHOLDS.values():
+        if atr_pct <= tier["max_atr"]:
+            tier_warn, tier_signal = tier["warn"], tier["signal"]
+            break
+
     if ticker:
         if _PEEL_CALIBRATION_CACHE is None:
             cal_path = os.path.join(DATA_DIR, "peel_calibration.json")
@@ -139,11 +159,9 @@ def get_peel_thresholds(atr_pct: float, ticker: str = None) -> tuple:
                 _PEEL_CALIBRATION_CACHE = {}
         entry = _PEEL_CALIBRATION_CACHE.get(ticker, {})
         if entry.get("calibrated"):
-            return entry["warn"], entry["signal"]
-    for tier in PEEL_THRESHOLDS.values():
-        if atr_pct <= tier["max_atr"]:
-            return tier["warn"], tier["signal"]
-    return 7.0, 10.0
+            return (min(entry["warn"], tier_warn),
+                    min(entry["signal"], tier_signal))
+    return tier_warn, tier_signal
 
 
 # ----------------------------
