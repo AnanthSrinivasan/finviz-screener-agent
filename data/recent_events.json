@@ -1,20 +1,6 @@
 {
-  "updated": "2026-08-19T09:31:41.330351Z",
+  "updated": "2026-08-19T14:22:20.819156Z",
   "events": [
-    {
-      "ts": "2026-04-27T19:49:44.674030Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "NVDA breakeven stop set at $100.50",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-27T19:49:44.674678Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "NVDA breakeven stop set at $100.50",
-      "severity": "low"
-    },
     {
       "ts": "2026-04-27T19:50:44.987385Z",
       "date": "2026-04-27",
@@ -354,6 +340,20 @@
     },
     {
       "ts": "2026-08-19T09:31:41.330351Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "NVDA fill patched -5.9% \u2192 -4.0%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T14:22:20.817952Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T14:22:20.819156Z",
       "date": "2026-08-19",
       "category": "retro_patch",
       "title": "NVDA fill patched -5.9% \u2192 -4.0%",
