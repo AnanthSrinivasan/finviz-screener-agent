@@ -430,14 +430,21 @@ override in `ticker_sector_map.json` (DAVE's Finviz industry "Software -
 Application" was mis-routing it to IGV). See
 [docs/specs/system-staleness-and-routing-fixes.md] §5.
 
-**🔥 Big Movers (top-of-message, 2026-05-30):** Power Move tickers (9M+ share
-volume + 10%+ day = Bonde institutional-conviction signal) surfaced FIRST in the
-Slack message, above Ready-to-Enter, so an ONDS-class +83%/248M-vol candle can't
-get buried in the 200-row table. Compact one-liner enriched with %change + volume
-(e.g. `*ONDS* (+83.1%, 248M)`), sorted by volume desc. Replaces the old buried
-"Power Moves" block that sat mid-message. Still gated on the 9M+ post-filter
-(`_parse_vol`, since Finviz `sh_vol_o*` URL params are silently ignored). The HTML
-gallery `🔥 Power Moves` section (via `_classify_ticker`) is unchanged.
+**🔥 Big Movers (top-of-message, 2026-05-30; dollar-volume gate 2026-08-19):** Power
+Move tickers (9M+ share volume **OR** $150M+ dollar volume + 10%+ day = Bonde
+institutional-conviction signal) surfaced FIRST in the Slack message, above
+Ready-to-Enter, so an ONDS-class +83%/248M-vol candle can't get buried in the
+200-row table. Compact one-liner enriched with %change + volume (e.g. `*ONDS*
+(+83.1%, 248M)`), sorted by volume desc. Replaces the old buried "Power Moves"
+block that sat mid-message. Gated by `passes_big_mover_volume()` (`_parse_vol`
++ price, since Finviz `sh_vol_o*` URL params are silently ignored) — a pure
+share-count floor is the same DAVE-class bug already fixed on the liquidity
+gate below, and it survived here: TWST printed 3.29M shares @ $115.01 on
+2026-08-05 (~$378M/day, on the Power Move screen) and was dropped for
+under-shooting 9M shares, then ran $101→$125 in ten days without ever
+reaching a Slack block. The HTML gallery `🔥 Power Moves` section (via
+`_classify_ticker`) uses the same gate. Tests:
+`tests/test_dollar_volume_gate.py::TestBigMoverVolumeGate`.
 
 Two actionable callouts in the daily Slack message, ordered by urgency:
 

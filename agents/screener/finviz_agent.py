@@ -794,6 +794,36 @@ def _parse_vol(raw) -> float:
     return val
 
 
+BIG_MOVER_MIN_SHARES = 9_000_000
+BIG_MOVER_MIN_DOLLAR_VOL = 150_000_000.0
+
+
+def passes_big_mover_volume(row) -> bool:
+    """Institutional-conviction volume test for the 🔥 Big Movers block.
+
+    Either 9M+ shares OR $150M+ of dollar volume. The share count alone is the
+    same crude measure already fixed for the liquidity gate in June 2026 (the
+    DAVE case: ~573K shares but ~$155M/day, invisible system-wide). It survived
+    here and cost TWST: on 2026-08-05 it printed 3.29M shares at $115 —
+    $378M of dollar volume, a Power Move screener hit — and was dropped for not
+    clearing 9M *shares*. It then ran $101 → $125 in ten days (+337% on the
+    year) without ever reaching a Slack block. A share-count-only gate can only
+    ever see cheap high-float names (ONDS at 248M shares); it is structurally
+    blind to a $100 stock trading real money.
+    """
+    shares = _parse_vol(row.get('Volume', 0))
+    if shares >= BIG_MOVER_MIN_SHARES:
+        return True
+    price = row.get('Price')
+    try:
+        price = float(price)
+    except (TypeError, ValueError):
+        return False
+    if price <= 0:
+        return False
+    return shares * price >= BIG_MOVER_MIN_DOLLAR_VOL
+
+
 def _classify_ticker(row) -> str:
     screeners  = str(row.get('Screeners', '') or '')
     stage_data = row.get('Stage', {}) or {}
@@ -803,9 +833,10 @@ def _classify_ticker(row) -> str:
     dist_high  = float(row.get('Dist From High%', 0) or 0)
     sma20      = float(row.get('SMA20%', 0) or 0)
 
-    # Power Move — must meet 9M+ actual volume gate (Finviz sh_vol_o* param is unreliable).
-    # Stocks tagged 'Power Move' but below 9M volume fall through to normal classification.
-    if 'Power Move' in screeners and _parse_vol(row.get('Volume', 0)) >= 9_000_000:
+    # Power Move — must meet passes_big_mover_volume (Finviz sh_vol_o* param is
+    # unreliable, so this is enforced post-scrape). Stocks tagged 'Power Move'
+    # but below the volume floor fall through to normal classification.
+    if 'Power Move' in screeners and passes_big_mover_volume(row):
         return 'power_move'
     # IPO lifecycle: in IPO screener OR showing IPO washout-recovery pattern
     # (deeply below 52w high but strongly above 20-day MA)
@@ -1782,12 +1813,13 @@ def send_slack_notification(summary_df: pd.DataFrame, filter_df: pd.DataFrame,
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":brain: *Today's take:*\n{ai_summary}"}})
         blocks.append({"type": "divider"})
 
-    # 🔥 Big Movers — Power Move tickers (9M+ share vol + 10%+ day = Bonde
-    # institutional conviction) surfaced FIRST so an ONDS-class +83%/248M candle
-    # can't get buried in the table. Compact one line, enriched w/ %chg + vol.
+    # 🔥 Big Movers — Power Move tickers (9M+ shares OR $150M+ dollar vol +
+    # 10%+ day = Bonde institutional conviction) surfaced FIRST so an ONDS-class
+    # +83%/248M candle (or a TWST-class $378M/day high-price mover) can't get
+    # buried in the table. Compact one line, enriched w/ %chg + vol.
     big_movers = filter_df[filter_df['Screeners'].str.contains('Power Move', na=False)] if 'Screeners' in filter_df.columns else pd.DataFrame()
     if not big_movers.empty and 'Volume' in big_movers.columns:
-        big_movers = big_movers[big_movers['Volume'].apply(_parse_vol) >= 9_000_000]
+        big_movers = big_movers[big_movers.apply(passes_big_mover_volume, axis=1)]
     if not big_movers.empty:
         bm = big_movers.copy()
         bm['_vol'] = bm['Volume'].apply(_parse_vol)
@@ -4711,13 +4743,14 @@ if __name__ == "__main__":
                     "atr_pct": _frow.get("ATR%"),
                 }
         # Big Movers — same filter as the Slack top-of-message block:
-        # Power Move screen + 9M+ raw share volume, sorted by volume desc.
+        # Power Move screen + passes_big_mover_volume (9M+ shares OR $150M+
+        # dollar volume), sorted by raw share volume desc.
         _bm_tickers: list = []
         if not filter_df.empty and "Screeners" in filter_df.columns:
             _bm_df = filter_df[filter_df["Screeners"].str.contains("Power Move", na=False)].copy()
             if not _bm_df.empty and "Volume" in _bm_df.columns:
                 _bm_df["_vol_num"] = _bm_df["Volume"].apply(_parse_vol)
-                _bm_df = _bm_df[_bm_df["_vol_num"] >= 9_000_000]
+                _bm_df = _bm_df[_bm_df.apply(passes_big_mover_volume, axis=1)]
                 _bm_tickers = _bm_df.sort_values("_vol_num", ascending=False)["Ticker"].tolist()
         _block_tickers = {
             "ready_to_enter":    [r["ticker"] for r in ready_to_enter],

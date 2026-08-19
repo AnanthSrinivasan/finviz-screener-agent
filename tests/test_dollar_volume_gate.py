@@ -4,6 +4,7 @@ from agents.screener.finviz_agent import (
     classify_screener_tail,
     passes_dollar_volume_gate,
     passes_dollar_volume_prefilter,
+    passes_big_mover_volume,
     MIN_DOLLAR_VOL,
     PREFILTER_MIN_DOLLAR_VOL,
 )
@@ -116,3 +117,43 @@ class TestClassifyScreenerTail(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBigMoverVolumeGate(unittest.TestCase):
+    """🔥 Big Movers gate: 9M+ shares OR $150M+ dollar volume.
+
+    Regression for the TWST miss (2026-08-05): 3.29M shares @ $115 = $378M/day,
+    on the Power Move screen, dropped because the gate only ever tested raw
+    share count. TWST then ran $101 -> $125 in ten days without reaching a
+    Slack block. Same root cause as the DAVE dollar-volume gate above — a
+    share-count floor is structurally blind to high-priced liquid names, and
+    it survived here after being fixed for the liquidity gate in June 2026.
+    """
+
+    def test_high_share_count_passes(self):
+        # ONDS-class: 248M shares regardless of price.
+        row = {"Volume": "248,000,000", "Price": "3.10"}
+        self.assertTrue(passes_big_mover_volume(row))
+
+    def test_twst_class_high_price_passes_on_dollar_volume(self):
+        # TWST 2026-08-05: 3.29M shares @ $115.01 = ~$378M/day.
+        row = {"Volume": "3,292,929", "Price": "115.01"}
+        self.assertTrue(passes_big_mover_volume(row))
+
+    def test_low_volume_low_price_fails_both(self):
+        row = {"Volume": "500,000", "Price": "20.00"}  # $10M/day, 500K shares
+        self.assertFalse(passes_big_mover_volume(row))
+
+    def test_just_under_dollar_floor_fails(self):
+        # 1M shares @ $149 = $149M — just below the $150M floor, and well
+        # under 9M shares.
+        row = {"Volume": "1,000,000", "Price": "149.00"}
+        self.assertFalse(passes_big_mover_volume(row))
+
+    def test_missing_price_fails_closed(self):
+        row = {"Volume": "2,000,000", "Price": None}
+        self.assertFalse(passes_big_mover_volume(row))
+
+    def test_zero_or_bad_price_fails_closed(self):
+        self.assertFalse(passes_big_mover_volume({"Volume": "2,000,000", "Price": "0"}))
+        self.assertFalse(passes_big_mover_volume({"Volume": "2,000,000", "Price": "-"}))
