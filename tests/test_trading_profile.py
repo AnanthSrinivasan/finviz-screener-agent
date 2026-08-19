@@ -253,5 +253,53 @@ class ExecutorLiveWiringTests(unittest.TestCase):
         self.assertIn("paper_stops.json", am.PAPER_STOPS_FILE)
 
 
+class NotionalToFractionalQtyTests(unittest.TestCase):
+    """Alpaca accepts `notional` only on market orders. A marketable-limit buy
+    must be sized in fractional shares — sending notional alongside a limit
+    type is rejected 403, which is how every live order from 2026-07-29 to
+    2026-08-18 failed (54 attempts, 0 fills)."""
+
+    def test_converts_dollars_to_shares(self):
+        self.assertAlmostEqual(tp.notional_to_fractional_qty(1000.0, 250.0), 4.0)
+
+    def test_rounds_down_never_exceeds_budget(self):
+        qty = tp.notional_to_fractional_qty(1512.03, 1084.31)
+        self.assertLessEqual(qty * 1084.31, 1512.03)
+
+    def test_guards_bad_inputs(self):
+        self.assertEqual(tp.notional_to_fractional_qty(0, 100.0), 0.0)
+        self.assertEqual(tp.notional_to_fractional_qty(100.0, 0), 0.0)
+        self.assertEqual(tp.notional_to_fractional_qty(-50.0, 100.0), 0.0)
+
+
+class LiveOrderPayloadTests(unittest.TestCase):
+    """Regression guard on the wire format of a live buy."""
+
+    def test_payload_sends_qty_not_notional(self):
+        from unittest import mock
+        from agents.trading import alpaca_executor as ae
+
+        captured = {}
+
+        class _Resp:
+            text = '{"id":"x"}'
+            def raise_for_status(self): pass
+            def json(self): return {"id": "x"}
+
+        def _fake_post(url, headers=None, json=None, timeout=None):
+            captured.update(json or {})
+            return _Resp()
+
+        with mock.patch.object(ae.requests, "post", _fake_post), \
+             mock.patch.object(ae, "LIVE_DRY_RUN", False):
+            ae.place_live_buy("GEV", 1512.03, 1084.31, "live-20260817-GEV")
+
+        self.assertNotIn("notional", captured)
+        self.assertIn("qty", captured)
+        self.assertEqual(captured["type"], "limit")
+        self.assertEqual(captured["time_in_force"], "day")
+        self.assertLessEqual(float(captured["qty"]) * 1084.31, 1512.03)
+
+
 if __name__ == "__main__":
     unittest.main()

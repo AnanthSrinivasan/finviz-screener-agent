@@ -23,7 +23,8 @@ def _write_json(d, name, obj):
 
 def _write_screener_csv(d, date_str, rows):
     cols = ["Ticker", "Company", "Sector", "Quality Score", "ATR%",
-            "Dist From High%", "Rel Volume", "VCP", "SMA20%", "SMA50%", "SMA200%"]
+            "Dist From High%", "Rel Volume", "VCP", "Stage",
+            "SMA20%", "SMA50%", "SMA200%"]
     with open(os.path.join(d, f"finviz_screeners_{date_str}.csv"), "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()
@@ -32,10 +33,14 @@ def _write_screener_csv(d, date_str, rows):
 
 
 def _qualifying_row(ticker="CRWD", q="84"):
+    # VCP/Stage must carry the repr'd-dict shape the real screener CSV writes —
+    # a bare "80" here is what let the brief's "0 qualify" bug pass tests.
     return {"Ticker": ticker, "Company": "Co", "Sector": "Tech",
             "Quality Score": q, "ATR%": "4", "Dist From High%": "-6",
-            "Rel Volume": "1.0", "VCP": "80", "SMA20%": "2", "SMA50%": "8",
-            "SMA200%": "20"}
+            "Rel Volume": "1.0",
+            "VCP": "{'vcp_possible': True, 'confidence': 80}",
+            "Stage": "{'stage': 2, 'perfect': True}",
+            "SMA20%": "2", "SMA50%": "8", "SMA200%": "20"}
 
 
 def _full_fixture(d):

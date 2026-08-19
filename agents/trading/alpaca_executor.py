@@ -566,6 +566,13 @@ def place_live_buy(symbol: str, notional: float, limit_price: float,
     """Live profile buy: notional dollars, marketable limit (last × 1.005),
     day TIF — unfilled at EOD expires (monitor posts the no-chase log line).
     client_order_id makes retried workflows idempotent (Alpaca rejects dups).
+
+    The dollar size is converted to a fractional `qty` before sending.
+    Alpaca accepts `notional` ONLY on market orders; `notional` + a limit
+    type is rejected 403 at the API with no order created. Every live order
+    from 2026-07-29 to 2026-08-18 failed this way (54 attempts, 0 fills)
+    because the payload sent both. Fractional qty + limit + day is the
+    supported shape and preserves the marketable-limit intent.
     """
     if LIVE_DRY_RUN:
         msg = (
@@ -580,13 +587,19 @@ def place_live_buy(symbol: str, notional: float, limit_price: float,
         # dry-run previews exactly what a real run would place, but must not
         # persist stops or any other state.
         return {"dry_run": True}
+    qty = tp.notional_to_fractional_qty(notional, limit_price)
+    if qty <= 0:
+        log.error("Live order skipped for %s — qty resolves to 0 "
+                  "(notional $%.2f / limit $%.2f)", symbol, notional, limit_price)
+        return {}
+    body = ""
     try:
         resp = requests.post(
             f"{ALPACA_BASE_URL}/orders",
             headers=alpaca_headers(),
             json={
                 "symbol":          symbol,
-                "notional":        str(round(notional, 2)),
+                "qty":             str(qty),
                 "side":            "buy",
                 "type":            "limit",
                 "limit_price":     str(round(limit_price, 2)),
@@ -595,12 +608,17 @@ def place_live_buy(symbol: str, notional: float, limit_price: float,
             },
             timeout=15,
         )
+        body = (resp.text or "")[:300]
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
-        log.error("Live order failed for %s: %s", symbol, e)
+        # Alpaca puts the actionable reason (code + message) in the response
+        # body, never in the HTTP status line. Logging only str(e) is what
+        # let the 403s above read as an opaque "Forbidden" for three weeks.
+        detail = str(e) + (" | " + body if body else "")
+        log.error("Live order failed for %s: %s", symbol, detail)
         slack_send(":x: " + TAG + " *ORDER FAILED* " + symbol
-                   + " $" + str(round(notional, 2)) + ": " + str(e))
+                   + " $" + str(round(notional, 2)) + ": " + detail)
         return {}
 
 
@@ -768,6 +786,7 @@ if __name__ == "__main__":
     max_pos         = tp.LIVE_MAX_POSITIONS if IS_LIVE else effective_max_positions(market_state)
     paper_state     = load_paper_trading_state()
     sizing_mode     = paper_state.get("current_sizing_mode", "normal")
+    arm_live_on_first_fill = False
 
     # Sizing mode overlays on top of market gate
     if sizing_mode == "suspended":
@@ -848,13 +867,15 @@ if __name__ == "__main__":
         # user has run one manual dispatch and watched order #1 land. A DRY RUN
         # passes through (places nothing, arms nothing) so wiring can be
         # smoke-tested without arming the cron.
+        #
+        # Arming happens AFTER the buy loop, and only if an order actually
+        # placed — see `arm_live_on_first_fill` below. Setting the flag here on
+        # dispatch alone is what hid the 403s: the gate reported "verified" and
+        # armed the cron while every order this account ever sent was rejected.
         if not paper_state.get("first_run_verified") and not LIVE_DRY_RUN:
             manual = (os.environ.get("LIVE_MANUAL_DISPATCH") or "").strip() == "1"
             if manual:
-                paper_state["first_run_verified"] = True
-                save_trading_state(paper_state)
-                slack_send(":white_check_mark: " + TAG
-                           + " FIRST RUN — manual dispatch verified; scheduled entries armed from now on")
+                arm_live_on_first_fill = True
             else:
                 slack_send(
                     ":hourglass: " + TAG + " entries skipped — first run not yet "
@@ -886,6 +907,7 @@ if __name__ == "__main__":
         cancel_stale_gtc_orders(max_age_days=2)
     stops           = load_stops()
     orders_placed   = 0
+    live_rejects    = 0
     total_deployed  = 0.0
     pending_positions = set(open_positions)  # track adds during this run
 
@@ -997,7 +1019,21 @@ if __name__ == "__main__":
             )
             order_result = place_live_buy(ticker, notional, limit_price, coid)
             if not order_result:
+                # A rejection must not hand the slot to the next candidate
+                # indefinitely: on 2026-08-17 ten orders were attempted against
+                # a cap of 3 because only fills advanced the counter. Abort the
+                # run after consecutive rejections — a broker refusing orders is
+                # a condition to surface, not to retry down the whole list.
+                live_rejects += 1
+                if live_rejects >= tp.LIVE_MAX_POSITIONS:
+                    slack_send(
+                        ":octagonal_sign: " + TAG + " *ENTRIES ABORTED* — "
+                        + str(live_rejects) + " consecutive order rejections. "
+                        "No further attempts today; see ORDER FAILED above for the reason."
+                    )
+                    break
                 continue
+            live_rejects = 0
         else:
             shares = math.floor(dollar_alloc / price)
             if shares < 1:
@@ -1074,6 +1110,18 @@ if __name__ == "__main__":
                 "Q=" + str(int(qs)) + " | Stage 2 | VCP=" + str(vcp_ok) + "\n"
                 "_Fills at open if price ≤ limit — no chase if gap-up_"
             )
+
+    # Arm the live cron only once a real order has been accepted by the broker.
+    # `orders_placed > 0` is the proof the previous gate lacked.
+    if arm_live_on_first_fill and orders_placed > 0:
+        paper_state["first_run_verified"] = True
+        save_trading_state(paper_state)
+        slack_send(":white_check_mark: " + TAG + " FIRST RUN VERIFIED — "
+                   + str(orders_placed) + " order(s) accepted by the broker; "
+                   "scheduled entries armed from now on")
+    elif arm_live_on_first_fill:
+        slack_send(":hourglass: " + TAG + " still not armed — manual dispatch ran but "
+                   "no order was accepted. Scheduled entries stay disabled.")
 
     # Step 8: Summary
     slack_send(

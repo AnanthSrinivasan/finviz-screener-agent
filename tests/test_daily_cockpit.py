@@ -54,11 +54,25 @@ class TestDisciplineLine(unittest.TestCase):
 
 class TestQualify(unittest.TestCase):
     def _row(self, **kw):
+        # Stage/VCP arrive from csv.DictReader as repr'd dicts, NOT as bare
+        # numbers — this fixture used to carry "VCP": "80" and so passed while
+        # production scored every row 0 and the block rendered permanently
+        # empty. Keep these matching the real CSV shape.
         base = {"Ticker": "AAA", "Quality Score": "85", "ATR%": "5", "Dist From High%": "-6",
-                "Rel Volume": "1.0", "VCP": "80", "SMA20%": "3", "SMA50%": "8", "SMA200%": "20",
+                "Rel Volume": "1.0",
+                "VCP": "{'vcp_possible': True, 'confidence': 80}",
+                "Stage": "{'stage': 2, 'perfect': True}",
+                "SMA20%": "3", "SMA50%": "8", "SMA200%": "20",
                 "Company": "Co", "Sector": "Tech"}
         base.update(kw)
         return base
+
+    def test_vcp_read_from_repr_dict(self):
+        """Regression: the CSV VCP column is a repr'd dict. Reading it with a
+        bare float() yields 0 and silently empties the whole block."""
+        self.assertEqual(cp.qualify_setups([self._row()], held=set())[0]["vcp"], 80.0)
+        low = self._row(VCP="{'vcp_possible': False, 'confidence': 30}")
+        self.assertEqual(cp.qualify_setups([low], held=set()), [])
 
     def test_clean_setup_passes(self):
         out = cp.qualify_setups([self._row()], held=set())

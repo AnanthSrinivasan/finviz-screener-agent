@@ -22,6 +22,7 @@ Pure render_*/decision fns are import-safe (no API keys) so they unit-test clean
 loaders + write_page do the IO.
 """
 
+import ast
 import csv
 import datetime
 import glob
@@ -142,6 +143,21 @@ def tier_peel_warn(atr: float) -> float:
     return 8.5
 
 
+def _dict_field(v):
+    """Stage/VCP round-trip through the screener CSV as repr'd dicts.
+    csv.DictReader hands them back as strings, so a plain float() on the
+    column silently yields 0 — which made the VCP≥70 gate below unsatisfiable
+    for every row on every day, and the block rendered a calm '0 setups
+    clear every gate' instead of failing."""
+    if isinstance(v, dict):
+        return v
+    try:
+        parsed = ast.literal_eval(v)
+        return parsed if isinstance(parsed, dict) else {}
+    except (ValueError, SyntaxError):
+        return {}
+
+
 def qualify_setups(rows: list, held: set, top_n: int = 3) -> list:
     """Ready-to-Enter gate over screener CSV rows (CLAUDE.md criteria).
     Pure: rows are dicts with the screener CSV columns. Returns trade-plan cards."""
@@ -155,12 +171,19 @@ def qualify_setups(rows: list, held: set, top_n: int = 3) -> list:
         atr = _f(r.get("ATR%"))
         dist = _f(r.get("Dist From High%"))
         rvol = _f(r.get("Rel Volume"))
-        vcp = _f(r.get("VCP"))
+        vcp = _f(_dict_field(r.get("VCP")).get("confidence"))
         s20 = _f(r.get("SMA20%"))
         s50 = _f(r.get("SMA50%"))
         s200 = _f(r.get("SMA200%"))
-        # Stage 2 perfect proxy from SMA distances: 50MA above 200MA, price above 50 & 20
-        stage_perfect = (s200 > s50) and (s50 > 0) and (s20 > 0)
+        # Stage 2 proxy from SMA distances: 50MA above 200MA, price above 50 & 20.
+        # Mirrors _is_ready_to_enter's pullback relaxation — at dist ≤ -10% a
+        # legitimate pullback to the EMA21 dips 1-3% under SMA20, so tolerate it
+        # rather than dropping the setup the block exists to surface.
+        if dist <= -10.0:
+            stage_perfect = (_dict_field(r.get("Stage")).get("stage") == 2
+                             and s200 > s50 and s50 > 0 and s20 >= -3.0)
+        else:
+            stage_perfect = (s200 > s50) and (s50 > 0) and (s20 > 0)
         peel_safe = atr > 0 and (s50 / atr) <= tier_peel_warn(atr)
         if not (stage_perfect and q >= 80 and atr <= 7 and -12 <= dist <= -1
                 and rvol <= 1.2 and vcp >= 70 and peel_safe):

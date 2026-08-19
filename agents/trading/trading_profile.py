@@ -18,6 +18,7 @@ Live deltas vs paper (all enforced by the pure functions below):
   - full exits only: no T1/T2 peels, hard full take-profit at +30%
 """
 
+import math
 import os
 
 LIVE_MAX_POSITIONS = 3
@@ -134,6 +135,18 @@ def should_full_take_profit(entry_price: float, current_price: float) -> bool:
 def marketable_limit(last_price: float) -> float:
     """Marketable-limit price: last × 1.005, protects against thin-open slippage."""
     return round(last_price * LIVE_LIMIT_MARKUP, 2)
+
+
+def notional_to_fractional_qty(notional: float, limit_price: float) -> float:
+    """Dollar size → fractional share qty for a live limit order.
+
+    Alpaca accepts `notional` only on market orders, so a marketable-limit
+    buy has to be sized in shares. Rounded DOWN to 9dp (Alpaca's fractional
+    precision) so the resulting order can never exceed the intended dollars.
+    """
+    if notional <= 0 or limit_price <= 0:
+        return 0.0
+    return math.floor(notional / limit_price * 1e9) / 1e9
 
 
 def filter_expired_unfilled(orders: list, since_iso: str = "") -> list:
