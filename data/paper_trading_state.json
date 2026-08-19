@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 1,
+  "consecutive_losses": 2,
   "total_wins": 0,
-  "total_losses": 1,
-  "current_sizing_mode": "normal",
+  "total_losses": 2,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-04-29",
+  "last_updated": "2026-08-19",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -30,6 +30,14 @@
       "date": "2026-04-29",
       "side": "SELL",
       "source": "peak_fallback"
+    },
+    {
+      "ticker": "NUE",
+      "result": "loss",
+      "result_pct": -3.07,
+      "date": "2026-08-19",
+      "side": "SELL",
+      "source": "fill"
     }
   ]
 }
