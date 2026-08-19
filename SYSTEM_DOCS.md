@@ -1173,7 +1173,7 @@ The daily output was a chart **firehose** — `finviz_chart_grid_*.html` with 10
 1. **Discipline banner** — sizing mode · W/L streak · equity vs $150k realistic / $200k stretch goal. One synthesized headspace line.
 2. **🚦 The Gate** — `gate_decision(market_state, regime, sizing_mode)`: FULL (GREEN/THRUST/TREND-FOLLOW) · HALF (CAUTION/STEADY-UPTREND) · NO NEW ENTRIES (RED/DANGER/BLACKOUT/EXTENDED/COOLING). ETF regime `blow-off-risk`/`late-rotation` and sizing `reduced`/`suspended` overlays can only *tighten* (reduced caps FULL→HALF; suspended → PAPER ONLY). Position cap 10/7/5.
 3. **📓 The Book** — live SnapTrade (`fetch_positions` + `build_row` + `verdict_for`), falls back to `positions.json` on exception OR when SnapTrade returns zero positions (2026-07-13: auth failures log an ERROR but return `[]`, which rendered a false "100% cash" book; a genuinely flat book is safe because the monitor auto-closes gone positions so `positions.json` empties too). Scale-due (peak ≥+20%) and cut-due (≤-5%) flags made loud with counts. Empty → "0 positions — 100% cash."
-4. **🎯 Qualified Today** — `qualify_setups()` runs the Ready-to-Enter gate (Stage 2 perfect via SMA proxy · Q≥80 · ATR≤7 · dist -1..-12 · RVol≤1.2 · VCP≥70 · peel-safe) over the latest `finviz_screeners_*.csv`, ≤3 trade-plan cards (stop = −8% MAE floor widened to 2×ATR). Greyed watch-only when gate closed. "0 qualify = patience, not a miss."
+4. **🎯 Qualified Today** — `qualify_setups()` runs the Ready-to-Enter gate (Stage 2 perfect via SMA proxy · Q≥80 · ATR≤7 · dist -1..-12 · RVol≤1.2 · VCP≥70 · peel-safe) over the latest `finviz_screeners_*.csv`, ≤3 trade-plan cards (stop = −8% MAE floor widened to 2×ATR). Greyed watch-only when gate closed. "0 qualify = patience, not a miss." Mirrors `_is_ready_to_enter`'s pullback relaxation (accept `SMA20% ≥ -3` when dist ≤ -10%). **The `Stage`/`VCP` CSV columns are repr'd dicts** — read them via `_dict_field()`, never `float()`: a bare `float()` on `VCP` returns 0, which made `VCP≥70` unsatisfiable for every row and rendered this block (and the morning brief, which calls the same function) permanently empty with the reassuring "0 qualify — patience" copy. Fixtures must carry the dict shape; carrying `"VCP": "80"` is what kept the suite green through the outage. Guard: `tests/test_daily_cockpit.py::TestQualify::test_vcp_read_from_repr_dict`.
 5. **🎯 Radar** (2026-07-12 revamp — replaced the "On Deck" tier dump) — two compact tables: **Top 5 Entry-Ready** and **Top 5 Focus** (`radar_pick`), watching tier removed from the cockpit entirely (it stays in the gallery watchlist). Filtered `status != archived` (zombie defense), ranked by (proximity-to-trigger `|SMA20%|` asc, Q desc); names missing from today's screener rank last (proximity 99). Each row carries a one-line trigger (`radar_trigger`): "at 21 EMA — buy the hold" (|SMA20%| ≤ 1.5) · "pivot ~$X" (dist-from-high ≥ −3) · "pullback to ~$X" (extended above the EMA) · "below 21 EMA — wait for reclaim". Tables grey out (`radar-closed`) when the gate blocks entries.
 6. **🗺 Leadership** (2026-07-12 revamp — flow first, structure second; the old block sold the BASE *bucket* as "where money is flowing" and listed RS-22 laggards as next leadership) — `leadership_flows()` over `etf_rotation.json`: **💸 Money flowing IN (5d)** = top 5 by `rank_delta_5d` (climbing) with `rs_score ≥ 50` · **💨 Flowing OUT** = worst 3 by rank_delta, one line · **🎯 Bases worth screening** = BASE ∩ (RS ≥ 50 OR rank improving) — weak bases dropped, not shown · regime advice line with **spread-sanity** suffix: when (max RS − min RS) ≥ 60 appends "…but the RS spread is wide — leaders exist: {top 2 by RS}" (the 180d dispersion percentile under-reads spread in a high-rotation year — DAVE +41% week said "no single-name edge"). **📊 The Record** — win-rate + avg-win/avg-loss payoff (the metric that proves the big-winner math).
 
@@ -1268,9 +1268,25 @@ of both paper and the user's manual `trading_state.json`). Slack prefix
   POSITION` on any symbol it didn't open and will not manage it.
 - **First-run gating:** scheduled (workflow_run/cron) live entries are skipped
   until `first_run_verified: true` in `live_alpaca_trading_state.json` — set
-  automatically by the first **manual, non-dry-run** workflow_dispatch of the
-  executor (user watching order #1 land). `LIVE_DRY_RUN=1` evaluates the whole
-  pipeline but places nothing and arms nothing.
+  by the first **manual, non-dry-run** workflow_dispatch of the executor **that
+  gets an order accepted by the broker** (`orders_placed > 0`).
+  `LIVE_DRY_RUN=1` evaluates the whole pipeline but places nothing and arms
+  nothing. Until 2026-08-19 the flag was set on dispatch *before* the buy loop
+  ran, so it reported "verified" while every order was being rejected — arming
+  must depend on a real acceptance, never on the dispatch alone.
+- **Buy wire format (2026-08-19 — the 403 outage):** live buys send a
+  fractional **`qty`** (`tp.notional_to_fractional_qty`, floored to 9dp so the
+  order can't exceed the intended dollars), NOT `notional`. Alpaca accepts
+  `notional` only on **market** orders; `notional` + `type: limit` is rejected
+  403 with no order created. Every live order from 2026-07-29 to 2026-08-18
+  failed this way — 54 attempts, 0 fills, $0 deployed — and read as an opaque
+  "Forbidden" because only `str(e)` was logged. `place_live_buy` now logs
+  Alpaca's **response body** (where the reason code lives) to both the log and
+  the Slack `ORDER FAILED` alert. Guard: `tests/test_trading_profile.py::LiveOrderPayloadTests`.
+- **Rejection abort:** `LIVE_MAX_POSITIONS` consecutive order rejections end
+  the run with an `ENTRIES ABORTED` Slack post. Only fills advance the position
+  counter, so before this a rejection cascade walked the entire 10-name
+  candidate list against a cap of 3 (2026-08-17).
 
 **Workflows (no new crons):** `alpaca-executor.yml` runs the paper pass then
 the LIVE pass (dispatch inputs: `live_dry_run`, `live_only`, `live_reenable`);
