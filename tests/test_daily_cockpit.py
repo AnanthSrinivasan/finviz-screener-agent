@@ -262,3 +262,35 @@ class TestRenderSmoke(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestScreenerCanary(unittest.TestCase):
+    """Zero-output canary: a quiet day is fine, a shape drift is not."""
+
+    def _good(self):
+        return {"Ticker": "AAA",
+                "VCP": "{'vcp_possible': True, 'confidence': 80}",
+                "Stage": "{'stage': 2, 'perfect': True}"}
+
+    def test_healthy_rows_pass(self):
+        cp.assert_screener_rows_healthy([self._good()])
+
+    def test_empty_rows_pass(self):
+        cp.assert_screener_rows_healthy([])
+
+    def test_bare_numeric_vcp_raises(self):
+        """The exact 2026-08-19 fault: VCP read as a plain number."""
+        rows = [{"Ticker": "AAA", "VCP": "80", "Stage": "{'stage': 2}"}]
+        with self.assertRaises(cp.CockpitDataError):
+            cp.assert_screener_rows_healthy(rows)
+
+    def test_stage_shape_drift_raises(self):
+        rows = [{"Ticker": "AAA",
+                 "VCP": "{'vcp_possible': True, 'confidence': 80}",
+                 "Stage": "2"}]
+        with self.assertRaises(cp.CockpitDataError):
+            cp.assert_screener_rows_healthy(rows)
+
+    def test_one_good_row_is_enough(self):
+        rows = [{"Ticker": "A", "VCP": "", "Stage": ""}, self._good()]
+        cp.assert_screener_rows_healthy(rows)

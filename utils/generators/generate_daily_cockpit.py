@@ -143,6 +143,37 @@ def tier_peel_warn(atr: float) -> float:
     return 8.5
 
 
+class CockpitDataError(Exception):
+    """Screener data is structurally wrong — fail loudly instead of rendering
+    an empty block. Propagates out of write_page so the workflow goes red and
+    daily-finviz.yml's `if: failure()` step fires the Slack alarm."""
+
+
+def assert_screener_rows_healthy(rows: list) -> None:
+    """Zero-output canary for the Ready-to-Enter gate.
+
+    A legitimately quiet day yields 0 qualifying setups and that is fine. What
+    is NOT fine is the whole universe failing to parse: if not one row in a
+    populated screener yields a VCP dict with a confidence, the column shape
+    has drifted and every gate downstream silently scores 0. That is exactly
+    how this block (and the 9am morning brief, which calls the same function)
+    reported "0 qualify — patience" every day while 57 names actually
+    qualified. Same family as finviz_agent.assert_scrape_healthy.
+    """
+    if not rows:
+        return
+    if not any("confidence" in _dict_field(r.get("VCP")) for r in rows):
+        raise CockpitDataError(
+            f"VCP unparseable across all {len(rows)} screener rows — column "
+            "shape drifted; Ready-to-Enter gate would score every row 0"
+        )
+    if not any(_dict_field(r.get("Stage")).get("stage") is not None for r in rows):
+        raise CockpitDataError(
+            f"Stage unparseable across all {len(rows)} screener rows — column "
+            "shape drifted"
+        )
+
+
 def _dict_field(v):
     """Stage/VCP round-trip through the screener CSV as repr'd dicts.
     csv.DictReader hands them back as strings, so a plain float() on the
@@ -699,6 +730,7 @@ def build_context() -> dict:
     gate = gate_decision(market_state, regime, ts.get("current_sizing_mode"))
 
     screener_rows = load_screener_rows()
+    assert_screener_rows_healthy(screener_rows)
     qualified = qualify_setups(screener_rows, held)
     radar = radar_pick(load_watchlist(), screener_rows)
 
@@ -716,6 +748,13 @@ def write_page() -> str:
     os.makedirs(DATA_DIR, exist_ok=True)
     try:
         html = render_page(build_context())
+    except CockpitDataError:
+        # Deliberately NOT swallowed: a structural data fault must go red so
+        # the workflow's `if: failure()` Slack alarm fires. Rendering a
+        # plausible-looking page over bad data is the failure mode this whole
+        # canary exists to prevent.
+        log.error("cockpit data canary tripped — refusing to render", exc_info=True)
+        raise
     except Exception as e:
         log.warning("cockpit render failed: %s", e)
         html = (f"<!DOCTYPE html><html><body style='font-family:sans-serif;padding:40px'>"
