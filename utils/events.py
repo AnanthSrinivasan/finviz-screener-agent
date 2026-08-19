@@ -38,17 +38,44 @@ def _append_recent_event(
     }
     if detail:
         rec["detail"] = detail
+    log = logging.getLogger(__name__)
     try:
         events_file = os.path.join(os.environ.get("DATA_DIR", "data"), "recent_events.json")
+        events = []
         if os.path.exists(events_file):
-            with open(events_file) as f:
-                data = json.load(f)
-            events = data.get("events", []) if isinstance(data, dict) else []
-        else:
-            events = []
+            try:
+                with open(events_file) as f:
+                    data = json.load(f)
+                events = data.get("events", []) if isinstance(data, dict) else []
+            except (ValueError, OSError) as e:
+                # Recover instead of giving up. A corrupt file used to fall to
+                # the outer handler, so the append was dropped with only a
+                # warning and the feed could never heal itself: a single stray
+                # byte froze this file from 2026-04-27 to 2026-08-19, silently
+                # discarding every market-state transition in between.
+                log.warning("recent_events unreadable (%s) — salvaging and rewriting", e)
+                events = _salvage_events(events_file)
         events.append(rec)
         events = events[-max_keep:]
-        with open(events_file, "w") as f:
+        # Atomic write: a torn concurrent write is what produced the trailing
+        # byte in the first place. Rename is atomic on POSIX.
+        tmp = events_file + ".tmp"
+        with open(tmp, "w") as f:
             json.dump({"updated": rec["ts"], "events": events}, f, indent=2)
+        os.replace(tmp, events_file)
     except Exception as e:
-        logging.getLogger(__name__).warning(f"recent_events write failed: {e}")
+        log.warning(f"recent_events write failed: {e}")
+
+
+def _salvage_events(path: str) -> list:
+    """Best-effort recovery of the events list from a damaged feed file.
+    Returns [] when nothing is readable — a reset feed beats a dead one."""
+    try:
+        with open(path) as f:
+            raw = f.read()
+        obj, _ = json.JSONDecoder().raw_decode(raw)
+        if isinstance(obj, dict) and isinstance(obj.get("events"), list):
+            return obj["events"]
+    except Exception:
+        pass
+    return []
