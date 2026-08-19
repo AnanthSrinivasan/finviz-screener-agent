@@ -1,34 +1,6 @@
 {
-  "updated": "2026-08-19T16:22:25.723655Z",
+  "updated": "2026-08-19T19:04:23.311453Z",
   "events": [
-    {
-      "ts": "2026-04-27T19:51:15.447863Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "NVDA breakeven stop set at $100.50",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-27T19:52:40.954161Z",
-      "date": "2026-04-27",
-      "category": "target_hit",
-      "title": "NVDA T1 +20% hit \u2014 consider selling half",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-27T19:52:40.956505Z",
-      "date": "2026-04-27",
-      "category": "stop_hit",
-      "title": "NVDA stop hit @ $94.50 (stop $95.00)",
-      "severity": "high"
-    },
-    {
-      "ts": "2026-04-27T19:52:40.958505Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "NVDA breakeven stop set at $100.50",
-      "severity": "low"
-    },
     {
       "ts": "2026-04-27T19:52:40.960397Z",
       "date": "2026-04-27",
@@ -354,6 +326,34 @@
     },
     {
       "ts": "2026-08-19T16:22:25.723655Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "NVDA fill patched -5.9% \u2192 -4.0%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:03:44.424457Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:03:44.426512Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "NVDA fill patched -5.9% \u2192 -4.0%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:04:23.309957Z",
+      "date": "2026-08-19",
+      "category": "retro_patch",
+      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:04:23.311453Z",
       "date": "2026-08-19",
       "category": "retro_patch",
       "title": "NVDA fill patched -5.9% \u2192 -4.0%",
