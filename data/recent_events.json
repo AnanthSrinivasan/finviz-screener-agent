@@ -1,21 +1,6 @@
 {
-  "updated": "2026-08-19T19:28:26.875131Z",
+  "updated": "2026-08-19T19:52:30.798255Z",
   "events": [
-    {
-      "ts": "2026-04-27T19:52:40.963908Z",
-      "date": "2026-04-27",
-      "category": "target_hit",
-      "title": "NVDA T2 +40% hit \u2014 trail tight",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-27T19:52:40.971048Z",
-      "date": "2026-04-27",
-      "category": "position_close",
-      "title": "Z closed +5.0% \u2014 WIN",
-      "severity": "low",
-      "detail": "Entry $100.00 \u2192 $105.00 (quote)"
-    },
     {
       "ts": "2026-04-27T19:52:40.972669Z",
       "date": "2026-04-27",
@@ -357,6 +342,20 @@
       "date": "2026-08-19",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.48x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:52:28.947338Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 5.40x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-19T19:52:30.798255Z",
+      "date": "2026-08-19",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.30x",
       "severity": "med"
     }
   ]
