@@ -1,20 +1,6 @@
 {
-  "updated": "2026-08-20T17:32:15.727911Z",
+  "updated": "2026-08-20T17:57:46.878645Z",
   "events": [
-    {
-      "ts": "2026-04-27T20:23:46.730802Z",
-      "date": "2026-04-27",
-      "category": "breakeven",
-      "title": "NVDA breakeven stop set at $100.50",
-      "severity": "low"
-    },
-    {
-      "ts": "2026-04-27T20:23:46.732121Z",
-      "date": "2026-04-27",
-      "category": "target_hit",
-      "title": "NVDA T1 +20% hit \u2014 consider selling half",
-      "severity": "low"
-    },
     {
       "ts": "2026-04-27T20:23:46.736392Z",
       "date": "2026-04-27",
@@ -353,6 +339,20 @@
       "date": "2026-08-20",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.93x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-20T17:57:45.305760Z",
+      "date": "2026-08-20",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 5.40x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-20T17:57:46.878645Z",
+      "date": "2026-08-20",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.87x",
       "severity": "med"
     }
   ]
