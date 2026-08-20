@@ -1,22 +1,6 @@
 {
-  "updated": "2026-08-20T18:43:13.823242Z",
+  "updated": "2026-08-20T19:33:59.478418Z",
   "events": [
-    {
-      "ts": "2026-04-27T20:23:46.738125Z",
-      "date": "2026-04-27",
-      "category": "position_close",
-      "title": "X closed -10.0% \u2014 LOSS",
-      "severity": "high",
-      "detail": "Entry $100.00 \u2192 $90.00 (fill)"
-    },
-    {
-      "ts": "2026-04-27T20:23:46.739000Z",
-      "date": "2026-04-27",
-      "category": "position_close",
-      "title": "PL closed +0.5% \u2014 BREAKEVEN",
-      "severity": "med",
-      "detail": "Entry $100.00 \u2192 $100.50 (fill)"
-    },
     {
       "ts": "2026-04-27T20:23:46.739840Z",
       "date": "2026-04-27",
@@ -352,6 +336,20 @@
       "date": "2026-08-20",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.75x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-20T19:33:58.097320Z",
+      "date": "2026-08-20",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 5.33x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-20T19:33:59.478418Z",
+      "date": "2026-08-20",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.54x",
       "severity": "med"
     }
   ]
