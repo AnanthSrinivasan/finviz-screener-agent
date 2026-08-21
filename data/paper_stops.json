@@ -29,8 +29,8 @@
   },
   "DHT": {
     "entry_price": 18.55,
-    "highest_price_seen": 19.91,
-    "peak_gain_pct": 7.33,
+    "highest_price_seen": 20.3,
+    "peak_gain_pct": 9.43,
     "breakeven_activated": false,
     "target1": 21.33,
     "target2": 24.12,
@@ -38,7 +38,7 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.83,
-    "stop_price": 18.49
+    "stop_price": 18.88
   },
   "NVDA": {
     "stop_price": 212.62,
@@ -52,7 +52,9 @@
     "target2": 291.11,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true,
+    "close_source": "stale_cull"
   },
   "CVX": {
     "stop_price": 199.59,
@@ -69,12 +71,12 @@
     "t2_peeled": false
   },
   "COP": {
-    "stop_price": 130.53,
+    "stop_price": 130.54,
     "entry_price": 123.05,
     "atr_pct": 2.8854750873770625,
     "entry_date": "2026-08-10",
-    "highest_price_seen": 135.86,
-    "peak_gain_pct": 10.41,
+    "highest_price_seen": 135.87,
+    "peak_gain_pct": 10.42,
     "breakeven_activated": false,
     "target1": 147.66,
     "target2": 172.27,
