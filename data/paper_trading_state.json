@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 2,
+  "consecutive_losses": 3,
   "total_wins": 0,
-  "total_losses": 2,
-  "current_sizing_mode": "reduced",
+  "total_losses": 3,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-08-19",
+  "last_updated": "2026-08-21",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -36,6 +36,14 @@
       "result": "loss",
       "result_pct": -3.07,
       "date": "2026-08-19",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "NVDA",
+      "result": "loss",
+      "result_pct": -3.26,
+      "date": "2026-08-21",
       "side": "SELL",
       "source": "fill"
     }

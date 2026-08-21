@@ -1,39 +1,4 @@
 {
-  "last_book_post_ts": "2026-08-21T13:59:42.493165Z",
-  "events_since_last": [
-    {
-      "kind": "auto_added",
-      "ticker": "FUTU",
-      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: FUTU\n   50 shares @ $122.16 (from SnapTrade)\n   Auto-stop: $101.60 | T1: $140.48 | T2: $158.81\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
-      "ts": "2026-08-21T14:38:37.783114Z"
-    },
-    {
-      "kind": "peel_warn",
-      "ticker": "ARKK",
-      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.28x",
-      "alert_type": "PEEL_WARN",
-      "ts": "2026-08-21T14:38:37.783114Z"
-    },
-    {
-      "kind": "peel_warn",
-      "ticker": "XBI",
-      "message": "\ud83d\udd35 PEEL WARN \u2014 XBI ATR mult 3.48x",
-      "alert_type": "PEEL_WARN",
-      "ts": "2026-08-21T14:38:37.783114Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "ARKG",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 6.14x",
-      "alert_type": "PEEL",
-      "ts": "2026-08-21T14:38:37.783114Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.80x",
-      "alert_type": "PEEL",
-      "ts": "2026-08-21T14:38:37.783114Z"
-    }
-  ]
+  "last_book_post_ts": "2026-08-21T15:03:57.890790Z",
+  "events_since_last": []
 }

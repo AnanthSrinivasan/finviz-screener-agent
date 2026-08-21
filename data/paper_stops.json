@@ -1,11 +1,11 @@
 {
   "FWONK": {
-    "stop_price": 99.36,
+    "stop_price": 99.43,
     "entry_price": 99.97,
     "atr_pct": 2.84,
     "entry_date": "2026-07-30",
-    "highest_price_seen": 105.04,
-    "peak_gain_pct": 5.07,
+    "highest_price_seen": 105.11,
+    "peak_gain_pct": 5.14,
     "breakeven_activated": false,
     "target1": 119.96,
     "target2": 139.96,
@@ -29,8 +29,8 @@
   },
   "DHT": {
     "entry_price": 18.55,
-    "highest_price_seen": 20.3,
-    "peak_gain_pct": 9.43,
+    "highest_price_seen": 20.61,
+    "peak_gain_pct": 11.11,
     "breakeven_activated": false,
     "target1": 21.33,
     "target2": 24.12,
@@ -38,23 +38,7 @@
     "t1_peeled": false,
     "t2_peeled": false,
     "atr_pct": 3.83,
-    "stop_price": 18.88
-  },
-  "NVDA": {
-    "stop_price": 212.62,
-    "entry_price": 223.93,
-    "atr_pct": 3.411323450616181,
-    "entry_date": "2026-08-07",
-    "highest_price_seen": 227.9,
-    "peak_gain_pct": 1.77,
-    "breakeven_activated": false,
-    "target1": 257.52,
-    "target2": 291.11,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "pending_close": true,
-    "close_source": "stale_cull"
+    "stop_price": 19.54
   },
   "CVX": {
     "stop_price": 199.59,
