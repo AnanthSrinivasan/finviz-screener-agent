@@ -1,20 +1,6 @@
 {
-  "updated": "2026-08-21T16:38:09.915843Z",
+  "updated": "2026-08-21T17:32:04.437733Z",
   "events": [
-    {
-      "ts": "2026-08-19T16:22:25.722167Z",
-      "date": "2026-08-19",
-      "category": "retro_patch",
-      "title": "FLY fill patched +0.0% \u2192 +21.9% (was NEUTRAL, now WIN)",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-19T16:22:25.723655Z",
-      "date": "2026-08-19",
-      "category": "retro_patch",
-      "title": "NVDA fill patched -5.9% \u2192 -4.0%",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-19T19:03:44.424457Z",
       "date": "2026-08-19",
@@ -349,6 +335,20 @@
       "date": "2026-08-21",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.59x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-21T17:32:02.499862Z",
+      "date": "2026-08-21",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 6.34x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-21T17:32:04.437733Z",
+      "date": "2026-08-21",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.31x",
       "severity": "med"
     }
   ]

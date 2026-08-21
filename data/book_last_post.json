@@ -70,6 +70,41 @@
       "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.59x",
       "alert_type": "PEEL",
       "ts": "2026-08-21T16:38:15.835262Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "ARKK",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.62x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T17:32:12.451036Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FUTU",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FUTU ATR mult 5.02x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T17:32:12.451036Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "XBI",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 XBI ATR mult 3.09x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T17:32:12.451036Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 6.34x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T17:32:12.451036Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.31x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T17:32:12.451036Z"
     }
   ]
 }
