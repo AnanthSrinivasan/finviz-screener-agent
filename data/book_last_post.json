@@ -1,4 +1,40 @@
 {
   "last_book_post_ts": "2026-08-21T15:03:57.890790Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "peel_warn",
+      "ticker": "ARKK",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.57x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T15:36:56.702736Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FUTU",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FUTU ATR mult 5.03x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T15:36:56.702736Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "XBI",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 XBI ATR mult 3.35x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T15:36:56.702736Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 6.28x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T15:36:56.702736Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.44x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T15:36:56.702736Z"
+    }
+  ]
 }
