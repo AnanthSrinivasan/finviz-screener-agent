@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-21",
+  "up_4_today": 259,
+  "down_4_today": 39,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2977,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 6.64,
+  "ratio_5day": 0.96,
+  "ratio_10day": 1.17,
+  "up_25_quarter": 351,
+  "down_25_quarter": 156,
+  "thrust_detected": false,
+  "fg": 55.2,
+  "spy_price": 765.72,
+  "spy_sma200_pct": 8.22,
+  "spy_sma50_pct": 1.85,
+  "spy_atr_mult_50": 2.06,
+  "spy_sma50_slope_10d": 0.61,
+  "spy_pct_from_20d_high": -1.76,
+  "qqq_sma50_pct": 0.01,
+  "qqq_atr_mult_50": 0.0,
+  "pct_above_50ma": 11.79,
+  "vix_close": 15.13,
+  "vix_change_pct": -5.5,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 87,
+  "days_below_21ema": 0,
+  "spy_close": 765.64,
+  "spy_21ema": 763.2808699417894,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 271,
+    "pct_down4_today": 1.1,
+    "pct_up4_today": 17.0,
+    "pct_above_20ma": 66.1,
+    "pct_above_50ma": 69.0,
+    "pct_within_10_of_52wk_high": 50.2,
+    "cohort_score": 73,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "IOVA",
+        "chg_pct": -7.4,
+        "dollar_move": -0.67,
+        "close": 8.29
+      },
+      {
+        "ticker": "MRVL",
+        "chg_pct": -5.6,
+        "dollar_move": -14.03,
+        "close": 237.07
+      },
+      {
+        "ticker": "CLSK",
+        "chg_pct": -4.8,
+        "dollar_move": -0.61,
+        "close": 11.98
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
