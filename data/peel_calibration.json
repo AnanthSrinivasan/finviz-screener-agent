@@ -2346,7 +2346,7 @@
     "runs": 5,
     "atr_pct_avg": 2.8,
     "calibrated": true,
-    "updated": "2026-08-13"
+    "updated": "2026-08-21"
   },
   "ROKU": {
     "signal": 10.0,
@@ -2928,9 +2928,9 @@
     "p90": 9.0,
     "max_seen": 9.1,
     "runs": 5,
-    "atr_pct_avg": 3.95,
+    "atr_pct_avg": 3.92,
     "calibrated": true,
-    "updated": "2026-06-04"
+    "updated": "2026-08-21"
   },
   "ATEN": {
     "signal": 10.0,
@@ -3191,7 +3191,7 @@
     "runs": 4,
     "atr_pct_avg": 3.95,
     "calibrated": true,
-    "updated": "2026-08-20"
+    "updated": "2026-08-21"
   },
   "HPE": {
     "signal": 10.0,
@@ -5627,7 +5627,7 @@
     "runs": 6,
     "atr_pct_avg": 2.15,
     "calibrated": true,
-    "updated": "2026-08-20"
+    "updated": "2026-08-21"
   },
   "JBIO": {
     "signal": 12.3,
@@ -6332,5 +6332,17 @@
     "atr_pct_avg": 1.78,
     "calibrated": true,
     "updated": "2026-08-15"
+  },
+  "FUTU": {
+    "signal": 10.0,
+    "warn": 7.5,
+    "p50": 8.7,
+    "p75": 10.0,
+    "p90": 12.0,
+    "max_seen": 16.0,
+    "runs": 9,
+    "atr_pct_avg": 5.43,
+    "calibrated": true,
+    "updated": "2026-08-21"
   }
 }
