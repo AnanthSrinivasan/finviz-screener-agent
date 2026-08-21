@@ -63,6 +63,34 @@
       "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.27x",
       "alert_type": "PEEL",
       "ts": "2026-08-21T19:28:10.067415Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "ARKK",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.70x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T19:50:05.974074Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FUTU",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FUTU ATR mult 5.29x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-21T19:50:05.974074Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 6.35x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T19:50:05.974074Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.40x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-21T19:50:05.974074Z"
     }
   ]
 }
