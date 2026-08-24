@@ -2,18 +2,18 @@
   "open_positions": [
     {
       "ticker": "CVX",
-      "shares": 70,
-      "entry_price": 201.31,
+      "shares": 70.60733,
+      "entry_price": 201.34,
       "entry_date": "2026-08-14",
-      "stop_price": 200.85,
+      "stop_price": 201.09,
       "breakeven_activated": false,
-      "target1": 241.57,
+      "target1": 241.61,
       "target1_hit": false,
-      "target2": 281.83,
+      "target2": 281.88,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 208.91,
-      "current_gain_pct": 1.94,
+      "current_gain_pct": 1.49,
       "first_entry_price": 199.82,
       "peak_gain_pct": 3.78
     },
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 49.55,
-      "current_gain_pct": 4.11,
+      "current_gain_pct": 0.02,
       "first_entry_price": 46.83,
       "peak_gain_pct": 4.36
     },
@@ -47,7 +47,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 86.44,
-      "current_gain_pct": 1.71,
+      "current_gain_pct": -0.77,
       "first_entry_price": 84.78,
       "peak_gain_pct": 1.96
     },
@@ -56,7 +56,7 @@
       "shares": 50,
       "entry_price": 166.45,
       "entry_date": "2026-08-21",
-      "stop_price": 158.93,
+      "stop_price": 158.97,
       "breakeven_activated": false,
       "target1": 199.74,
       "target1_hit": false,
@@ -64,7 +64,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 167.91,
-      "current_gain_pct": -0.47,
+      "current_gain_pct": -2.9,
       "first_entry_price": 166.45,
       "peak_gain_pct": 0.88
     },
@@ -81,7 +81,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 124.44,
-      "current_gain_pct": 1.18,
+      "current_gain_pct": -3.75,
       "first_entry_price": 122.16,
       "peak_gain_pct": 1.87
     }
