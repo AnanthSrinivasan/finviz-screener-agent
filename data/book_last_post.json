@@ -21,6 +21,27 @@
       "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.69x",
       "alert_type": "PEEL",
       "ts": "2026-08-24T18:44:34.215766Z"
+    },
+    {
+      "kind": "warn_stop",
+      "ticker": "FUTU",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 FUTU ATR mult 2.95",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-08-24T19:32:20.195930Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 4.89x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-24T19:32:20.195930Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.73x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-24T19:32:20.195930Z"
     }
   ]
 }
