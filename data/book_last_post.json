@@ -1,28 +1,4 @@
 {
-  "last_book_post_ts": "2026-08-24T14:04:05.089496Z",
-  "events_since_last": [
-    {
-      "kind": "share_drift_avg_up",
-      "ticker": "FUTU",
-      "message": "\ud83d\udfe1 SHARES INCREASED: FUTU\n   50 \u2192 70 shares (avg cost $122.16 \u2192 $121.01)\n   T1 $139.16 | T2 $157.31 (recomputed)",
-      "old_shares": 50.0,
-      "new_shares": 70.0,
-      "new_avg": 121.01,
-      "ts": "2026-08-24T14:45:45.849430Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "ARKG",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 4.74x",
-      "alert_type": "PEEL",
-      "ts": "2026-08-24T14:45:45.849430Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.85x",
-      "alert_type": "PEEL",
-      "ts": "2026-08-24T14:45:45.849430Z"
-    }
-  ]
+  "last_book_post_ts": "2026-08-24T15:10:14.216340Z",
+  "events_since_last": []
 }
