@@ -1,4 +1,26 @@
 {
   "last_book_post_ts": "2026-08-24T15:10:14.216340Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "warn_stop",
+      "ticker": "FUTU",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 FUTU ATR mult 3.06",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-08-24T15:41:47.237023Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 4.79x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-24T15:41:47.237023Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.31x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-24T15:41:47.237023Z"
+    }
+  ]
 }
