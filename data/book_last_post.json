@@ -43,6 +43,49 @@
       "message": "\ud83d\udd35 PEEL WARN \u2014 CVX ATR mult 3.96x",
       "alert_type": "PEEL_WARN",
       "ts": "2026-08-25T18:42:50.957884Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "CVX",
+      "message": "\ud83d\udea8 STOP HIT: CVX @ $200.88 \u2014 exit immediately (stop $201.09)",
+      "current_price": 200.88,
+      "stop_price": 201.09,
+      "ts": "2026-08-25T19:34:36.908331Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "ARKK",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.45x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-25T19:34:36.908331Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "FUTU",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 FUTU ATR mult 5.06x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-25T19:34:36.908331Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "XBI",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 XBI ATR mult 3.42x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-25T19:34:36.908331Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 5.95x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-25T19:34:36.908331Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "CVX",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 CVX ATR mult 3.97x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-25T19:34:36.908331Z"
     }
   ]
 }
