@@ -1,20 +1,6 @@
 {
-  "updated": "2026-08-25T15:21:06.286367Z",
+  "updated": "2026-08-25T15:45:18.075735Z",
   "events": [
-    {
-      "ts": "2026-08-21T15:03:53.925600Z",
-      "date": "2026-08-21",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.70x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-21T15:36:47.709722Z",
-      "date": "2026-08-21",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 6.28x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-21T15:36:49.570893Z",
       "date": "2026-08-21",
@@ -349,6 +335,20 @@
       "date": "2026-08-25",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 4.21x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-25T15:45:16.734362Z",
+      "date": "2026-08-25",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 6.29x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-25T15:45:18.075735Z",
+      "date": "2026-08-25",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 4.05x",
       "severity": "med"
     }
   ]
