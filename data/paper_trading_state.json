@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 3,
-  "total_wins": 0,
+  "consecutive_wins": 1,
+  "consecutive_losses": 0,
+  "total_wins": 1,
   "total_losses": 3,
-  "current_sizing_mode": "suspended",
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-08-21",
+  "last_updated": "2026-08-25",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -44,6 +44,14 @@
       "result": "loss",
       "result_pct": -3.26,
       "date": "2026-08-21",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "DHT",
+      "result": "win",
+      "result_pct": 3.4,
+      "date": "2026-08-25",
       "side": "SELL",
       "source": "fill"
     }

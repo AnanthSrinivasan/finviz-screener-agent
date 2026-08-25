@@ -27,20 +27,6 @@
     "t1_peeled": false,
     "t2_peeled": false
   },
-  "DHT": {
-    "entry_price": 18.55,
-    "highest_price_seen": 20.61,
-    "peak_gain_pct": 11.11,
-    "breakeven_activated": false,
-    "target1": 21.33,
-    "target2": 24.12,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false,
-    "atr_pct": 3.83,
-    "stop_price": 19.54,
-    "pending_close": true
-  },
   "CVX": {
     "stop_price": 199.59,
     "entry_price": 194.92,
@@ -81,6 +67,7 @@
     "target2": 14.96,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   }
 }
