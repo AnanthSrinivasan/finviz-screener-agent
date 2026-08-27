@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-26",
+  "up_4_today": 88,
+  "down_4_today": 114,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2948,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.77,
+  "ratio_5day": 1.06,
+  "ratio_10day": 1.11,
+  "up_25_quarter": 333,
+  "down_25_quarter": 201,
+  "thrust_detected": false,
+  "fg": 55.2,
+  "spy_price": 766.08,
+  "spy_sma200_pct": 8.07,
+  "spy_sma50_pct": 1.73,
+  "spy_atr_mult_50": 2.13,
+  "spy_sma50_slope_10d": 0.65,
+  "spy_pct_from_20d_high": -1.72,
+  "qqq_sma50_pct": -0.14,
+  "qqq_atr_mult_50": -0.1,
+  "pct_above_50ma": 11.3,
+  "vix_close": 15.21,
+  "vix_change_pct": -1.55,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 92,
+  "days_below_21ema": 0,
+  "spy_close": 765.94,
+  "spy_21ema": 763.743433469115,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 246,
+    "pct_down4_today": 8.1,
+    "pct_up4_today": 5.3,
+    "pct_above_20ma": 55.7,
+    "pct_above_50ma": 68.7,
+    "pct_within_10_of_52wk_high": 50.0,
+    "cohort_score": 67,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "CLYM",
+        "chg_pct": -9.9,
+        "dollar_move": -1.76,
+        "close": 16.07
+      },
+      {
+        "ticker": "QBTS",
+        "chg_pct": -9.6,
+        "dollar_move": -1.85,
+        "close": 17.51
+      },
+      {
+        "ticker": "TNK",
+        "chg_pct": -7.4,
+        "dollar_move": -6.66,
+        "close": 83.26
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
