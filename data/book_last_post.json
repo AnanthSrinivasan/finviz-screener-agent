@@ -1,4 +1,48 @@
 {
   "last_book_post_ts": "2026-08-27T22:59:01.801561Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "CVX",
+      "message": "\ud83d\udea8 STOP HIT: CVX @ $199.85 \u2014 exit immediately (stop $201.09)",
+      "current_price": 199.85,
+      "stop_price": 201.09,
+      "ts": "2026-08-27T23:40:21.453063Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKK",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKK ATR mult 4.00x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-27T23:40:21.453063Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "RBRK",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 RBRK ATR mult 5.15x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-27T23:40:21.453063Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "XBI",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 XBI ATR mult 3.11x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-27T23:40:21.453063Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "ARKG",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 ARKG ATR mult 5.64x",
+      "alert_type": "PEEL",
+      "ts": "2026-08-27T23:40:21.453063Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "CVX",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 CVX ATR mult 3.45x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-08-27T23:40:21.453063Z"
+    }
+  ]
 }
