@@ -14,18 +14,19 @@
     "t2_peeled": false
   },
   "IOT": {
-    "stop_price": 38.31,
+    "stop_price": 39.1,
     "entry_price": 37.28,
     "atr_pct": 6.385833109739735,
     "entry_date": "2026-07-31",
-    "highest_price_seen": 41.88,
-    "peak_gain_pct": 12.34,
+    "highest_price_seen": 42.67,
+    "peak_gain_pct": 14.46,
     "breakeven_activated": false,
     "target1": 41.75,
     "target2": 46.6,
-    "target1_hit": false,
-    "t1_peeled": false,
-    "t2_peeled": false
+    "target1_hit": true,
+    "t1_peeled": true,
+    "t2_peeled": false,
+    "pending_close": true
   },
   "CVX": {
     "stop_price": 199.59,
@@ -39,7 +40,8 @@
     "target2": 272.89,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   },
   "COP": {
     "stop_price": 130.54,
@@ -53,6 +55,7 @@
     "target2": 172.27,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   }
 }
