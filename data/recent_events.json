@@ -1,13 +1,6 @@
 {
-  "updated": "2026-08-28T04:59:01.237710Z",
+  "updated": "2026-08-28T23:03:58.735821Z",
   "events": [
-    {
-      "ts": "2026-08-24T15:41:40.748135Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 4.79x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-24T15:41:42.556510Z",
       "date": "2026-08-24",
@@ -349,6 +342,13 @@
       "date": "2026-08-28",
       "category": "market_state",
       "title": "Market: RED \u2192 CAUTION",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-08-28T23:03:58.735821Z",
+      "date": "2026-08-29",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 4.00x",
       "severity": "med"
     }
   ]
