@@ -9045,7 +9045,12 @@
     "AU",
     "WPM",
     "CAPR",
-    "XXI"
+    "XXI",
+    "SCCO",
+    "BRZE",
+    "IBKR",
+    "ANF",
+    "BZ"
   ],
   "auto_promoted": [
     {
@@ -10917,6 +10922,36 @@
     {
       "ticker": "XXI",
       "added": "2026-08-22",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "SCCO",
+      "added": "2026-08-29",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "BRZE",
+      "added": "2026-08-29",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "IBKR",
+      "added": "2026-08-29",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "ANF",
+      "added": "2026-08-29",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "BZ",
+      "added": "2026-08-29",
       "days_seen": 3,
       "screens": 3
     }
