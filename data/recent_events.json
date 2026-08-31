@@ -1,13 +1,6 @@
 {
-  "updated": "2026-08-29T02:56:09.748929Z",
+  "updated": "2026-08-31T19:31:04.461591Z",
   "events": [
-    {
-      "ts": "2026-08-24T17:33:31.478445Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.62x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-24T17:59:22.977149Z",
       "date": "2026-08-24",
@@ -350,6 +343,13 @@
       "category": "market_state",
       "title": "Market: CAUTION \u2192 RED",
       "severity": "high"
+    },
+    {
+      "ts": "2026-08-31T19:31:04.461591Z",
+      "date": "2026-08-31",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 4.68x",
+      "severity": "med"
     }
   ]
 }

@@ -1,66 +1,12 @@
 {
-  "consecutive_wins": 2,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 4,
   "total_wins": 40,
-  "total_losses": 50,
-  "current_sizing_mode": "normal",
+  "total_losses": 54,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-08-17",
+  "last_updated": "2026-08-31",
   "recent_trades": [
-    {
-      "ticker": "SPCX",
-      "result": "win",
-      "result_pct": 56.16,
-      "date": "2026-06-16",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1488.65
-    },
-    {
-      "ticker": "FPS",
-      "result": "neutral",
-      "result_pct": 0.21,
-      "date": "2026-06-22",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -150.0
-    },
-    {
-      "ticker": "DDOG",
-      "result": "loss",
-      "result_pct": -4.86,
-      "date": "2026-06-22",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -281.48
-    },
-    {
-      "ticker": "DOCN",
-      "result": "loss",
-      "result_pct": -10.94,
-      "date": "2026-06-22",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -1914.5
-    },
-    {
-      "ticker": "ZVRA",
-      "result": "loss",
-      "result_pct": -1.44,
-      "date": "2026-06-22",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -95.0
-    },
-    {
-      "ticker": "LSCC",
-      "result": "win",
-      "result_pct": 1.66,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 151.0
-    },
     {
       "ticker": "CORZ",
       "result": "neutral",
@@ -276,6 +222,60 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": 746.0
+    },
+    {
+      "ticker": "ARKG",
+      "result": "loss",
+      "result_pct": -1.28,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -122.0
+    },
+    {
+      "ticker": "ARKK",
+      "result": "neutral",
+      "result_pct": -0.01,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -1.25
+    },
+    {
+      "ticker": "FUTU",
+      "result": "neutral",
+      "result_pct": 0.95,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 80.85
+    },
+    {
+      "ticker": "RBRK",
+      "result": "loss",
+      "result_pct": -4.8,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -232.0
+    },
+    {
+      "ticker": "QLD",
+      "result": "loss",
+      "result_pct": -1.62,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -37.0
+    },
+    {
+      "ticker": "HNGE",
+      "result": "loss",
+      "result_pct": -1.16,
+      "date": "2026-08-31",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -107.0
     }
   ],
   "market_state": "RED",
