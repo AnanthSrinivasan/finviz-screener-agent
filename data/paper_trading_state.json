@@ -5,7 +5,7 @@
   "total_losses": 3,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-08-29",
+  "last_updated": "2026-08-31",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -76,6 +76,14 @@
       "result": "win",
       "result_pct": 5.54,
       "date": "2026-08-29",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "FWONK",
+      "result": "neutral",
+      "result_pct": -0.33,
+      "date": "2026-08-31",
       "side": "SELL",
       "source": "fill"
     }
