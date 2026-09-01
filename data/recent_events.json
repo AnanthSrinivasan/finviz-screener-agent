@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-01T17:20:24.882655Z",
+  "updated": "2026-09-01T17:42:34.052959Z",
   "events": [
-    {
-      "ts": "2026-08-25T14:05:28.761462Z",
-      "date": "2026-08-25",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.32x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-25T14:49:47.736480Z",
       "date": "2026-08-25",
@@ -349,6 +342,13 @@
       "date": "2026-09-01",
       "category": "retro_patch",
       "title": "HNGE fill patched -1.2% \u2192 -1.7%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:42:34.052959Z",
+      "date": "2026-09-01",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.79x",
       "severity": "med"
     }
   ]
