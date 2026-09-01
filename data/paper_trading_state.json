@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 4,
+  "consecutive_wins": 5,
   "consecutive_losses": 0,
-  "total_wins": 4,
+  "total_wins": 5,
   "total_losses": 3,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-08-31",
+  "last_updated": "2026-09-01",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -84,6 +84,14 @@
       "result": "neutral",
       "result_pct": -0.33,
       "date": "2026-08-31",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "IOT",
+      "result": "win",
+      "result_pct": 4.56,
+      "date": "2026-09-01",
       "side": "SELL",
       "source": "fill"
     }

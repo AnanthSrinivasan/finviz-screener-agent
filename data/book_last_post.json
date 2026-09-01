@@ -1,28 +1,4 @@
 {
-  "last_book_post_ts": "2026-09-01T17:20:25.035112Z",
-  "events_since_last": [
-    {
-      "kind": "share_drift_avg_up",
-      "ticker": "XBI",
-      "message": "\ud83d\udfe1 SHARES INCREASED: XBI\n   80 \u2192 100 shares (avg cost $167.19 \u2192 $166.33)\n   T1 $199.60 | T2 $232.86 (recomputed)",
-      "old_shares": 80.0,
-      "new_shares": 100.0,
-      "new_avg": 166.33,
-      "ts": "2026-09-01T17:42:39.885678Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "HPE",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 HPE ATR mult 0.31, P&L $-922",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-09-01T17:42:39.885678Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.79x",
-      "alert_type": "PEEL",
-      "ts": "2026-09-01T17:42:39.885678Z"
-    }
-  ]
+  "last_book_post_ts": "2026-09-01T17:54:53.510262Z",
+  "events_since_last": []
 }
