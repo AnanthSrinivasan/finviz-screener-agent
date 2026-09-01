@@ -1,30 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 4,
-  "total_wins": 40,
-  "total_losses": 54,
-  "current_sizing_mode": "suspended",
+  "consecutive_losses": 1,
+  "total_wins": 42,
+  "total_losses": 55,
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-08-31",
+  "last_updated": "2026-09-01",
   "recent_trades": [
-    {
-      "ticker": "CORZ",
-      "result": "neutral",
-      "result_pct": 0.81,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 30.0
-    },
-    {
-      "ticker": "MCHP",
-      "result": "loss",
-      "result_pct": -7.35,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -657.0
-    },
     {
       "ticker": "AMD",
       "result": "win",
@@ -226,7 +208,7 @@
     {
       "ticker": "ARKG",
       "result": "loss",
-      "result_pct": -1.28,
+      "result_pct": -2.94,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
@@ -235,7 +217,7 @@
     {
       "ticker": "ARKK",
       "result": "neutral",
-      "result_pct": -0.01,
+      "result_pct": -0.69,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
@@ -243,8 +225,8 @@
     },
     {
       "ticker": "FUTU",
-      "result": "neutral",
-      "result_pct": 0.95,
+      "result": "win",
+      "result_pct": 1.17,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
@@ -253,7 +235,7 @@
     {
       "ticker": "RBRK",
       "result": "loss",
-      "result_pct": -4.8,
+      "result_pct": -5.05,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
@@ -262,7 +244,7 @@
     {
       "ticker": "QLD",
       "result": "loss",
-      "result_pct": -1.62,
+      "result_pct": -1.81,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
@@ -271,11 +253,29 @@
     {
       "ticker": "HNGE",
       "result": "loss",
-      "result_pct": -1.16,
+      "result_pct": -1.67,
       "date": "2026-08-31",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -107.0
+    },
+    {
+      "ticker": "TWLO",
+      "result": "win",
+      "result_pct": 1.9,
+      "date": "2026-09-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 211.5
+    },
+    {
+      "ticker": "FROG",
+      "result": "loss",
+      "result_pct": -7.11,
+      "date": "2026-09-01",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -354.75
     }
   ],
   "market_state": "RED",

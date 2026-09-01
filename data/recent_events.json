@@ -1,55 +1,6 @@
 {
-  "updated": "2026-08-31T23:40:06.187692Z",
+  "updated": "2026-09-01T17:20:24.882655Z",
   "events": [
-    {
-      "ts": "2026-08-24T19:32:13.789133Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 4.89x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-24T19:32:15.701373Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.73x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-24T20:33:33.357023Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 4.87x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-24T20:33:34.636177Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.61x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-24T21:32:33.446714Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 4.87x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-24T21:32:34.764545Z",
-      "date": "2026-08-24",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.61x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-25T14:05:27.013976Z",
-      "date": "2026-08-25",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 5.99x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-25T14:05:28.761462Z",
       "date": "2026-08-25",
@@ -349,6 +300,55 @@
       "date": "2026-09-01",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 4.86x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:19.405325Z",
+      "date": "2026-09-01",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.68x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.879027Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "ARKG fill patched -1.3% \u2192 -2.9%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.879905Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "ARKK fill patched -0.0% \u2192 -0.7%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.880639Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "FUTU fill patched +0.9% \u2192 +1.2% (was NEUTRAL, now WIN)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.881347Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "RBRK fill patched -4.8% \u2192 -5.0%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.881991Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "QLD fill patched -1.6% \u2192 -1.8%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-01T17:20:24.882655Z",
+      "date": "2026-09-01",
+      "category": "retro_patch",
+      "title": "HNGE fill patched -1.2% \u2192 -1.7%",
       "severity": "med"
     }
   ]

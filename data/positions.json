@@ -2,18 +2,18 @@
   "open_positions": [
     {
       "ticker": "CVX",
-      "shares": 90.60733,
-      "entry_price": 201.21,
+      "shares": 100.60733,
+      "entry_price": 202.01,
       "entry_date": "2026-08-14",
-      "stop_price": 201.21,
+      "stop_price": 201.68,
       "breakeven_activated": false,
-      "target1": 241.45,
+      "target1": 242.41,
       "target1_hit": false,
-      "target2": 281.69,
+      "target2": 282.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 208.91,
-      "current_gain_pct": 2.5,
+      "highest_price_seen": 209.72,
+      "current_gain_pct": 3.7,
       "first_entry_price": 199.82,
       "peak_gain_pct": 3.84,
       "stale_alerted_date": "2026-09-01"
@@ -23,7 +23,7 @@
       "shares": 80,
       "entry_price": 167.19,
       "entry_date": "2026-08-21",
-      "stop_price": 161.35,
+      "stop_price": 161.53,
       "breakeven_activated": false,
       "target1": 200.63,
       "target1_hit": false,
@@ -31,26 +31,9 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 169.89,
-      "current_gain_pct": -2.97,
+      "current_gain_pct": -2.47,
       "first_entry_price": 166.45,
       "peak_gain_pct": 2.07
-    },
-    {
-      "ticker": "TWLO",
-      "shares": 50,
-      "entry_price": 222.5,
-      "entry_date": "2026-08-26",
-      "stop_price": 221.62,
-      "breakeven_activated": false,
-      "target1": 249.2,
-      "target1_hit": false,
-      "target2": 278.12,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 243.84,
-      "current_gain_pct": 5.98,
-      "first_entry_price": 222.5,
-      "peak_gain_pct": 9.59
     },
     {
       "ticker": "HPE",
@@ -65,7 +48,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 55.5,
-      "current_gain_pct": -5.25,
+      "current_gain_pct": -8.61,
       "first_entry_price": 54.88,
       "peak_gain_pct": 1.04,
       "ma_trail_alerted_date": "2026-08-29",
@@ -75,23 +58,6 @@
         "ema": 53.83,
         "date": "2026-08-29"
       }
-    },
-    {
-      "ticker": "FROG",
-      "shares": 50,
-      "entry_price": 99.73,
-      "entry_date": "2026-08-31",
-      "stop_price": 88.93,
-      "breakeven_activated": false,
-      "target1": 111.7,
-      "target1_hit": false,
-      "target2": 124.66,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 100.71,
-      "current_gain_pct": 0.33,
-      "first_entry_price": 99.73,
-      "peak_gain_pct": 0.98
     }
   ],
   "closed_positions": [
@@ -2230,9 +2196,9 @@
       "first_entry_price": 46.83,
       "peak_gain_pct": 6.27,
       "close_date": "2026-08-31",
-      "close_price": 46.94,
-      "close_source": "live_quote",
-      "result_pct": -1.28
+      "close_price": 46.15,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -2.94
     },
     {
       "ticker": "ARKK",
@@ -2251,9 +2217,9 @@
       "first_entry_price": 84.78,
       "peak_gain_pct": 2.91,
       "close_date": "2026-08-31",
-      "close_price": 85.3,
-      "close_source": "live_quote",
-      "result_pct": -0.01
+      "close_price": 84.72,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -0.69
     },
     {
       "ticker": "FUTU",
@@ -2272,9 +2238,9 @@
       "first_entry_price": 122.16,
       "peak_gain_pct": 6.13,
       "close_date": "2026-08-31",
-      "close_price": 122.17,
-      "close_source": "live_quote",
-      "result_pct": 0.95
+      "close_price": 122.43,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 1.17
     },
     {
       "ticker": "RBRK",
@@ -2300,9 +2266,9 @@
         "date": "2026-08-29"
       },
       "close_date": "2026-08-31",
-      "close_price": 91.98,
-      "close_source": "live_quote",
-      "result_pct": -4.8
+      "close_price": 91.74,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -5.05
     },
     {
       "ticker": "QLD",
@@ -2321,9 +2287,9 @@
       "first_entry_price": 91.3,
       "peak_gain_pct": 0.89,
       "close_date": "2026-08-31",
-      "close_price": 89.82,
-      "close_source": "live_quote",
-      "result_pct": -1.62
+      "close_price": 89.65,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.81
     },
     {
       "ticker": "HNGE",
@@ -2349,9 +2315,51 @@
         "date": "2026-08-29"
       },
       "close_date": "2026-08-31",
-      "close_price": 91.21,
+      "close_price": 90.74,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.67
+    },
+    {
+      "ticker": "TWLO",
+      "shares": 50,
+      "entry_price": 222.5,
+      "entry_date": "2026-08-26",
+      "stop_price": 221.62,
+      "breakeven_activated": false,
+      "target1": 249.2,
+      "target1_hit": false,
+      "target2": 278.12,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 243.84,
+      "current_gain_pct": 5.98,
+      "first_entry_price": 222.5,
+      "peak_gain_pct": 9.59,
+      "close_date": "2026-09-01",
+      "close_price": 226.73,
       "close_source": "live_quote",
-      "result_pct": -1.16
+      "result_pct": 1.9
+    },
+    {
+      "ticker": "FROG",
+      "shares": 50,
+      "entry_price": 99.73,
+      "entry_date": "2026-08-31",
+      "stop_price": 88.93,
+      "breakeven_activated": false,
+      "target1": 111.7,
+      "target1_hit": false,
+      "target2": 124.66,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 100.71,
+      "current_gain_pct": 0.33,
+      "first_entry_price": 99.73,
+      "peak_gain_pct": 0.98,
+      "close_date": "2026-09-01",
+      "close_price": 92.64,
+      "close_source": "live_quote",
+      "result_pct": -7.11
     }
   ]
 }
