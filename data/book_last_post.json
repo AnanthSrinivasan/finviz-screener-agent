@@ -14,6 +14,20 @@
       "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 6.02x",
       "alert_type": "PEEL",
       "ts": "2026-09-01T20:46:34.925312Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "HPE",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 HPE ATR mult 0.44, P&L $-868",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-09-01T23:08:54.924551Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 6.02x",
+      "alert_type": "PEEL",
+      "ts": "2026-09-01T23:08:54.924551Z"
     }
   ]
 }
