@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-31",
+  "up_4_today": 83,
+  "down_4_today": 101,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2990,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.82,
+  "ratio_5day": 0.97,
+  "ratio_10day": 0.9,
+  "up_25_quarter": 238,
+  "down_25_quarter": 217,
+  "thrust_detected": false,
+  "fg": 49.7,
+  "spy_price": 767.05,
+  "spy_sma200_pct": 7.99,
+  "spy_sma50_pct": 1.66,
+  "spy_atr_mult_50": 2.07,
+  "spy_sma50_slope_10d": 0.68,
+  "spy_pct_from_20d_high": -1.6,
+  "qqq_sma50_pct": 0.72,
+  "qqq_atr_mult_50": 0.52,
+  "pct_above_50ma": 7.96,
+  "vix_close": 14.92,
+  "vix_change_pct": 3.4,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 97,
+  "days_below_21ema": 0,
+  "spy_close": 766.87,
+  "spy_21ema": 765.0439545287857,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 225,
+    "pct_down4_today": 3.6,
+    "pct_up4_today": 3.6,
+    "pct_above_20ma": 53.8,
+    "pct_above_50ma": 63.6,
+    "pct_within_10_of_52wk_high": 49.8,
+    "cohort_score": 66,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "KRMN",
+        "chg_pct": -8.9,
+        "dollar_move": -4.07,
+        "close": 41.54
+      },
+      {
+        "ticker": "HWM",
+        "chg_pct": -7.4,
+        "dollar_move": -19.66,
+        "close": 244.99
+      },
+      {
+        "ticker": "GLBE",
+        "chg_pct": -6.6,
+        "dollar_move": -2.64,
+        "close": 37.28
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
