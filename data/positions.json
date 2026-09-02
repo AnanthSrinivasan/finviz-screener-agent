@@ -5,17 +5,17 @@
       "shares": 100.60733,
       "entry_price": 202.01,
       "entry_date": "2026-08-14",
-      "stop_price": 202.8,
+      "stop_price": 204.59,
       "breakeven_activated": false,
       "target1": 242.41,
       "target1_hit": false,
       "target2": 282.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 211.02,
-      "current_gain_pct": 4.46,
+      "highest_price_seen": 212.55,
+      "current_gain_pct": 4.98,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 4.46,
+      "peak_gain_pct": 5.22,
       "stale_alerted_date": "2026-09-01"
     },
     {
@@ -31,7 +31,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 169.89,
-      "current_gain_pct": -1.74,
+      "current_gain_pct": -1.59,
       "first_entry_price": 166.45,
       "peak_gain_pct": 2.14
     },
@@ -48,7 +48,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 55.5,
-      "current_gain_pct": -7.87,
+      "current_gain_pct": -8.99,
       "first_entry_price": 54.88,
       "peak_gain_pct": 1.04,
       "ma_trail_alerted_date": "2026-08-29",
@@ -2336,9 +2336,9 @@
       "first_entry_price": 222.5,
       "peak_gain_pct": 9.59,
       "close_date": "2026-09-01",
-      "close_price": 226.73,
-      "close_source": "live_quote",
-      "result_pct": 1.9
+      "close_price": 227.65,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 2.31
     },
     {
       "ticker": "FROG",
@@ -2357,9 +2357,9 @@
       "first_entry_price": 99.73,
       "peak_gain_pct": 0.98,
       "close_date": "2026-09-01",
-      "close_price": 92.64,
-      "close_source": "live_quote",
-      "result_pct": -7.11
+      "close_price": 94.07,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -5.68
     }
   ]
 }

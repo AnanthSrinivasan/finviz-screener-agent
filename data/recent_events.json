@@ -1,27 +1,6 @@
 {
-  "updated": "2026-09-01T23:08:50.925046Z",
+  "updated": "2026-09-02T17:11:08.181718Z",
   "events": [
-    {
-      "ts": "2026-08-25T16:40:42.070241Z",
-      "date": "2026-08-25",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 6.10x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-25T16:40:43.628528Z",
-      "date": "2026-08-25",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.08x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-08-25T17:34:20.457405Z",
-      "date": "2026-08-25",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 6.23x",
-      "severity": "med"
-    },
     {
       "ts": "2026-08-25T17:57:57.134241Z",
       "date": "2026-08-25",
@@ -349,6 +328,27 @@
       "date": "2026-09-02",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 6.02x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-02T17:11:04.511097Z",
+      "date": "2026-09-02",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 6.28x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-02T17:11:08.180939Z",
+      "date": "2026-09-02",
+      "category": "retro_patch",
+      "title": "TWLO fill patched +1.9% \u2192 +2.3%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-02T17:11:08.181718Z",
+      "date": "2026-09-02",
+      "category": "retro_patch",
+      "title": "FROG fill patched -7.1% \u2192 -5.7%",
       "severity": "med"
     }
   ]
