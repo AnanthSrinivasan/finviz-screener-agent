@@ -1,21 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 1,
+  "consecutive_losses": 2,
   "total_wins": 42,
-  "total_losses": 55,
-  "current_sizing_mode": "normal",
+  "total_losses": 56,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-09-01",
+  "last_updated": "2026-09-03",
   "recent_trades": [
-    {
-      "ticker": "AMD",
-      "result": "win",
-      "result_pct": 5.26,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 519.0
-    },
     {
       "ticker": "BEAM",
       "result": "loss",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -354.75
+    },
+    {
+      "ticker": "XBI",
+      "result": "loss",
+      "result_pct": -1.29,
+      "date": "2026-09-03",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -214.0
     }
   ],
   "market_state": "BLACKOUT",
