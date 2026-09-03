@@ -1,34 +1,4 @@
 {
-  "last_book_post_ts": "2026-09-03T17:03:48.806346Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "HPE",
-      "message": "\ud83d\udea8 STOP HIT: HPE @ $50.04 \u2014 exit immediately (stop $50.20)",
-      "current_price": 50.04,
-      "stop_price": 50.2,
-      "ts": "2026-09-03T17:39:28.352613Z"
-    },
-    {
-      "kind": "peel_warn",
-      "ticker": "ARKK",
-      "message": "\ud83d\udd35 PEEL WARN \u2014 ARKK ATR mult 3.32x",
-      "alert_type": "PEEL_WARN",
-      "ts": "2026-09-03T17:39:28.352613Z"
-    },
-    {
-      "kind": "exit_stop",
-      "ticker": "HPE",
-      "message": "\ud83d\udd34 EXIT_STOP \u2014 HPE ATR mult 0.08, P&L $-1,020",
-      "alert_type": "EXIT_STOP",
-      "ts": "2026-09-03T17:39:28.352613Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 6.24x",
-      "alert_type": "PEEL",
-      "ts": "2026-09-03T17:39:28.352613Z"
-    }
-  ]
+  "last_book_post_ts": "2026-09-03T17:57:40.921457Z",
+  "events_since_last": []
 }
