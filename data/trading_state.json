@@ -1,21 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 2,
+  "consecutive_losses": 3,
   "total_wins": 42,
-  "total_losses": 56,
-  "current_sizing_mode": "reduced",
+  "total_losses": 57,
+  "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-09-03",
+  "last_updated": "2026-09-04",
   "recent_trades": [
-    {
-      "ticker": "BEAM",
-      "result": "loss",
-      "result_pct": -9.26,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -847.5
-    },
     {
       "ticker": "NUAI",
       "result": "loss",
@@ -271,11 +262,20 @@
     {
       "ticker": "XBI",
       "result": "loss",
-      "result_pct": -1.29,
+      "result_pct": -1.71,
       "date": "2026-09-03",
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -214.0
+    },
+    {
+      "ticker": "HPE",
+      "result": "loss",
+      "result_pct": -4.46,
+      "date": "2026-09-04",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -492.0
     }
   ],
   "market_state": "BLACKOUT",
