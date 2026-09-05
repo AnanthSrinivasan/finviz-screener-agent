@@ -18,7 +18,7 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | ID | Item | Commit | Notes |
 |---|---|---|---|
 | D-21 | Paper portfolio: Realized column beside Equity Δ | `6ff8552` | Month table read only the Alpaca equity series, so Aug 2026 showed −$389 while 16 closed trades booked +$4,567 — the page contradicted its own trade log. Now renders both bases with a footnote. |
-| D-20 | Memory into the repo + full 7-step workflow loop + portable hooks | _this commit_ | `MEMORY.md` + `docs/memory/`; `CLAUDE.md` rule 1 repointed off the laptop path; loop extended 4→7 steps; Standing authorisations added; both `PostToolUse` hooks de-hardcoded (push current branch, remind about CLAUDE.md + memory + backlog). Spec: `docs/specs/memory-and-workflow-in-repo.md`. |
+| D-20 | Memory into the repo + full 7-step workflow loop + portable hooks | `77d967e` | `MEMORY.md` + `docs/memory/`; `CLAUDE.md` rule 1 repointed off the laptop path; loop extended 4→7 steps; Standing authorisations added; both `PostToolUse` hooks de-hardcoded (push current branch, remind about CLAUDE.md + memory + backlog). Spec: `docs/specs/memory-and-workflow-in-repo.md`. |
 
 ## Done — 2026-04-26
 
