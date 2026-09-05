@@ -44,14 +44,14 @@
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "cd \"/Users/sananth/Documents/Mac Backup/Languages/Python/finviz-screener-agent-new\" && git pull --rebase origin main && git push origin main",
+            "command": "branch=$(git rev-parse --abbrev-ref HEAD); git pull --rebase origin \"$branch\" 2>/dev/null || git pull --rebase origin main; git push -u origin \"$branch\"",
             "timeout": 60,
-            "statusMessage": "Auto pull + push..."
+            "statusMessage": "Auto pull + push (current branch)..."
           },
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "cd \"/Users/sananth/Documents/Mac Backup/Languages/Python/finviz-screener-agent-new\" && changed=$(git diff HEAD~1 --name-only 2>/dev/null); if echo \"$changed\" | grep -qE '^(agents/|\\.github/workflows/|utils/|CLAUDE\\.md)'; then printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"SYSTEM_DOCS.md REMINDER: Files changed in agents/, .github/workflows/, utils/, or CLAUDE.md — update SYSTEM_DOCS.md if these changes affect architecture, agent behavior, rules, or secrets before ending the session.\"}}'; fi",
+            "command": "changed=$(git diff HEAD~1 --name-only 2>/dev/null); msg=\"\"; if echo \"$changed\" | grep -qE '^(agents/|\\.github/workflows/|utils/)'; then msg=\"SYSTEM_DOCS.md + CLAUDE.md REMINDER: code changed under agents/, utils/ or .github/workflows/ - update SYSTEM_DOCS.md and CLAUDE.md if this changed architecture, agent behaviour, rules, thresholds or secrets. \"; fi; if echo \"$changed\" | grep -qE '^(agents/|utils/|CLAUDE\\.md|\\.claude/)'; then msg=\"$msg MEMORY REMINDER: record anything learned this session under docs/memory/ (CLAUDE.md rule 5), and mark the BACKLOG.md row with the commit hash.\"; fi; if [ -n \"$msg\" ]; then printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"%s\"}}' \"$msg\"; fi",
             "timeout": 15
           }
         ]

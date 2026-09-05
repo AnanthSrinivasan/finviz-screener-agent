@@ -2,11 +2,11 @@
 
 ## MANDATORY — Read before every action
 
-1. **Read memory FIRST.** Open `MEMORY.md` and every file it references in `/Users/sananth/.claude/projects/-Users-sananth-Documents-Mac-Backup-Languages-Python-finviz-screener-agent-new/memory/` BEFORE the first non-read action of every session, BEFORE writing a spec, and BEFORE executing tasks. The MEMORY.md auto-loaded into the prompt is the index — you must actually read the linked files (user prefs, feedback, project state) not just the index. If you skip this step, you will repeat past mistakes the user already corrected.
+1. **Read memory FIRST.** Open [`MEMORY.md`](MEMORY.md) and every file it links under [`docs/memory/`](docs/memory/) BEFORE the first non-read action of every session, BEFORE writing a spec, and BEFORE executing tasks. `MEMORY.md` is only the index — actually read the linked files (user prefs, feedback/corrections, project state, environment notes), not just the index. Memory lives in the repo so a laptop session and a cloud session load the same thing; it is NOT on any one machine. If you skip this step, you will repeat mistakes the user already corrected.
 2. Always `git pull --rebase origin main` before `git push` — Actions commits data files back constantly.
 3. After any screener/agent logic change: run the relevant GH Actions workflow and verify the logs, not just unit tests.
 4. Run `python -m unittest discover -s tests -t .` before every push.
-5. When you learn something new about the user's preferences or the project (especially after a correction), save it to memory as the FIRST step of the response, not the last.
+5. When you learn something new about the user's preferences or the project (especially after a correction), write it into the right file under `docs/memory/` as the FIRST step of the response, not the last. **This repo is public** — keep memory operational (process, decisions, technical state); trading numbers already on the published dashboards are fine, personal reflection is not.
 
 ## Workflow for every non-trivial task — spec → review → tasks → execute
 
@@ -16,10 +16,30 @@ For any task beyond a one-line fix (logic change, dashboard change, new feature,
 2. **Review** — surface the spec to the user *before* editing. Call out open questions and decisions the user needs to make (e.g. sizing caps, UI placement). Do not proceed without a yes.
 3. **Tasks** — break the approved spec into a numbered task list. Short. Each task is a single committable change.
 4. **Execute** — work the tasks in order, mark each done, then run tests + workflow verification per rules 3–4 above.
+5. **Ship** — commit each task, `git pull --rebase origin main`, push. If the session is pinned to a feature branch (cloud sessions are), merging that branch into `main` is part of shipping, not a follow-up for the user. See **Standing authorisations** below.
+6. **Docs** — update `SYSTEM_DOCS.md` when `agents/`, `utils/`, or `.github/workflows/` changed; write or update `docs/specs/<feature>.md` for anything non-trivial; mark the `BACKLOG.md` row ✅ with the commit hash.
+7. **Memory + CLAUDE.md** — record what was learned under `docs/memory/`, and update this file when agent behaviour, rules, thresholds or architecture changed. A change that alters how the system trades but leaves `CLAUDE.md` stale is not finished.
 
 **Skip spec/review only when:** typo fix, doc-only edit, user explicitly says "just do it", or the change is fully contained to one line and has no semantic impact. When in doubt, spec first.
 
 **Why:** prevents wasted work on wrong-shaped solutions and gives the user a decision point before any irreversible change.
+
+## Standing authorisations
+
+The user does not have time to run git commands or click merge buttons, and the
+system cannot scale on manual steps (stated 2026-09-05). Unless a specific task
+says otherwise:
+
+- **Merge approved work to `main` yourself.** Do not end a task by handing back
+  a branch. This is blanket, standing permission — it does not need re-asking
+  each session, and it covers cloud sessions pinned to a feature branch.
+- **Gate:** the full suite (`python -m unittest discover -s tests -t .`) is at
+  or below its known baseline, and rule 3 workflow verification is done for any
+  screener/agent logic change. Never merge red.
+- **Still ask first** for: anything touching live money or live order placement,
+  deleting data/state files, rewriting git history, or a change the user has not
+  seen the shape of. When in doubt, spec first — the review step stands.
+- Do not open a PR unless the user asks for one; merge and push.
 
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
@@ -76,7 +96,7 @@ Automated stock screening + position monitoring system. Scrapes Finviz daily, sc
 - **Portfolio dashboards — unified architecture (2026-06-19 refactor).** The paper and live pages are now ONE dashboard reading from two sources. All shared layout + analytics live in `utils/generators/portfolio_common.py`; each generator is a thin adapter (fetch from source → normalize to common row/event schema → call shared renderers), so the two can no longer drift apart.
   - `utils/generators/portfolio_common.py` — shared module: formatters/heat classes, the `/pos-review` `verdict_for` ladder + `classify_action(gain, atr)` (single source for summary chips AND per-row `data-action` tags; mirrors `verdict_for`'s EXACT clause order — `gain≥10 → trail` checked before the high-vol peel clause, so a +11% high-ATR name is `trail`, NOT `peel`; counts can never disagree with the Verdict column), a **source-agnostic FIFO engine** (`closed_trades(events)` / `open_entry_dates(events)` / `trade_stats` / `monthly_realized` over a normalized `{symbol, side, qty, price, date}` event list), and the shared renderers `render_stat_cards`, `render_positions_section` (action chips + table w/ Entry/Held/ATR%/S20%/Stage/Verdict + legend, decision-first sort), `render_trade_history` (sortable headers + month filter), plus `PORTFOLIO_CSS`, `PORTFOLIO_JS` (sortTable/filterAction/filterMonth), `page_shell`. Tests: `tests/test_portfolio_common.py`.
   - `utils/generators/generate_live_portfolio.py` — SnapTrade adapter → `data/live_portfolio.html`. Account header ← SnapTrade balances; Open Positions ← SnapTrade positions + Finviz technicals; **Trade History + Month-over-Month Realized P&L ← the SnapTrade BUY/SELL activities already cached in `data/position_history.json`** (`_load_live_events()` flattens `{ticker:[{date,action,shares,price}]}` → events → shared FIFO). Entry dates from `positions.json` open_positions (`—` for SnapTrade-only holdings like leveraged ETFs). Non-fatal placeholder on failure. Called from `position_monitor.py` every run (3× daily book + 30-min critical). Linked from `index.html` as **Live Portfolio**.
-  - `utils/generators/generate_portfolio.py` — Alpaca adapter → `data/claude_portfolio.html`. Account header + **equity curve** ← Alpaca account/portfolio-history (the one source-specific section live can't match — kept); Open Positions ← Alpaca positions **now enriched with Finviz technicals** so the table matches live (verdict/ATR%/S20%/Stage — paper had none of this before); Trade History + Month-over-Month ← Alpaca FILL activities via the shared FIFO. `main()` enriches technicals per open ticker (reuses live's `_technicals`); render stays network-free for tests. Tests: `tests/test_generate_portfolio.py`.
+  - `utils/generators/generate_portfolio.py` — Alpaca adapter → `data/claude_portfolio.html`. Account header + **equity curve** ← Alpaca account/portfolio-history (the one source-specific section live can't match — kept); Open Positions ← Alpaca positions **now enriched with Finviz technicals** so the table matches live (verdict/ATR%/S20%/Stage — paper had none of this before); Trade History ← Alpaca FILL activities via the shared FIFO. Month-over-Month shows **both** bases side by side (2026-09-05): **Equity Δ** from the Alpaca daily equity series (carries unrealized marks on open positions) and **Realized** from `portfolio_common.monthly_realized` (FIFO, attributed to exit month). Showing only the equity delta made the page contradict its own trade log — Aug 2026 read −$389 while 16 closed trades booked +$4,567. `main()` enriches technicals per open ticker (reuses live's `_technicals`); render stays network-free for tests. Tests: `tests/test_generate_portfolio.py`.
 
 **Paper auto-peel + stale-cull (2026-05-27 — alpaca_monitor.py + rules.py):**
 - `process_target_peels()` consumes `target1`/`target2` rules-engine events: on T1 sells `qty//2` + raises stop to `entry × 1.005` + sets `t1_peeled=True`; on T2 sells `qty//2` of remaining + sets `t2_peeled=True`. Skips when qty≤1 or `peel_qty × price < $50`. Slack `[PAPER] T1/T2 AUTO-PEEL`. New `paper_stops.json` fields: `t1_peeled`, `t2_peeled` (default False, idempotent migration).

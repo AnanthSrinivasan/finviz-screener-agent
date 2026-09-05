@@ -1,6 +1,6 @@
 # Finviz Screener Agent — System Documentation
 
-**Last updated:** 2026-04-12
+**Last updated:** 2026-09-05
 **Repo:** https://github.com/AnanthSrinivasan/finviz-screener-agent  
 **Live reports:** https://ananthsrinivasan.github.io/finviz-screener-agent/
 
@@ -1310,3 +1310,61 @@ wiring guards.
 Single token-capped Claude call (`claude-sonnet-4-6`, `max_tokens=350`) returning EXACTLY 3 one-line bullets: (1) regime insight, (2) best setup + why (drawn from the §2 shortlist), (3) the one risk to the book. Fed the §1 positioning summary (positions vs cap, book health, leak) + the §2 shortlist cards + regime + F&G. Deterministic data-driven fallback (`_fallback()`) renders the same 3 bullets with no API key or on any API failure — the note always ships. Two terse-prose helpers also live in `agents/utils/week_ahead_shortlist.py` (`build_ai_notes_prompt` / `_parse_ai_notes` / `enrich_shortlist_notes_ai`) for optional per-card Setup/Invalidation enrichment.
 
 Spec: [docs/specs/weekly-review-rebuild.md](docs/specs/weekly-review-rebuild.md).
+
+---
+
+## 12. Agent operating memory + session portability (added 2026-09-05)
+
+**Problem.** `CLAUDE.md` rule 1 ("read memory FIRST") pointed at
+`/Users/sananth/.claude/projects/.../memory/` — a path that exists only on the
+laptop and was never committed (`git log --all -- '*MEMORY*'` returned nothing).
+Any Claude Code cloud session therefore ran with **zero memory** while being told
+memory was mandatory. Both `PostToolUse` hooks in `.claude/settings.json` were
+hardcoded to the same absolute path, so in a cloud session the auto-push and the
+SYSTEM_DOCS reminder both failed on every commit — the back half of the documented
+workflow silently did not happen.
+
+**Layout.** Memory now lives in the repo:
+
+| Path | Holds |
+|---|---|
+| `MEMORY.md` | Index only. Links the four files below. |
+| `docs/memory/user_preferences.md` | Process, tone, autonomy expectations |
+| `docs/memory/project_state.md` | Accounts, open positions, known-broken, shipped |
+| `docs/memory/feedback_and_corrections.md` | Corrections already given |
+| `docs/memory/environment_notes.md` | Laptop vs cloud differences |
+
+The repo is **public**, so memory is kept operational — process, decisions,
+technical state. Trading figures already published on the dashboards are fine;
+personal reflection is not (`CLAUDE.md` rule 5).
+
+**Workflow loop extended 4 → 7 steps** in `CLAUDE.md`. Steps 1–4 (spec → review →
+tasks → execute) were documented; the rest existed only inside hooks or not at
+all. Added: **5 Ship** (commit, rebase, push; merging a pinned feature branch to
+`main` is part of shipping), **6 Docs** (`SYSTEM_DOCS.md`, `docs/specs/`,
+`BACKLOG.md` ✅ + hash), **7 Memory + CLAUDE.md**. `BACKLOG.md` had never been
+referenced from `CLAUDE.md` at all.
+
+**Standing authorisations** section added to `CLAUDE.md`: merge approved work to
+`main` without asking, gated on a green suite at baseline; still ask for live
+money/orders, data deletion, history rewrites, or unseen-shape changes.
+
+**Hooks** (`.claude/settings.json`) — both `cd "/Users/sananth/..."` prefixes
+removed:
+1. Auto pull+push now resolves `git rev-parse --abbrev-ref HEAD` and pushes the
+   **current** branch (it previously pushed a hardcoded `main`, wrong on any
+   feature branch), falling back to `origin main` only if the branch has no
+   upstream.
+2. Doc reminder now fires on `agents/|utils/|.github/workflows/` for
+   SYSTEM_DOCS + CLAUDE.md, and separately on `agents/|utils/|CLAUDE.md|.claude/`
+   for a `docs/memory/` + `BACKLOG.md` reminder. Previously one-directional:
+   it nagged about SYSTEM_DOCS when CLAUDE.md changed, but nothing ever nagged
+   about CLAUDE.md or memory.
+
+**Cloud-session constraints** (recorded in `docs/memory/environment_notes.md`):
+outbound egress policy blocks Yahoo/Finviz/Alpaca/Stooq and the project's own
+GitHub Pages host; no API keys are present. Live-quote skills (`/peel-status`,
+`/pos-review`, `/fills`, `utils/live_check.py`) cannot run there and must say so
+rather than substituting cached snapshots.
+
+Spec: [docs/specs/memory-and-workflow-in-repo.md](docs/specs/memory-and-workflow-in-repo.md).

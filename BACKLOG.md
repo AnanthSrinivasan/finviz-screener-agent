@@ -9,6 +9,16 @@ Living list of feature/fix work for the screener system. Mark items `✅` when s
 | B-03 | Move closed positions to a separate page | low | ⏳ | Standalone `closed.html` linked from dashboard. Reuse the expandable timeline component already built. |
 | B-06 | Auto-MAE/MFE rebuild after each close | low | ⏳ | `utils/analyze_mae.py` is ad-hoc. Wire into position-monitor post-close so the analysis stays fresh without manual run. |
 | B-07 | Calibrate emerging-score weights against historical Top 5 transitions | low | ⏳ | Track which "Next on the Radar" candidates make Top 5 the following week; tune CC_WATCH/EP/HIGH multipliers from outcomes. |
+| B-08 | Fix `/peel-status` calibration tier-cap | **high** | ⏳ | `.claude/commands/peel-status.md` reads raw calibrated warn/signal with no `min(calibrated, tier)` cap — same bug already fixed in the screener (2026-05-29), executor (2026-06-12) and `position_monitor.get_peel_thresholds` (2026-08-19). CVX read `OK` at 4.85x on 2026-09-05 when its ATR 1.9% tier signal is 4.0. |
+| B-09 | Investigate paper stop leakage past −8% | **high** | ⏳ | 4 of 26 losses breached the −8% floor for −$11,310 (31% of all loss dollars): DDOG −11.0%/6d, BTSG −10.7%/**0d**, GEV −9.1%/19d, ALGM −8.7%/4d. BTSG at 0 days is a gap → entry-filter problem; check whether `docs/specs/earnings-entry-gate.md` is actually wired. |
+| B-10 | Same-day entry cap (batch-entry days underperform) | low | ⏳ | 3+ same-day entries: 45 trades, +$11,921. 1–2 entries: 13 trades, +$19,614. The 2026-07-31 batch of six went −$7,843. Small sample — measure before enforcing. |
+
+## Done — 2026-09-05
+
+| ID | Item | Commit | Notes |
+|---|---|---|---|
+| D-21 | Paper portfolio: Realized column beside Equity Δ | `6ff8552` | Month table read only the Alpaca equity series, so Aug 2026 showed −$389 while 16 closed trades booked +$4,567 — the page contradicted its own trade log. Now renders both bases with a footnote. |
+| D-20 | Memory into the repo + full 7-step workflow loop + portable hooks | _this commit_ | `MEMORY.md` + `docs/memory/`; `CLAUDE.md` rule 1 repointed off the laptop path; loop extended 4→7 steps; Standing authorisations added; both `PostToolUse` hooks de-hardcoded (push current branch, remind about CLAUDE.md + memory + backlog). Spec: `docs/specs/memory-and-workflow-in-repo.md`. |
 
 ## Done — 2026-04-26
 
