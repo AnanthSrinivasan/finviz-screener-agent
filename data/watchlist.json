@@ -9282,7 +9282,11 @@
     "BRZE",
     "IBKR",
     "ANF",
-    "BZ"
+    "BZ",
+    "HRMY",
+    "BMNR",
+    "CRBG",
+    "MMED"
   ],
   "auto_promoted": [
     {
@@ -11185,6 +11189,30 @@
       "ticker": "BZ",
       "added": "2026-08-29",
       "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "HRMY",
+      "added": "2026-09-05",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "BMNR",
+      "added": "2026-09-05",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "CRBG",
+      "added": "2026-09-05",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "MMED",
+      "added": "2026-09-05",
+      "days_seen": 4,
       "screens": 3
     }
   ]
