@@ -19,6 +19,54 @@ position size.
 CVX · MU · ARKK — all green, none near stop. Sizing mode `suspended` (3 losses).
 Market state BLACKOUT (September seasonal rule), so gate reads PAPER ONLY.
 
+## System stability — measured 2026-09-05
+
+Evidence base: 473 completed Actions runs with a conclusion, 2026-04-28 → 2026-09-05.
+
+| | |
+|---|---|
+| Overall success | **463/473 = 97.9%** (plus 6 skipped, 2 cancelled) |
+| Runs needing a retry (`run_attempt` > 1) | **0** — no flakiness being masked |
+| Daily Finviz Screener | 97/100 (2026-05-12 →) |
+| Market Monitor | 96/100 (2026-04-28 →) |
+| Position Book | 98/100 (2026-07-22 →) |
+| Alpaca Executor | 62/62 = 100% (2026-06-15 →) |
+| Test suite | 1420 tests, 6 pre-existing `test_archive` errors (boto3) |
+
+**All 10 failures map to a known, diagnosed incident** — none unexplained:
+Market Monitor ×4 on 06-29→07-02 (the Finviz `snapshot-td2` parsing break),
+Daily Screener 07-17 (the logo-cell ticker doubling — `assert_scrape_healthy`
+caught it same-day, which is the guard working), Daily Screener ×2 06-09
+(dollar-volume gate / universe expansion), Alpaca Executor 06-04 (off-cycle run
+before the screener; fixed by `_resolve_screener_csv`), Position Book ×2 08-06.
+
+**Scheduled triggers are best-effort — this is the real reliability limit, not
+code.** GitHub delays or drops cron runs under load:
+- Delay past midnight UTC re-dates the output file. Daily Screener started
+  23:54 on 08-26 → wrote `finviz_screeners_2026-08-27.csv`; started 23:57 on
+  08-31 → wrote the 09-01 file. The "missing" 08-26 / 08-31 CSVs are this, not
+  lost runs.
+- 2026-08-06: the Daily Screener cron never fired at all, and Position Book
+  failed twice. That day has no screener/quality/rotation output.
+
+## Repo visibility — going private
+
+The user offered (2026-09-05) to take the repo private once stability is shown.
+Measured constraints:
+- **Actions minutes fit easily.** Observed load ~25 runs / ~26 minutes per
+  weekday → **~543 min/month** against a 2,000-min free private allowance.
+  Public is unlimited, so this is the only cost that appears.
+- **GitHub Pages is the blocker.** `has_pages: true` and the whole reporting
+  surface (cockpit, portfolios, watchlist, chart grid, weekly) is served from
+  `ananthsrinivasan.github.io/finviz-screener-agent/`, with `PAGES_BASE_URL`
+  linking into it from every Slack message. Pages from a **private** repo
+  requires GitHub Pro or higher; on Free, flipping visibility takes every
+  dashboard and every Slack link dark.
+
+**Agent rule:** do not assume visibility. Check it at session start
+(`private` on the repo API) and set the memory-redaction bar from the answer —
+strict while public, relaxed once private. Do not ask the user to confirm.
+
 ## Known broken / unfinished
 - **`/peel-status` skill has no calibration tier-cap.** `.claude/commands/peel-status.md`
   reads `calib[ticker]["warn"]/["signal"]` raw. `CLAUDE.md` requires

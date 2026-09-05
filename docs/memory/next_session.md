@@ -42,6 +42,13 @@ and not worth mentioning.
   1–2 entry days: 13 trades, +$19,614. The 2026-07-31 batch of six went
   −$7,843. Sample is small — measure across more history before enforcing a cap.
 - **Watchlist hygiene.** 574 rows, 391 archived (68% dead weight). Prune.
+- **B-11 — UTC date drift on delayed cron runs.** When a scheduled run starts
+  after ~23:00 UTC it writes its output under the *next* day's filename
+  (observed 2026-08-26 → 08-27 file, 2026-08-31 → 09-01 file). The following
+  day's real run then overwrites that file, so one session's screener data is
+  silently lost and, in the interval, a file dated today holds yesterday's
+  close. Fix by deriving the filename from the market session the data belongs
+  to, not from `date.today()` at write time.
 
 ## 2. Standing habits for this project
 
