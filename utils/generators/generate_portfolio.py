@@ -27,7 +27,7 @@ from utils.generators.portfolio_common import (
     render_positions_section, render_trade_history, page_shell,
     closed_trades as _closed_trades_events,
     open_entry_dates as _open_entry_dates_events,
-    trade_stats,
+    trade_stats, monthly_realized,
 )
 
 log = logging.getLogger(__name__)
@@ -284,8 +284,16 @@ def generate_html(account: dict, positions: list, history: dict,
          "sub": f"{(cash / equity * 100) if equity else 0:.1f}% of equity"},
     ]
 
-    # Month-over-month (equity-series based), drop flat no-activity months.
-    months = [m for m in monthly_performance(history) if m["pnl"] != 0]
+    # Month-over-month. Two different truths sit side by side here and the page
+    # must show both: the equity series (Alpaca daily equity, so it carries
+    # unrealized mark-to-market on whatever was still open) and realized P&L
+    # (FIFO over fills, the same engine behind the Trade History table below).
+    # They diverge whenever open positions move against closed winners — Aug
+    # 2026 closed +$4,567 over 16 trades while equity fell $389 — and showing
+    # only the equity delta made the page contradict its own trade log.
+    realized_by_month = {m["key"]: m for m in monthly_realized(trades)}
+    months = [m for m in monthly_performance(history)
+              if m["pnl"] != 0 or m["key"] in realized_by_month]
     mo_labels = json.dumps([m["month"] for m in months])
     mo_pnl    = json.dumps([m["pnl"] for m in months])
     mo_colors = json.dumps(["#16a34a" if m["pnl"] >= 0 else "#dc2626" for m in months])
@@ -294,6 +302,14 @@ def generate_html(account: dict, positions: list, history: dict,
     for m in reversed(months):
         h = heat_class(m["pct"])
         ps = "+" if m["pnl"] >= 0 else ""
+        r = realized_by_month.get(m["key"])
+        if r:
+            rh = heat_class(r["pnl"])
+            rps = "+" if r["pnl"] >= 0 else ""
+            r_cell = (f"<td class='mono heat {rh}'>{rps}{fmt_money(r['pnl'])}"
+                      f"<span class='num'> · {r['count']}</span></td>")
+        else:
+            r_cell = "<td class='mono num'>—</td>"
         mo_rows += (
             f"<tr class='month-row' onclick=\"filterMonth('{m['key']}')\" title='Click to show only {m['month']} trades'>"
             f"<td class='bold'>{m['month']}</td>"
@@ -301,12 +317,21 @@ def generate_html(account: dict, positions: list, history: dict,
             f"<td class='mono'>{fmt_money(m['end'])}</td>"
             f"<td class='mono heat {h}'>{ps}{fmt_money(m['pnl'])}</td>"
             f"<td class='mono heat {h}'>{fmt_pct(m['pct'])}</td>"
+            + r_cell +
             "</tr>"
         )
     monthly_table = (
         "<table class='pos-table' style='margin-top:16px'><thead><tr><th>Month</th>"
-        "<th>Start Equity</th><th>End Equity</th><th>P&amp;L</th><th>Return</th>"
+        "<th>Start Equity</th><th>End Equity</th><th>Equity &Delta;</th><th>Return</th>"
+        "<th title='Closed round-trips exiting this month (FIFO) · trade count'>"
+        "Realized</th>"
         "</tr></thead><tbody>" + mo_rows + "</tbody></table>"
+        "<div class='legend'>"
+        "<strong>Equity &Delta;</strong> is the account equity change and includes "
+        "unrealized moves on positions still open. <strong>Realized</strong> is the "
+        "sum of round-trips that closed that month (the closed-trade log below). "
+        "They differ when open positions move against closed winners."
+        "</div>"
     ) if months else ""
     monthly_block = (
         "<div class='chart-card' style='margin-top:28px'>"
