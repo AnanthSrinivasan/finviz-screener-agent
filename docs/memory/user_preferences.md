@@ -8,6 +8,16 @@
 - Merging approved work to `main` is part of finishing it, not a separate ask.
 - Ask only when the answer changes what gets built. Otherwise pick the sane
   default, state it, proceed.
+- **Never end a response by assigning the user work.** No "you should review
+  this", no "have your other session do X", no "remember to Y". If it needs
+  doing, either do it or write it into `docs/memory/next_session.md` as an
+  instruction to yourself. (2026-09-05: "dont instruct me u instruct yourself
+  how will you understand for next chat. dont ask me anything man.")
+- **Do not re-raise a question the user has already passed on.** If it can be
+  resolved by choosing the conservative option, choose it, record the choice in
+  memory, and move on. The public-repo/memory-privacy question was asked twice
+  and is now settled by policy: memory stays operational, redaction is the
+  agent's job.
 
 ## Process
 - Follow the spec → review → tasks → execute → push → docs → memory loop in

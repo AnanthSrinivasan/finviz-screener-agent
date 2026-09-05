@@ -10,6 +10,7 @@ Claude Code cloud session load identical memory.
 | [docs/memory/project_state.md](docs/memory/project_state.md) | Where things stand: accounts, open work, known-broken |
 | [docs/memory/feedback_and_corrections.md](docs/memory/feedback_and_corrections.md) | Corrections already given. Re-making these is the failure mode this file exists to prevent |
 | [docs/memory/environment_notes.md](docs/memory/environment_notes.md) | Machine/session differences — what works where |
+| [docs/memory/next_session.md](docs/memory/next_session.md) | **The work queue. Read it, then act on it — it is pre-authorised.** |
 
 ## Writing to memory
 

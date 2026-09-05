@@ -3,6 +3,13 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-09-05 — instruct yourself, not the user
+Ended a response telling the user to have a laptop session merge the old memory
+files and to review them for personal content. That is agent work. Anything the
+next session must do belongs in `docs/memory/next_session.md`, written as an
+instruction to yourself — never as homework for the user, and never as another
+question.
+
 ## 2026-09-05 — don't hand back manual work
 "i dont want to do manual action … we cant operate on manual thing over time
 scaling and i dont have time all the times." Approved work gets finished and

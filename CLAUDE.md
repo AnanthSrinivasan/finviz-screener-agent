@@ -40,6 +40,11 @@ says otherwise:
   deleting data/state files, rewriting git history, or a change the user has not
   seen the shape of. When in doubt, spec first — the review step stands.
 - Do not open a PR unless the user asks for one; merge and push.
+- **Never delegate back to the user.** Do not close a response with steps for
+  them to run, review, or remember. Do it, or write it into
+  `docs/memory/next_session.md` for the next session to do. That file is the
+  work queue and everything in it is already authorised — read it at session
+  start alongside the rest of memory, and act on it without asking.
 
 Automated stock screening + position monitoring system. Scrapes Finviz daily, scores tickers using Weinstein Stage Analysis + quality metrics, monitors open positions via SnapTrade, and sends alerts to Slack. Runs entirely on GitHub Actions.
 
