@@ -3,6 +3,14 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-09-06 — do not attach system vocabulary to unverified names
+Told the user to "start with the defense block — that's where the Stage 2
+structure has been" about European names, with no data behind it. "Stage 2" is a
+defined gate in this system (`compute_stage`), so using it casually reads as a
+screened result. It was also wrong for the tape: ITA sat at RS 2, rank 44/45,
+BROKEN, −10% over 20d. Never borrow the system's terms — Stage 2, peel-safe,
+Ready-to-Enter, Q, RS — for anything the system has not actually scored.
+
 ## 2026-09-06 — lead with the answer (softened same day)
 Asked for EEM's top 3 holdings. The names WERE given, but below a caveat
 paragraph plus a doc correction and a rotation read. The user asked whether the

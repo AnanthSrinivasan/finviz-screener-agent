@@ -50,6 +50,16 @@ and not worth mentioning.
   close. Fix by deriving the filename from the market session the data belongs
   to, not from `date.today()` at write time.
 
+- **Verify and consider adding EUAD to the ETF universe.** The user asked about
+  European defense exposure 2026-09-06. `data/sector_etf_map.json` has ITA
+  (US aerospace & defense) but nothing European. EUAD (Select STOXX Europe
+  Aerospace & Defense, US-listed) would give European defense exposure that a
+  US-based account can actually buy — EU-domiciled UCITS ETFs are unavailable
+  to US retail. NOT added yet: EUAD was quoted from model knowledge and never
+  verified against live data. From a session with market access, confirm the
+  ticker, listing and liquidity first, then add. Do not add an unverified
+  ticker to a live universe.
+
 ## 2. Standing habits for this project
 
 - Verify before asserting a pattern: control for equity growth and check the
