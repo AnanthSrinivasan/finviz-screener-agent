@@ -44,6 +44,33 @@
   change a decision. Never in front of it.
 - Length is not thoroughness. Match the size of the reply to the size of the ask.
 
+## Jurisdiction — READ THIS BEFORE ANY INSTRUMENT OR TAX STATEMENT
+**The user is resident in Luxembourg (EU), not the US** (stated 2026-09-06).
+- **UCITS / EU-listed ETFs are available to him** — his native market. Never
+  describe them as inaccessible.
+- **US-domiciled ETFs are the restricted ones.** Under PRIIPs/MiFID II an EU
+  retail investor generally cannot buy SPY, QQQ, ITA, ARKK, IBIT, XBI through
+  an EU broker. The 45-ETF rotation universe is a SIGNAL layer for him, not a
+  shopping list — the "ETF play" line in Rotation Catalyst may be unactionable.
+- **European exchanges are his HOME market.** Do not frame trading EU as
+  "adding a second market"; the US is the remote one.
+- Existing US brokerage (Robinhood/SnapTrade, Alpaca) likely predates the move;
+  do not assume it generalises to new US-domiciled purchases.
+- **Tax shape affects strategy:** Luxembourg treats securities gains held
+  **under 6 months** as speculative (ordinary income); over 6 months generally
+  exempt for non-substantial stakes. His swing style (winners ~17 days) sits
+  entirely in the speculative bucket. Raise it when hold period or strategy is
+  discussed — always as general information to confirm with a local advisor.
+
+## Ticker suggestions
+- Only name tickers the system has actually scored, from a screener CSV or a
+  rotation snapshot. If the universe does not cover the market being asked
+  about, say so and stop — no from-memory lists, no "unverified" hedge, because
+  the user charts them anyway.
+- Markets the system does NOT cover: everything outside US exchanges. The seven
+  Finviz screens are US-only; there is no non-US exchange handling in the repo.
+  **This is a real gap given the user is EU-resident.**
+
 ## Trading posture
 - The system is a signal layer. The human decides. Never auto-execute against
   SnapTrade/Robinhood — alert only, forever.

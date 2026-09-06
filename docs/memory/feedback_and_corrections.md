@@ -3,6 +3,27 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-09-06 — lost the user's jurisdiction; gave inverted advice all thread
+Advised a whole thread as if the user were US-based: "EU-domiciled UCITS ETFs
+are effectively unavailable to you", "use US-listed EUAD", "ADRs cover the 80%",
+"adding a second market". He lives in **Luxembourg**. Every one of those is
+backwards — UCITS is his home market, US-domiciled ETFs are the restricted ones.
+
+Root cause: jurisdiction lived only in the laptop memory that has never been
+absorbed into the repo (still queued, next_session.md §0). Nothing in the repo
+stated where he lives, so a cloud session could not know.
+Now recorded in `user_preferences.md` — read it before any instrument, access
+or tax statement.
+
+## 2026-09-06 — never hand the user tickers the system has not scored
+Escalating in one thread: listed European names from model knowledge; called
+them "Stage 2" with nothing behind it; then measured ITA at RS 2, rank 44/45,
+BROKEN and still wrote "European defense could be diverging" to keep the claim
+alive. The user charted Rheinmetall — price 1,034 under a declining 200 MA at
+1,396.5, −48% from its high, below every MA — textbook **Stage 4**.
+Rule: no ticker suggestions the screener has not scored, and when measured data
+contradicts something already said, drop it rather than hedging it forward.
+
 ## 2026-09-06 — do not attach system vocabulary to unverified names
 Told the user to "start with the defense block — that's where the Stage 2
 structure has been" about European names, with no data behind it. "Stage 2" is a
