@@ -3,6 +3,15 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-09-06 — EEM is not an ex-China ETF (repo doc was wrong)
+`CLAUDE.md` recorded EEM as "emerging markets ex-China ... since KWEB is
+China-only". Wrong: EEM tracks MSCI EM, ~25-30% China, with Tencent and
+Alibaba top-5 — it overlaps KWEB. The ex-China ticker is EMXC, and the INDA/EWZ
+exposure the note cites was never actually added to the universe. Corrected in
+place. Lesson: an ETF's stated *rationale* in the universe notes is not
+evidence of what it holds — the repo stores price/RS metrics only, never
+constituents, so holdings claims must be labelled as unverified.
+
 ## 2026-09-05 — instruct yourself, not the user
 Ended a response telling the user to have a laptop session merge the old memory
 files and to review them for personal content. That is agent work. Anything the
