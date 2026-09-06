@@ -36,9 +36,10 @@
 
 ## Answer the question that was asked
 - A short factual question gets a short factual answer. Lead with it, in the
-  first line. (2026-09-06: asked "top 3 holdings in EEM" and got the three names
-  buried under a caveat paragraph, a repo correction and a rotation analysis —
-  "r u getting my question or not?")
+  first line. (2026-09-06: asked "top 3 holdings in EEM" — the answer was there
+  but sat below a caveat paragraph, a repo correction and a rotation read. The
+  user later said he simply hadn't scrolled, so this is a readability
+  preference, NOT a recorded failure to answer.)
 - Side findings are worth surfacing, but AFTER the answer and only if they
   change a decision. Never in front of it.
 - Length is not thoroughness. Match the size of the reply to the size of the ask.
