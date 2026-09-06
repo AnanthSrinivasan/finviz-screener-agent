@@ -34,6 +34,15 @@
 - Never present cached data as live. See the XBI incident in `CLAUDE.md`.
 - Correct your own errors in one line and move on.
 
+## Answer the question that was asked
+- A short factual question gets a short factual answer. Lead with it, in the
+  first line. (2026-09-06: asked "top 3 holdings in EEM" and got the three names
+  buried under a caveat paragraph, a repo correction and a rotation analysis —
+  "r u getting my question or not?")
+- Side findings are worth surfacing, but AFTER the answer and only if they
+  change a decision. Never in front of it.
+- Length is not thoroughness. Match the size of the reply to the size of the ask.
+
 ## Trading posture
 - The system is a signal layer. The human decides. Never auto-execute against
   SnapTrade/Robinhood — alert only, forever.

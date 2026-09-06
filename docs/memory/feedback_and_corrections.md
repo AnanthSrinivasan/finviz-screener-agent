@@ -3,6 +3,12 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-09-06 — lead with the answer
+Asked for EEM's top 3 holdings. Gave the three names, but only after a caveat
+paragraph, and then followed with a doc correction and a rotation read — so the
+user had to ask again whether the question had even landed. Small question,
+small answer, first line. Analysis afterwards or not at all.
+
 ## 2026-09-06 — EEM is not an ex-China ETF (repo doc was wrong)
 `CLAUDE.md` recorded EEM as "emerging markets ex-China ... since KWEB is
 China-only". Wrong: EEM tracks MSCI EM, ~25-30% China, with Tencent and
