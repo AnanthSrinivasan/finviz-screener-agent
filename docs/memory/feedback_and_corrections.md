@@ -3,7 +3,16 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
-## 2026-09-06 — lost the user's jurisdiction; gave inverted advice all thread
+## 2026-09-06 — do not infer jurisdiction rules from where he lives
+He said he lives in Luxembourg; I recorded "EU resident" and applied PRIIPs/
+MiFID ETF restrictions and Luxembourg 6-month speculative-gains tax to him. He
+corrected it: **he is a US trader** who lived in the US ~10 years and moved to
+Lux for work. Location ≠ jurisdiction for brokerage, instruments or tax.
+His EU interest is purely technical — TA transfers across markets.
+Also told: "dont go sooner to build a change before confirm" — do not start new
+work off a passing remark, even under the standing merge authorisation.
+
+## SUPERSEDED — 2026-09-06 — "lost the user's jurisdiction" (this read was wrong)
 Advised a whole thread as if the user were US-based: "EU-domiciled UCITS ETFs
 are effectively unavailable to you", "use US-listed EUAD", "ADRs cover the 80%",
 "adding a second market". He lives in **Luxembourg**. Every one of those is

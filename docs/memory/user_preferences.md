@@ -8,6 +8,11 @@
 - Merging approved work to `main` is part of finishing it, not a separate ask.
 - Ask only when the answer changes what gets built. Otherwise pick the sane
   default, state it, proceed.
+- **Confirm scope before building something NEW.** The standing merge
+  authorisation covers shipping work he has already approved — it is NOT a
+  licence to start new modules or features off a passing remark. (2026-09-06:
+  "dont go sooner to build a change before confirm".) Answer the question
+  first; propose the build in one line; wait.
 - **Never end a response by assigning the user work.** No "you should review
   this", no "have your other session do X", no "remember to Y". If it needs
   doing, either do it or write it into `docs/memory/next_session.md` as an
@@ -44,23 +49,23 @@
   change a decision. Never in front of it.
 - Length is not thoroughness. Match the size of the reply to the size of the ask.
 
-## Jurisdiction — READ THIS BEFORE ANY INSTRUMENT OR TAX STATEMENT
-**The user is resident in Luxembourg (EU), not the US** (stated 2026-09-06).
-- **UCITS / EU-listed ETFs are available to him** — his native market. Never
-  describe them as inaccessible.
-- **US-domiciled ETFs are the restricted ones.** Under PRIIPs/MiFID II an EU
-  retail investor generally cannot buy SPY, QQQ, ITA, ARKK, IBIT, XBI through
-  an EU broker. The 45-ETF rotation universe is a SIGNAL layer for him, not a
-  shopping list — the "ETF play" line in Rotation Catalyst may be unactionable.
-- **European exchanges are his HOME market.** Do not frame trading EU as
-  "adding a second market"; the US is the remote one.
-- Existing US brokerage (Robinhood/SnapTrade, Alpaca) likely predates the move;
-  do not assume it generalises to new US-domiciled purchases.
-- **Tax shape affects strategy:** Luxembourg treats securities gains held
-  **under 6 months** as speculative (ordinary income); over 6 months generally
-  exempt for non-substantial stakes. His swing style (winners ~17 days) sits
-  entirely in the speculative bucket. Raise it when hold period or strategy is
-  discussed — always as general information to confirm with a local advisor.
+## Jurisdiction — do NOT infer rules from location
+**He is a US trader.** Lived in the US ~10 years, now living in Luxembourg for
+work (stated 2026-09-06). His accounts and trading identity are US — Robinhood/
+SnapTrade, Alpaca paper and live.
+
+Corrected same day: an earlier entry read this as "EU resident" and applied
+PRIIPs/MiFID retail restrictions and Luxembourg speculative-gains tax to him.
+**That was wrong and he pushed back.** Physically living in the EU does not
+make his brokerage, instrument access, or tax treatment EU.
+
+Rule: never derive instrument availability or tax consequences from where he
+lives. If it actually matters to an answer, ask one direct question. Otherwise
+assume the US setup that the repo's accounts reflect.
+
+His interest in European markets is **technical**: chart/TA methods are
+price-based and transfer to any market, so he wants to look at EU charts. It is
+not a question about EU residency, access or tax.
 
 ## Ticker suggestions
 - Only name tickers the system has actually scored, from a screener CSV or a
