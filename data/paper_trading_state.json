@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 5,
-  "consecutive_losses": 0,
+  "consecutive_wins": 0,
+  "consecutive_losses": 1,
   "total_wins": 5,
-  "total_losses": 3,
+  "total_losses": 4,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-09-01",
+  "last_updated": "2026-09-07",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -92,6 +92,14 @@
       "result": "win",
       "result_pct": 4.56,
       "date": "2026-09-01",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "IMO",
+      "result": "loss",
+      "result_pct": -2.76,
+      "date": "2026-09-07",
       "side": "SELL",
       "source": "fill"
     }
