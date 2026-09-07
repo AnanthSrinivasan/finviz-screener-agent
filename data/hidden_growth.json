@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-05",
+  "date": "2026-09-08",
   "candidates": [
     {
       "ticker": "HNGE",
@@ -22,7 +22,7 @@
       "signal_score": 5,
       "eps_yy_ttm": 426.19,
       "eps_qq": 97.07,
-      "inst_trans": 10.55,
+      "inst_trans": 11.02,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -38,7 +38,7 @@
       "signal_score": 5,
       "eps_yy_ttm": 785.83,
       "eps_qq": 28016.32,
-      "inst_trans": 1.61,
+      "inst_trans": 1.65,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -54,7 +54,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 256.17,
       "eps_qq": 190.33,
-      "inst_trans": 4.2,
+      "inst_trans": 4.28,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -66,27 +66,11 @@
       }
     },
     {
-      "ticker": "ASND",
-      "signal_score": 4,
-      "eps_yy_ttm": 379.16,
-      "eps_qq": 583.5,
-      "inst_trans": 13.77,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "BTSG",
       "signal_score": 4,
       "eps_yy_ttm": 350.11,
       "eps_qq": 201.76,
-      "inst_trans": 12.32,
+      "inst_trans": 12.38,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -102,7 +86,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 98.06,
       "eps_qq": 102.84,
-      "inst_trans": -1.98,
+      "inst_trans": -1.65,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -118,7 +102,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 204.95,
       "eps_qq": 108.51,
-      "inst_trans": 6.37,
+      "inst_trans": 6.31,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -134,7 +118,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 112.37,
       "eps_qq": 106.56,
-      "inst_trans": 3.18,
+      "inst_trans": 3.25,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -150,7 +134,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 99.71,
       "eps_qq": 273.64,
-      "inst_trans": -5.2,
+      "inst_trans": -5.11,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -166,7 +150,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 399.54,
       "eps_qq": 467.43,
-      "inst_trans": 9.22,
+      "inst_trans": 9.26,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -180,9 +164,9 @@
     {
       "ticker": "IOT",
       "signal_score": 4,
-      "eps_yy_ttm": 145.69,
+      "eps_yy_ttm": 200.06,
       "eps_qq": 193.54,
-      "inst_trans": 8.88,
+      "inst_trans": 8.94,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -198,7 +182,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 13441.07,
       "eps_qq": 292.32,
-      "inst_trans": -1.25,
+      "inst_trans": -1.15,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -214,7 +198,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 411.37,
       "eps_qq": 722.45,
-      "inst_trans": 12.68,
+      "inst_trans": 12.73,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -230,7 +214,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 364.92,
       "eps_qq": 221.42,
-      "inst_trans": 8.84,
+      "inst_trans": 8.88,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -246,7 +230,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 1992.92,
       "eps_qq": 3025.84,
-      "inst_trans": 3.78,
+      "inst_trans": 3.76,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -262,7 +246,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 51.47,
       "eps_qq": 81.2,
-      "inst_trans": 8.97,
+      "inst_trans": 9.3,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -278,7 +262,7 @@
       "signal_score": 4,
       "eps_yy_ttm": 94.31,
       "eps_qq": 154.07,
-      "inst_trans": 1.51,
+      "inst_trans": 1.56,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -294,7 +278,7 @@
       "signal_score": 3,
       "eps_yy_ttm": 17.81,
       "eps_qq": 171.86,
-      "inst_trans": 5.65,
+      "inst_trans": 5.93,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -310,7 +294,7 @@
       "signal_score": 3,
       "eps_yy_ttm": 0.0,
       "eps_qq": 795.5,
-      "inst_trans": 5.45,
+      "inst_trans": 5.95,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -326,8 +310,24 @@
       "signal_score": 3,
       "eps_yy_ttm": -11.66,
       "eps_qq": 29.87,
-      "inst_trans": 9.66,
+      "inst_trans": 9.65,
       "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "CIB",
+      "signal_score": 3,
+      "eps_yy_ttm": -22.31,
+      "eps_qq": 82.32,
+      "inst_trans": 8.93,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -342,7 +342,7 @@
       "signal_score": 3,
       "eps_yy_ttm": 32.48,
       "eps_qq": 87.37,
-      "inst_trans": 9.05,
+      "inst_trans": 5.34,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -358,8 +358,24 @@
       "signal_score": 3,
       "eps_yy_ttm": 34.84,
       "eps_qq": 58.11,
-      "inst_trans": 3.12,
+      "inst_trans": 3.55,
       "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "NSIT",
+      "signal_score": 3,
+      "eps_yy_ttm": 46.4,
+      "eps_qq": 75.94,
+      "inst_trans": 3.0,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -374,7 +390,7 @@
       "signal_score": 3,
       "eps_yy_ttm": -21.05,
       "eps_qq": 112.51,
-      "inst_trans": 4.54,
+      "inst_trans": 4.53,
       "appearances": 2,
       "criteria": {
         "persistence": false,
