@@ -5,17 +5,8 @@
   "total_losses": 57,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-09-04",
+  "last_updated": "2026-09-08",
   "recent_trades": [
-    {
-      "ticker": "NUAI",
-      "result": "loss",
-      "result_pct": -13.21,
-      "date": "2026-06-23",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -880.0
-    },
     {
       "ticker": "QLD",
       "result": "loss",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -492.0
+    },
+    {
+      "ticker": "ARKK",
+      "result": "neutral",
+      "result_pct": -0.56,
+      "date": "2026-09-08",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -47.5
     }
   ],
   "market_state": "BLACKOUT",

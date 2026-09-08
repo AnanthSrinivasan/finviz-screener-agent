@@ -12,28 +12,11 @@
       "target2": 282.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 213.15,
-      "current_gain_pct": 3.24,
+      "highest_price_seen": 213.25,
+      "current_gain_pct": 3.62,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 5.51,
+      "peak_gain_pct": 5.56,
       "stale_alerted_date": "2026-09-01"
-    },
-    {
-      "ticker": "ARKK",
-      "shares": 100,
-      "entry_price": 85.2,
-      "entry_date": "2026-09-03",
-      "stop_price": 82.54,
-      "breakeven_activated": false,
-      "target1": 102.24,
-      "target1_hit": false,
-      "target2": 119.28,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 87.3,
-      "current_gain_pct": 1.29,
-      "first_entry_price": 85.2,
-      "peak_gain_pct": 2.46
     },
     {
       "ticker": "MU",
@@ -47,10 +30,10 @@
       "target2": 1249.3,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 1017.77,
-      "current_gain_pct": 1.53,
+      "highest_price_seen": 1040.79,
+      "current_gain_pct": 2.01,
       "first_entry_price": 999.44,
-      "peak_gain_pct": 1.83
+      "peak_gain_pct": 4.14
     }
   ],
   "closed_positions": [
@@ -2402,6 +2385,27 @@
       "close_price": 53.33,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -3.28
+    },
+    {
+      "ticker": "ARKK",
+      "shares": 100,
+      "entry_price": 85.2,
+      "entry_date": "2026-09-03",
+      "stop_price": 82.54,
+      "breakeven_activated": false,
+      "target1": 102.24,
+      "target1_hit": false,
+      "target2": 119.28,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 87.3,
+      "current_gain_pct": 1.29,
+      "first_entry_price": 85.2,
+      "peak_gain_pct": 2.46,
+      "close_date": "2026-09-08",
+      "close_price": 84.72,
+      "close_source": "snaptrade_fill",
+      "result_pct": -0.56
     }
   ]
 }
