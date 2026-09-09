@@ -5,17 +5,17 @@
       "shares": 100.60733,
       "entry_price": 202.01,
       "entry_date": "2026-08-14",
-      "stop_price": 205.39,
+      "stop_price": 207.06,
       "breakeven_activated": false,
       "target1": 242.41,
       "target1_hit": false,
       "target2": 282.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 213.25,
-      "current_gain_pct": 3.95,
+      "highest_price_seen": 215.24,
+      "current_gain_pct": 5.42,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 5.56,
+      "peak_gain_pct": 6.55,
       "stale_alerted_date": "2026-09-01"
     },
     {
@@ -30,10 +30,27 @@
       "target2": 1249.3,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 1040.79,
-      "current_gain_pct": 0.34,
+      "highest_price_seen": 1042.38,
+      "current_gain_pct": 2.19,
       "first_entry_price": 999.44,
-      "peak_gain_pct": 4.14
+      "peak_gain_pct": 4.3
+    },
+    {
+      "ticker": "INTC",
+      "shares": 50,
+      "entry_price": 105.84,
+      "entry_date": "2026-09-09",
+      "stop_price": 99.61,
+      "breakeven_activated": false,
+      "target1": 118.54,
+      "target1_hit": false,
+      "target2": 132.3,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 106.5,
+      "current_gain_pct": 0.19,
+      "first_entry_price": 105.84,
+      "peak_gain_pct": 0.62
     }
   ],
   "closed_positions": [

@@ -1,11 +1,11 @@
 {
   "DELL": {
-    "stop_price": 495.94,
+    "stop_price": 520.47,
     "entry_price": 471.9,
     "atr_pct": 5.924702494388685,
     "entry_date": "2026-08-28",
-    "highest_price_seen": 537.88,
-    "peak_gain_pct": 13.98,
+    "highest_price_seen": 562.41,
+    "peak_gain_pct": 19.18,
     "breakeven_activated": false,
     "target1": 528.53,
     "target2": 589.88,
@@ -26,6 +26,7 @@
     "target2": 79.06,
     "target1_hit": false,
     "t1_peeled": false,
-    "t2_peeled": false
+    "t2_peeled": false,
+    "pending_close": true
   }
 }
