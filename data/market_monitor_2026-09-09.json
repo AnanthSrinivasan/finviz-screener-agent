@@ -1,0 +1,73 @@
+{
+  "date": "2026-09-09",
+  "up_4_today": 60,
+  "down_4_today": 304,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3037,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.2,
+  "ratio_5day": 0.93,
+  "ratio_10day": 0.83,
+  "up_25_quarter": 261,
+  "down_25_quarter": 150,
+  "thrust_detected": false,
+  "fg": 39.0,
+  "spy_price": 762.4,
+  "spy_sma200_pct": 6.9,
+  "spy_sma50_pct": 0.59,
+  "spy_atr_mult_50": 0.74,
+  "spy_sma50_slope_10d": 0.7,
+  "spy_pct_from_20d_high": -2.17,
+  "qqq_sma50_pct": 0.73,
+  "qqq_atr_mult_50": 0.59,
+  "pct_above_50ma": 8.59,
+  "vix_close": 16.46,
+  "vix_change_pct": 4.71,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "BLACKOUT",
+  "state_message": "Seasonal no-trade period active",
+  "blackout": true,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 106,
+  "days_below_21ema": 0,
+  "spy_close": 762.425,
+  "spy_21ema": 765.6396143631844,
+  "spy_20d_high": 777.84,
+  "cohort": {
+    "universe_size": 175,
+    "pct_down4_today": 11.4,
+    "pct_up4_today": 4.6,
+    "pct_above_20ma": 52.6,
+    "pct_above_50ma": 66.3,
+    "pct_within_10_of_52wk_high": 49.1,
+    "cohort_score": 64,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "TTAN",
+        "chg_pct": -29.9,
+        "dollar_move": -24.36,
+        "close": 57.09
+      },
+      {
+        "ticker": "BRZE",
+        "chg_pct": -21.8,
+        "dollar_move": -6.61,
+        "close": 23.73
+      },
+      {
+        "ticker": "VRT",
+        "chg_pct": -9.6,
+        "dollar_move": -28.0,
+        "close": 262.81
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
