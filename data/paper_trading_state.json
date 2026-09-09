@@ -1,11 +1,11 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 1,
+  "consecutive_losses": 2,
   "total_wins": 5,
-  "total_losses": 4,
-  "current_sizing_mode": "normal",
+  "total_losses": 5,
+  "current_sizing_mode": "reduced",
   "sizing_override": null,
-  "last_updated": "2026-09-07",
+  "last_updated": "2026-09-09",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -100,6 +100,14 @@
       "result": "loss",
       "result_pct": -2.76,
       "date": "2026-09-07",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "AHR",
+      "result": "loss",
+      "result_pct": -4.83,
+      "date": "2026-09-09",
       "side": "SELL",
       "source": "fill"
     }
