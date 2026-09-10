@@ -1,21 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 4,
+  "consecutive_losses": 5,
   "total_wins": 42,
-  "total_losses": 58,
+  "total_losses": 59,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
   "last_updated": "2026-09-10",
   "recent_trades": [
-    {
-      "ticker": "TWLO",
-      "result": "loss",
-      "result_pct": -3.39,
-      "date": "2026-06-25",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -353.0
-    },
     {
       "ticker": "XBI",
       "result": "win",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -189.1
+    },
+    {
+      "ticker": "INTC",
+      "result": "loss",
+      "result_pct": -5.23,
+      "date": "2026-09-10",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -277.0
     }
   ],
   "market_state": "BLACKOUT",
