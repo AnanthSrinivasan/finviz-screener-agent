@@ -1,10 +1,6 @@
 {
   "fng_history": [
     {
-      "date": "2026-08-20",
-      "score": 52.5
-    },
-    {
       "date": "2026-08-21",
       "score": 55.2
     },
@@ -59,15 +55,15 @@
     {
       "date": "2026-09-10",
       "score": 39.0
+    },
+    {
+      "date": "2026-09-11",
+      "score": 33.3
     }
   ],
   "nyse_hl_history": [],
   "ndaq_hl_history": [],
   "slv_week_history": [
-    {
-      "date": "2026-08-20",
-      "pct": 6.02
-    },
     {
       "date": "2026-08-21",
       "pct": 7.25
@@ -123,13 +119,13 @@
     {
       "date": "2026-09-10",
       "pct": 4.83
+    },
+    {
+      "date": "2026-09-11",
+      "pct": -2.66
     }
   ],
   "gld_week_history": [
-    {
-      "date": "2026-08-20",
-      "pct": 4.09
-    },
     {
       "date": "2026-08-21",
       "pct": 5.45
@@ -185,12 +181,16 @@
     {
       "date": "2026-09-10",
       "pct": 1.66
+    },
+    {
+      "date": "2026-09-11",
+      "pct": -1.59
     }
   ],
   "last_alerts_sent": {
     "fng_extreme_fear": "2026-03-20",
     "slv_breakout_in_fear": "2026-03-27",
     "gld_breakout_in_fear": "2026-03-31",
-    "atr_compression": "2026-08-29"
+    "atr_compression": "2026-09-11"
   }
 }
