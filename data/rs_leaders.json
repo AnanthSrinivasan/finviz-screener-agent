@@ -147,22 +147,6 @@
     ],
     "days_tracked": 7
   },
-  "RBRK": {
-    "first_triggered": "2026-08-07",
-    "trigger_state": "TREND-FOLLOW",
-    "trigger_q": 106.0,
-    "trigger_dist": -9.704260651629081,
-    "trigger_atr_mult": 3.4,
-    "rs_rating": 82,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-08-25",
-    "pullback_started": "2026-08-27",
-    "reacquired_dates": [
-      "2026-08-11",
-      "2026-08-19"
-    ],
-    "days_tracked": 5
-  },
   "ZETA": {
     "first_triggered": "2026-08-07",
     "trigger_state": "TREND-FOLLOW",
@@ -186,13 +170,13 @@
     "trigger_dist": -2.371584699453555,
     "trigger_atr_mult": 3.4,
     "rs_rating": 90,
-    "current_status": "reacquired",
-    "last_active_date": "2026-09-01",
+    "current_status": "active",
+    "last_active_date": "2026-09-11",
     "pullback_started": null,
     "reacquired_dates": [
       "2026-09-01"
     ],
-    "days_tracked": 16
+    "days_tracked": 17
   },
   "FROG": {
     "first_triggered": "2026-08-07",
@@ -385,9 +369,9 @@
     "trigger_dist": -9.400324149108597,
     "trigger_atr_mult": 0.1,
     "rs_rating": 78,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-09-10",
-    "pullback_started": null,
+    "pullback_started": "2026-09-11",
     "reacquired_dates": [
       "2026-08-25"
     ],
@@ -405,19 +389,6 @@
     "pullback_started": "2026-08-29",
     "reacquired_dates": [],
     "days_tracked": 3
-  },
-  "EZPW": {
-    "first_triggered": "2026-08-25",
-    "trigger_state": "RED",
-    "trigger_q": 89.0,
-    "trigger_dist": -5.09159482758621,
-    "trigger_atr_mult": 2.6,
-    "rs_rating": 70,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-08-25",
-    "pullback_started": "2026-08-27",
-    "reacquired_dates": [],
-    "days_tracked": 1
   },
   "STT": {
     "first_triggered": "2026-08-28",
@@ -534,9 +505,9 @@
     "trigger_dist": -8.305610374964756,
     "trigger_atr_mult": 3.2,
     "rs_rating": 77,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-09-10",
-    "pullback_started": null,
+    "pullback_started": "2026-09-11",
     "reacquired_dates": [],
     "days_tracked": 2
   },
@@ -546,12 +517,12 @@
     "trigger_q": 88.0,
     "trigger_dist": -5.750675414897721,
     "trigger_atr_mult": 3.6,
-    "rs_rating": 62,
+    "rs_rating": 65,
     "current_status": "active",
-    "last_active_date": "2026-09-10",
+    "last_active_date": "2026-09-11",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 2
+    "days_tracked": 3
   },
   "HPE": {
     "first_triggered": "2026-09-10",
@@ -560,9 +531,9 @@
     "trigger_dist": -8.326848249027242,
     "trigger_atr_mult": 3.0,
     "rs_rating": 86,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-09-10",
-    "pullback_started": null,
+    "pullback_started": "2026-09-11",
     "reacquired_dates": [],
     "days_tracked": 1
   },
@@ -573,9 +544,9 @@
     "trigger_dist": -9.470446055811898,
     "trigger_atr_mult": 1.7,
     "rs_rating": 88,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-09-10",
-    "pullback_started": null,
+    "pullback_started": "2026-09-11",
     "reacquired_dates": [],
     "days_tracked": 1
   },
@@ -587,10 +558,10 @@
     "trigger_atr_mult": 3.5,
     "rs_rating": 91,
     "current_status": "active",
-    "last_active_date": "2026-09-10",
+    "last_active_date": "2026-09-11",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 1
+    "days_tracked": 2
   },
   "TVTX": {
     "first_triggered": "2026-09-10",
@@ -599,9 +570,9 @@
     "trigger_dist": -2.660590915772454,
     "trigger_atr_mult": 2.7,
     "rs_rating": 89,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-09-10",
-    "pullback_started": null,
+    "pullback_started": "2026-09-11",
     "reacquired_dates": [],
     "days_tracked": 1
   }
