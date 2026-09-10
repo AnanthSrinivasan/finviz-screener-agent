@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-10T17:34:59.620209Z",
+  "updated": "2026-09-10T17:47:12.715553Z",
   "events": [
-    {
-      "ts": "2026-09-01T17:20:24.881347Z",
-      "date": "2026-09-01",
-      "category": "retro_patch",
-      "title": "RBRK fill patched -4.8% \u2192 -5.0%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-01T17:20:24.881991Z",
       "date": "2026-09-01",
@@ -346,6 +339,13 @@
     },
     {
       "ts": "2026-09-10T17:34:59.620209Z",
+      "date": "2026-09-10",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.11x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-10T17:47:12.715553Z",
       "date": "2026-09-10",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.11x",

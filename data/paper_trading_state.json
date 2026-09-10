@@ -1,11 +1,11 @@
 {
-  "consecutive_wins": 0,
-  "consecutive_losses": 2,
-  "total_wins": 5,
+  "consecutive_wins": 1,
+  "consecutive_losses": 0,
+  "total_wins": 6,
   "total_losses": 5,
-  "current_sizing_mode": "reduced",
+  "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-09-09",
+  "last_updated": "2026-09-10",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -108,6 +108,14 @@
       "result": "loss",
       "result_pct": -4.83,
       "date": "2026-09-09",
+      "side": "SELL",
+      "source": "fill"
+    },
+    {
+      "ticker": "DELL",
+      "result": "win",
+      "result_pct": 9.47,
+      "date": "2026-09-10",
       "side": "SELL",
       "source": "fill"
     }
