@@ -5,35 +5,18 @@
       "shares": 100.60733,
       "entry_price": 202.01,
       "entry_date": "2026-08-14",
-      "stop_price": 207.06,
+      "stop_price": 208.31,
       "breakeven_activated": false,
       "target1": 242.41,
       "target1_hit": false,
       "target2": 282.81,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 215.24,
-      "current_gain_pct": 5.84,
+      "highest_price_seen": 216.77,
+      "current_gain_pct": 5.71,
       "first_entry_price": 199.82,
-      "peak_gain_pct": 6.55,
+      "peak_gain_pct": 7.31,
       "stale_alerted_date": "2026-09-01"
-    },
-    {
-      "ticker": "MU",
-      "shares": 10,
-      "entry_price": 999.44,
-      "entry_date": "2026-09-04",
-      "stop_price": 937.95,
-      "breakeven_activated": false,
-      "target1": 1119.37,
-      "target1_hit": false,
-      "target2": 1249.3,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 1042.38,
-      "current_gain_pct": 2.73,
-      "first_entry_price": 999.44,
-      "peak_gain_pct": 4.3
     },
     {
       "ticker": "INTC",
@@ -48,7 +31,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 106.69,
-      "current_gain_pct": 0.2,
+      "current_gain_pct": -4.29,
       "first_entry_price": 105.84,
       "peak_gain_pct": 0.8
     }
@@ -2423,6 +2406,27 @@
       "close_price": 84.72,
       "close_source": "snaptrade_fill",
       "result_pct": -0.56
+    },
+    {
+      "ticker": "MU",
+      "shares": 10,
+      "entry_price": 999.44,
+      "entry_date": "2026-09-04",
+      "stop_price": 937.95,
+      "breakeven_activated": false,
+      "target1": 1119.37,
+      "target1_hit": false,
+      "target2": 1249.3,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 1042.38,
+      "current_gain_pct": 2.73,
+      "first_entry_price": 999.44,
+      "peak_gain_pct": 4.3,
+      "close_date": "2026-09-10",
+      "close_price": 980.53,
+      "close_source": "live_quote",
+      "result_pct": -1.89
     }
   ]
 }

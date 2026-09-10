@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-09T23:03:28.317391Z",
+  "updated": "2026-09-10T17:01:35.801976Z",
   "events": [
-    {
-      "ts": "2026-09-01T17:20:24.879905Z",
-      "date": "2026-09-01",
-      "category": "retro_patch",
-      "title": "ARKK fill patched -0.0% \u2192 -0.7%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-01T17:20:24.880639Z",
       "date": "2026-09-01",
@@ -349,6 +342,13 @@
       "date": "2026-09-10",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.69x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-10T17:01:35.801976Z",
+      "date": "2026-09-10",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.15x",
       "severity": "med"
     }
   ]
