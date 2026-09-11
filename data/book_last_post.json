@@ -1,28 +1,4 @@
 {
-  "last_book_post_ts": "2026-09-10T19:59:12.051260Z",
-  "events_since_last": [
-    {
-      "kind": "auto_closed",
-      "ticker": "INTC",
-      "message": "\ud83d\udd34 AUTO-DETECTED CLOSE: INTC\n   Entry $105.84 \u2192 $100.30 (quote) (-5.2%) \u2014 LOSS\n   Streak: 0W / 5L",
-      "result_pct": -5.23,
-      "close_price": 100.3,
-      "close_source": "live_quote",
-      "ts": "2026-09-10T20:36:53.104633Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.93x",
-      "alert_type": "PEEL",
-      "ts": "2026-09-10T20:36:53.104633Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.93x",
-      "alert_type": "PEEL",
-      "ts": "2026-09-10T23:00:15.559948Z"
-    }
-  ]
+  "last_book_post_ts": "2026-09-11T17:02:29.685523Z",
+  "events_since_last": []
 }

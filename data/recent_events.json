@@ -1,27 +1,6 @@
 {
-  "updated": "2026-09-10T23:00:09.842851Z",
+  "updated": "2026-09-11T17:02:26.560411Z",
   "events": [
-    {
-      "ts": "2026-09-01T17:54:50.166368Z",
-      "date": "2026-09-01",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.86x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-01T20:05:43.312249Z",
-      "date": "2026-09-01",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 6.02x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-01T20:46:31.551906Z",
-      "date": "2026-09-01",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 6.02x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-01T22:52:21.756946Z",
       "date": "2026-09-01",
@@ -349,6 +328,27 @@
       "date": "2026-09-11",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 4.93x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-11T17:02:23.938631Z",
+      "date": "2026-09-11",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.04x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-11T17:02:26.559504Z",
+      "date": "2026-09-11",
+      "category": "retro_patch",
+      "title": "MU fill patched -1.9% \u2192 -1.5%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-11T17:02:26.560411Z",
+      "date": "2026-09-11",
+      "category": "retro_patch",
+      "title": "INTC fill patched -5.2% \u2192 -5.2%",
       "severity": "med"
     }
   ]
