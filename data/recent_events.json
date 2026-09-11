@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-11T20:41:58.296675Z",
+  "updated": "2026-09-11T23:04:30.730290Z",
   "events": [
-    {
-      "ts": "2026-09-02T17:11:08.181718Z",
-      "date": "2026-09-02",
-      "category": "retro_patch",
-      "title": "FROG fill patched -7.1% \u2192 -5.7%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-02T17:44:11.005767Z",
       "date": "2026-09-02",
@@ -347,6 +340,13 @@
     {
       "ts": "2026-09-11T20:41:58.296675Z",
       "date": "2026-09-11",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.08x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-11T23:04:30.730290Z",
+      "date": "2026-09-12",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.08x",
       "severity": "med"
