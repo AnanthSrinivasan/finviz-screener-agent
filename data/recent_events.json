@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-11T19:58:28.050014Z",
+  "updated": "2026-09-11T20:41:58.296675Z",
   "events": [
-    {
-      "ts": "2026-09-02T17:11:08.180939Z",
-      "date": "2026-09-02",
-      "category": "retro_patch",
-      "title": "TWLO fill patched +1.9% \u2192 +2.3%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-02T17:11:08.181718Z",
       "date": "2026-09-02",
@@ -349,6 +342,13 @@
       "date": "2026-09-11",
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 5.11x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-11T20:41:58.296675Z",
+      "date": "2026-09-11",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 5.08x",
       "severity": "med"
     }
   ]
