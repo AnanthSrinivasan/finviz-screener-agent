@@ -9506,7 +9506,9 @@
     "HRMY",
     "BMNR",
     "CRBG",
-    "MMED"
+    "MMED",
+    "TECK",
+    "EOSE"
   ],
   "auto_promoted": [
     {
@@ -11433,6 +11435,18 @@
       "ticker": "MMED",
       "added": "2026-09-05",
       "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "TECK",
+      "added": "2026-09-12",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "EOSE",
+      "added": "2026-09-12",
+      "days_seen": 3,
       "screens": 3
     }
   ]
