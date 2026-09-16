@@ -1,20 +1,4 @@
 {
-  "last_book_post_ts": "2026-09-15T20:23:49.988099Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "INTC",
-      "message": "\ud83d\udea8 STOP HIT: INTC @ $97.12 \u2014 exit immediately (stop $97.92)",
-      "current_price": 97.12,
-      "stop_price": 97.92,
-      "ts": "2026-09-15T21:39:32.111922Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 5.29x",
-      "alert_type": "PEEL",
-      "ts": "2026-09-15T21:39:32.111922Z"
-    }
-  ]
+  "last_book_post_ts": "2026-09-16T17:38:15.937512Z",
+  "events_since_last": []
 }
