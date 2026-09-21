@@ -96,3 +96,45 @@ documented "round-tripping winners" leak, measured for the first time.
   `portfolio_common.monthly_realized`) beside **Equity Δ**. It previously showed
   only the equity series, so August read −$389 while 16 closed trades booked
   +$4,567, and the page contradicted its own trade log.
+
+## 2026-09-21 — screener CSV filenames are systematically one day ahead (B-11 root cause)
+
+Not occasional cron drift — it happens **every day**. The Actions runner's
+timezone is **+02:00**, not UTC (visible in git commit offsets, e.g.
+`2026-09-19 00:44:54 +0200`). `finviz_agent.py` names its output from
+`datetime.date.today()`, which is local. The daily screener starts 20:30 UTC and
+takes ~2h15m, finishing ~22:45 UTC — past local midnight — so every run writes
+the **next** calendar day's filename.
+
+Proof that needs no live data: `data/finviz_screeners_2026-09-19.csv` exists and
+2026-09-19 is a **Saturday**. It holds Friday 2026-09-18's session.
+
+Consequences:
+- Every `finviz_screeners_*.csv` / `daily_quality_*.json` / `finviz_chart_grid_*.html`
+  is labelled one session ahead of the data it contains.
+- `market_monitor_*.json` is NOT affected — that job runs 21:00 UTC and finishes
+  before the local-midnight rollover, so its dates are correct. The two file
+  families therefore disagree by one day.
+- `alpaca_executor._resolve_screener_csv()` picks the newest CSV dated ≤ today.
+  Today's real screener output is dated tomorrow, so it is skipped and the
+  executor reads the **previous session's** file. Unverified whether this has
+  changed any fill; worth measuring when B-11 is fixed.
+
+Fix direction: derive the filename from the market session the data belongs to
+(explicit UTC, or an ET trading-date helper), never `date.today()` on the runner.
+
+## 2026-09-21 — manual book flat; INTC win was not a system pick
+
+User closed everything to bank profits. `positions.json` open_positions is empty;
+`trading_state.json` shows 2 consecutive wins, mode back to `normal` (was
+`suspended` on 09-05). Closes recorded today: CVX +1.7%, INTC +27.7%
+($95.00 on 09-14 -> $121.31). Both carry `close_source: live_quote`, so the
+SnapTrade fills had not synced and the retro-patch will revise them.
+
+**INTC never fired a single signal in September** and appears in none of the
+September screener CSVs. Its last two fires were `big_movers` on 2026-07-30 and
+2026-08-04. The month's best trade came entirely from discretion — a coverage
+gap of the same family as DAVE and TWST (mega-cap turnaround reclaiming from a
+long base: `recovery_leader` is the only block aimed at that class and it has
+6 lifetime fires, 1 scored). Do not fix off this one case; log it and look for
+the pattern.

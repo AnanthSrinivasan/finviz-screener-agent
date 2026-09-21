@@ -42,13 +42,17 @@ and not worth mentioning.
   1–2 entry days: 13 trades, +$19,614. The 2026-07-31 batch of six went
   −$7,843. Sample is small — measure across more history before enforcing a cap.
 - **Watchlist hygiene.** 574 rows, 391 archived (68% dead weight). Prune.
-- **B-11 — UTC date drift on delayed cron runs.** When a scheduled run starts
-  after ~23:00 UTC it writes its output under the *next* day's filename
-  (observed 2026-08-26 → 08-27 file, 2026-08-31 → 09-01 file). The following
-  day's real run then overwrites that file, so one session's screener data is
-  silently lost and, in the interval, a file dated today holds yesterday's
-  close. Fix by deriving the filename from the market session the data belongs
-  to, not from `date.today()` at write time.
+- **B-11 — screener output is dated one session ahead, EVERY DAY.** Root cause
+  pinned 2026-09-21 (details in `project_state.md`): the Actions runner's TZ is
+  **+02:00**, `finviz_agent.py` names files from local `datetime.date.today()`,
+  and the 20:30 UTC run finishes ~22:45 UTC = past local midnight. Proof:
+  `data/finviz_screeners_2026-09-19.csv` exists and 09-19 is a Saturday.
+  `market_monitor_*.json` is unaffected (finishes before rollover), so the two
+  file families disagree by a day. Also check whether
+  `alpaca_executor._resolve_screener_csv()` has been silently reading the
+  previous session's CSV, since today's output is dated tomorrow.
+  Fix by deriving the filename from the market session (explicit UTC / ET
+  trading date), not `date.today()` on the runner. Contained, no spec needed.
 
 - **Verify and consider adding EUAD to the ETF universe.** The user asked about
   European defense exposure 2026-09-06. `data/sector_etf_map.json` has ITA
