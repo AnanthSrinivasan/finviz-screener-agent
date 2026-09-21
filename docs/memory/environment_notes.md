@@ -28,3 +28,11 @@ Claude Code runs in two places against this repo. They are NOT equivalent.
   baseline, not a regression — confirm by stashing before blaming a change.
 - Running the suite writes to `data/recent_events.json`. Revert it before
   committing; it is a test artifact, not a change.
+
+## Fresh cloud container has no third-party deps (2026-09-21)
+A new claude.ai/code container starts with **no** `pandas`, `bs4`, `boto3`,
+`botocore` or `pytz`. `python -m unittest discover -s tests -t .` then collects
+only **658** tests (all passing) with **36 import errors** — not the 1420/6
+baseline. That is the container, not a regression. `pip install -r requirements.txt`
+first if a change touches pandas/bs4 code paths; for a docs-only change the
+658-pass run is sufficient evidence.
