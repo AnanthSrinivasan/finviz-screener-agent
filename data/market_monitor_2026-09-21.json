@@ -1,0 +1,73 @@
+{
+  "date": "2026-09-21",
+  "up_4_today": 278,
+  "down_4_today": 78,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3036,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 3.56,
+  "ratio_5day": 1.25,
+  "ratio_10day": 0.84,
+  "up_25_quarter": 271,
+  "down_25_quarter": 204,
+  "thrust_detected": false,
+  "fg": 33.7,
+  "spy_price": 773.5,
+  "spy_sma200_pct": 7.92,
+  "spy_sma50_pct": 1.77,
+  "spy_atr_mult_50": 1.95,
+  "spy_sma50_slope_10d": 0.43,
+  "spy_pct_from_20d_high": -0.23,
+  "qqq_sma50_pct": 4.39,
+  "qqq_atr_mult_50": 3.22,
+  "pct_above_50ma": 8.93,
+  "vix_close": 14.87,
+  "vix_change_pct": 0.41,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "BLACKOUT",
+  "state_message": "Seasonal no-trade period active",
+  "blackout": true,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 118,
+  "days_below_21ema": 0,
+  "spy_close": 773.52,
+  "spy_21ema": 763.7813524679859,
+  "spy_20d_high": 773.52,
+  "cohort": {
+    "universe_size": 166,
+    "pct_down4_today": 6.0,
+    "pct_up4_today": 25.3,
+    "pct_above_20ma": 67.5,
+    "pct_above_50ma": 75.3,
+    "pct_within_10_of_52wk_high": 53.6,
+    "cohort_score": 74,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "SM",
+        "chg_pct": -6.1,
+        "dollar_move": -2.24,
+        "close": 34.75
+      },
+      {
+        "ticker": "DINO",
+        "chg_pct": -5.8,
+        "dollar_move": -6.73,
+        "close": 109.25
+      },
+      {
+        "ticker": "CYPH",
+        "chg_pct": -5.4,
+        "dollar_move": -0.2,
+        "close": 3.4
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
