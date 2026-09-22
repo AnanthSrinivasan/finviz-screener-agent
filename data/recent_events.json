@@ -1,13 +1,6 @@
 {
-  "updated": "2026-09-22T17:39:18.029196Z",
+  "updated": "2026-09-22T17:59:54.403548Z",
   "events": [
-    {
-      "ts": "2026-09-04T17:28:02.899336Z",
-      "date": "2026-09-04",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.98x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-04T17:42:26.783920Z",
       "date": "2026-09-04",
@@ -349,6 +342,13 @@
       "date": "2026-09-22",
       "category": "retro_patch",
       "title": "INTC fill patched +27.7% \u2192 +25.7%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-09-22T17:59:54.403548Z",
+      "date": "2026-09-22",
+      "category": "peel_signal",
+      "title": "ARKG peel signal \u2014 ATR mult 6.26x",
       "severity": "med"
     }
   ]
