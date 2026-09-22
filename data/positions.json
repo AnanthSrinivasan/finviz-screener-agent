@@ -1,5 +1,23 @@
 {
-  "open_positions": [],
+  "open_positions": [
+    {
+      "ticker": "ARKG",
+      "shares": 100,
+      "entry_price": 53.3,
+      "entry_date": "2026-09-22",
+      "stop_price": 49.98,
+      "breakeven_activated": false,
+      "target1": 61.29,
+      "target1_hit": false,
+      "target2": 69.29,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 53.4,
+      "current_gain_pct": -0.39,
+      "first_entry_price": 53.3,
+      "peak_gain_pct": 0.19
+    }
+  ],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2431,9 +2449,9 @@
       "peak_gain_pct": 7.79,
       "stale_alerted_date": "2026-09-01",
       "close_date": "2026-09-21",
-      "close_price": 205.44,
-      "close_source": "live_quote",
-      "result_pct": 1.7
+      "close_price": 205.59,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 1.77
     },
     {
       "ticker": "INTC",
@@ -2452,9 +2470,9 @@
       "first_entry_price": 95.0,
       "peak_gain_pct": 17.22,
       "close_date": "2026-09-21",
-      "close_price": 121.31,
-      "close_source": "live_quote",
-      "result_pct": 27.69
+      "close_price": 119.39,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": 25.67
     }
   ]
 }
