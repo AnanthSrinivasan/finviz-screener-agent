@@ -10002,7 +10002,12 @@
     "CYPH",
     "SMTC",
     "IOT",
-    "ZS"
+    "ZS",
+    "SECZ",
+    "AVT",
+    "SNX",
+    "USDE",
+    "DNA"
   ],
   "auto_promoted": [
     {
@@ -11983,6 +11988,36 @@
       "ticker": "ZS",
       "added": "2026-09-19",
       "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "SECZ",
+      "added": "2026-09-26",
+      "days_seen": 5,
+      "screens": 4
+    },
+    {
+      "ticker": "AVT",
+      "added": "2026-09-26",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "SNX",
+      "added": "2026-09-26",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "USDE",
+      "added": "2026-09-26",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "DNA",
+      "added": "2026-09-26",
+      "days_seen": 3,
       "screens": 3
     }
   ]
