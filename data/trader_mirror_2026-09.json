@@ -1,0 +1,194 @@
+{
+  "month": "2026-09",
+  "window": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
+  "generated": "2026-10-03",
+  "trades": [
+    {
+      "ticker": "TWLO",
+      "entry_price": 222.5,
+      "entry_date": "2026-08-26",
+      "close_date": "2026-09-01",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": 48.75,
+      "note": "matched the system within $49",
+      "shares_sold": 50.0,
+      "actual_exit_price": 227.65,
+      "actual_exit_date": "2026-09-01",
+      "system_exit_price": 228.62,
+      "system_exit_date": "2026-09-01",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "FROG",
+      "entry_price": 99.73,
+      "entry_date": "2026-08-31",
+      "close_date": "2026-09-01",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -116.0,
+      "note": "beat the system by $116 \u2014 good exit",
+      "shares_sold": 50.0,
+      "actual_exit_price": 94.07,
+      "actual_exit_date": "2026-09-01",
+      "system_exit_price": 91.75,
+      "system_exit_date": "2026-09-01",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "XBI",
+      "entry_price": 166.33,
+      "entry_date": "2026-08-21",
+      "close_date": "2026-09-03",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -101.51,
+      "note": "beat the system by $102 \u2014 good exit",
+      "shares_sold": 100.0,
+      "actual_exit_price": 163.49,
+      "actual_exit_date": "2026-09-03",
+      "system_exit_price": 162.47,
+      "system_exit_date": "2026-08-31",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "HPE",
+      "entry_price": 55.14,
+      "entry_date": "2026-08-26",
+      "close_date": "2026-09-04",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -583.81,
+      "note": "beat the system by $584 \u2014 good exit",
+      "shares_sold": 200.0,
+      "actual_exit_price": 53.72,
+      "actual_exit_date": "2026-09-04",
+      "system_exit_price": 50.8,
+      "system_exit_date": "2026-09-01",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "ARKK",
+      "entry_price": 85.2,
+      "entry_date": "2026-09-03",
+      "close_date": "2026-09-08",
+      "status": "scored",
+      "leak": "early_exit",
+      "delta_usd": -230.0,
+      "note": "sold $0 early \u2014 system exit was 2026-09-16 at $83.10",
+      "shares_sold": 100.0,
+      "actual_exit_price": 85.4,
+      "actual_exit_date": "2026-09-08",
+      "system_exit_price": 83.1,
+      "system_exit_date": "2026-09-16",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "MU",
+      "entry_price": 999.44,
+      "entry_date": "2026-09-04",
+      "close_date": "2026-09-10",
+      "status": "scored",
+      "leak": "early_exit",
+      "delta_usd": -607.9,
+      "note": "sold $0 early \u2014 system exit was 2026-09-14 at $924.00",
+      "shares_sold": 10.0,
+      "actual_exit_price": 984.79,
+      "actual_exit_date": "2026-09-10",
+      "system_exit_price": 924.0,
+      "system_exit_date": "2026-09-14",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "INTC",
+      "entry_price": 105.84,
+      "entry_date": "2026-09-09",
+      "close_date": "2026-09-10",
+      "status": "unscored",
+      "leak": null,
+      "delta_usd": 0.0,
+      "note": "no recoverable fills in position_history"
+    },
+    {
+      "ticker": "CVX",
+      "entry_price": 202.01,
+      "entry_date": "2026-08-14",
+      "close_date": "2026-09-21",
+      "status": "scored",
+      "leak": "disciplined",
+      "delta_usd": -568.19,
+      "note": "beat the system by $568 \u2014 good exit",
+      "shares_sold": 100.0,
+      "actual_exit_price": 205.59,
+      "actual_exit_date": "2026-09-21",
+      "system_exit_price": 199.91,
+      "system_exit_date": "2026-08-25",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "INTC",
+      "entry_price": 95.0,
+      "entry_date": "2026-09-14",
+      "close_date": "2026-09-21",
+      "status": "scored",
+      "leak": "early_exit",
+      "delta_usd": 1426.31,
+      "note": "sold $1,426 early \u2014 system exit was 2026-09-23 at $122.61",
+      "shares_sold": 150.0,
+      "actual_exit_price": 113.1,
+      "actual_exit_date": "2026-09-21",
+      "system_exit_price": 122.61,
+      "system_exit_date": "2026-09-23",
+      "system_exit_kind": "stop"
+    },
+    {
+      "ticker": "ARKG",
+      "entry_price": 53.3,
+      "entry_date": "2026-09-22",
+      "close_date": "2026-09-23",
+      "status": "unscored",
+      "leak": null,
+      "delta_usd": 0.0,
+      "note": "no recoverable fills in position_history"
+    }
+  ],
+  "buckets": {
+    "hold_in_hope": {
+      "count": 0,
+      "delta_usd": 0,
+      "tickers": []
+    },
+    "round_trip": {
+      "count": 0,
+      "delta_usd": 0,
+      "tickers": []
+    },
+    "early_exit": {
+      "count": 3,
+      "delta_usd": 588.41,
+      "tickers": [
+        "ARKK",
+        "MU",
+        "INTC"
+      ]
+    },
+    "disciplined": {
+      "count": 5,
+      "delta_usd": -1320.76,
+      "tickers": [
+        "TWLO",
+        "FROG",
+        "XBI",
+        "HPE",
+        "CVX"
+      ]
+    }
+  },
+  "total_left_usd": 588.41,
+  "scored_count": 8,
+  "unscored_count": 2,
+  "disciplined_count": 5
+}

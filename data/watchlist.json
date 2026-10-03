@@ -10134,7 +10134,12 @@
     "AVT",
     "SNX",
     "USDE",
-    "DNA"
+    "DNA",
+    "IOVA",
+    "NVDA",
+    "KEYS",
+    "PACB",
+    "SDEV"
   ],
   "auto_promoted": [
     {
@@ -12144,6 +12149,36 @@
     {
       "ticker": "DNA",
       "added": "2026-09-26",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "IOVA",
+      "added": "2026-10-03",
+      "days_seen": 5,
+      "screens": 5
+    },
+    {
+      "ticker": "NVDA",
+      "added": "2026-10-03",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "KEYS",
+      "added": "2026-10-03",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "PACB",
+      "added": "2026-10-03",
+      "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "SDEV",
+      "added": "2026-10-03",
       "days_seen": 3,
       "screens": 3
     }
