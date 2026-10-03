@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-02",
+  "up_4_today": 196,
+  "down_4_today": 82,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3059,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 2.39,
+  "ratio_5day": 0.96,
+  "ratio_10day": 0.89,
+  "up_25_quarter": 205,
+  "down_25_quarter": 195,
+  "thrust_detected": false,
+  "fg": 31.2,
+  "spy_price": 769.64,
+  "spy_sma200_pct": 6.82,
+  "spy_sma50_pct": 0.78,
+  "spy_atr_mult_50": 0.9,
+  "spy_sma50_slope_10d": 0.52,
+  "spy_pct_from_20d_high": -0.71,
+  "qqq_sma50_pct": 4.56,
+  "qqq_atr_mult_50": 3.64,
+  "pct_above_50ma": 6.7,
+  "vix_close": 15.31,
+  "vix_change_pct": -6.59,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 129,
+  "days_below_21ema": 0,
+  "spy_close": 769.65,
+  "spy_21ema": 765.5903293606689,
+  "spy_20d_high": 773.52,
+  "cohort": {
+    "universe_size": 170,
+    "pct_down4_today": 3.5,
+    "pct_up4_today": 15.3,
+    "pct_above_20ma": 61.8,
+    "pct_above_50ma": 71.2,
+    "pct_within_10_of_52wk_high": 54.7,
+    "cohort_score": 72,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "STX",
+        "chg_pct": -10.2,
+        "dollar_move": -96.75,
+        "close": 848.78
+      },
+      {
+        "ticker": "WDC",
+        "chg_pct": -10.2,
+        "dollar_move": -47.0,
+        "close": 415.37
+      },
+      {
+        "ticker": "TH",
+        "chg_pct": -8.1,
+        "dollar_move": -1.66,
+        "close": 18.84
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
