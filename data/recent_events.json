@@ -1,13 +1,6 @@
 {
-  "updated": "2026-10-02T00:17:37.174699Z",
+  "updated": "2026-10-05T21:07:21.813112Z",
   "events": [
-    {
-      "ts": "2026-09-07T18:16:10.855641Z",
-      "date": "2026-09-07",
-      "category": "retro_patch",
-      "title": "HPE fill patched -4.5% \u2192 -3.3%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-07T18:38:50.886175Z",
       "date": "2026-09-07",
@@ -350,6 +343,13 @@
       "category": "market_state",
       "title": "Market: BLACKOUT \u2192 RED",
       "severity": "high"
+    },
+    {
+      "ts": "2026-10-05T21:07:21.813112Z",
+      "date": "2026-10-05",
+      "category": "retro_patch",
+      "title": "ARKG fill patched -4.3% \u2192 -4.4%",
+      "severity": "med"
     }
   ]
 }

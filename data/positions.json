@@ -1,5 +1,40 @@
 {
-  "open_positions": [],
+  "open_positions": [
+    {
+      "ticker": "ALAB",
+      "shares": 20,
+      "entry_price": 363.49,
+      "entry_date": "2026-10-05",
+      "stop_price": 321.8,
+      "breakeven_activated": false,
+      "target1": 407.11,
+      "target1_hit": false,
+      "target2": 454.36,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 365.22,
+      "current_gain_pct": -0.27,
+      "first_entry_price": 363.49,
+      "peak_gain_pct": 0.48
+    },
+    {
+      "ticker": "NVDA",
+      "shares": 50,
+      "entry_price": 239.57,
+      "entry_date": "2026-10-05",
+      "stop_price": 228.23,
+      "breakeven_activated": false,
+      "target1": 287.48,
+      "target1_hit": false,
+      "target2": 335.4,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 240.09,
+      "current_gain_pct": -0.28,
+      "first_entry_price": 239.57,
+      "peak_gain_pct": 0.22
+    }
+  ],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2473,9 +2508,9 @@
       "first_entry_price": 53.3,
       "peak_gain_pct": 0.19,
       "close_date": "2026-09-23",
-      "close_price": 51.0,
-      "close_source": "live_quote",
-      "result_pct": -4.32
+      "close_price": 50.96,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -4.39
     }
   ]
 }
