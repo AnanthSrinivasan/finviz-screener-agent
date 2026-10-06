@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-06",
+  "date": "2026-10-07",
   "candidates": [
     {
       "ticker": "HNGE",
@@ -50,67 +50,19 @@
       }
     },
     {
-      "ticker": "CAI",
+      "ticker": "INGM",
       "signal_score": 5,
-      "eps_yy_ttm": 113.1,
-      "eps_qq": 99.88,
-      "inst_trans": -4.02,
-      "appearances": 3,
+      "eps_yy_ttm": 61.84,
+      "eps_qq": 196.52,
+      "inst_trans": 10.28,
+      "appearances": 1,
       "criteria": {
-        "persistence": true,
+        "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "COHU",
-      "signal_score": 5,
-      "eps_yy_ttm": 55.6,
-      "eps_qq": 99.06,
-      "inst_trans": 8.75,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "CRWD",
-      "signal_score": 5,
-      "eps_yy_ttm": 112.37,
-      "eps_qq": 106.56,
-      "inst_trans": 3.14,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "XMTR",
-      "signal_score": 5,
-      "eps_yy_ttm": 51.47,
-      "eps_qq": 81.2,
-      "inst_trans": 8.84,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
@@ -125,6 +77,22 @@
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "APH",
+      "signal_score": 4,
+      "eps_yy_ttm": 59.57,
+      "eps_qq": 59.99,
+      "inst_trans": -0.49,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -162,11 +130,75 @@
       }
     },
     {
+      "ticker": "CDNA",
+      "signal_score": 4,
+      "eps_yy_ttm": 90.73,
+      "eps_qq": 1412.42,
+      "inst_trans": 0.12,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "COHU",
+      "signal_score": 4,
+      "eps_yy_ttm": 55.6,
+      "eps_qq": 99.06,
+      "inst_trans": 8.75,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "CRBG",
       "signal_score": 4,
       "eps_yy_ttm": 426.19,
       "eps_qq": 97.07,
       "inst_trans": 10.73,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "CRWD",
+      "signal_score": 4,
+      "eps_yy_ttm": 112.37,
+      "eps_qq": 106.56,
+      "inst_trans": 3.14,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "FCEL",
+      "signal_score": 4,
+      "eps_yy_ttm": 62.7,
+      "eps_qq": 83.0,
+      "inst_trans": 34.5,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -191,22 +223,6 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "INGM",
-      "signal_score": 4,
-      "eps_yy_ttm": 61.84,
-      "eps_qq": 196.52,
-      "inst_trans": 10.28,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
       }
     },
     {
@@ -258,6 +274,22 @@
       }
     },
     {
+      "ticker": "NVDA",
+      "signal_score": 4,
+      "eps_yy_ttm": 124.42,
+      "eps_qq": 128.21,
+      "inst_trans": 0.51,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "OSCR",
       "signal_score": 4,
       "eps_yy_ttm": 364.92,
@@ -290,22 +322,6 @@
       }
     },
     {
-      "ticker": "SBLK",
-      "signal_score": 4,
-      "eps_yy_ttm": 141.62,
-      "eps_qq": 432900.0,
-      "inst_trans": 3.06,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "SMCI",
       "signal_score": 4,
       "eps_yy_ttm": 104.6,
@@ -322,27 +338,43 @@
       }
     },
     {
-      "ticker": "TEM",
-      "signal_score": 4,
-      "eps_yy_ttm": -21.05,
-      "eps_qq": 112.51,
-      "inst_trans": 4.28,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
       "ticker": "TER",
       "signal_score": 4,
       "eps_yy_ttm": 153.54,
       "eps_qq": 385.31,
       "inst_trans": 3.5,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "TWLO",
+      "signal_score": 4,
+      "eps_yy_ttm": 5490.04,
+      "eps_qq": 4659.4,
+      "inst_trans": 1.17,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "XMTR",
+      "signal_score": 4,
+      "eps_yy_ttm": 51.47,
+      "eps_qq": 81.2,
+      "inst_trans": 8.84,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -359,22 +391,6 @@
       "eps_yy_ttm": 17.81,
       "eps_qq": 171.86,
       "inst_trans": 5.9,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "AEHR",
-      "signal_score": 3,
-      "eps_yy_ttm": -81.5,
-      "eps_qq": 143.11,
-      "inst_trans": 3.76,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -392,38 +408,6 @@
       "eps_qq": 51.19,
       "inst_trans": 8.56,
       "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "EXPD",
-      "signal_score": 3,
-      "eps_yy_ttm": 12.05,
-      "eps_qq": 50.83,
-      "inst_trans": -2.52,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "FEIM",
-      "signal_score": 3,
-      "eps_yy_ttm": -88.67,
-      "eps_qq": 531.9,
-      "inst_trans": 4.2,
-      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -455,7 +439,7 @@
       "eps_yy_ttm": 41.2,
       "eps_qq": 68.51,
       "inst_trans": 4.96,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
@@ -503,6 +487,22 @@
       "eps_yy_ttm": -27.86,
       "eps_qq": 79.32,
       "inst_trans": 4.65,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "ZBRA",
+      "signal_score": 3,
+      "eps_yy_ttm": 3.31,
+      "eps_qq": 121.66,
+      "inst_trans": 3.34,
       "appearances": 1,
       "criteria": {
         "persistence": false,
