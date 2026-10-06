@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 401.19,
-      "current_gain_pct": 6.48,
+      "current_gain_pct": 7.33,
       "first_entry_price": 363.49,
       "peak_gain_pct": 10.37
     },
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 243.34,
-      "current_gain_pct": -0.2,
+      "current_gain_pct": -0.15,
       "first_entry_price": 239.57,
       "peak_gain_pct": 1.57
     },
@@ -39,17 +39,17 @@
       "shares": 100,
       "entry_price": 70.72,
       "entry_date": "2026-10-06",
-      "stop_price": 63.97,
+      "stop_price": 64.0,
       "breakeven_activated": false,
       "target1": 79.21,
       "target1_hit": false,
       "target2": 88.4,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 71.17,
-      "current_gain_pct": 0.42,
+      "highest_price_seen": 71.22,
+      "current_gain_pct": -0.23,
       "first_entry_price": 70.72,
-      "peak_gain_pct": 0.64
+      "peak_gain_pct": 0.71
     },
     {
       "ticker": "CVX",
@@ -64,9 +64,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 208.65,
-      "current_gain_pct": -0.24,
+      "current_gain_pct": -0.39,
       "first_entry_price": 208.43,
       "peak_gain_pct": 0.11
+    },
+    {
+      "ticker": "DELL",
+      "shares": 15,
+      "entry_price": 575.49,
+      "entry_date": "2026-10-06",
+      "stop_price": 530.0,
+      "breakeven_activated": false,
+      "target1": 661.81,
+      "target1_hit": false,
+      "target2": 748.14,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 587.12,
+      "current_gain_pct": -0.36,
+      "first_entry_price": 575.49,
+      "peak_gain_pct": 2.02
     }
   ],
   "closed_positions": [
