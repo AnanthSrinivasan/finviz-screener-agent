@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-06T23:11:52.954969Z",
+  "updated": "2026-10-07T19:22:06.618462Z",
   "history": {
     "DDOG": [
       {
@@ -2071,6 +2071,18 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 50.96
+      },
+      {
+        "date": "2026-10-05T19:01:13Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 56.0
+      },
+      {
+        "date": "2026-10-06T14:07:45Z",
+        "action": "SELL",
+        "shares": 100.0,
+        "price": 55.095
       }
     ],
     "NVDA": [
@@ -8611,6 +8623,12 @@
         "action": "SELL",
         "shares": 100.0,
         "price": 53.3281
+      },
+      {
+        "date": "2026-10-06T16:17:53Z",
+        "action": "BUY",
+        "shares": 100.0,
+        "price": 70.72
       }
     ],
     "CIBR": [
@@ -8669,6 +8687,12 @@
         "action": "SELL",
         "shares": 100.60733,
         "price": 205.5919
+      },
+      {
+        "date": "2026-10-06T16:51:35Z",
+        "action": "BUY",
+        "shares": 50.0,
+        "price": 208.43
       }
     ],
     "HNGE": [
@@ -8715,6 +8739,20 @@
         "action": "SELL",
         "shares": 70.0,
         "price": 119.39
+      }
+    ],
+    "DELL": [
+      {
+        "date": "2026-10-06T19:45:54Z",
+        "action": "BUY",
+        "shares": 10.0,
+        "price": 575.285
+      },
+      {
+        "date": "2026-10-06T19:49:32Z",
+        "action": "BUY",
+        "shares": 5.0,
+        "price": 575.91
       }
     ]
   }
