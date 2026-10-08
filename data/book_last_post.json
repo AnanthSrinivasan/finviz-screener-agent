@@ -1,4 +1,19 @@
 {
   "last_book_post_ts": "2026-10-07T22:12:49.748799Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "peel_warn",
+      "ticker": "NVDA",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 NVDA ATR mult 3.24x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-10-08T00:04:03.148916Z"
+    },
+    {
+      "kind": "peel_warn",
+      "ticker": "HPE",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 HPE ATR mult 5.25x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-10-08T00:04:03.148916Z"
+    }
+  ]
 }
