@@ -1,35 +1,4 @@
 {
-  "last_book_post_ts": "2026-10-08T19:17:45.138539Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "ALAB",
-      "message": "\ud83d\udea8 STOP HIT: ALAB @ $343.63 \u2014 exit immediately (stop $366.74)",
-      "current_price": 343.63,
-      "stop_price": 366.74,
-      "ts": "2026-10-08T19:43:31.019145Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "NVDA",
-      "message": "\ud83d\udea8 STOP HIT: NVDA @ $230.64 \u2014 exit immediately (stop $232.12)",
-      "current_price": 230.64,
-      "stop_price": 232.12,
-      "ts": "2026-10-08T19:43:31.019145Z"
-    },
-    {
-      "kind": "warn_stop",
-      "ticker": "NVDA",
-      "message": "\ud83d\udfe1 WARN_STOP \u2014 NVDA ATR mult 1.68",
-      "alert_type": "WARN_STOP",
-      "ts": "2026-10-08T19:43:31.019145Z"
-    },
-    {
-      "kind": "warn_stop",
-      "ticker": "ALAB",
-      "message": "\ud83d\udfe1 WARN_STOP \u2014 ALAB ATR mult 1.19",
-      "alert_type": "WARN_STOP",
-      "ts": "2026-10-08T19:43:31.019145Z"
-    }
-  ]
+  "last_book_post_ts": "2026-10-08T20:02:23.868543Z",
+  "events_since_last": []
 }
