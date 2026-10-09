@@ -1,4 +1,12 @@
 {
   "last_book_post_ts": "2026-10-09T18:50:40.817938Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "peel_warn",
+      "ticker": "HPE",
+      "message": "\ud83d\udd35 PEEL WARN \u2014 HPE ATR mult 5.47x",
+      "alert_type": "PEEL_WARN",
+      "ts": "2026-10-09T19:20:28.900981Z"
+    }
+  ]
 }
