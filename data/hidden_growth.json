@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-08",
+  "date": "2026-10-09",
   "candidates": [
     {
       "ticker": "HNGE",
@@ -66,33 +66,17 @@
       }
     },
     {
-      "ticker": "AVPT",
+      "ticker": "AMG",
       "signal_score": 4,
-      "eps_yy_ttm": 812.05,
-      "eps_qq": 957.63,
-      "inst_trans": 5.53,
-      "appearances": 2,
+      "eps_yy_ttm": 108.91,
+      "eps_qq": 146.59,
+      "inst_trans": -0.24,
+      "appearances": 3,
       "criteria": {
-        "persistence": false,
+        "persistence": true,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "AXTI",
-      "signal_score": 4,
-      "eps_yy_ttm": 104.53,
-      "eps_qq": 208.25,
-      "inst_trans": 27.93,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -199,12 +183,28 @@
       "eps_yy_ttm": 364.92,
       "eps_qq": 221.42,
       "inst_trans": 8.97,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "P",
+      "signal_score": 4,
+      "eps_yy_ttm": 79.94,
+      "eps_qq": 53.84,
+      "inst_trans": 0.27,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": false
       }
@@ -306,6 +306,22 @@
       }
     },
     {
+      "ticker": "KLAR",
+      "signal_score": 3,
+      "eps_yy_ttm": -28.93,
+      "eps_qq": 107.69,
+      "inst_trans": 5.45,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
       "ticker": "NAVN",
       "signal_score": 3,
       "eps_yy_ttm": -83.69,
@@ -319,22 +335,6 @@
         "inst_buying": true,
         "stage2_perfect": false,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "TJGC",
-      "signal_score": 3,
-      "eps_yy_ttm": 23.39,
-      "eps_qq": 61.56,
-      "inst_trans": 41.59,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
