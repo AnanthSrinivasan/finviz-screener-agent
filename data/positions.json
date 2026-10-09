@@ -5,7 +5,7 @@
       "shares": 100,
       "entry_price": 70.72,
       "entry_date": "2026-10-06",
-      "stop_price": 66.24,
+      "stop_price": 66.32,
       "breakeven_activated": false,
       "target1": 79.21,
       "target1_hit": false,
@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 73.28,
-      "current_gain_pct": 0.38,
+      "current_gain_pct": 3.31,
       "first_entry_price": 70.72,
       "peak_gain_pct": 3.62
     },
@@ -22,17 +22,17 @@
       "shares": 15,
       "entry_price": 575.49,
       "entry_date": "2026-10-06",
-      "stop_price": 531.64,
+      "stop_price": 538.58,
       "breakeven_activated": false,
       "target1": 661.81,
       "target1_hit": false,
       "target2": 748.14,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 587.12,
-      "current_gain_pct": -0.09,
+      "highest_price_seen": 594.22,
+      "current_gain_pct": 1.76,
       "first_entry_price": 575.49,
-      "peak_gain_pct": 2.02
+      "peak_gain_pct": 3.25
     }
   ],
   "closed_positions": [
@@ -2550,9 +2550,9 @@
       "first_entry_price": 363.49,
       "peak_gain_pct": 10.37,
       "close_date": "2026-10-09",
-      "close_price": 346.95,
-      "close_source": "live_quote",
-      "result_pct": -4.55
+      "close_price": 348.54,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -4.11
     },
     {
       "ticker": "NVDA",
@@ -2571,9 +2571,9 @@
       "first_entry_price": 239.57,
       "peak_gain_pct": 1.57,
       "close_date": "2026-10-09",
-      "close_price": 230.7,
-      "close_source": "live_quote",
-      "result_pct": -3.7
+      "close_price": 231.0,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -3.58
     }
   ]
 }

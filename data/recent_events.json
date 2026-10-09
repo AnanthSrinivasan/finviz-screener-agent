@@ -1,20 +1,6 @@
 {
-  "updated": "2026-10-08T19:17:44.432106Z",
+  "updated": "2026-10-09T18:50:40.174565Z",
   "events": [
-    {
-      "ts": "2026-09-07T21:56:34.966657Z",
-      "date": "2026-09-07",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.84x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-08T17:16:14.270142Z",
-      "date": "2026-09-08",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.73x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-08T17:49:55.661053Z",
       "date": "2026-09-08",
@@ -349,6 +335,20 @@
       "date": "2026-10-08",
       "category": "retro_patch",
       "title": "CVX fill patched -1.2% \u2192 -1.5%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-09T18:50:40.173661Z",
+      "date": "2026-10-09",
+      "category": "retro_patch",
+      "title": "ALAB fill patched -4.5% \u2192 -4.1%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-09T18:50:40.174565Z",
+      "date": "2026-10-09",
+      "category": "retro_patch",
+      "title": "NVDA fill patched -3.7% \u2192 -3.6%",
       "severity": "med"
     }
   ]
