@@ -10331,7 +10331,13 @@
     "NVDA",
     "KEYS",
     "PACB",
-    "SDEV"
+    "SDEV",
+    "XP",
+    "GCT",
+    "MTRN",
+    "PBR-A",
+    "PBR",
+    "HUM"
   ],
   "auto_promoted": [
     {
@@ -12372,6 +12378,42 @@
       "ticker": "SDEV",
       "added": "2026-10-03",
       "days_seen": 3,
+      "screens": 3
+    },
+    {
+      "ticker": "XP",
+      "added": "2026-10-10",
+      "days_seen": 5,
+      "screens": 5
+    },
+    {
+      "ticker": "GCT",
+      "added": "2026-10-10",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "MTRN",
+      "added": "2026-10-10",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "PBR-A",
+      "added": "2026-10-10",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "PBR",
+      "added": "2026-10-10",
+      "days_seen": 5,
+      "screens": 3
+    },
+    {
+      "ticker": "HUM",
+      "added": "2026-10-10",
+      "days_seen": 4,
       "screens": 3
     }
   ]
