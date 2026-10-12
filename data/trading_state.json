@@ -5,26 +5,8 @@
   "total_losses": 63,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-10-09",
+  "last_updated": "2026-10-12",
   "recent_trades": [
-    {
-      "ticker": "FROG",
-      "result": "win",
-      "result_pct": 1.02,
-      "date": "2026-07-10",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 76.0
-    },
-    {
-      "ticker": "SNOW",
-      "result": "win",
-      "result_pct": 5.81,
-      "date": "2026-07-13",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 660.0
-    },
     {
       "ticker": "DDOG",
       "result": "win",
@@ -276,6 +258,24 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -443.5
+    },
+    {
+      "ticker": "HPE",
+      "result": "neutral",
+      "result_pct": -0.59,
+      "date": "2026-10-12",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -42.0
+    },
+    {
+      "ticker": "DELL",
+      "result": "neutral",
+      "result_pct": 0.23,
+      "date": "2026-10-12",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": 19.65
     }
   ],
   "market_state": "RED",
