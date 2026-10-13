@@ -1,27 +1,6 @@
 {
-  "updated": "2026-10-09T18:50:40.174565Z",
+  "updated": "2026-10-13T19:52:52.771665Z",
   "events": [
-    {
-      "ts": "2026-09-08T17:49:55.661053Z",
-      "date": "2026-09-08",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.99x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-08T18:00:15.862887Z",
-      "date": "2026-09-08",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.97x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-08T20:09:02.847428Z",
-      "date": "2026-09-08",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.95x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-08T20:53:57.406589Z",
       "date": "2026-09-08",
@@ -349,6 +328,27 @@
       "date": "2026-10-09",
       "category": "retro_patch",
       "title": "NVDA fill patched -3.7% \u2192 -3.6%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-13T19:52:46.917802Z",
+      "date": "2026-10-13",
+      "category": "peel_signal",
+      "title": "PLTR peel signal \u2014 ATR mult 4.94x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-13T19:52:52.770926Z",
+      "date": "2026-10-13",
+      "category": "retro_patch",
+      "title": "HPE fill patched -0.6% \u2192 -1.1% (was NEUTRAL, now LOSS)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-13T19:52:52.771665Z",
+      "date": "2026-10-13",
+      "category": "retro_patch",
+      "title": "DELL fill patched +0.2% \u2192 -1.2% (was NEUTRAL, now LOSS)",
       "severity": "med"
     }
   ]

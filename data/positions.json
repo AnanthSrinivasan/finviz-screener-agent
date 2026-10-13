@@ -1,5 +1,40 @@
 {
-  "open_positions": [],
+  "open_positions": [
+    {
+      "ticker": "HOOD",
+      "shares": 100,
+      "entry_price": 109.89,
+      "entry_date": "2026-10-13",
+      "stop_price": 108.09,
+      "breakeven_activated": false,
+      "target1": 126.37,
+      "target1_hit": false,
+      "target2": 142.86,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 111.85,
+      "current_gain_pct": 0.56,
+      "first_entry_price": 109.89,
+      "peak_gain_pct": 1.78
+    },
+    {
+      "ticker": "PLTR",
+      "shares": 50,
+      "entry_price": 209.48,
+      "entry_date": "2026-10-13",
+      "stop_price": 197.72,
+      "breakeven_activated": false,
+      "target1": 240.9,
+      "target1_hit": false,
+      "target2": 272.32,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 210.84,
+      "current_gain_pct": -0.54,
+      "first_entry_price": 209.48,
+      "peak_gain_pct": 0.65
+    }
+  ],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2557,9 +2592,9 @@
       "first_entry_price": 70.72,
       "peak_gain_pct": 4.02,
       "close_date": "2026-10-12",
-      "close_price": 70.3,
-      "close_source": "live_quote",
-      "result_pct": -0.59
+      "close_price": 69.98,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.05
     },
     {
       "ticker": "DELL",
@@ -2578,9 +2613,9 @@
       "first_entry_price": 575.49,
       "peak_gain_pct": 3.25,
       "close_date": "2026-10-12",
-      "close_price": 576.8,
-      "close_source": "live_quote",
-      "result_pct": 0.23
+      "close_price": 568.83,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.16
     }
   ]
 }
