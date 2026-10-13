@@ -1,13 +1,6 @@
 {
-  "updated": "2026-10-13T19:52:52.771665Z",
+  "updated": "2026-10-13T20:07:49.621785Z",
   "events": [
-    {
-      "ts": "2026-09-08T20:53:57.406589Z",
-      "date": "2026-09-08",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.90x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-08T23:15:16.206430Z",
       "date": "2026-09-09",
@@ -349,6 +342,13 @@
       "date": "2026-10-13",
       "category": "retro_patch",
       "title": "DELL fill patched +0.2% \u2192 -1.2% (was NEUTRAL, now LOSS)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-13T20:07:49.621785Z",
+      "date": "2026-10-13",
+      "category": "peel_signal",
+      "title": "PLTR peel signal \u2014 ATR mult 4.99x",
       "severity": "med"
     }
   ]
