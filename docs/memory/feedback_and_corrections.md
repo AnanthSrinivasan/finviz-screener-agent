@@ -3,6 +3,15 @@
 Corrections already given. Re-making one of these is the specific failure this
 file exists to prevent.
 
+## 2026-10-14 — a `live_quote` close is an estimate, not the fill
+HOOD 100 sh closed 2026-10-14: monitor booked $100.53 (Finviz quote at
+detection, `close_source: live_quote`) → −$936 / −8.5%. Real fill was
+**$104.8555** → −$503.45 / −4.58%. The user had to catch it. Fixes: state
+corrected (`close_source: user_reported_fill`, not retro-patchable), and
+`retro_patch_closed_positions` now also rewrites `recent_trades.profit_loss_usd`
+— before, a retro-patched close kept the stale $ P&L forever. When the user
+gives a fill price, it is ground truth: write it in, regenerate the page, done.
+
 ## 2026-09-06 — do not infer jurisdiction rules from where he lives
 He said he lives in Luxembourg; I recorded "EU resident" and applied PRIIPs/
 MiFID ETF restrictions and Luxembourg 6-month speculative-gains tax to him. He

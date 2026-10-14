@@ -551,6 +551,23 @@ class RetroPatchClosedTests(unittest.TestCase):
         self.assertEqual(closed["close_source"], "snaptrade_fill_retro")
         self.assertTrue(any("RETRO-PATCHED" in a for a in alerts))
 
+    def test_retro_patch_updates_dollar_pnl(self):
+        # HOOD 2026-10-14: live_quote $100.53 booked −$936; real fill $104.86.
+        # The dollar P&L in recent_trades must be rewritten with the price.
+        cd = self._today()
+        closed = {"ticker": "HOOD", "entry_price": 109.89, "shares": 100,
+                  "close_price": 100.53, "result_pct": -8.51, "close_date": cd,
+                  "close_source": "live_quote"}
+        pd = {"open_positions": [], "closed_positions": [closed]}
+        ts = self._ts(total_losses=1)
+        ts["recent_trades"] = [{"ticker": "HOOD", "result": "loss",
+                                "result_pct": -8.51, "date": cd, "side": "SELL",
+                                "profit_loss_usd": -935.5}]
+        sell_fills = {"HOOD": {"price": 104.8555, "date": cd, "units": 100}}
+        pm.retro_patch_closed_positions(pd, ts, sell_fills)
+        self.assertAlmostEqual(ts["recent_trades"][0]["profit_loss_usd"], -503.0, places=0)
+        self.assertEqual(ts["total_losses"], 1)
+
     def test_no_patch_when_already_real_source(self):
         cd = self._today()
         closed = {"ticker": "AMD", "entry_price": 246.06, "shares": 25,

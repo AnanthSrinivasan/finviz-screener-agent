@@ -948,6 +948,11 @@ def retro_patch_closed_positions(positions_data: dict, trading_state: dict,
             if trade.get("ticker") == ticker and trade.get("date") == cd:
                 trade["result_pct"] = new_result
                 trade["result"] = new_typ
+                # $ P&L must follow the price — HOOD 2026-10-14 kept the
+                # live_quote −$936 after the close was corrected (real −$503).
+                shares = float(closed.get("shares") or 0)
+                if shares > 0:
+                    trade["profit_loss_usd"] = round((new_price - entry) * shares, 2)
                 break
 
         flip_note = f" (was {old_typ.upper()}, now {new_typ.upper()})" if old_typ != new_typ else ""
