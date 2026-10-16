@@ -26,6 +26,13 @@
       "ticker": "RETRO",
       "message": "\ud83d\udd04 RETRO-PATCHED CLOSE: PLTR \u2014 $201.41 \u2192 $206.70 (-3.9% \u2192 -1.3%)",
       "ts": "2026-10-16T20:42:08.702267Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "CVX",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.26x",
+      "alert_type": "PEEL",
+      "ts": "2026-10-16T23:19:51.853341Z"
     }
   ]
 }

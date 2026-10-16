@@ -1,13 +1,6 @@
 {
-  "updated": "2026-10-16T23:04:54.767044Z",
+  "updated": "2026-10-16T23:19:49.211625Z",
   "events": [
-    {
-      "ts": "2026-09-10T17:34:59.620209Z",
-      "date": "2026-09-10",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.11x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-10T17:47:12.715553Z",
       "date": "2026-09-10",
@@ -350,6 +343,13 @@
       "category": "market_state",
       "title": "Market: THRUST \u2192 DANGER",
       "severity": "high"
+    },
+    {
+      "ts": "2026-10-16T23:19:49.211625Z",
+      "date": "2026-10-17",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 4.26x",
+      "severity": "med"
     }
   ]
 }
