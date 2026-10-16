@@ -1,20 +1,6 @@
 {
-  "updated": "2026-10-15T23:21:24.263659Z",
+  "updated": "2026-10-16T20:42:08.405806Z",
   "events": [
-    {
-      "ts": "2026-09-09T20:41:41.509872Z",
-      "date": "2026-09-09",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.69x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-09T23:03:28.317391Z",
-      "date": "2026-09-10",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.69x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-10T17:01:35.801976Z",
       "date": "2026-09-10",
@@ -350,6 +336,20 @@
       "category": "market_state",
       "title": "Market: DANGER \u2192 THRUST",
       "severity": "low"
+    },
+    {
+      "ts": "2026-10-16T20:42:04.554993Z",
+      "date": "2026-10-16",
+      "category": "peel_signal",
+      "title": "CVX peel signal \u2014 ATR mult 4.26x",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-16T20:42:08.405806Z",
+      "date": "2026-10-16",
+      "category": "retro_patch",
+      "title": "PLTR fill patched -3.9% \u2192 -1.3%",
+      "severity": "med"
     }
   ]
 }

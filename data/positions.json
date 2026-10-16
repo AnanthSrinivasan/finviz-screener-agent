@@ -1,5 +1,23 @@
 {
-  "open_positions": [],
+  "open_positions": [
+    {
+      "ticker": "CVX",
+      "shares": 25,
+      "entry_price": 225.14,
+      "entry_date": "2026-10-16",
+      "stop_price": 216.19,
+      "breakeven_activated": false,
+      "target1": 270.17,
+      "target1_hit": false,
+      "target2": 315.2,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 225.29,
+      "current_gain_pct": -0.07,
+      "first_entry_price": 225.14,
+      "peak_gain_pct": 0.07
+    }
+  ],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2620,9 +2638,9 @@
       "first_entry_price": 209.48,
       "peak_gain_pct": 0.65,
       "close_date": "2026-10-14",
-      "close_price": 201.41,
-      "close_source": "live_quote",
-      "result_pct": -3.85
+      "close_price": 206.7,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -1.33
     }
   ]
 }
