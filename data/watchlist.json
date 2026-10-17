@@ -10542,7 +10542,9 @@
     "MTRN",
     "PBR-A",
     "PBR",
-    "HUM"
+    "HUM",
+    "FIGS",
+    "BMBL"
   ],
   "auto_promoted": [
     {
@@ -12618,6 +12620,18 @@
     {
       "ticker": "HUM",
       "added": "2026-10-10",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "FIGS",
+      "added": "2026-10-17",
+      "days_seen": 4,
+      "screens": 6
+    },
+    {
+      "ticker": "BMBL",
+      "added": "2026-10-17",
       "days_seen": 4,
       "screens": 3
     }
