@@ -1,38 +1,4 @@
 {
-  "last_book_post_ts": "2026-10-13T21:56:08.101507Z",
-  "events_since_last": [
-    {
-      "kind": "peel_signal",
-      "ticker": "PLTR",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 PLTR ATR mult 4.99x",
-      "alert_type": "PEEL",
-      "ts": "2026-10-13T23:49:00.130652Z"
-    },
-    {
-      "kind": "auto_added",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 AUTO-DETECTED NEW POSITION: CVX\n   25 shares @ $225.14 (from SnapTrade)\n   Auto-stop: $207.13 | T1: $270.17 | T2: $315.20\n   \u2139\ufe0f Update thesis/stop via workflow_dispatch if needed",
-      "ts": "2026-10-16T20:42:08.702267Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.26x",
-      "alert_type": "PEEL",
-      "ts": "2026-10-16T20:42:08.702267Z"
-    },
-    {
-      "kind": "info",
-      "ticker": "RETRO",
-      "message": "\ud83d\udd04 RETRO-PATCHED CLOSE: PLTR \u2014 $201.41 \u2192 $206.70 (-3.9% \u2192 -1.3%)",
-      "ts": "2026-10-16T20:42:08.702267Z"
-    },
-    {
-      "kind": "peel_signal",
-      "ticker": "CVX",
-      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 CVX ATR mult 4.26x",
-      "alert_type": "PEEL",
-      "ts": "2026-10-16T23:19:51.853341Z"
-    }
-  ]
+  "last_book_post_ts": "2026-10-19T19:20:57.135313Z",
+  "events_since_last": []
 }
