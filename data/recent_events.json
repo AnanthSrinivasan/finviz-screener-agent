@@ -1,13 +1,6 @@
 {
-  "updated": "2026-10-19T23:27:02.130678Z",
+  "updated": "2026-10-19T23:59:15.178181Z",
   "events": [
-    {
-      "ts": "2026-09-11T17:02:26.559504Z",
-      "date": "2026-09-11",
-      "category": "retro_patch",
-      "title": "MU fill patched -1.9% \u2192 -1.5%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-11T17:02:26.560411Z",
       "date": "2026-09-11",
@@ -350,6 +343,13 @@
       "category": "peel_signal",
       "title": "CVX peel signal \u2014 ATR mult 4.05x",
       "severity": "med"
+    },
+    {
+      "ts": "2026-10-19T23:59:15.178181Z",
+      "date": "2026-10-19",
+      "category": "market_state",
+      "title": "Market: DANGER \u2192 RED",
+      "severity": "high"
     }
   ]
 }
