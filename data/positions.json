@@ -13,9 +13,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 227.14,
-      "current_gain_pct": -0.17,
+      "current_gain_pct": 0.23,
       "first_entry_price": 225.14,
       "peak_gain_pct": 0.89
+    },
+    {
+      "ticker": "GLBE",
+      "shares": 200,
+      "entry_price": 41.8,
+      "entry_date": "2026-10-20",
+      "stop_price": 39.4,
+      "breakeven_activated": false,
+      "target1": 48.07,
+      "target1_hit": false,
+      "target2": 54.34,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 42.03,
+      "current_gain_pct": -0.05,
+      "first_entry_price": 41.8,
+      "peak_gain_pct": 0.55
     }
   ],
   "closed_positions": [
