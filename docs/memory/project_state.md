@@ -77,6 +77,10 @@ strict while public, relaxed once private. Do not ask the user to confirm.
   **FIXED 2026-10-21** — rows now read from the page's embedded
   `<script type="application/json">` (`finviz_table.screener_json_rows`);
   live check on a runner: 190 tickers / 7 screens, Growth 111 = page total.
+  Verified end-to-end: dispatched daily-finviz.yml run #300 → `a733816`,
+  158 scored rows, ATR% populated on all. NB: the Actions API kept reporting
+  that run `in_progress` long after it had pushed — read the job log before
+  assuming a hang.
   Cloud sessions can't reach Finviz — diagnose via a temporary push-triggered
   workflow on the session branch (runner can reach it), then delete it.
 - **`/peel-status` skill has no calibration tier-cap.** `.claude/commands/peel-status.md`
