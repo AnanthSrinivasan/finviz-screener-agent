@@ -12,7 +12,7 @@ import time
 import random
 import os
 import logging
-from agents.utils.finviz_table import extract_ticker
+from agents.utils.finviz_table import extract_ticker, screener_json_rows
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -194,10 +194,31 @@ def fetch_all_tickers(screener_url: str, max_pages: int = 10) -> tuple:
             log.warning(f"HTTP {resp.status_code} on page {page}, stopping.")
             break
         soup = BeautifulSoup(resp.text, "html.parser")
+        new_data = False
+        json_rows = screener_json_rows(soup)
+        if json_rows is not None:
+            # 2026-10-19 redesign (/screener/stocks): rows ship as embedded
+            # JSON, the page has no <tr> at all. See agents/utils/finviz_table.py.
+            for r in json_rows:
+                ticker = r['Ticker']
+                if ticker in seen:
+                    continue
+                combined.append([r[c] for c in ('No.', 'Ticker', 'Company', 'Sector',
+                                                'Industry', 'Country', 'Market Cap',
+                                                'P/E', 'Volume', 'Price', 'Change')])
+                seen.add(ticker)
+                new_data = True
+                ticker_meta[ticker] = {k: r[k] for k in ('Company', 'Sector', 'Industry',
+                                                          'Country', 'Market Cap',
+                                                          'Volume', 'Price')}
+            if not new_data:
+                break
+            page += 1
+            time.sleep(1 + random.uniform(0, 0.5))
+            continue
         rows = soup.select('tr[valign="top"]')
         if not rows:
             break
-        new_data = False
         for row in rows:
             cols = row.find_all('td')
             if len(cols) != 11:

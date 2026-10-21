@@ -56,6 +56,29 @@ def make_mock_screener_html(tickers: list) -> str:
     return f"<html><body><table>{rows}</table></body></html>"
 
 
+def make_mock_screener_json_html(tickers: list) -> str:
+    """Redesigned screener page (observed 2026-10-19, /screener/stocks): no
+    <table>/<tr> at all — rows ship in an embedded application/json blob.
+    The pre-fix `tr[valign="top"]` parser found 0 tickers on this shape."""
+    import json as _json
+    rows = [{
+        "text": {"ticker": t, "company": f"{t} Inc", "sector": "Technology",
+                 "industry": "Semiconductors", "country": "USA", "type": "stock"},
+        "numbers": {"marketCap": 3348.85, "PE": 33.2921, "prevClose": 93.2,
+                    "price": 94.36000061, "change": 1.2446, "volume": 355620,
+                    "order": i},
+    } for i, t in enumerate(tickers)]
+    blob = {"url": "/screener/stocks?v=111", "screenerType": "stocks",
+            "selectedColumns": ["row", "ticker", "company", "sector", "industry",
+                                "country", "marketCap", "PE", "price", "change",
+                                "volume"],
+            "data": {"rows": rows}}
+    return ('<html><head><title>Stock Screener</title></head><body>'
+            '<div role="row">No. Ticker</div>'
+            f'<script type="application/json">{_json.dumps(blob)}</script>'
+            '</body></html>')
+
+
 def make_mock_snapshot_html(price="50.00", atr="2.50", eps="25.0", sales="15.0",
                              eps_qq="30.0", inst_own="45.0", inst_trans="5.0") -> bytes:
     """Build a minimal Finviz quote page snapshot.
@@ -1150,6 +1173,70 @@ class TestExtractTicker(unittest.TestCase):
         df, meta = fetch_all_tickers("http://fake-url", max_pages=1)
         self.assertEqual(sorted(df["Ticker"].tolist()), ["AAPL", "MSFT", "NVDA"])
         self.assertEqual(sorted(meta.keys()), ["AAPL", "MSFT", "NVDA"])
+
+
+class TestScreenerJsonRows(unittest.TestCase):
+    """2026-10-19 Finviz redesign: screener.ashx → /screener/stocks, rows in
+    embedded JSON, zero <tr>. Daily Screener aborted 'No tickers' 10-19/10-20."""
+
+    def _soup(self, html):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html, "html.parser")
+
+    def test_rows_formatted_like_legacy_cells(self):
+        from agents.utils.finviz_table import screener_json_rows
+        rows = screener_json_rows(self._soup(make_mock_screener_json_html(["AAMI"])))
+        self.assertEqual(rows, [{
+            "No.": "1", "Ticker": "AAMI", "Company": "AAMI Inc",
+            "Sector": "Technology", "Industry": "Semiconductors", "Country": "USA",
+            "Market Cap": "3.35B", "P/E": "33.29", "Price": "94.36",
+            "Change": "1.24%", "Volume": "355,620"}])
+
+    def test_legacy_table_page_returns_none(self):
+        from agents.utils.finviz_table import screener_json_rows
+        self.assertIsNone(screener_json_rows(self._soup(make_mock_screener_html(["AAPL"]))))
+
+    def test_mcap_units(self):
+        from agents.utils.finviz_table import _fmt_mcap
+        self.assertEqual(_fmt_mcap(770.88), "770.88M")
+        self.assertEqual(_fmt_mcap(20680.72), "20.68B")
+        self.assertEqual(_fmt_mcap(3_100_000), "3.10T")
+        self.assertEqual(_fmt_mcap(None), "-")
+
+    def test_missing_numbers_do_not_crash(self):
+        import json as _json
+        from agents.utils.finviz_table import screener_json_rows
+        blob = {"data": {"rows": [{"text": {"ticker": "XYZ"}, "numbers": {}}]}}
+        html = f'<script type="application/json">{_json.dumps(blob)}</script>'
+        r = screener_json_rows(self._soup(html))[0]
+        self.assertEqual((r["Ticker"], r["Price"], r["Change"], r["Volume"]),
+                         ("XYZ", "-", "-", ""))
+
+    @patch("agents.screener.finviz_agent.session")
+    def test_fetch_all_tickers_on_redesigned_page(self, mock_session):
+        from agents.screener.finviz_agent import fetch_all_tickers
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.text = make_mock_screener_json_html(["AAPL", "MSFT", "NVDA"])
+        mock_session.get.return_value = mock_resp
+        df, meta = fetch_all_tickers("http://fake-url", max_pages=1)
+        self.assertEqual(df["Ticker"].tolist(), ["AAPL", "MSFT", "NVDA"])
+        self.assertEqual(meta["NVDA"]["Price"], "94.36")
+        self.assertEqual(meta["NVDA"]["Volume"], "355,620")
+        self.assertEqual(meta["NVDA"]["Market Cap"], "3.35B")
+
+    @patch("agents.screener.finviz_agent.time.sleep")
+    @patch("agents.screener.finviz_agent.session")
+    def test_pagination_stops_when_page_repeats(self, mock_session, _sleep):
+        from agents.screener.finviz_agent import fetch_all_tickers
+        p1, p2 = MagicMock(), MagicMock()
+        p1.status_code = p2.status_code = 200
+        p1.text = make_mock_screener_json_html(["AAPL", "MSFT"])
+        p2.text = make_mock_screener_json_html(["NVDA"])
+        mock_session.get.side_effect = [p1, p2, p2]
+        df, _ = fetch_all_tickers("http://fake-url", max_pages=10)
+        self.assertEqual(df["Ticker"].tolist(), ["AAPL", "MSFT", "NVDA"])
+        self.assertEqual(mock_session.get.call_count, 3)
 
 
 if __name__ == "__main__":
