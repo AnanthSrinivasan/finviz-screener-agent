@@ -68,6 +68,17 @@ Measured constraints:
 strict while public, relaxed once private. Do not ask the user to confirm.
 
 ## Known broken / unfinished
+- **2026-10-21 — Daily Screener dead since 10-19: Finviz moved the screener.**
+  `screener.ashx?...` now redirects to `/screener/stocks?...` and the new page
+  has zero `<tr>` elements, so `fetch_all_tickers` (`tr[valign="top"]`, 11 tds)
+  finds 0 tickers on all 7 screens → `ERROR No tickers — aborting`. The quote
+  page (`scrape_canary`) still parses, which is why the canary passed. Last good
+  run 10-16. (10-13's failure was unrelated: a `git push` ref-lock race.)
+  **FIXED 2026-10-21** — rows now read from the page's embedded
+  `<script type="application/json">` (`finviz_table.screener_json_rows`);
+  live check on a runner: 190 tickers / 7 screens, Growth 111 = page total.
+  Cloud sessions can't reach Finviz — diagnose via a temporary push-triggered
+  workflow on the session branch (runner can reach it), then delete it.
 - **`/peel-status` skill has no calibration tier-cap.** `.claude/commands/peel-status.md`
   reads `calib[ticker]["warn"]/["signal"]` raw. `CLAUDE.md` requires
   `min(calibrated, tier)` — calibration may only tighten, never loosen. Same bug
