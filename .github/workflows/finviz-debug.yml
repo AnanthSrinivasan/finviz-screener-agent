@@ -1,0 +1,22 @@
+name: TEMP finviz hang debug
+on:
+  push:
+    branches: [claude/wizardly-cray-iak0wx]
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -q -r requirements.txt
+      - name: Run agent with periodic stack dumps (no secrets)
+        env: {PYTHONPATH: ., TZ: Europe/Luxembourg, ATR_THRESHOLD: "3.0", SNAPSHOT_WORKERS: "6"}
+        run: |
+          timeout 900 python -u -c "
+          import faulthandler, sys, runpy
+          faulthandler.dump_traceback_later(180, repeat=True, file=sys.stderr)
+          sys.argv=['finviz_agent.py']
+          runpy.run_path('agents/screener/finviz_agent.py', run_name='__main__')
+          " 2>&1 | grep -v 'site-packages/urllib3\|site-packages/requests' | tail -400
