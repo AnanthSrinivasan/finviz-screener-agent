@@ -5,17 +5,17 @@
       "shares": 25,
       "entry_price": 225.14,
       "entry_date": "2026-10-16",
-      "stop_price": 218.54,
+      "stop_price": 219.45,
       "breakeven_activated": false,
       "target1": 270.17,
       "target1_hit": false,
       "target2": 315.2,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 227.34,
-      "current_gain_pct": 0.88,
+      "highest_price_seen": 228.41,
+      "current_gain_pct": 0.72,
       "first_entry_price": 225.14,
-      "peak_gain_pct": 0.98
+      "peak_gain_pct": 1.45
     },
     {
       "ticker": "GLBE",
@@ -30,7 +30,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 42.47,
-      "current_gain_pct": -0.41,
+      "current_gain_pct": -1.58,
       "first_entry_price": 41.8,
       "peak_gain_pct": 1.6
     }
