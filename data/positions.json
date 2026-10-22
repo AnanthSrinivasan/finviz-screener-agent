@@ -1,40 +1,5 @@
 {
-  "open_positions": [
-    {
-      "ticker": "CVX",
-      "shares": 25,
-      "entry_price": 225.14,
-      "entry_date": "2026-10-16",
-      "stop_price": 219.45,
-      "breakeven_activated": false,
-      "target1": 270.17,
-      "target1_hit": false,
-      "target2": 315.2,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 228.41,
-      "current_gain_pct": 0.72,
-      "first_entry_price": 225.14,
-      "peak_gain_pct": 1.45
-    },
-    {
-      "ticker": "GLBE",
-      "shares": 200,
-      "entry_price": 41.8,
-      "entry_date": "2026-10-20",
-      "stop_price": 39.4,
-      "breakeven_activated": false,
-      "target1": 48.07,
-      "target1_hit": false,
-      "target2": 54.34,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 42.47,
-      "current_gain_pct": -1.58,
-      "first_entry_price": 41.8,
-      "peak_gain_pct": 1.6
-    }
-  ],
+  "open_positions": [],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2658,6 +2623,48 @@
       "close_price": 206.7,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -1.33
+    },
+    {
+      "ticker": "CVX",
+      "shares": 25,
+      "entry_price": 225.14,
+      "entry_date": "2026-10-16",
+      "stop_price": 219.45,
+      "breakeven_activated": false,
+      "target1": 270.17,
+      "target1_hit": false,
+      "target2": 315.2,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 228.41,
+      "current_gain_pct": 0.72,
+      "first_entry_price": 225.14,
+      "peak_gain_pct": 1.45,
+      "close_date": "2026-10-22",
+      "close_price": 226.23,
+      "close_source": "live_quote",
+      "result_pct": 0.48
+    },
+    {
+      "ticker": "GLBE",
+      "shares": 200,
+      "entry_price": 41.8,
+      "entry_date": "2026-10-20",
+      "stop_price": 39.4,
+      "breakeven_activated": false,
+      "target1": 48.07,
+      "target1_hit": false,
+      "target2": 54.34,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 42.47,
+      "current_gain_pct": -1.58,
+      "first_entry_price": 41.8,
+      "peak_gain_pct": 1.6,
+      "close_date": "2026-10-22",
+      "close_price": 40.81,
+      "close_source": "live_quote",
+      "result_pct": -2.37
     }
   ]
 }
