@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-23",
+  "date": "2026-10-24",
   "candidates": [
     {
       "ticker": "HNGE",
@@ -7,7 +7,7 @@
       "eps_yy_ttm": 124.68,
       "eps_qq": 107.01,
       "inst_trans": 15.3,
-      "appearances": 4,
+      "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
@@ -18,17 +18,17 @@
       }
     },
     {
-      "ticker": "CAI",
+      "ticker": "INGM",
       "signal_score": 5,
-      "eps_yy_ttm": 113.1,
-      "eps_qq": 99.88,
-      "inst_trans": -3.91,
-      "appearances": 3,
+      "eps_yy_ttm": 61.84,
+      "eps_qq": 196.52,
+      "inst_trans": 9.9,
+      "appearances": 1,
       "criteria": {
-        "persistence": true,
+        "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": false,
+        "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": true
       }
@@ -82,19 +82,19 @@
       }
     },
     {
-      "ticker": "CRBG",
+      "ticker": "CAI",
       "signal_score": 4,
-      "eps_yy_ttm": 426.19,
-      "eps_qq": 97.07,
-      "inst_trans": 10.72,
+      "eps_yy_ttm": 113.1,
+      "eps_qq": 99.88,
+      "inst_trans": -3.91,
       "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
-        "inst_buying": true,
+        "inst_buying": false,
         "stage2_perfect": true,
-        "ipo_lifecycle": false
+        "ipo_lifecycle": true
       }
     },
     {
@@ -119,7 +119,7 @@
       "eps_yy_ttm": 413.89,
       "eps_qq": 606.35,
       "inst_trans": 3.37,
-      "appearances": 1,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -146,19 +146,19 @@
       }
     },
     {
-      "ticker": "INGM",
+      "ticker": "FROG",
       "signal_score": 4,
-      "eps_yy_ttm": 61.84,
-      "eps_qq": 196.52,
-      "inst_trans": 9.9,
-      "appearances": 1,
+      "eps_yy_ttm": 51.51,
+      "eps_qq": 81.82,
+      "inst_trans": 6.48,
+      "appearances": 2,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
       }
     },
     {
@@ -242,22 +242,6 @@
       }
     },
     {
-      "ticker": "OSCR",
-      "signal_score": 4,
-      "eps_yy_ttm": 364.92,
-      "eps_qq": 221.42,
-      "inst_trans": 8.1,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "PLTR",
       "signal_score": 4,
       "eps_yy_ttm": 285.33,
@@ -306,11 +290,11 @@
       }
     },
     {
-      "ticker": "TEAM",
+      "ticker": "ROKU",
       "signal_score": 4,
-      "eps_yy_ttm": 81.08,
-      "eps_qq": 703.74,
-      "inst_trans": 1.05,
+      "eps_yy_ttm": 668.39,
+      "eps_qq": 1440.03,
+      "inst_trans": 0.1,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -327,6 +311,22 @@
       "eps_yy_ttm": 0.0,
       "eps_qq": 795.5,
       "inst_trans": 9.99,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "CIB",
+      "signal_score": 3,
+      "eps_yy_ttm": -22.31,
+      "eps_qq": 82.32,
+      "inst_trans": 13.08,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -370,27 +370,11 @@
       }
     },
     {
-      "ticker": "KLAR",
+      "ticker": "NSIT",
       "signal_score": 3,
-      "eps_yy_ttm": -28.93,
-      "eps_qq": 107.69,
-      "inst_trans": 5.63,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": false,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "NCPL",
-      "signal_score": 3,
-      "eps_yy_ttm": 32.87,
-      "eps_qq": 79.42,
-      "inst_trans": 9.81,
+      "eps_yy_ttm": 46.4,
+      "eps_qq": 75.94,
+      "inst_trans": 3.17,
       "appearances": 1,
       "criteria": {
         "persistence": false,
@@ -407,22 +391,6 @@
       "eps_yy_ttm": -57.28,
       "eps_qq": 90.44,
       "inst_trans": 9.71,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "SLN",
-      "signal_score": 3,
-      "eps_yy_ttm": 24.26,
-      "eps_qq": 55.62,
-      "inst_trans": 14.07,
       "appearances": 1,
       "criteria": {
         "persistence": false,
