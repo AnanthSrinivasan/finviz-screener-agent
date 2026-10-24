@@ -10692,7 +10692,9 @@
     "PBR",
     "HUM",
     "FIGS",
-    "BMBL"
+    "BMBL",
+    "AVPT",
+    "ARQT"
   ],
   "auto_promoted": [
     {
@@ -12780,6 +12782,18 @@
     {
       "ticker": "BMBL",
       "added": "2026-10-17",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "AVPT",
+      "added": "2026-10-24",
+      "days_seen": 4,
+      "screens": 3
+    },
+    {
+      "ticker": "ARQT",
+      "added": "2026-10-24",
       "days_seen": 4,
       "screens": 3
     }
