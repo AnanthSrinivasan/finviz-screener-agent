@@ -1,5 +1,57 @@
 {
-  "open_positions": [],
+  "open_positions": [
+    {
+      "ticker": "PLTR",
+      "shares": 100,
+      "entry_price": 200.48,
+      "entry_date": "2026-10-27",
+      "stop_price": 186.12,
+      "breakeven_activated": false,
+      "target1": 230.55,
+      "target1_hit": false,
+      "target2": 260.62,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 201.8,
+      "current_gain_pct": -0.53,
+      "first_entry_price": 200.48,
+      "peak_gain_pct": 0.66
+    },
+    {
+      "ticker": "ARKG",
+      "shares": 200,
+      "entry_price": 51.24,
+      "entry_date": "2026-10-27",
+      "stop_price": 49.46,
+      "breakeven_activated": false,
+      "target1": 58.93,
+      "target1_hit": false,
+      "target2": 66.61,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 51.8,
+      "current_gain_pct": 0.83,
+      "first_entry_price": 51.24,
+      "peak_gain_pct": 1.09
+    },
+    {
+      "ticker": "QLD",
+      "shares": 200,
+      "entry_price": 90.31,
+      "entry_date": "2026-10-27",
+      "stop_price": 92.05,
+      "breakeven_activated": false,
+      "target1": 103.86,
+      "target1_hit": false,
+      "target2": 117.4,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 90.62,
+      "current_gain_pct": -0.19,
+      "first_entry_price": 90.31,
+      "peak_gain_pct": 0.34
+    }
+  ],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2641,9 +2693,9 @@
       "first_entry_price": 225.14,
       "peak_gain_pct": 1.45,
       "close_date": "2026-10-22",
-      "close_price": 226.23,
-      "close_source": "live_quote",
-      "result_pct": 0.48
+      "close_price": 223.05,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -0.93
     },
     {
       "ticker": "GLBE",
@@ -2662,9 +2714,9 @@
       "first_entry_price": 41.8,
       "peak_gain_pct": 1.6,
       "close_date": "2026-10-22",
-      "close_price": 40.81,
-      "close_source": "live_quote",
-      "result_pct": -2.37
+      "close_price": 40.3,
+      "close_source": "snaptrade_fill_retro",
+      "result_pct": -3.59
     }
   ]
 }

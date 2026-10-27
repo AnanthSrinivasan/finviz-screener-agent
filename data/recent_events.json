@@ -1,20 +1,6 @@
 {
-  "updated": "2026-10-22T23:42:55.316649Z",
+  "updated": "2026-10-27T18:42:50.163183Z",
   "events": [
-    {
-      "ts": "2026-09-14T21:01:51.089657Z",
-      "date": "2026-09-14",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.14x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-14T22:39:44.101403Z",
-      "date": "2026-09-15",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 4.14x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-15T17:41:36.671987Z",
       "date": "2026-09-15",
@@ -350,6 +336,20 @@
       "category": "market_state",
       "title": "Market: CAUTION \u2192 RED",
       "severity": "high"
+    },
+    {
+      "ts": "2026-10-27T18:42:50.162392Z",
+      "date": "2026-10-27",
+      "category": "retro_patch",
+      "title": "CVX fill patched +0.5% \u2192 -0.9%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-10-27T18:42:50.163183Z",
+      "date": "2026-10-27",
+      "category": "retro_patch",
+      "title": "GLBE fill patched -2.4% \u2192 -3.6%",
+      "severity": "med"
     }
   ]
 }
