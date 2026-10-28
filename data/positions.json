@@ -5,7 +5,7 @@
       "shares": 100,
       "entry_price": 200.48,
       "entry_date": "2026-10-27",
-      "stop_price": 186.12,
+      "stop_price": 186.44,
       "breakeven_activated": false,
       "target1": 230.55,
       "target1_hit": false,
@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 201.8,
-      "current_gain_pct": -0.87,
+      "current_gain_pct": -3.28,
       "first_entry_price": 200.48,
       "peak_gain_pct": 0.66
     },
@@ -22,17 +22,17 @@
       "shares": 200,
       "entry_price": 51.24,
       "entry_date": "2026-10-27",
-      "stop_price": 49.46,
+      "stop_price": 50.12,
       "breakeven_activated": false,
       "target1": 58.93,
       "target1_hit": false,
       "target2": 66.61,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 51.98,
-      "current_gain_pct": 0.8,
+      "highest_price_seen": 54.96,
+      "current_gain_pct": 6.62,
       "first_entry_price": 51.24,
-      "peak_gain_pct": 1.44
+      "peak_gain_pct": 7.26
     },
     {
       "ticker": "QLD",
@@ -46,10 +46,10 @@
       "target2": 117.4,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 90.66,
-      "current_gain_pct": -0.03,
+      "highest_price_seen": 91.45,
+      "current_gain_pct": 0.71,
       "first_entry_price": 90.31,
-      "peak_gain_pct": 0.39
+      "peak_gain_pct": 1.26
     }
   ],
   "closed_positions": [
