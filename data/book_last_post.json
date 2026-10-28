@@ -1,4 +1,12 @@
 {
   "last_book_post_ts": "2026-10-28T18:52:43.669403Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "warn_stop",
+      "ticker": "PLTR",
+      "message": "\ud83d\udfe1 WARN_STOP \u2014 PLTR ATR mult 1.01",
+      "alert_type": "WARN_STOP",
+      "ts": "2026-10-28T19:23:43.981315Z"
+    }
+  ]
 }
