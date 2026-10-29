@@ -13,7 +13,7 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 201.8,
-      "current_gain_pct": -2.67,
+      "current_gain_pct": -3.31,
       "first_entry_price": 200.48,
       "peak_gain_pct": 0.66
     },
@@ -22,17 +22,17 @@
       "shares": 200,
       "entry_price": 51.24,
       "entry_date": "2026-10-27",
-      "stop_price": 50.12,
+      "stop_price": 51.12,
       "breakeven_activated": false,
       "target1": 58.93,
       "target1_hit": false,
       "target2": 66.61,
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
-      "highest_price_seen": 54.96,
-      "current_gain_pct": 7.03,
+      "highest_price_seen": 55.82,
+      "current_gain_pct": 6.86,
       "first_entry_price": 51.24,
-      "peak_gain_pct": 7.26
+      "peak_gain_pct": 8.94
     },
     {
       "ticker": "QLD",
@@ -47,9 +47,26 @@
       "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
       "status": "active",
       "highest_price_seen": 91.45,
-      "current_gain_pct": 1.13,
+      "current_gain_pct": -2.33,
       "first_entry_price": 90.31,
       "peak_gain_pct": 1.26
+    },
+    {
+      "ticker": "SOFI",
+      "shares": 500,
+      "entry_price": 17.55,
+      "entry_date": "2026-10-29",
+      "stop_price": 16.59,
+      "breakeven_activated": false,
+      "target1": 20.18,
+      "target1_hit": false,
+      "target2": 22.82,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "active",
+      "highest_price_seen": 17.61,
+      "current_gain_pct": -0.2,
+      "first_entry_price": 17.55,
+      "peak_gain_pct": 0.34
     }
   ],
   "closed_positions": [
