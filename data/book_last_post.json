@@ -1,4 +1,20 @@
 {
   "last_book_post_ts": "2026-10-30T18:38:33.975223Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "PLTR",
+      "message": "\ud83d\udea8 STOP HIT: PLTR @ $184.29 \u2014 exit immediately (stop $186.44)",
+      "current_price": 184.29,
+      "stop_price": 186.44,
+      "ts": "2026-10-30T19:03:10.874044Z"
+    },
+    {
+      "kind": "exit_stop",
+      "ticker": "PLTR",
+      "message": "\ud83d\udd34 EXIT_STOP \u2014 PLTR ATR mult -0.32, P&L $-1,619",
+      "alert_type": "EXIT_STOP",
+      "ts": "2026-10-30T19:03:10.874044Z"
+    }
+  ]
 }
