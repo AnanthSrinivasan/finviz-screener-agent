@@ -1,30 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 8,
+  "consecutive_losses": 10,
   "total_wins": 44,
-  "total_losses": 69,
+  "total_losses": 71,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-10-29",
+  "last_updated": "2026-10-30",
   "recent_trades": [
-    {
-      "ticker": "XBI",
-      "result": "loss",
-      "result_pct": -2.08,
-      "date": "2026-08-14",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -111.2
-    },
-    {
-      "ticker": "CIBR",
-      "result": "loss",
-      "result_pct": -2.39,
-      "date": "2026-08-17",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": -265.0
-    },
     {
       "ticker": "SN",
       "result": "win",
@@ -271,11 +253,29 @@
     {
       "ticker": "QLD",
       "result": "loss",
-      "result_pct": -1.68,
+      "result_pct": -3.94,
       "date": "2026-10-29",
       "side": "SELL",
       "source": "auto_detected",
-      "profit_loss_usd": -304.0
+      "profit_loss_usd": -712.0
+    },
+    {
+      "ticker": "ARKG",
+      "result": "loss",
+      "result_pct": -1.8,
+      "date": "2026-10-30",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -184.0
+    },
+    {
+      "ticker": "SOFI",
+      "result": "loss",
+      "result_pct": -6.15,
+      "date": "2026-10-30",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -540.0
     }
   ],
   "market_state": "CAUTION",
