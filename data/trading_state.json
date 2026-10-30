@@ -1,21 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 10,
+  "consecutive_losses": 11,
   "total_wins": 44,
-  "total_losses": 71,
+  "total_losses": 72,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
   "last_updated": "2026-10-30",
   "recent_trades": [
-    {
-      "ticker": "SN",
-      "result": "win",
-      "result_pct": 13.36,
-      "date": "2026-08-17",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 1055.0
-    },
     {
       "ticker": "HPE",
       "result": "win",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -540.0
+    },
+    {
+      "ticker": "PLTR",
+      "result": "loss",
+      "result_pct": -8.17,
+      "date": "2026-10-30",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -1638.0
     }
   ],
   "market_state": "CAUTION",
