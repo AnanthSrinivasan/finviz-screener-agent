@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-29",
+  "up_4_today": 316,
+  "down_4_today": 164,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3016,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 1.93,
+  "ratio_5day": 2.18,
+  "ratio_10day": 1.36,
+  "up_25_quarter": 166,
+  "down_25_quarter": 102,
+  "thrust_detected": false,
+  "fg": 34.6,
+  "spy_price": 769.36,
+  "spy_sma200_pct": 5.6,
+  "spy_sma50_pct": 0.24,
+  "spy_atr_mult_50": 0.27,
+  "spy_sma50_slope_10d": -0.13,
+  "spy_pct_from_20d_high": -1.55,
+  "qqq_sma50_pct": -1.38,
+  "qqq_atr_mult_50": -0.88,
+  "pct_above_50ma": 5.5,
+  "vix_close": 17.2,
+  "vix_change_pct": 1.71,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "CAUTION",
+  "state_message": "Recovering \u2014 build watchlist, half size",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 156,
+  "days_below_21ema": 0,
+  "spy_close": 769.49,
+  "spy_21ema": 768.9904094438514,
+  "spy_20d_high": 779.1,
+  "cohort": {
+    "universe_size": 149,
+    "pct_down4_today": 7.4,
+    "pct_up4_today": 11.4,
+    "pct_above_20ma": 58.4,
+    "pct_above_50ma": 63.8,
+    "pct_within_10_of_52wk_high": 48.3,
+    "cohort_score": 67,
+    "label": "HEALTHY",
+    "worst": [
+      {
+        "ticker": "IOVA",
+        "chg_pct": -35.7,
+        "dollar_move": -5.29,
+        "close": 9.54
+      },
+      {
+        "ticker": "FTNT",
+        "chg_pct": -20.1,
+        "dollar_move": -35.09,
+        "close": 139.11
+      },
+      {
+        "ticker": "MRVL",
+        "chg_pct": -13.3,
+        "dollar_move": -33.41,
+        "close": 218.31
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
