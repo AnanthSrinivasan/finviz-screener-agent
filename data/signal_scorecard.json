@@ -1,36 +1,35 @@
 {
-  "date": "2026-10-24",
+  "date": "2026-10-31",
   "horizon_sessions": 20,
   "trailing_days": 90,
   "blocks": {
     "base_building": {
       "lifetime": {
-        "n_fires": 425,
-        "n_scored": 282,
-        "median_ret_5d": 1.31,
-        "median_ret_20d": -1.11,
-        "median_excess_20d": -1.59,
-        "win_rate_5d": 56.7,
-        "hit10_rate": 55.7,
-        "worst": -37.28
+        "n_fires": 455,
+        "n_scored": 319,
+        "median_ret_5d": 1.1,
+        "median_ret_20d": -2.2,
+        "median_excess_20d": -2.39,
+        "win_rate_5d": 55.2,
+        "hit10_rate": 53.0,
+        "worst": -38.59
       },
       "trailing_90d": {
-        "n_fires": 408,
-        "n_scored": 265,
-        "median_ret_5d": 1.39,
-        "median_ret_20d": -1.43,
-        "median_excess_20d": -1.64,
-        "win_rate_5d": 57.7,
-        "hit10_rate": 55.1,
-        "worst": -37.28
+        "n_fires": 410,
+        "n_scored": 274,
+        "median_ret_5d": 0.76,
+        "median_ret_20d": -3.44,
+        "median_excess_20d": -3.56,
+        "win_rate_5d": 52.9,
+        "hit10_rate": 51.1,
+        "worst": -38.59
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        35,
         32,
         39,
         30,
@@ -41,37 +40,37 @@
         37,
         50,
         22,
-        34
+        34,
+        30
       ]
     },
     "big_movers": {
       "lifetime": {
-        "n_fires": 614,
-        "n_scored": 492,
-        "median_ret_5d": -2.62,
-        "median_ret_20d": -8.88,
-        "median_excess_20d": -9.53,
-        "win_rate_5d": 39.6,
-        "hit10_rate": 55.5,
+        "n_fires": 675,
+        "n_scored": 521,
+        "median_ret_5d": -2.87,
+        "median_ret_20d": -9.66,
+        "median_excess_20d": -10.04,
+        "win_rate_5d": 39.0,
+        "hit10_rate": 54.5,
         "worst": -96.27
       },
       "trailing_90d": {
-        "n_fires": 574,
-        "n_scored": 452,
-        "median_ret_5d": -2.29,
-        "median_ret_20d": -8.88,
-        "median_excess_20d": -9.17,
-        "win_rate_5d": 42.3,
-        "hit10_rate": 54.2,
+        "n_fires": 569,
+        "n_scored": 415,
+        "median_ret_5d": -2.94,
+        "median_ret_20d": -11.59,
+        "median_excess_20d": -11.23,
+        "win_rate_5d": 37.8,
+        "hit10_rate": 50.6,
         "worst": -96.27
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        69,
         50,
         58,
         52,
@@ -82,37 +81,37 @@
         31,
         48,
         19,
-        23
+        23,
+        61
       ]
     },
     "ema21_pullback": {
       "lifetime": {
-        "n_fires": 52,
-        "n_scored": 38,
-        "median_ret_5d": 1.33,
-        "median_ret_20d": 3.42,
-        "median_excess_20d": 3.72,
-        "win_rate_5d": 57.9,
-        "hit10_rate": 44.7,
+        "n_fires": 57,
+        "n_scored": 41,
+        "median_ret_5d": 1.82,
+        "median_ret_20d": 5.79,
+        "median_excess_20d": 7.02,
+        "win_rate_5d": 61.0,
+        "hit10_rate": 48.8,
         "worst": -30.66
       },
       "trailing_90d": {
-        "n_fires": 46,
-        "n_scored": 32,
-        "median_ret_5d": 1.33,
-        "median_ret_20d": -0.13,
-        "median_excess_20d": -1.03,
-        "win_rate_5d": 56.2,
-        "hit10_rate": 40.6,
+        "n_fires": 51,
+        "n_scored": 35,
+        "median_ret_5d": 1.82,
+        "median_ret_20d": 4.54,
+        "median_excess_20d": 3.83,
+        "win_rate_5d": 60.0,
+        "hit10_rate": 45.7,
         "worst": -30.66
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        6,
         3,
         1,
         2,
@@ -123,37 +122,37 @@
         3,
         3,
         1,
-        7
+        7,
+        5
       ]
     },
     "fresh_breakout": {
       "lifetime": {
-        "n_fires": 328,
-        "n_scored": 238,
-        "median_ret_5d": 0.01,
-        "median_ret_20d": -0.8,
-        "median_excess_20d": -1.45,
-        "win_rate_5d": 50.0,
-        "hit10_rate": 43.7,
-        "worst": -30.23
+        "n_fires": 353,
+        "n_scored": 263,
+        "median_ret_5d": -0.15,
+        "median_ret_20d": -1.16,
+        "median_excess_20d": -1.6,
+        "win_rate_5d": 49.8,
+        "hit10_rate": 42.2,
+        "worst": -38.88
       },
       "trailing_90d": {
-        "n_fires": 305,
-        "n_scored": 215,
-        "median_ret_5d": 0.51,
-        "median_ret_20d": -0.47,
-        "median_excess_20d": -0.86,
-        "win_rate_5d": 51.6,
-        "hit10_rate": 43.7,
-        "worst": -25.13
+        "n_fires": 306,
+        "n_scored": 216,
+        "median_ret_5d": 0.21,
+        "median_ret_20d": -0.73,
+        "median_excess_20d": -0.72,
+        "win_rate_5d": 50.5,
+        "hit10_rate": 41.7,
+        "worst": -38.88
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        20,
         25,
         25,
         25,
@@ -164,37 +163,37 @@
         25,
         25,
         20,
-        20
+        20,
+        25
       ]
     },
     "hidden_growth": {
       "lifetime": {
-        "n_fires": 1516,
-        "n_scored": 1075,
-        "median_ret_5d": -0.89,
-        "median_ret_20d": -2.97,
-        "median_excess_20d": -3.69,
-        "win_rate_5d": 43.9,
-        "hit10_rate": 40.2,
-        "worst": -47.91
+        "n_fires": 1634,
+        "n_scored": 1197,
+        "median_ret_5d": -1.01,
+        "median_ret_20d": -3.59,
+        "median_excess_20d": -4.06,
+        "win_rate_5d": 43.4,
+        "hit10_rate": 39.6,
+        "worst": -87.28
       },
       "trailing_90d": {
-        "n_fires": 1439,
-        "n_scored": 998,
-        "median_ret_5d": -0.82,
-        "median_ret_20d": -3.1,
-        "median_excess_20d": -3.61,
-        "win_rate_5d": 44.9,
-        "hit10_rate": 39.6,
-        "worst": -47.91
+        "n_fires": 1495,
+        "n_scored": 1058,
+        "median_ret_5d": -1.01,
+        "median_ret_20d": -3.87,
+        "median_excess_20d": -4.01,
+        "win_rate_5d": 43.8,
+        "hit10_rate": 38.6,
+        "worst": -87.28
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        108,
         139,
         139,
         134,
@@ -205,28 +204,29 @@
         122,
         134,
         77,
-        106
+        106,
+        118
       ]
     },
     "htf_base_reclaim": {
       "lifetime": {
         "n_fires": 28,
-        "n_scored": 16,
-        "median_ret_5d": -0.42,
-        "median_ret_20d": 6.8,
-        "median_excess_20d": 6.12,
-        "win_rate_5d": 50.0,
-        "hit10_rate": 62.5,
+        "n_scored": 17,
+        "median_ret_5d": 1.14,
+        "median_ret_20d": 7.8,
+        "median_excess_20d": 7.12,
+        "win_rate_5d": 52.9,
+        "hit10_rate": 64.7,
         "worst": -59.67
       },
       "trailing_90d": {
-        "n_fires": 28,
+        "n_fires": 27,
         "n_scored": 16,
-        "median_ret_5d": -0.42,
-        "median_ret_20d": 6.8,
-        "median_excess_20d": 6.12,
-        "win_rate_5d": 50.0,
-        "hit10_rate": 62.5,
+        "median_ret_5d": 1.22,
+        "median_ret_20d": 8.22,
+        "median_excess_20d": 7.77,
+        "win_rate_5d": 56.2,
+        "hit10_rate": 68.8,
         "worst": -59.67
       },
       "first_fire_date": "2026-07-30",
@@ -235,7 +235,6 @@
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        1,
         0,
         1,
         0,
@@ -246,37 +245,37 @@
         1,
         5,
         3,
-        3
+        3,
+        0
       ]
     },
     "power_play": {
       "lifetime": {
-        "n_fires": 23,
-        "n_scored": 8,
-        "median_ret_5d": 2.31,
-        "median_ret_20d": 23.45,
-        "median_excess_20d": 21.45,
-        "win_rate_5d": 75.0,
-        "hit10_rate": 75.0,
+        "n_fires": 27,
+        "n_scored": 10,
+        "median_ret_5d": 4.88,
+        "median_ret_20d": 15.66,
+        "median_excess_20d": 12.63,
+        "win_rate_5d": 80.0,
+        "hit10_rate": 80.0,
         "worst": -18.06
       },
       "trailing_90d": {
-        "n_fires": 22,
+        "n_fires": 24,
         "n_scored": 7,
-        "median_ret_5d": 3.13,
+        "median_ret_5d": 6.89,
         "median_ret_20d": 25.99,
         "median_excess_20d": 24.06,
-        "win_rate_5d": 85.7,
-        "hit10_rate": 85.7,
-        "worst": -9.46
+        "win_rate_5d": 100.0,
+        "hit10_rate": 100.0,
+        "worst": 2.03
       },
       "first_fire_date": "2026-07-21",
-      "last_fire_date": "2026-10-23",
-      "weeks_span": 13.4,
+      "last_fire_date": "2026-10-30",
+      "weeks_span": 14.4,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        0,
         0,
         0,
         0,
@@ -287,37 +286,37 @@
         2,
         4,
         4,
-        5
+        5,
+        4
       ]
     },
     "ready_to_enter": {
       "lifetime": {
-        "n_fires": 566,
-        "n_scored": 386,
-        "median_ret_5d": -0.57,
-        "median_ret_20d": -1.5,
-        "median_excess_20d": -2.28,
-        "win_rate_5d": 47.4,
-        "hit10_rate": 39.1,
+        "n_fires": 616,
+        "n_scored": 436,
+        "median_ret_5d": 0.11,
+        "median_ret_20d": -1.95,
+        "median_excess_20d": -2.73,
+        "win_rate_5d": 50.5,
+        "hit10_rate": 38.5,
         "worst": -29.11
       },
       "trailing_90d": {
-        "n_fires": 536,
-        "n_scored": 356,
-        "median_ret_5d": -0.14,
-        "median_ret_20d": -1.8,
-        "median_excess_20d": -2.35,
-        "win_rate_5d": 48.9,
-        "hit10_rate": 37.1,
+        "n_fires": 561,
+        "n_scored": 381,
+        "median_ret_5d": 0.27,
+        "median_ret_20d": -2.41,
+        "median_excess_20d": -2.95,
+        "win_rate_5d": 52.0,
+        "hit10_rate": 35.2,
         "worst": -28.45
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        20,
         25,
         50,
         50,
@@ -328,7 +327,8 @@
         50,
         50,
         40,
-        40
+        40,
+        50
       ]
     },
     "recovery_leader": {
@@ -358,13 +358,13 @@
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        0,
         1,
         0,
         0,
         2,
         2,
         1,
+        0,
         0,
         0,
         0,
@@ -374,32 +374,31 @@
     },
     "rotation_catalyst": {
       "lifetime": {
-        "n_fires": 142,
-        "n_scored": 88,
-        "median_ret_5d": 0.9,
-        "median_ret_20d": -1.38,
-        "median_excess_20d": -3.21,
-        "win_rate_5d": 55.7,
-        "hit10_rate": 42.0,
+        "n_fires": 147,
+        "n_scored": 101,
+        "median_ret_5d": 0.11,
+        "median_ret_20d": -3.11,
+        "median_excess_20d": -4.21,
+        "win_rate_5d": 51.5,
+        "hit10_rate": 38.6,
         "worst": -46.93
       },
       "trailing_90d": {
-        "n_fires": 140,
-        "n_scored": 86,
-        "median_ret_5d": 0.93,
-        "median_ret_20d": -1.38,
-        "median_excess_20d": -2.93,
-        "win_rate_5d": 57.0,
-        "hit10_rate": 43.0,
+        "n_fires": 139,
+        "n_scored": 93,
+        "median_ret_5d": 0.45,
+        "median_ret_20d": -3.56,
+        "median_excess_20d": -4.87,
+        "win_rate_5d": 52.7,
+        "hit10_rate": 38.7,
         "worst": -46.93
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-23",
-      "weeks_span": 14.0,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        14,
         3,
         7,
         1,
@@ -410,37 +409,37 @@
         13,
         11,
         16,
-        14
+        14,
+        5
       ]
     },
     "rs_leader": {
       "lifetime": {
-        "n_fires": 328,
-        "n_scored": 248,
-        "median_ret_5d": -1.64,
-        "median_ret_20d": -2.54,
-        "median_excess_20d": -4.0,
-        "win_rate_5d": 39.5,
+        "n_fires": 355,
+        "n_scored": 258,
+        "median_ret_5d": -1.19,
+        "median_ret_20d": -2.45,
+        "median_excess_20d": -3.86,
+        "win_rate_5d": 40.3,
         "hit10_rate": 39.9,
         "worst": -46.99
       },
       "trailing_90d": {
-        "n_fires": 288,
-        "n_scored": 208,
-        "median_ret_5d": -1.02,
-        "median_ret_20d": -2.92,
-        "median_excess_20d": -3.99,
-        "win_rate_5d": 42.3,
-        "hit10_rate": 38.5,
+        "n_fires": 286,
+        "n_scored": 189,
+        "median_ret_5d": -0.94,
+        "median_ret_20d": -3.72,
+        "median_excess_20d": -3.63,
+        "win_rate_5d": 43.4,
+        "hit10_rate": 36.5,
         "worst": -46.99
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-31",
+      "weeks_span": 15.1,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        22,
         32,
         31,
         19,
@@ -451,37 +450,37 @@
         10,
         22,
         23,
-        25
+        25,
+        27
       ]
     },
     "stage_transition": {
       "lifetime": {
-        "n_fires": 72,
-        "n_scored": 38,
+        "n_fires": 73,
+        "n_scored": 42,
         "median_ret_5d": -0.39,
-        "median_ret_20d": -2.31,
-        "median_excess_20d": -2.54,
-        "win_rate_5d": 44.7,
-        "hit10_rate": 39.5,
+        "median_ret_20d": -2.19,
+        "median_excess_20d": -2.42,
+        "win_rate_5d": 45.2,
+        "hit10_rate": 40.5,
         "worst": -33.69
       },
       "trailing_90d": {
-        "n_fires": 66,
-        "n_scored": 32,
-        "median_ret_5d": 0.05,
-        "median_ret_20d": -2.19,
-        "median_excess_20d": -2.07,
-        "win_rate_5d": 50.0,
-        "hit10_rate": 43.8,
+        "n_fires": 64,
+        "n_scored": 33,
+        "median_ret_5d": -0.29,
+        "median_ret_20d": -0.76,
+        "median_excess_20d": 1.21,
+        "win_rate_5d": 45.5,
+        "hit10_rate": 45.5,
         "worst": -33.69
       },
       "first_fire_date": "2026-07-17",
-      "last_fire_date": "2026-10-24",
-      "weeks_span": 14.1,
+      "last_fire_date": "2026-10-27",
+      "weeks_span": 14.6,
       "status": "OK",
       "newly_flagged": false,
       "fires_per_week": [
-        6,
         0,
         8,
         0,
@@ -492,7 +491,8 @@
         5,
         4,
         15,
-        10
+        10,
+        1
       ]
     }
   }
