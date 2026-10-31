@@ -1,13 +1,6 @@
 {
-  "updated": "2026-10-30T18:38:33.799559Z",
+  "updated": "2026-10-31T00:12:30.389790Z",
   "events": [
-    {
-      "ts": "2026-09-15T18:23:20.458974Z",
-      "date": "2026-09-15",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.09x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-15T20:23:45.602341Z",
       "date": "2026-09-15",
@@ -350,6 +343,13 @@
       "category": "retro_patch",
       "title": "QLD fill patched -1.7% \u2192 -3.9%",
       "severity": "med"
+    },
+    {
+      "ts": "2026-10-31T00:12:30.389790Z",
+      "date": "2026-10-30",
+      "category": "market_state",
+      "title": "Market: CAUTION \u2192 DANGER",
+      "severity": "high"
     }
   ]
 }
