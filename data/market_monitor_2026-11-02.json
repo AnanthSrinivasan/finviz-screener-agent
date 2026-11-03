@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-02",
+  "up_4_today": 343,
+  "down_4_today": 425,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 3050,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.81,
+  "ratio_5day": 1.07,
+  "ratio_10day": 1.19,
+  "up_25_quarter": 100,
+  "down_25_quarter": 189,
+  "thrust_detected": false,
+  "fg": 22.7,
+  "spy_price": 752.1,
+  "spy_sma200_pct": 3.15,
+  "spy_sma50_pct": -1.98,
+  "spy_atr_mult_50": -1.85,
+  "spy_sma50_slope_10d": -0.15,
+  "spy_pct_from_20d_high": -3.78,
+  "qqq_sma50_pct": -5.95,
+  "qqq_atr_mult_50": -3.08,
+  "pct_above_50ma": 3.28,
+  "vix_close": 21.15,
+  "vix_change_pct": 8.91,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "extreme_fear",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 160,
+  "days_below_21ema": 0,
+  "spy_close": 752.04,
+  "spy_21ema": 766.3527350862828,
+  "spy_20d_high": 779.1,
+  "cohort": {
+    "universe_size": 148,
+    "pct_down4_today": 44.6,
+    "pct_up4_today": 4.1,
+    "pct_above_20ma": 42.6,
+    "pct_above_50ma": 49.3,
+    "pct_within_10_of_52wk_high": 34.5,
+    "cohort_score": 46,
+    "label": "CARNAGE",
+    "worst": [
+      {
+        "ticker": "CYPH",
+        "chg_pct": -20.8,
+        "dollar_move": -0.62,
+        "close": 2.35
+      },
+      {
+        "ticker": "LITE",
+        "chg_pct": -18.7,
+        "dollar_move": -157.12,
+        "close": 683.69
+      },
+      {
+        "ticker": "VG",
+        "chg_pct": -13.0,
+        "dollar_move": -1.92,
+        "close": 12.87
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
