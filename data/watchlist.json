@@ -58,7 +58,7 @@
       "archived_date": "2026-04-24",
       "demote_reason": "stale \u2014 none in 5d",
       "demoted_from_entry_ready_date": "2026-07-10",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "SEDG",
@@ -146,7 +146,7 @@
       "entry_ready_date": "2026-04-23",
       "archive_reason": "entered_position",
       "archived_date": "2026-04-24",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demote_reason": "cal-cap: mult 3.3 > warn 3.0",
       "demoted_from_entry_ready_date": "2026-07-10"
     },
@@ -491,7 +491,7 @@
       "focus_promoted_date": "2026-10-27",
       "reactivated_date": "2026-10-27",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-10-28",
       "demote_reason": "no longer meets Ready-to-Enter criteria"
     },
@@ -527,7 +527,7 @@
       "reactivated_date": "2026-04-24",
       "focus_promoted_date": "2026-04-24",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-05-29",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-03"
     },
@@ -538,14 +538,16 @@
       "stop": null,
       "thesis": "Technology | Q=100 | VCP | ATR 4.6%",
       "added": "2026-04-09",
-      "status": "watching",
+      "status": "archived",
       "source": "screener_auto",
-      "priority": "focus",
+      "priority": "archived",
       "focus_promoted_date": "2026-04-23",
       "entry_ready_date": null,
       "last_seen_in_screener": "2026-10-13",
       "demoted_from_entry_ready_date": "2026-10-15",
-      "demote_reason": "entry-ready cap \u2014 outranked"
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03"
     },
     {
       "ticker": "TSM",
@@ -664,7 +666,7 @@
       "reactivated_date": "2026-04-27",
       "focus_promoted_date": "2026-04-27",
       "entry_ready_date": "2026-04-28",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demote_reason": "cal-cap: mult 6.0 > warn 3.0 + dist -0.7",
       "demoted_from_entry_ready_date": "2026-07-10"
     },
@@ -765,7 +767,7 @@
       "archived_date": "2026-05-28",
       "reactivated_date": "2026-04-24",
       "focus_promoted_date": "2026-04-24",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "DAN",
@@ -980,17 +982,17 @@
       "stop": null,
       "thesis": "Consumer Defensive | Q=96 | VCP | ATR 3.5%",
       "added": "2026-04-14",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "screener_auto",
-      "archive_reason": null,
-      "archived_date": "2026-04-29",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
       "last_seen_in_screener": "2026-10-13",
       "reactivated_date": "2026-09-03",
       "focus_promoted_date": "2026-09-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-13",
-      "demote_reason": "entry-ready cap \u2014 outranked"
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13"
     },
     {
       "ticker": "IREN",
@@ -1699,13 +1701,13 @@
       "stop": null,
       "thesis": "Industrials | Q=105 | VCP | ATR 7.4%",
       "added": "2026-04-15",
-      "status": "watching",
-      "priority": "watching",
+      "status": "archived",
+      "priority": "archived",
       "source": "screener_auto",
       "focus_promoted_date": "2026-04-15",
       "last_seen_in_screener": "2026-10-31",
-      "archive_reason": null,
-      "archived_date": "2026-10-31",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-19",
       "reactivated_date": "2026-10-31"
     },
@@ -1760,14 +1762,15 @@
       "thesis": "Financial | Q=93 | VCP | ATR 3.3%",
       "added": "2026-04-15",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-10-29",
       "archive_reason": null,
       "archived_date": "2026-10-29",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-09-19",
       "reactivated_date": "2026-10-29",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03",
+      "entry_ready_date": "2026-11-03"
     },
     {
       "ticker": "CAR",
@@ -1863,9 +1866,9 @@
       "source": "screener_auto",
       "focus_promoted_date": "2026-10-10",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
-      "demoted_from_entry_ready_date": "2026-10-31",
-      "demote_reason": "no longer meets Ready-to-Enter criteria",
+      "last_seen_in_screener": "2026-11-03",
+      "demoted_from_entry_ready_date": "2026-11-03",
+      "demote_reason": "entry-ready cap \u2014 outranked",
       "archive_reason": null,
       "archived_date": "2026-09-29",
       "reactivated_date": "2026-10-10"
@@ -2043,16 +2046,16 @@
       "thesis": "Consumer Cyclical | Q=95 | VCP | ATR 4.1%",
       "added": "2026-04-21",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "source": "screener_auto",
       "archive_reason": null,
       "archived_date": "2026-10-06",
       "focus_promoted_date": "2026-10-30",
       "reactivated_date": "2026-10-30",
-      "entry_ready_date": "2026-10-31",
-      "last_seen_in_screener": "2026-10-31",
-      "demoted_from_entry_ready_date": "2026-09-16",
-      "demote_reason": "stale_cold \u2014 not in screener since 2026-09-15"
+      "entry_ready_date": null,
+      "last_seen_in_screener": "2026-11-03",
+      "demoted_from_entry_ready_date": "2026-11-03",
+      "demote_reason": "entry-ready cap \u2014 outranked"
     },
     {
       "ticker": "TXN",
@@ -2065,7 +2068,7 @@
       "priority": "focus",
       "source": "screener_auto",
       "focus_promoted_date": "2026-10-28",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-08-14",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-06-23",
@@ -2097,7 +2100,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": "age_out",
       "archived_date": "2026-08-14"
     },
@@ -2211,13 +2214,17 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-04-28",
       "status": "watching",
-      "priority": "focus",
-      "source": "hidden_growth_auto",
+      "priority": "momentum",
+      "source": "momentum_leader_auto",
       "focus_promoted_date": "2026-04-28",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-10-23",
-      "demote_reason": "entry-ready cap \u2014 outranked"
+      "demote_reason": "entry-ready cap \u2014 outranked",
+      "last_momentum_fire_date": "2026-11-03",
+      "prev_source": "hidden_growth_auto",
+      "prev_priority": "focus",
+      "momentum_promoted_date": "2026-11-03"
     },
     {
       "ticker": "TEVA",
@@ -2404,7 +2411,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": "age_out",
       "archived_date": "2026-08-14"
     },
@@ -2620,13 +2627,13 @@
       "status": "watching",
       "priority": "momentum",
       "source": "momentum_leader_auto",
-      "last_seen_in_screener": "2026-10-30",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-06-26",
       "archive_reason": null,
       "archived_date": "2026-08-27",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-05",
       "reactivated_date": "2026-10-06",
-      "last_momentum_fire_date": "2026-10-30",
+      "last_momentum_fire_date": "2026-11-03",
       "prev_source": "breakout_auto",
       "prev_priority": "watching",
       "momentum_promoted_date": "2026-10-06"
@@ -2678,7 +2685,7 @@
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-16",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-10-24",
       "demote_reason": "entry-ready cap \u2014 outranked",
       "archive_reason": null,
@@ -2711,7 +2718,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": "age_out",
       "archived_date": "2026-08-14"
     },
@@ -2780,16 +2787,17 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-05-06",
-      "status": "archived",
-      "priority": "archived",
+      "status": "watching",
+      "priority": "focus",
       "source": "breakout_auto",
-      "focus_promoted_date": "2026-05-06",
+      "focus_promoted_date": "2026-11-03",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-07-28",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-07-27",
-      "archive_reason": "age_out",
-      "archived_date": "2026-08-17"
+      "archive_reason": null,
+      "archived_date": "2026-08-17",
+      "reactivated_date": "2026-11-03"
     },
     {
       "ticker": "ESTA",
@@ -2991,14 +2999,14 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-08",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-03",
       "last_seen_in_screener": "2026-10-13",
-      "archive_reason": null,
-      "archived_date": "2026-08-20",
-      "demote_reason": "stale_cold \u2014 not in screener since 2026-07-30",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
       "reactivated_date": "2026-10-03"
     },
     {
@@ -3289,16 +3297,16 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-12",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-08-14",
       "last_seen_in_screener": "2026-10-13",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-09",
-      "demote_reason": "entry-ready cap \u2014 outranked",
-      "archive_reason": null,
-      "archived_date": "2026-08-14",
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
       "reactivated_date": "2026-08-14"
     },
     {
@@ -3376,15 +3384,15 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-05-14",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "source": "hidden_growth_auto",
       "last_seen_in_screener": "2026-10-31",
       "archive_reason": null,
       "archived_date": "2026-08-14",
       "reactivated_date": "2026-08-28",
       "focus_promoted_date": "2026-08-28",
-      "entry_ready_date": "2026-10-31",
-      "demoted_from_entry_ready_date": "2026-10-30",
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-11-03",
       "demote_reason": "entry-ready cap \u2014 outranked"
     },
     {
@@ -4219,7 +4227,7 @@
       "status": "watching",
       "priority": "momentum",
       "source": "momentum_leader_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-09-17",
       "reactivated_date": "2026-09-17",
@@ -4227,7 +4235,7 @@
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-24",
       "demote_reason": "entry-ready cap \u2014 outranked",
-      "last_momentum_fire_date": "2026-10-29",
+      "last_momentum_fire_date": "2026-11-03",
       "prev_source": "hidden_growth_auto",
       "prev_priority": "focus",
       "momentum_promoted_date": "2026-10-28"
@@ -4553,11 +4561,11 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-06-09",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-30",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-10-03",
-      "entry_ready_date": null,
+      "entry_ready_date": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-10-30",
       "demote_reason": "entry-ready cap \u2014 outranked",
       "archive_reason": null,
@@ -4829,13 +4837,13 @@
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-06-11",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-31",
       "last_seen_in_screener": "2026-10-31",
-      "entry_ready_date": "2026-10-31",
-      "demoted_from_entry_ready_date": "2026-08-29",
-      "demote_reason": "stale_cold \u2014 not in screener since 2026-08-28",
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-11-03",
+      "demote_reason": "entry-ready cap \u2014 outranked",
       "archive_reason": null,
       "archived_date": "2026-09-18",
       "reactivated_date": "2026-10-31"
@@ -4897,7 +4905,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-29",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-06-26",
       "archive_reason": "age_out",
       "archived_date": "2026-08-14",
@@ -4982,7 +4990,7 @@
       "status": "watching",
       "priority": "momentum",
       "source": "momentum_leader_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-06-18",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-09-15",
@@ -5296,7 +5304,7 @@
       "priority": "archived",
       "source": "screener_auto",
       "focus_promoted_date": "2026-06-16",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-07-30",
       "demote_reason": "entry-ready cap \u2014 outranked",
@@ -5620,7 +5628,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-16",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-27",
       "demote_reason": "entry-ready cap \u2014 outranked",
@@ -6168,7 +6176,7 @@
       "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-06-26",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": "entered_position",
       "archived_date": "2026-08-12"
     },
@@ -6925,14 +6933,16 @@
       "stop": null,
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-07-23",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-07-23",
       "last_seen_in_screener": "2026-10-13",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-09",
-      "demote_reason": "no longer meets Ready-to-Enter criteria"
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03"
     },
     {
       "ticker": "DLR",
@@ -7285,16 +7295,16 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-07-30",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-09-23",
       "last_seen_in_screener": "2026-10-13",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-13",
-      "demote_reason": "entry-ready cap \u2014 outranked",
-      "archive_reason": null,
-      "archived_date": "2026-09-18",
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
       "reactivated_date": "2026-09-23"
     },
     {
@@ -7355,14 +7365,16 @@
       "stop": null,
       "thesis": "Stage 1\u21922 reclaim \u2014 sector ETF rotating in (rank \u0394 \u2264 -5 over 5d)",
       "added": "2026-07-30",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "focus_promoted_date": "2026-07-30",
       "source": "stage_transition_auto",
       "last_seen_in_screener": "2026-10-13",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-15",
-      "demote_reason": "entry-ready cap \u2014 outranked"
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03"
     },
     {
       "ticker": "MNST",
@@ -7531,7 +7543,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-30",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-08-07",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-08-14",
@@ -7626,10 +7638,10 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
-      "archived_date": "2026-08-19",
-      "reactivated_date": "2026-10-31"
+      "archived_date": "2026-11-03",
+      "reactivated_date": "2026-11-03"
     },
     {
       "ticker": "PAY",
@@ -7729,7 +7741,7 @@
       "archived_date": "2026-10-23",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-04",
       "reactivated_date": "2026-10-31",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "XOM",
@@ -7901,7 +7913,7 @@
       "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-09-24",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-13",
       "demote_reason": "entry-ready cap \u2014 outranked",
@@ -8007,9 +8019,9 @@
       "focus_promoted_date": "2026-08-11",
       "last_seen_in_screener": "2026-08-12",
       "archive_reason": null,
-      "archived_date": "2026-10-31",
+      "archived_date": "2026-11-03",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-12",
-      "reactivated_date": "2026-10-31"
+      "reactivated_date": "2026-11-03"
     },
     {
       "ticker": "IVZ",
@@ -8155,7 +8167,7 @@
       "priority": "archived",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-08-07",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-08-21",
       "demote_reason": "entry-ready cap \u2014 outranked",
@@ -8239,14 +8251,16 @@
       "stop": null,
       "thesis": "Basic Materials | Q=111 | VCP | ATR 4.0%",
       "added": "2026-08-10",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "screener_auto",
       "focus_promoted_date": "2026-08-10",
       "last_seen_in_screener": "2026-10-13",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-13",
-      "demote_reason": "entry-ready cap \u2014 outranked"
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03"
     },
     {
       "ticker": "CHRD",
@@ -8344,17 +8358,17 @@
       "stop": null,
       "thesis": "Energy | Q=110 | VCP | ATR 3.3%",
       "added": "2026-08-11",
-      "status": "archived",
-      "priority": "archived",
+      "status": "watching",
+      "priority": "focus",
       "source": "screener_auto",
-      "focus_promoted_date": "2026-10-17",
+      "focus_promoted_date": "2026-11-03",
       "entry_ready_date": null,
-      "last_seen_in_screener": "2026-08-14",
+      "last_seen_in_screener": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-08-14",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-14",
-      "archive_reason": "age_out",
+      "archive_reason": null,
       "archived_date": "2026-10-17",
-      "reactivated_date": "2026-10-17"
+      "reactivated_date": "2026-11-03"
     },
     {
       "ticker": "HTZ",
@@ -8566,8 +8580,8 @@
       "priority": "momentum",
       "source": "momentum_leader_auto",
       "focus_promoted_date": "2026-08-14",
-      "last_seen_in_screener": "2026-10-31",
-      "last_momentum_fire_date": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
+      "last_momentum_fire_date": "2026-11-03",
       "prev_source": "hidden_growth_auto",
       "prev_priority": "focus",
       "momentum_promoted_date": "2026-10-07"
@@ -8579,12 +8593,12 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-08-14",
-      "status": "archived",
-      "priority": "archived",
+      "status": "watching",
+      "priority": "watching",
       "source": "hidden_growth_auto",
-      "archive_reason": "age_out",
+      "archive_reason": null,
       "archived_date": "2026-10-31",
-      "reactivated_date": "2026-10-31",
+      "reactivated_date": "2026-11-03",
       "focus_promoted_date": "2026-10-31",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-08-14"
     },
@@ -8714,14 +8728,14 @@
       "stop": null,
       "thesis": "Stage 1\u21922 reclaim \u2014 sector ETF rotating in (rank \u0394 \u2264 -5 over 5d)",
       "added": "2026-08-17",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "focus_promoted_date": "2026-09-24",
       "source": "stage_transition_auto",
       "last_seen_in_screener": "2026-10-13",
-      "archive_reason": null,
-      "archived_date": "2026-09-18",
-      "demote_reason": "entry-ready cap \u2014 outranked",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13",
       "reactivated_date": "2026-09-24",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-15"
@@ -8820,7 +8834,7 @@
       "status": "watching",
       "priority": "focus",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-10-27",
       "reactivated_date": "2026-10-28",
@@ -8966,7 +8980,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-09",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-09-29",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-09-08",
@@ -9072,15 +9086,15 @@
       "thesis": "Industrials | Q=107 | VCP | ATR 3.1%",
       "added": "2026-08-25",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "source": "screener_auto",
       "focus_promoted_date": "2026-10-30",
-      "last_seen_in_screener": "2026-10-30",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-10-22",
       "demote_reason": "entry-ready cap \u2014 outranked",
       "reactivated_date": "2026-10-30",
-      "entry_ready_date": null,
+      "entry_ready_date": "2026-11-03",
       "demoted_from_entry_ready_date": "2026-10-30"
     },
     {
@@ -9141,7 +9155,7 @@
       "status": "archived",
       "priority": "archived",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": "age_out",
       "archived_date": "2026-09-11"
     },
@@ -9156,7 +9170,7 @@
       "priority": "momentum",
       "source": "momentum_leader_auto",
       "last_momentum_fire_date": "2026-08-28",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "TNK",
@@ -9185,7 +9199,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-06",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-09-25",
       "demote_reason": "entry-ready cap \u2014 outranked",
@@ -9569,7 +9583,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-21",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
       "archived_date": "2026-10-02",
       "demote_reason": "stale_cold \u2014 not in screener since 2026-09-12",
@@ -9599,7 +9613,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-09-15",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "CNC",
@@ -9631,7 +9645,7 @@
       "priority": "focus",
       "source": "screener_auto",
       "focus_promoted_date": "2026-09-16",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
       "demoted_from_entry_ready_date": "2026-10-31",
       "demote_reason": "no longer meets Ready-to-Enter criteria"
@@ -9684,9 +9698,9 @@
       "priority": "focus",
       "source": "screener_auto",
       "focus_promoted_date": "2026-09-17",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "entry_ready_date": null,
-      "demoted_from_entry_ready_date": "2026-10-31",
+      "demoted_from_entry_ready_date": "2026-11-03",
       "demote_reason": "entry-ready cap \u2014 outranked"
     },
     {
@@ -9833,11 +9847,14 @@
       "stop": null,
       "thesis": "Basic Materials | Q=112 | VCP | ATR 4.8%",
       "added": "2026-09-23",
-      "status": "watching",
-      "priority": "focus",
+      "status": "archived",
+      "priority": "archived",
       "source": "screener_auto",
       "focus_promoted_date": "2026-09-23",
-      "last_seen_in_screener": "2026-10-13"
+      "last_seen_in_screener": "2026-10-13",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
+      "demote_reason": "stale_cold \u2014 not in screener since 2026-10-13"
     },
     {
       "ticker": "LGND",
@@ -10161,10 +10178,10 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "archive_reason": null,
-      "archived_date": "2026-10-31",
-      "reactivated_date": "2026-10-31"
+      "archived_date": "2026-11-03",
+      "reactivated_date": "2026-11-03"
     },
     {
       "ticker": "PCVX",
@@ -10189,12 +10206,12 @@
       "stop": null,
       "thesis": "Hidden Growth fundamental accumulation",
       "added": "2026-10-15",
-      "status": "watching",
-      "priority": "watching",
+      "status": "archived",
+      "priority": "archived",
       "source": "hidden_growth_auto",
       "last_seen_in_screener": "2026-10-31",
-      "archive_reason": null,
-      "archived_date": "2026-10-30",
+      "archive_reason": "age_out",
+      "archived_date": "2026-11-03",
       "reactivated_date": "2026-10-31"
     },
     {
@@ -10229,9 +10246,11 @@
       "thesis": "Stage 1\u21922 reclaim \u2014 sector ETF rotating in (rank \u0394 \u2264 -5 over 5d)",
       "added": "2026-10-15",
       "status": "watching",
-      "priority": "focus",
+      "priority": "entry-ready",
       "focus_promoted_date": "2026-10-15",
-      "source": "stage_transition_auto"
+      "source": "stage_transition_auto",
+      "entry_ready_date": "2026-11-03",
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "CNK",
@@ -10274,7 +10293,7 @@
       "priority": "focus",
       "focus_promoted_date": "2026-10-16",
       "source": "htf_base_reclaim_auto",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "BLK",
@@ -10309,12 +10328,12 @@
       "thesis": "Breakout from base on volume expansion",
       "added": "2026-10-17",
       "status": "watching",
-      "priority": "entry-ready",
+      "priority": "focus",
       "source": "breakout_auto",
       "focus_promoted_date": "2026-10-17",
       "last_seen_in_screener": "2026-10-31",
-      "entry_ready_date": "2026-10-30",
-      "demoted_from_entry_ready_date": "2026-10-29",
+      "entry_ready_date": null,
+      "demoted_from_entry_ready_date": "2026-11-03",
       "demote_reason": "entry-ready cap \u2014 outranked"
     },
     {
@@ -10340,7 +10359,7 @@
       "priority": "focus",
       "source": "screener_auto",
       "focus_promoted_date": "2026-10-21",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "HAS",
@@ -10400,7 +10419,7 @@
       "status": "watching",
       "priority": "momentum",
       "source": "momentum_leader_auto",
-      "last_momentum_fire_date": "2026-10-31"
+      "last_momentum_fire_date": "2026-11-03"
     },
     {
       "ticker": "MEDP",
@@ -10438,7 +10457,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-27",
-      "last_seen_in_screener": "2026-10-27"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "AS",
@@ -10450,7 +10469,7 @@
       "status": "watching",
       "priority": "watching",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "XNCR",
@@ -10527,7 +10546,7 @@
       "status": "watching",
       "priority": "focus",
       "source": "hidden_growth_auto",
-      "last_seen_in_screener": "2026-10-31",
+      "last_seen_in_screener": "2026-11-03",
       "focus_promoted_date": "2026-10-31"
     },
     {
@@ -10567,7 +10586,7 @@
       "priority": "focus",
       "source": "hidden_growth_auto",
       "focus_promoted_date": "2026-10-31",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "MSGK",
@@ -10581,7 +10600,7 @@
       "focus_promoted_date": "2026-10-31",
       "source": "rs_leader_auto",
       "entry_ready_date": "2026-10-31",
-      "last_seen_in_screener": "2026-10-31"
+      "last_seen_in_screener": "2026-11-03"
     },
     {
       "ticker": "EPD",
@@ -10594,6 +10613,56 @@
       "priority": "focus",
       "focus_promoted_date": "2026-10-31",
       "source": "rotation_catalyst_auto"
+    },
+    {
+      "ticker": "GKOS",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-11-03",
+      "status": "watching",
+      "priority": "focus",
+      "source": "hidden_growth_auto",
+      "focus_promoted_date": "2026-11-03",
+      "last_seen_in_screener": "2026-11-03"
+    },
+    {
+      "ticker": "UPBD",
+      "entry_note": "Hidden Growth 4+/6 \u2014 research prompt",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Hidden Growth fundamental accumulation",
+      "added": "2026-11-03",
+      "status": "watching",
+      "priority": "watching",
+      "source": "hidden_growth_auto",
+      "last_seen_in_screener": "2026-11-03"
+    },
+    {
+      "ticker": "COP",
+      "entry_note": "21 EMA Pullback \u2014 continuation after run, tight at EMA21/SMA20",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "21 EMA pullback continuation",
+      "added": "2026-11-03",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-11-03",
+      "source": "ema21_pb_auto"
+    },
+    {
+      "ticker": "NWL",
+      "entry_note": "Stage Transition \u2014 early Stage 2 reclaim with sector rotating in",
+      "entry_price": null,
+      "stop": null,
+      "thesis": "Stage 1\u21922 reclaim \u2014 sector ETF rotating in (rank \u0394 \u2264 -5 over 5d)",
+      "added": "2026-11-03",
+      "status": "watching",
+      "priority": "focus",
+      "focus_promoted_date": "2026-11-03",
+      "source": "stage_transition_auto",
+      "last_seen_in_screener": "2026-11-03"
     }
   ],
   "tickers": [
