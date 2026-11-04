@@ -2,7 +2,7 @@
   "consecutive_wins": 0,
   "consecutive_losses": 11,
   "total_wins": 44,
-  "total_losses": 72,
+  "total_losses": 71,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
   "last_updated": "2026-10-30",
@@ -252,30 +252,30 @@
     },
     {
       "ticker": "ARKG",
-      "result": "loss",
-      "result_pct": -1.8,
+      "result": "neutral",
+      "result_pct": -0.02,
       "date": "2026-10-30",
       "side": "SELL",
       "source": "auto_detected",
-      "profit_loss_usd": -184.0
+      "profit_loss_usd": -2.0
     },
     {
       "ticker": "SOFI",
       "result": "loss",
-      "result_pct": -6.15,
+      "result_pct": -4.44,
       "date": "2026-10-30",
       "side": "SELL",
       "source": "auto_detected",
-      "profit_loss_usd": -540.0
+      "profit_loss_usd": -390.0
     },
     {
       "ticker": "PLTR",
       "result": "loss",
-      "result_pct": -8.17,
+      "result_pct": -7.18,
       "date": "2026-10-30",
       "side": "SELL",
       "source": "auto_detected",
-      "profit_loss_usd": -1638.0
+      "profit_loss_usd": -1440.0
     }
   ],
   "market_state": "RED",

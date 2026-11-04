@@ -1,27 +1,6 @@
 {
-  "updated": "2026-11-03T02:42:09.344610Z",
+  "updated": "2026-11-04T22:48:00.755607Z",
   "events": [
-    {
-      "ts": "2026-09-15T21:39:29.784769Z",
-      "date": "2026-09-15",
-      "category": "peel_signal",
-      "title": "CVX peel signal \u2014 ATR mult 5.29x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-22T17:39:14.944422Z",
-      "date": "2026-09-22",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 6.08x",
-      "severity": "med"
-    },
-    {
-      "ts": "2026-09-22T17:39:18.028568Z",
-      "date": "2026-09-22",
-      "category": "retro_patch",
-      "title": "CVX fill patched +1.7% \u2192 +1.8%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-22T17:39:18.029196Z",
       "date": "2026-09-22",
@@ -350,6 +329,27 @@
       "category": "market_state",
       "title": "Market: DANGER \u2192 RED",
       "severity": "high"
+    },
+    {
+      "ts": "2026-11-04T22:48:00.750532Z",
+      "date": "2026-11-04",
+      "category": "retro_patch",
+      "title": "ARKG fill patched -1.8% \u2192 -0.0% (was LOSS, now NEUTRAL)",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-11-04T22:48:00.751078Z",
+      "date": "2026-11-04",
+      "category": "retro_patch",
+      "title": "SOFI fill patched -6.2% \u2192 -4.4%",
+      "severity": "med"
+    },
+    {
+      "ts": "2026-11-04T22:48:00.755607Z",
+      "date": "2026-11-04",
+      "category": "retro_patch",
+      "title": "PLTR fill patched -8.2% \u2192 -7.2%",
+      "severity": "med"
     }
   ]
 }
