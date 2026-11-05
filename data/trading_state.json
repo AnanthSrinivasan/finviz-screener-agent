@@ -1,21 +1,12 @@
 {
   "consecutive_wins": 0,
-  "consecutive_losses": 11,
+  "consecutive_losses": 12,
   "total_wins": 44,
-  "total_losses": 71,
+  "total_losses": 72,
   "current_sizing_mode": "suspended",
   "sizing_override": null,
-  "last_updated": "2026-10-30",
+  "last_updated": "2026-11-05",
   "recent_trades": [
-    {
-      "ticker": "HPE",
-      "result": "win",
-      "result_pct": 14.06,
-      "date": "2026-08-17",
-      "side": "SELL",
-      "source": "auto_detected",
-      "profit_loss_usd": 746.0
-    },
     {
       "ticker": "ARKG",
       "result": "loss",
@@ -276,6 +267,15 @@
       "side": "SELL",
       "source": "auto_detected",
       "profit_loss_usd": -1440.0
+    },
+    {
+      "ticker": "TOST",
+      "result": "loss",
+      "result_pct": -1.1,
+      "date": "2026-11-05",
+      "side": "SELL",
+      "source": "auto_detected",
+      "profit_loss_usd": -78.0
     }
   ],
   "market_state": "THRUST",

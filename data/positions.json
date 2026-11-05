@@ -1,23 +1,5 @@
 {
-  "open_positions": [
-    {
-      "ticker": "TOST",
-      "shares": 200,
-      "entry_price": 35.5,
-      "entry_date": "2026-11-04",
-      "stop_price": 33.2,
-      "breakeven_activated": false,
-      "target1": 40.82,
-      "target1_hit": false,
-      "target2": 46.15,
-      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
-      "status": "active",
-      "highest_price_seen": 36.02,
-      "current_gain_pct": -0.48,
-      "first_entry_price": 35.5,
-      "peak_gain_pct": 1.46
-    }
-  ],
+  "open_positions": [],
   "closed_positions": [
     {
       "ticker": "AMD",
@@ -2767,6 +2749,27 @@
       "close_price": 186.08,
       "close_source": "snaptrade_fill_retro",
       "result_pct": -7.18
+    },
+    {
+      "ticker": "TOST",
+      "shares": 200,
+      "entry_price": 35.5,
+      "entry_date": "2026-11-04",
+      "stop_price": 33.2,
+      "breakeven_activated": false,
+      "target1": 40.82,
+      "target1_hit": false,
+      "target2": 46.15,
+      "thesis": "Auto-detected from SnapTrade \u2014 update thesis via workflow_dispatch",
+      "status": "closed_external",
+      "highest_price_seen": 36.02,
+      "current_gain_pct": -0.48,
+      "first_entry_price": 35.5,
+      "peak_gain_pct": 1.46,
+      "close_date": "2026-11-05",
+      "close_price": 35.11,
+      "close_source": "live_quote",
+      "result_pct": -1.1
     }
   ]
 }
