@@ -1,13 +1,6 @@
 {
-  "updated": "2026-11-04T22:48:00.755607Z",
+  "updated": "2026-11-05T01:06:53.955351Z",
   "events": [
-    {
-      "ts": "2026-09-22T17:39:18.029196Z",
-      "date": "2026-09-22",
-      "category": "retro_patch",
-      "title": "INTC fill patched +27.7% \u2192 +25.7%",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-22T17:59:54.403548Z",
       "date": "2026-09-22",
@@ -350,6 +343,13 @@
       "category": "retro_patch",
       "title": "PLTR fill patched -8.2% \u2192 -7.2%",
       "severity": "med"
+    },
+    {
+      "ts": "2026-11-05T01:06:53.955351Z",
+      "date": "2026-11-04",
+      "category": "market_state",
+      "title": "Market: RED \u2192 THRUST",
+      "severity": "low"
     }
   ]
 }
