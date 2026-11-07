@@ -1,13 +1,6 @@
 {
-  "updated": "2026-11-06T01:12:16.105113Z",
+  "updated": "2026-11-07T00:27:51.890854Z",
   "events": [
-    {
-      "ts": "2026-09-22T18:12:28.173479Z",
-      "date": "2026-09-22",
-      "category": "peel_signal",
-      "title": "ARKG peel signal \u2014 ATR mult 6.23x",
-      "severity": "med"
-    },
     {
       "ts": "2026-09-22T20:26:09.132853Z",
       "date": "2026-09-22",
@@ -350,6 +343,13 @@
       "category": "market_state",
       "title": "Market: THRUST \u2192 DANGER",
       "severity": "high"
+    },
+    {
+      "ts": "2026-11-07T00:27:51.890854Z",
+      "date": "2026-11-06",
+      "category": "market_state",
+      "title": "Market: DANGER \u2192 CAUTION",
+      "severity": "med"
     }
   ]
 }
