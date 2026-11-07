@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trader Mirror — 2026-10</title>
+<style>
+body { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+       background: #f8fafc; color: #111827; margin: 0; padding: 24px; }
+.wrap { max-width: 960px; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin: 0 0 4px; }
+.sub { color: #6b7280; font-size: 0.85rem; margin-bottom: 18px; }
+.verdict { background: #ffffff; border: 1px solid #e5e7eb; border-left: 4px solid #2563eb;
+           border-radius: 10px; padding: 14px 18px; font-size: 1.05rem; font-weight: 600;
+           margin-bottom: 18px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+         gap: 12px; margin-bottom: 20px; }
+.card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+        padding: 12px 14px; }
+.card .label { font-size: 0.66rem; color: #9ca3af; text-transform: uppercase;
+               letter-spacing: .06em; margin-bottom: 5px; }
+.card .val { font-size: 1.2rem; font-weight: 700; }
+.card .sub2 { font-size: 0.72rem; color: #6b7280; margin-top: 3px; }
+table { border-collapse: collapse; width: 100%; background: #ffffff;
+        border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;
+        font-size: 0.85rem; margin-bottom: 22px; }
+th { background: #f3f4f6; text-align: left; padding: 8px 10px; font-size: 0.7rem;
+     text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+td { padding: 8px 10px; border-top: 1px solid #f3f4f6; }
+.pos { color: #b91c1c; } .neg { color: #15803d; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 999px;
+       font-size: 0.7rem; font-weight: 600; }
+.tag-hold_in_hope { background: #fee2e2; color: #b91c1c; }
+.tag-round_trip { background: #ffedd5; color: #c2410c; }
+.tag-early_exit { background: #fef9c3; color: #a16207; }
+.tag-disciplined { background: #dcfce7; color: #15803d; }
+.tag-unscored { background: #f3f4f6; color: #6b7280; }
+.note { color: #6b7280; font-size: 0.78rem; }
+h2 { font-size: 1.0rem; margin: 20px 0 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🪞 Trader Mirror — 2026-10</h1>
+<div class="sub">You vs the rules engine — manual book, closed trades 2026-10-01 → 2026-10-31. System exits fill at the close after the signal (causal replay, no look-ahead).</div>
+<div class="verdict">You left $1,636 on the table in October.</div>
+<div class="cards"><div class="card"><div class="label">hold-in-hope</div><div class="val">$0</div><div class="sub2">0 trade(s) · —</div></div><div class="card"><div class="label">round-trip</div><div class="val">$0</div><div class="sub2">0 trade(s) · —</div></div><div class="card"><div class="label">early-exit</div><div class="val">$1,636</div><div class="sub2">3 trade(s) · CVX, CVX, GLBE</div></div><div class="card"><div class="label">disciplined</div><div class="val">-$3,965</div><div class="sub2">10 trade(s) · ALAB, NVDA, HPE, DELL, HOOD</div></div><div class="card"><div class="label">discipline rate</div><div class="val">10 / 13</div><div class="sub2">unscored: 0</div></div></div>
+<h2>Per-trade scorecard</h2>
+<table>
+<tr><th>Ticker</th><th>Entry</th><th>Your exit</th><th>System exit</th><th>Delta $</th><th>Leak</th><th>Detail</th></tr>
+<tr><td><b>CVX</b></td><td>$208.43 · 2026-10-06</td><td>$205.33 · 2026-10-07</td><td>$228.27 · 2026-10-27</td><td class="pos">$1,147</td><td><span class="tag tag-early_exit">early-exit</span></td><td class="note">sold $1,147 early — system exit was 2026-10-27 at $228.27</td></tr>
+<tr><td><b>ALAB</b></td><td>$363.49 · 2026-10-05</td><td>$348.54 · 2026-10-08</td><td>$382.36 · 2026-10-07</td><td class="pos">$676</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">matched the system within $676</td></tr>
+<tr><td><b>NVDA</b></td><td>$239.57 · 2026-10-05</td><td>$231.00 · 2026-10-08</td><td>$230.57 · 2026-10-08</td><td class="neg">-$22</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $22 — good exit</td></tr>
+<tr><td><b>HPE</b></td><td>$70.72 · 2026-10-06</td><td>$69.98 · 2026-10-12</td><td>$63.17 · 2026-10-14</td><td class="neg">-$682</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $682 — good exit</td></tr>
+<tr><td><b>DELL</b></td><td>$575.49 · 2026-10-06</td><td>$568.83 · 2026-10-12</td><td>$507.38 · 2026-10-14</td><td class="neg">-$922</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $922 — good exit</td></tr>
+<tr><td><b>HOOD</b></td><td>$109.89 · 2026-10-13</td><td>$104.86 · 2026-10-14</td><td>$101.09 · 2026-10-14</td><td class="neg">-$377</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $377 — good exit</td></tr>
+<tr><td><b>PLTR</b></td><td>$209.48 · 2026-10-13</td><td>$206.70 · 2026-10-14</td><td>$200.49 · 2026-10-15</td><td class="neg">-$310</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $310 — good exit</td></tr>
+<tr><td><b>CVX</b></td><td>$225.14 · 2026-10-16</td><td>$223.05 · 2026-10-22</td><td>$227.84 · 2026-11-02</td><td class="pos">$239</td><td><span class="tag tag-early_exit">early-exit</span></td><td class="note">sold $239 early — system exit was 2026-11-02 at $227.84</td></tr>
+<tr><td><b>GLBE</b></td><td>$41.80 · 2026-10-20</td><td>$40.30 · 2026-10-22</td><td>$41.55 · 2026-11-03</td><td class="pos">$250</td><td><span class="tag tag-early_exit">early-exit</span></td><td class="note">sold $250 early — system exit was 2026-11-03 at $41.55</td></tr>
+<tr><td><b>QLD</b></td><td>$90.31 · 2026-10-27</td><td>$88.04 · 2026-10-29</td><td>$82.50 · 2026-10-30</td><td class="neg">-$1,800</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $1,800 — good exit</td></tr>
+<tr><td><b>ARKG</b></td><td>$51.24 · 2026-10-27</td><td>$51.23 · 2026-10-30</td><td>$51.43 · 2026-10-30</td><td class="pos">$41</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">matched the system within $41</td></tr>
+<tr><td><b>SOFI</b></td><td>$17.55 · 2026-10-29</td><td>$16.77 · 2026-10-30</td><td>$16.03 · 2026-11-05</td><td class="neg">-$372</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $372 — good exit</td></tr>
+<tr><td><b>PLTR</b></td><td>$200.48 · 2026-10-27</td><td>$186.08 · 2026-10-30</td><td>$184.10 · 2026-10-30</td><td class="neg">-$198</td><td><span class="tag tag-disciplined">disciplined</span></td><td class="note">beat the system by $198 — good exit</td></tr>
+</table>
+<h2>3-month trend</h2>
+<table>
+<tr><th>Month</th><th>hold-in-hope</th><th>round-trip</th><th>early-exit</th><th>disciplined</th><th>Total left</th></tr>
+<tr><td><b>2026-10</b></td><td>$0 (0)</td><td>$0 (0)</td><td>$1,636 (3)</td><td>-$3,965 (10)</td><td>$1,636</td></tr>
+<tr><td><b>2026-09</b></td><td>$0 (0)</td><td>$0 (0)</td><td>$588 (3)</td><td>-$1,321 (5)</td><td>$588</td></tr>
+<tr><td><b>2026-08</b></td><td>$195 (1)</td><td>$0 (0)</td><td>$278 (3)</td><td>-$1,589 (9)</td><td>$473</td></tr>
+</table>
+</div>
+</body>
+</html>
