@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-10",
+  "up_4_today": 116,
+  "down_4_today": 278,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2961,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.42,
+  "ratio_5day": 1.19,
+  "ratio_10day": 1.08,
+  "up_25_quarter": 95,
+  "down_25_quarter": 204,
+  "thrust_detected": false,
+  "fg": 33.5,
+  "spy_price": 749.92,
+  "spy_sma200_pct": 2.59,
+  "spy_sma50_pct": -1.97,
+  "spy_atr_mult_50": -1.4,
+  "spy_sma50_slope_10d": -0.33,
+  "spy_pct_from_20d_high": -3.39,
+  "qqq_sma50_pct": -6.2,
+  "qqq_atr_mult_50": -2.64,
+  "pct_above_50ma": 3.21,
+  "vix_close": 19.46,
+  "vix_change_pct": -2.31,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "CAUTION",
+  "state_message": "Post-THRUST floor \u2014 1d since THRUST (2026-11-09). Minimum CAUTION for 3 days.",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": true,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 168,
+  "days_below_21ema": 0,
+  "spy_close": 749.93,
+  "spy_21ema": 758.5064904454957,
+  "spy_20d_high": 773.13,
+  "cohort": {
+    "universe_size": 177,
+    "pct_down4_today": 11.9,
+    "pct_up4_today": 5.1,
+    "pct_above_20ma": 52.5,
+    "pct_above_50ma": 52.5,
+    "pct_within_10_of_52wk_high": 42.4,
+    "cohort_score": 60,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "HIMS",
+        "chg_pct": -16.5,
+        "dollar_move": -3.79,
+        "close": 19.15
+      },
+      {
+        "ticker": "QLYS",
+        "chg_pct": -13.6,
+        "dollar_move": -27.53,
+        "close": 175.18
+      },
+      {
+        "ticker": "CYPH",
+        "chg_pct": -9.7,
+        "dollar_move": -0.23,
+        "close": 2.13
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
