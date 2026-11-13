@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-12",
+  "up_4_today": 46,
+  "down_4_today": 433,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2968,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.11,
+  "ratio_5day": 1.96,
+  "ratio_10day": 0.97,
+  "up_25_quarter": 80,
+  "down_25_quarter": 204,
+  "thrust_detected": false,
+  "fg": 39.9,
+  "spy_price": 757.12,
+  "spy_sma200_pct": 3.49,
+  "spy_sma50_pct": -1.0,
+  "spy_atr_mult_50": -0.72,
+  "spy_sma50_slope_10d": -0.37,
+  "spy_pct_from_20d_high": -2.23,
+  "qqq_sma50_pct": -4.23,
+  "qqq_atr_mult_50": -1.81,
+  "pct_above_50ma": 2.7,
+  "vix_close": 18.7,
+  "vix_change_pct": 6.92,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "CAUTION",
+  "state_message": "Recovering \u2014 build watchlist, half size",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 170,
+  "days_below_21ema": 0,
+  "spy_close": 757.16,
+  "spy_21ema": 758.4909838376318,
+  "spy_20d_high": 773.13,
+  "cohort": {
+    "universe_size": 173,
+    "pct_down4_today": 25.4,
+    "pct_up4_today": 3.5,
+    "pct_above_20ma": 51.4,
+    "pct_above_50ma": 54.9,
+    "pct_within_10_of_52wk_high": 42.2,
+    "cohort_score": 57,
+    "label": "CARNAGE",
+    "worst": [
+      {
+        "ticker": "WRBY",
+        "chg_pct": -11.4,
+        "dollar_move": -3.45,
+        "close": 26.73
+      },
+      {
+        "ticker": "EDIT",
+        "chg_pct": -10.3,
+        "dollar_move": -0.25,
+        "close": 2.13
+      },
+      {
+        "ticker": "IONQ",
+        "chg_pct": -9.4,
+        "dollar_move": -3.2,
+        "close": 30.84
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
