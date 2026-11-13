@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "candidates": [
     {
       "ticker": "BTSG",
@@ -23,7 +23,7 @@
       "eps_yy_ttm": 137.91,
       "eps_qq": 2935.04,
       "inst_trans": 17.07,
-      "appearances": 4,
+      "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
@@ -50,11 +50,11 @@
       }
     },
     {
-      "ticker": "FLYW",
+      "ticker": "FROG",
       "signal_score": 5,
-      "eps_yy_ttm": 3696.67,
-      "eps_qq": 147.61,
-      "inst_trans": 8.93,
+      "eps_yy_ttm": 74.5,
+      "eps_qq": 136.12,
+      "inst_trans": 4.35,
       "appearances": 3,
       "criteria": {
         "persistence": true,
@@ -66,35 +66,35 @@
       }
     },
     {
-      "ticker": "XMTR",
+      "ticker": "INGM",
       "signal_score": 5,
-      "eps_yy_ttm": 73.23,
-      "eps_qq": 114.05,
-      "inst_trans": 9.83,
+      "eps_yy_ttm": 60.93,
+      "eps_qq": 33.96,
+      "inst_trans": 9.2,
       "appearances": 3,
       "criteria": {
         "persistence": true,
         "eps_yy_strong": true,
-        "eps_qq_strong": true,
+        "eps_qq_strong": false,
         "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": false
+        "ipo_lifecycle": true
       }
     },
     {
-      "ticker": "AAMI",
-      "signal_score": 4,
-      "eps_yy_ttm": 43.83,
-      "eps_qq": 136.61,
-      "inst_trans": 7.84,
-      "appearances": 3,
+      "ticker": "PTRN",
+      "signal_score": 5,
+      "eps_yy_ttm": 167.78,
+      "eps_qq": 113.89,
+      "inst_trans": 21.25,
+      "appearances": 1,
       "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
+        "persistence": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": false
+        "ipo_lifecycle": true
       }
     },
     {
@@ -111,22 +111,6 @@
         "inst_buying": true,
         "stage2_perfect": false,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "AXGN",
-      "signal_score": 4,
-      "eps_yy_ttm": -1274.47,
-      "eps_qq": 163.19,
-      "inst_trans": 5.87,
-      "appearances": 4,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
@@ -194,27 +178,11 @@
       }
     },
     {
-      "ticker": "EVC",
+      "ticker": "FLYW",
       "signal_score": 4,
-      "eps_yy_ttm": 128.02,
-      "eps_qq": 271.56,
-      "inst_trans": 19.16,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "FROG",
-      "signal_score": 4,
-      "eps_yy_ttm": 74.5,
-      "eps_qq": 136.12,
-      "inst_trans": 4.35,
+      "eps_yy_ttm": 3696.67,
+      "eps_qq": 147.61,
+      "inst_trans": 8.93,
       "appearances": 2,
       "criteria": {
         "persistence": false,
@@ -223,22 +191,6 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "INGM",
-      "signal_score": 4,
-      "eps_yy_ttm": 60.93,
-      "eps_qq": 33.96,
-      "inst_trans": 9.2,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": false,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
       }
     },
     {
@@ -248,22 +200,6 @@
       "eps_qq": 1942.86,
       "inst_trans": 4.24,
       "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "MGNI",
-      "signal_score": 4,
-      "eps_yy_ttm": 207.92,
-      "eps_qq": 72.14,
-      "inst_trans": 7.79,
-      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -303,22 +239,6 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "RSKD",
-      "signal_score": 4,
-      "eps_yy_ttm": 71.16,
-      "eps_qq": 80.32,
-      "inst_trans": -2.56,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
@@ -370,6 +290,38 @@
       }
     },
     {
+      "ticker": "XMTR",
+      "signal_score": 4,
+      "eps_yy_ttm": 73.23,
+      "eps_qq": 114.05,
+      "inst_trans": 9.83,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "AAMI",
+      "signal_score": 3,
+      "eps_yy_ttm": 43.83,
+      "eps_qq": 136.61,
+      "inst_trans": 7.84,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "ANGX",
       "signal_score": 3,
       "eps_yy_ttm": 36.83,
@@ -386,10 +338,26 @@
       }
     },
     {
+      "ticker": "AXGN",
+      "signal_score": 3,
+      "eps_yy_ttm": -1274.47,
+      "eps_qq": 163.19,
+      "inst_trans": 5.87,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "FIGR",
       "signal_score": 3,
       "eps_yy_ttm": 0.0,
-      "eps_qq": 150.25,
+      "eps_qq": 74.93,
       "inst_trans": 9.16,
       "appearances": 1,
       "criteria": {
@@ -399,38 +367,6 @@
         "inst_buying": true,
         "stage2_perfect": false,
         "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "FOX",
-      "signal_score": 3,
-      "eps_yy_ttm": 7.09,
-      "eps_qq": 67.36,
-      "inst_trans": 10.85,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "FOXA",
-      "signal_score": 3,
-      "eps_yy_ttm": 7.09,
-      "eps_qq": 67.36,
-      "inst_trans": 12.31,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": false,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
       }
     },
     {
