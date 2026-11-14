@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-13",
+  "up_4_today": 104,
+  "down_4_today": 182,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2879,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 0.57,
+  "ratio_5day": 1.56,
+  "ratio_10day": 1.09,
+  "up_25_quarter": 98,
+  "down_25_quarter": 223,
+  "thrust_detected": false,
+  "fg": 38.6,
+  "spy_price": 754.37,
+  "spy_sma200_pct": 3.07,
+  "spy_sma50_pct": -1.33,
+  "spy_atr_mult_50": -0.94,
+  "spy_sma50_slope_10d": -0.4,
+  "spy_pct_from_20d_high": -2.6,
+  "qqq_sma50_pct": -5.27,
+  "qqq_atr_mult_50": -2.22,
+  "pct_above_50ma": 3.4,
+  "vix_close": 19.3,
+  "vix_change_pct": 3.21,
+  "trend_follow_active": false,
+  "spy_above_200d": true,
+  "market_state": "CAUTION",
+  "state_message": "Recovering \u2014 build watchlist, half size",
+  "blackout": false,
+  "fg_regime": "normal",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 171,
+  "days_below_21ema": 0,
+  "spy_close": 754.27,
+  "spy_21ema": 758.1072580342106,
+  "spy_20d_high": 773.13,
+  "cohort": {
+    "universe_size": 174,
+    "pct_down4_today": 13.8,
+    "pct_up4_today": 4.0,
+    "pct_above_20ma": 50.0,
+    "pct_above_50ma": 51.1,
+    "pct_within_10_of_52wk_high": 40.8,
+    "cohort_score": 58,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "AMD",
+        "chg_pct": -8.8,
+        "dollar_move": -51.54,
+        "close": 534.15
+      },
+      {
+        "ticker": "OUST",
+        "chg_pct": -8.5,
+        "dollar_move": -3.12,
+        "close": 33.48
+      },
+      {
+        "ticker": "ANDG",
+        "chg_pct": -7.8,
+        "dollar_move": -5.09,
+        "close": 60.16
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
