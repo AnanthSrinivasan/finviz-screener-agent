@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-17",
+  "date": "2026-11-18",
   "candidates": [
     {
       "ticker": "BTSG",
@@ -13,38 +13,6 @@
         "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "HNGE",
-      "signal_score": 6,
-      "eps_yy_ttm": 137.91,
-      "eps_qq": 2935.04,
-      "inst_trans": 19.16,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
-      }
-    },
-    {
-      "ticker": "CHYM",
-      "signal_score": 5,
-      "eps_yy_ttm": 107.82,
-      "eps_qq": 174.76,
-      "inst_trans": -2.0,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
         "stage2_perfect": true,
         "ipo_lifecycle": true
       }
@@ -66,44 +34,44 @@
       }
     },
     {
+      "ticker": "AS",
+      "signal_score": 4,
+      "eps_yy_ttm": 100.07,
+      "eps_qq": 60.1,
+      "inst_trans": 7.2,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "BILL",
+      "signal_score": 4,
+      "eps_yy_ttm": 430.42,
+      "eps_qq": 2193.47,
+      "inst_trans": -7.19,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": true,
+        "inst_buying": false,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
       "ticker": "CNK",
       "signal_score": 4,
       "eps_yy_ttm": 85.46,
       "eps_qq": 164.48,
       "inst_trans": 5.07,
       "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "CRBG",
-      "signal_score": 4,
-      "eps_yy_ttm": 170.84,
-      "eps_qq": 1108.71,
-      "inst_trans": 6.62,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "CROX",
-      "signal_score": 4,
-      "eps_yy_ttm": 329.45,
-      "eps_qq": 67.36,
-      "inst_trans": 4.34,
-      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -159,22 +127,6 @@
         "inst_buying": true,
         "stage2_perfect": true,
         "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "INGM",
-      "signal_score": 4,
-      "eps_yy_ttm": 60.93,
-      "eps_qq": 33.96,
-      "inst_trans": 10.58,
-      "appearances": 1,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": false,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": true
       }
     },
     {
@@ -277,7 +229,7 @@
       "ticker": "FIGR",
       "signal_score": 3,
       "eps_yy_ttm": 0.0,
-      "eps_qq": 74.93,
+      "eps_qq": 75.41,
       "inst_trans": 11.4,
       "appearances": 1,
       "criteria": {
@@ -295,6 +247,38 @@
       "eps_yy_ttm": -89.79,
       "eps_qq": 111.67,
       "inst_trans": 8.68,
+      "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "NCPL",
+      "signal_score": 3,
+      "eps_yy_ttm": 32.87,
+      "eps_qq": 79.42,
+      "inst_trans": 28.91,
+      "appearances": 1,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "PRCH",
+      "signal_score": 3,
+      "eps_yy_ttm": -68.81,
+      "eps_qq": 192.7,
+      "inst_trans": 5.54,
       "appearances": 2,
       "criteria": {
         "persistence": false,
