@@ -1,13 +1,6 @@
 {
-  "updated": "2026-11-17T03:15:43.589649Z",
+  "updated": "2026-11-18T02:38:52.358455Z",
   "events": [
-    {
-      "ts": "2026-10-02T00:17:37.174699Z",
-      "date": "2026-10-01",
-      "category": "market_state",
-      "title": "Market: BLACKOUT \u2192 RED",
-      "severity": "high"
-    },
     {
       "ts": "2026-10-05T21:07:21.813112Z",
       "date": "2026-10-05",
@@ -349,6 +342,13 @@
       "date": "2026-11-16",
       "category": "market_state",
       "title": "Market: CAUTION \u2192 DANGER",
+      "severity": "high"
+    },
+    {
+      "ts": "2026-11-18T02:38:52.358455Z",
+      "date": "2026-11-17",
+      "category": "market_state",
+      "title": "Market: DANGER \u2192 RED",
       "severity": "high"
     }
   ]
