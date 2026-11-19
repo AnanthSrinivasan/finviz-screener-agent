@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "candidates": [
     {
       "ticker": "BTSG",
@@ -18,19 +18,19 @@
       }
     },
     {
-      "ticker": "VIA",
+      "ticker": "FROG",
       "signal_score": 5,
-      "eps_yy_ttm": 15.63,
-      "eps_qq": 50.44,
-      "inst_trans": 7.31,
+      "eps_yy_ttm": 74.5,
+      "eps_qq": 136.12,
+      "inst_trans": 3.18,
       "appearances": 3,
       "criteria": {
         "persistence": true,
-        "eps_yy_strong": false,
+        "eps_yy_strong": true,
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": true,
-        "ipo_lifecycle": true
+        "ipo_lifecycle": false
       }
     },
     {
@@ -50,44 +50,12 @@
       }
     },
     {
-      "ticker": "BILL",
-      "signal_score": 4,
-      "eps_yy_ttm": 430.42,
-      "eps_qq": 2193.47,
-      "inst_trans": -7.19,
-      "appearances": 3,
-      "criteria": {
-        "persistence": true,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": false,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
-      "ticker": "CNK",
-      "signal_score": 4,
-      "eps_yy_ttm": 85.46,
-      "eps_qq": 164.48,
-      "inst_trans": 5.07,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "ETON",
       "signal_score": 4,
       "eps_yy_ttm": 806.82,
       "eps_qq": 1580.03,
       "inst_trans": 15.58,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -114,28 +82,12 @@
       }
     },
     {
-      "ticker": "FROG",
-      "signal_score": 4,
-      "eps_yy_ttm": 74.5,
-      "eps_qq": 136.12,
-      "inst_trans": 3.18,
-      "appearances": 2,
-      "criteria": {
-        "persistence": false,
-        "eps_yy_strong": true,
-        "eps_qq_strong": true,
-        "inst_buying": true,
-        "stage2_perfect": true,
-        "ipo_lifecycle": false
-      }
-    },
-    {
       "ticker": "LFST",
       "signal_score": 4,
       "eps_yy_ttm": 886.97,
       "eps_qq": 1942.86,
       "inst_trans": 3.6,
-      "appearances": 2,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": true,
@@ -158,6 +110,38 @@
         "eps_qq_strong": true,
         "inst_buying": true,
         "stage2_perfect": false,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "NTSK",
+      "signal_score": 4,
+      "eps_yy_ttm": -124.09,
+      "eps_qq": -15.79,
+      "inst_trans": 7.6,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": false,
+        "eps_qq_strong": false,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": true
+      }
+    },
+    {
+      "ticker": "SAIL",
+      "signal_score": 4,
+      "eps_yy_ttm": 70.24,
+      "eps_qq": -366.32,
+      "inst_trans": 0.46,
+      "appearances": 3,
+      "criteria": {
+        "persistence": true,
+        "eps_yy_strong": true,
+        "eps_qq_strong": false,
+        "inst_buying": false,
+        "stage2_perfect": true,
         "ipo_lifecycle": true
       }
     },
@@ -296,6 +280,22 @@
       "eps_qq": 182.87,
       "inst_trans": 5.82,
       "appearances": 2,
+      "criteria": {
+        "persistence": false,
+        "eps_yy_strong": false,
+        "eps_qq_strong": true,
+        "inst_buying": true,
+        "stage2_perfect": true,
+        "ipo_lifecycle": false
+      }
+    },
+    {
+      "ticker": "VIA",
+      "signal_score": 3,
+      "eps_yy_ttm": 15.63,
+      "eps_qq": 50.44,
+      "inst_trans": 7.31,
+      "appearances": 1,
       "criteria": {
         "persistence": false,
         "eps_yy_strong": false,
