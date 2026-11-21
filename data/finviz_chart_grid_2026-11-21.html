@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Finviz Chart Gallery — 2026-11-21</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #f9fafb; color: #111827; padding: 24px; }
+.page-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; color: #111827; }
+.page-sub   { color: #6b7280; font-size: 0.82rem; margin-bottom: 32px; }
+.section    { margin-bottom: 40px; }
+.section-header { margin-bottom: 14px; border-left: 3px solid #d1d5db; padding-left: 12px; }
+h2 { font-size: 1rem; font-weight: 700; color: #111827; display:flex; align-items:center; gap:8px; }
+.section-count { background: #f3f4f6; color: #6b7280; font-size: 0.72rem;
+                  padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+.section-sub { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+.chart-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.chart-item  { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+                padding: 12px; transition: border-color .15s; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.chart-item:hover { border-color: #2563eb; }
+.chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 5px; }
+.ticker-link  { font-size: 1rem; font-weight: 700; color: #2563eb; text-decoration: none; display: block; }
+.ticker-link:hover { color: #1d4ed8; text-decoration: underline; }
+.company  { font-size: 0.7rem; color: #6b7280; display: block; margin-top: 1px; }
+.badge    { background: #eff6ff; color: #2563eb; font-size: 0.7rem; font-weight: 600;
+             padding: 2px 7px; border-radius: 20px; white-space: nowrap; margin-left: 6px; flex-shrink: 0; }
+.stage-row { display: flex; align-items: center; gap: 4px; margin: 5px 0; flex-wrap: wrap; }
+.stage-badge { font-size: 0.72rem; color: #374151; }
+.tag-vcp  { font-size: 9px; background: #fef3c7; color: #92400e;
+             padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.tag-perf { font-size: 9px; background: #dcfce7; color: #166534;
+             padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+.tag-sector-lead { font-size: 9px; background: #ede9fe; color: #5b21b6;
+                    padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.tag-cc-hint { font-size: 9px; background: #fef9c3; color: #854d0e;
+                padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.tag-overhead { font-size: 9px; background: #fff7ed; color: #c2410c;
+                 padding: 1px 5px; border-radius: 3px; font-weight: 700;
+                 border: 1px solid #fdba74; }
+.badge-warn { font-size: 9px; background: #fef3c7; color: #92400e;
+               padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+.sector-tag { font-size: 0.7rem; color: #2563eb; background: #eff6ff;
+               border-radius: 4px; padding: 2px 6px; display: inline-block; margin-bottom: 6px; }
+.sma-row { display: flex; gap: 8px; font-size: 0.68rem; color: #6b7280; margin-bottom: 6px; flex-wrap: wrap; }
+.sma-row span { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; }
+.chart-img { width: 100%; border-radius: 6px; display: block; cursor: pointer; transition: opacity .15s; }
+.chart-img:hover { opacity: .85; }
+.meta { display: flex; gap: 7px; margin-top: 8px; font-size: 0.75rem; color: #6b7280; flex-wrap: wrap; }
+.meta span { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+.screeners { margin-top: 5px; font-size: 0.7rem; color: #9ca3af; line-height: 1.4; }
+.tag-power-move { font-size: 9px; background: #fff1f2; color: #e11d48;
+                   padding: 1px 5px; border-radius: 3px; font-weight: 700;
+                   border: 1px solid #fda4af; }
+/* Sector rotation panel */
+.sr-panel { margin-bottom: 40px; }
+.sr-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.sr-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 10px 14px; min-width: 150px; }
+.sr-sector-name { font-size: 0.82rem; font-weight: 700; color: #111827; margin-bottom: 6px; }
+.sr-lead-badge { font-size: 9px; background: #dcfce7; color: #166534;
+                  padding: 1px 5px; border-radius: 3px; font-weight: 700; margin-left: 6px; }
+.sr-stats-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.sr-stat { font-size: 0.7rem; color: #6b7280; background: #f3f4f6; padding: 1px 5px; border-radius: 3px; }
+.sr-q { color: #d97706 !important; }
+.sr-s2 { color: #16a34a !important; }
+.sr-vcp { color: #92400e !important; }
+.sr-subheading { font-size: 0.72rem; font-weight: 600; color: #6b7280;
+                  margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.sr-card-quality { border: 1px dashed #a78bfa; background: #faf5ff; }
+.sr-card { cursor: pointer; transition: opacity .15s, border-color .15s, box-shadow .15s; }
+.sr-card:hover { border-color: #2563eb; }
+.sr-card.active { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.25); }
+.sr-card.dimmed { opacity: 0.45; }
+.sr-clear { margin-top: 12px; background: #2563eb; color: #fff; border: none;
+             border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
+.sr-clear:hover { background: #1d4ed8; }
+.chart-item.hidden, .section.hidden { display: none !important; }
+/* PDF export */
+.pdf-btn { position: fixed; bottom: 24px; right: 24px; background: #2563eb; color: #fff;
+            border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.1rem;
+            cursor: pointer; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+            display: flex; align-items: center; justify-content: center; }
+.pdf-btn:hover { background: #1d4ed8; }
+/* Base Building collapsible section */
+.section-collapsible { margin-bottom: 32px; border: 1px dashed #d1d5db;
+                         border-radius: 10px; padding: 12px 16px; background: #fafafa; }
+.section-collapsible > summary { cursor: pointer; font-size: 1.1rem; font-weight: 700;
+                                   color: #111827; display: flex; align-items: center; gap: 10px;
+                                   list-style: none; user-select: none; }
+.section-collapsible > summary::-webkit-details-marker { display: none; }
+.section-collapsible > summary::before { content: "▶"; font-size: 0.7rem; color: #6b7280; transition: transform .2s; }
+.section-collapsible[open] > summary::before { transform: rotate(90deg); }
+.section-sub-inline { font-size: 0.78rem; font-weight: 400; color: #6b7280; }
+/* Watchlist tiers */
+.wl-tier { margin-bottom: 20px; }
+.wl-tier-header { display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+                    background: #f9fafb; border-radius: 6px; margin-bottom: 8px; }
+.wl-tier-label { font-size: 0.9rem; font-weight: 700; color: #111827; }
+@media print {
+  .pdf-btn { display: none; }
+  body { padding: 0; background: #fff; }
+  .chart-item { break-inside: avoid; }
+  .sr-card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<style>
+.site-nav{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:#101a2c;border:1px solid #223049;border-radius:10px;padding:4px;
+  margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;
+  border-radius:8px;font-size:.84rem;font-weight:600;color:#a5b1c4;
+  text-decoration:none;white-space:nowrap;flex-shrink:0}
+.site-nav a:hover{color:#f1f5f9;background:#16233a;text-decoration:none}
+.site-nav a.nav-active{color:#f1f5f9;background:#1c3157}
+.site-nav::-webkit-scrollbar{height:0}
+</style><nav class="site-nav"><a href="../index.html?v=b5c7cfc">⌂</a><a href="daily.html?v=b5c7cfc">☀️ Cockpit</a><a href="etf_rotation.html?v=b5c7cfc">💰 Flow</a><a href="live_portfolio.html?v=b5c7cfc">📓 Book</a><a href="claude_portfolio.html?v=b5c7cfc">🤖 Paper</a><a href="../watchlist.html?v=b5c7cfc">👀 Watchlist</a><a href="finviz_chart_grid_2026-11-20.html?v=b5c7cfc" class="nav-active">🖼 Charts</a><a href="record.html?v=b5c7cfc">📈 Record</a></nav>
+<button class="pdf-btn" onclick="window.print()" title="Export PDF">⬇</button>
+<div class="page-title">Finviz Chart Gallery</div>
+<p class="page-sub">2026-11-21 · 29 tickers · ATR% &gt; 3.0 · Click any ticker or chart to open in Finviz</p>
+
+<div class="section" style="border-left:4px solid #16a34a;padding-left:14px;background:#f0fdf4;border-radius:10px;padding:18px 16px 16px 14px;margin-bottom:32px">
+  <div class="section-header" style="border-left:none;padding-left:0">
+    <h2>🎯 Top Picks <span class="section-count">5</span></h2>
+    <p class="section-sub">All Slack-actionable signals in one place — RTE · FB · PP · 21EMA · RSL · ST · HTF. Sorted by signal count then Quality Score.</p>
+  </div>
+  <div class="chart-grid" style="margin-top:12px">
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank" class="ticker-link">FLYW</a><span style="font-size:9px;background:#0ea5e9;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">FB</span>
+      <span class="company">Flywire Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 111</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.3%</span><span title="vs 50-day MA">50d +9.3%</span><span title="vs 200-day MA">200d +29.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FLYW&ty=c&ta=1&p=d&s=m" alt="FLYW" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 3696.7%</span>
+    <span title="Market Cap">2.56B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LFST" target="_blank" class="ticker-link">LFST</a><span style="font-size:9px;background:#0ea5e9;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">FB</span>
+      <span class="company">LifeStance Health Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 96</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Medical Care Facilities</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.2%</span><span title="vs 50-day MA">50d +7.1%</span><span title="vs 200-day MA">200d +40.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LFST" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LFST&ty=c&ta=1&p=d&s=m" alt="LFST" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.7%</span>
+    <span title="EPS Y/Y TTM">EPS 887.0%</span>
+    <span title="Market Cap">5.25B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-12% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KNSA" target="_blank" class="ticker-link">KNSA</a><span style="font-size:9px;background:#16a34a;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">RTE</span>
+      <span class="company">Kiniksa Pharmaceuticals International Plc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 94</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.8%</span><span title="vs 50-day MA">50d +11.9%</span><span title="vs 200-day MA">200d +46.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KNSA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KNSA&ty=c&ta=1&p=d&s=m" alt="KNSA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.3%</span>
+    <span title="EPS Y/Y TTM">EPS 192.3%</span>
+    <span title="Market Cap">7.38B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank" class="ticker-link">RYTM</a><span style="font-size:9px;background:#0ea5e9;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">FB</span>
+      <span class="company">Rhythm Pharmaceuticals Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 94</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +6.8%</span><span title="vs 50-day MA">50d +14.6%</span><span title="vs 200-day MA">200d +15.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RYTM&ty=c&ta=1&p=d&s=m" alt="RYTM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.4%</span>
+    <span title="EPS Y/Y TTM">EPS 6.1%</span>
+    <span title="Market Cap">7.79B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-8% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank" class="ticker-link">KVYO</a><span style="font-size:9px;background:#2563eb;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px">HTF</span>
+      <span class="company">Klaviyo Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 87</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.8%</span><span title="vs 50-day MA">50d +18.8%</span><span title="vs 200-day MA">200d +24.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.5%</span>
+    <span title="EPS Y/Y TTM">EPS 110.8%</span>
+    <span title="Market Cap">6.26B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-33% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</div>
+
+<div class="sr-panel">
+  <div class="section-header" style="border-left-color:#38bdf8">
+    <h2>📊 Sector Rotation</h2>
+    <p class="section-sub">Volume × quality — leading sector signals crowded trend. Click any sector to filter charts below · 2026-11-21</p>
+  </div>
+  <div class="sr-grid">
+<div class="sr-card" data-sector="healthcare" style="border-color:#22c55e">
+  <div class="sr-sector-name">Healthcare<span class="sr-lead-badge">Leading</span></div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">12 setups</span>
+    <span class="sr-stat sr-q">Q75</span>
+    <span class="sr-stat sr-s2">9 S2</span><span class="sr-stat sr-vcp">7 VCP</span>
+  </div>
+</div>
+<div class="sr-card" data-sector="technology" style="border-color:#2d3148">
+  <div class="sr-sector-name">Technology</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">7 setups</span>
+    <span class="sr-stat sr-q">Q81</span>
+    <span class="sr-stat sr-s2">6 S2</span><span class="sr-stat sr-vcp">3 VCP</span>
+  </div>
+</div>
+<div class="sr-card" data-sector="consumer-defensive" style="border-color:#2d3148">
+  <div class="sr-sector-name">Consumer Defensive</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">3 setups</span>
+    <span class="sr-stat sr-q">Q55</span>
+    <span class="sr-stat sr-s2">1 S2</span><span class="sr-stat sr-vcp">1 VCP</span>
+  </div>
+</div>
+<div class="sr-card" data-sector="financial" style="border-color:#2d3148">
+  <div class="sr-sector-name">Financial</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">2 setups</span>
+    <span class="sr-stat sr-q">Q41</span>
+    <span class="sr-stat sr-s2">1 S2</span>
+  </div>
+</div>
+<div class="sr-card" data-sector="consumer-cyclical" style="border-color:#2d3148">
+  <div class="sr-sector-name">Consumer Cyclical</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">2 setups</span>
+    <span class="sr-stat sr-q">Q26</span>
+    
+  </div>
+</div>
+<div class="sr-card" data-sector="industrials" style="border-color:#2d3148">
+  <div class="sr-sector-name">Industrials</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">1 setups</span>
+    <span class="sr-stat sr-q">Q33</span>
+    
+  </div>
+</div>
+<div class="sr-card" data-sector="communication-services" style="border-color:#2d3148">
+  <div class="sr-sector-name">Communication Services</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat">1 setups</span>
+    <span class="sr-stat sr-q">Q29</span>
+    
+  </div>
+</div>
+  </div>
+<div class="sr-subheading">Rotating In — high-quality clusters (avg Q, ≥10 setups)</div>
+<div class="sr-grid">
+<div class="sr-card sr-card-quality" data-sector="healthcare">
+  <div class="sr-sector-name">Healthcare</div>
+  <div class="sr-stats-row">
+    <span class="sr-stat sr-q">Q75 avg</span>
+    <span class="sr-stat">12 setups</span>
+  </div>
+</div>
+</div>
+  <button class="sr-clear" id="sr-clear-btn" style="display:none" onclick="clearSectorFilter()">Show all sectors</button>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>🔥 Power Moves <span class="section-count">2</span></h2>
+    <p class="section-sub">9M+ vol + 10%+ daily move — institutional conviction signal (Bonde method) · Same-day only</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="consumer-cyclical" style="border-color:#f97316">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=GAP" target="_blank" class="ticker-link">GAP</a>
+      <span class="company">Gap Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 11</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-power-move">⚡ Power Move</span><span class="tag-cc-hint">⚡ CC?</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Apparel Retail</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d -2.5%</span><span title="vs 50-day MA">50d -5.0%</span><span title="vs 200-day MA">200d -7.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=GAP" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GAP&ty=c&ta=1&p=d&s=m" alt="GAP" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.2%</span>
+    <span title="EPS Y/Y TTM">EPS 61.6%</span>
+    <span title="Market Cap">7.36B</span>
+    <span title="Relative Volume">RVol 4.0x</span>
+    <span title="Distance from 52w High">-29% hi</span>
+  </div>
+  <div class="screeners">Power Move</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#f97316">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AKAN" target="_blank" class="ticker-link">AKAN</a>
+      <span class="company">Akanda Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 7</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-power-move">⚡ Power Move</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +178.1%</span><span title="vs 50-day MA">50d +124.8%</span><span title="vs 200-day MA">200d -47.4%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AKAN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AKAN&ty=c&ta=1&p=d&s=m" alt="AKAN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 15.1%</span>
+    <span title="EPS Y/Y TTM">EPS -8.9%</span>
+    <span title="Market Cap">11.14M</span>
+    <span title="Relative Volume">RVol 8.7x</span>
+    <span title="Distance from 52w High">-95% hi</span>
+  </div>
+  <div class="screeners">Power Move</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>🟢 Stage 2 Leaders <span class="section-count">14</span></h2>
+    <p class="section-sub">Weinstein Stage 2 confirmed — wealth-building trades</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank" class="ticker-link">FLYW</a>
+      <span class="company">Flywire Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 111</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.3%</span><span title="vs 50-day MA">50d +9.3%</span><span title="vs 200-day MA">200d +29.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FLYW&ty=c&ta=1&p=d&s=m" alt="FLYW" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 3696.7%</span>
+    <span title="Market Cap">2.56B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="consumer-defensive" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=TBBB" target="_blank" class="ticker-link">TBBB</a>
+      <span class="company">BBB Foods Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 109</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Consumer Defensive · Discount Stores</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.6%</span><span title="vs 50-day MA">50d +11.8%</span><span title="vs 200-day MA">200d +46.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=TBBB" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=TBBB&ty=c&ta=1&p=d&s=m" alt="TBBB" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.1%</span>
+    <span title="EPS Y/Y TTM">EPS -11.4%</span>
+    <span title="Market Cap">8.21B</span>
+    <span title="Relative Volume">RVol 2.1x</span>
+    <span title="Distance from 52w High">-8% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=GKOS" target="_blank" class="ticker-link">GKOS</a>
+      <span class="company">Glaukos Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 105</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Medical Devices</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.3%</span><span title="vs 50-day MA">50d +24.3%</span><span title="vs 200-day MA">200d +57.9%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=GKOS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GKOS&ty=c&ta=1&p=d&s=m" alt="GKOS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS -89.8%</span>
+    <span title="Market Cap">14.05B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=REGN" target="_blank" class="ticker-link">REGN</a>
+      <span class="company">Regeneron Pharmaceuticals Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 104</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.8%</span><span title="vs 50-day MA">50d +11.0%</span><span title="vs 200-day MA">200d +22.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=REGN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=REGN&ty=c&ta=1&p=d&s=m" alt="REGN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.3%</span>
+    <span title="EPS Y/Y TTM">EPS 8.1%</span>
+    <span title="Market Cap">95.23B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VIA" target="_blank" class="ticker-link">VIA</a>
+      <span class="company">Via Transportation Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 98</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +13.3%</span><span title="vs 50-day MA">50d +32.5%</span><span title="vs 200-day MA">200d +104.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VIA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VIA&ty=c&ta=1&p=d&s=m" alt="VIA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.1%</span>
+    <span title="EPS Y/Y TTM">EPS 15.6%</span>
+    <span title="Market Cap">3.77B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AXGN" target="_blank" class="ticker-link">AXGN</a>
+      <span class="company">Axogen Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 97</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Medical Devices</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +8.8%</span><span title="vs 50-day MA">50d +25.7%</span><span title="vs 200-day MA">200d +35.8%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AXGN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AXGN&ty=c&ta=1&p=d&s=m" alt="AXGN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS -1274.5%</span>
+    <span title="Market Cap">3.33B</span>
+    <span title="Relative Volume">RVol 0.6x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=LFST" target="_blank" class="ticker-link">LFST</a>
+      <span class="company">LifeStance Health Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 96</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Medical Care Facilities</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.2%</span><span title="vs 50-day MA">50d +7.1%</span><span title="vs 200-day MA">200d +40.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=LFST" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LFST&ty=c&ta=1&p=d&s=m" alt="LFST" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.7%</span>
+    <span title="EPS Y/Y TTM">EPS 887.0%</span>
+    <span title="Market Cap">5.25B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-12% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KNSA" target="_blank" class="ticker-link">KNSA</a>
+      <span class="company">Kiniksa Pharmaceuticals International Plc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 94</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.8%</span><span title="vs 50-day MA">50d +11.9%</span><span title="vs 200-day MA">200d +46.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KNSA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KNSA&ty=c&ta=1&p=d&s=m" alt="KNSA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.3%</span>
+    <span title="EPS Y/Y TTM">EPS 192.3%</span>
+    <span title="Market Cap">7.38B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank" class="ticker-link">RYTM</a>
+      <span class="company">Rhythm Pharmaceuticals Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 94</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +6.8%</span><span title="vs 50-day MA">50d +14.6%</span><span title="vs 200-day MA">200d +15.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RYTM&ty=c&ta=1&p=d&s=m" alt="RYTM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.4%</span>
+    <span title="EPS Y/Y TTM">EPS 6.1%</span>
+    <span title="Market Cap">7.79B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-8% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VCEL" target="_blank" class="ticker-link">VCEL</a>
+      <span class="company">Vericel Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 90</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +12.2%</span><span title="vs 50-day MA">50d +28.7%</span><span title="vs 200-day MA">200d +44.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VCEL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VCEL&ty=c&ta=1&p=d&s=m" alt="VCEL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.0%</span>
+    <span title="EPS Y/Y TTM">EPS 147.6%</span>
+    <span title="Market Cap">2.94B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FROG" target="_blank" class="ticker-link">FROG</a>
+      <span class="company">JFrog Ltd</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 88</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="badge-warn">⚠ High-vol — size 50%</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.2%</span><span title="vs 50-day MA">50d +4.2%</span><span title="vs 200-day MA">200d +34.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FROG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FROG&ty=c&ta=1&p=d&s=m" alt="FROG" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 8.8%</span>
+    <span title="EPS Y/Y TTM">EPS 74.5%</span>
+    <span title="Market Cap">12.58B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-17% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank" class="ticker-link">KVYO</a>
+      <span class="company">Klaviyo Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 87</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.8%</span><span title="vs 50-day MA">50d +18.8%</span><span title="vs 200-day MA">200d +24.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.5%</span>
+    <span title="EPS Y/Y TTM">EPS 110.8%</span>
+    <span title="Market Cap">6.26B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-33% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=XERS" target="_blank" class="ticker-link">XERS</a>
+      <span class="company">Xeris Biopharma Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 86</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +22.2%</span><span title="vs 50-day MA">50d +50.3%</span><span title="vs 200-day MA">200d +110.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=XERS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=XERS&ty=c&ta=1&p=d&s=m" alt="XERS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 63.4%</span>
+    <span title="Market Cap">3.10B</span>
+    <span title="Relative Volume">RVol 1.0x</span>
+    <span title="Distance from 52w High">-2% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="financial" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=PLMR" target="_blank" class="ticker-link">PLMR</a>
+      <span class="company">Palomar Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 72</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-cc-hint">⚡ CC?</span>
+  </div>
+  <div class="sector-tag">Financial · Insurance - Property & Casualty</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +8.2%</span><span title="vs 50-day MA">50d +16.7%</span><span title="vs 200-day MA">200d +27.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=PLMR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PLMR&ty=c&ta=1&p=d&s=m" alt="PLMR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.2%</span>
+    <span title="EPS Y/Y TTM">EPS 24.4%</span>
+    <span title="Market Cap">4.30B</span>
+    <span title="Relative Volume">RVol 2.1x</span>
+    <span title="Distance from 52w High">1% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>🚀 IPO Lifecycle <span class="section-count">6</span></h2>
+    <p class="section-sub">IPO screener — evaluate on lifecycle, not SMA rules</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="healthcare" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SLS" target="_blank" class="ticker-link">SLS</a>
+      <span class="company">SELLAS Life Sciences Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 80</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="badge-warn">⚠ High-vol — size 50%</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +29.5%</span><span title="vs 50-day MA">50d +22.4%</span><span title="vs 200-day MA">200d +50.9%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SLS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SLS&ty=c&ta=1&p=d&s=m" alt="SLS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 17.3%</span>
+    <span title="EPS Y/Y TTM">EPS 30.5%</span>
+    <span title="Market Cap">2.78B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-45% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SAIL" target="_blank" class="ticker-link">SAIL</a>
+      <span class="company">Sailpoint Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 78</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +2.9%</span><span title="vs 50-day MA">50d +4.5%</span><span title="vs 200-day MA">200d +30.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SAIL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SAIL&ty=c&ta=1&p=d&s=m" alt="SAIL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.1%</span>
+    <span title="EPS Y/Y TTM">EPS 70.2%</span>
+    <span title="Market Cap">12.17B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-9% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=NTSK" target="_blank" class="ticker-link">NTSK</a>
+      <span class="company">Netskope Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 71</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.3%</span><span title="vs 50-day MA">50d +15.5%</span><span title="vs 200-day MA">200d +74.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=NTSK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NTSK&ty=c&ta=1&p=d&s=m" alt="NTSK" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.5%</span>
+    <span title="EPS Y/Y TTM">EPS -124.1%</span>
+    <span title="Market Cap">9.78B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-10% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" data-sector="consumer-cyclical" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VIK" target="_blank" class="ticker-link">VIK</a>
+      <span class="company">Viking Holdings Ltd</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#facc15">Q 42</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Cyclical · Travel Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +5.1%</span><span title="vs 50-day MA">50d +10.3%</span><span title="vs 200-day MA">200d +8.6%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VIK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VIK&ty=c&ta=1&p=d&s=m" alt="VIK" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.0%</span>
+    <span title="EPS Y/Y TTM">EPS 38.6%</span>
+    <span title="Market Cap">41.60B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-15% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" data-sector="consumer-defensive" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=BRBR" target="_blank" class="ticker-link">BRBR</a>
+      <span class="company">Bellring Brands Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 25</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span>
+  </div>
+  <div class="sector-tag">Consumer Defensive · Packaged Foods</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +38.9%</span><span title="vs 50-day MA">50d +56.1%</span><span title="vs 200-day MA">200d +18.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=BRBR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BRBR&ty=c&ta=1&p=d&s=m" alt="BRBR" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.1%</span>
+    <span title="EPS Y/Y TTM">EPS -26.2%</span>
+    <span title="Market Cap">1.70B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-57% hi</span>
+  </div>
+  <div class="screeners">Week 20%+ Gain</div>
+</div>
+<div class="chart-item" data-sector="financial" style="border-color:#6b7280">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=MIAX" target="_blank" class="ticker-link">MIAX</a>
+      <span class="company">Miami International Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 10</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span>
+  </div>
+  <div class="sector-tag">Financial · Capital Markets</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.8%</span><span title="vs 50-day MA">50d +5.8%</span><span title="vs 200-day MA">200d -11.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=MIAX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MIAX&ty=c&ta=1&p=d&s=m" alt="MIAX" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.8%</span>
+    <span title="EPS Y/Y TTM">EPS 329.0%</span>
+    <span title="Market Cap">3.64B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-36% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>⚡ Momentum / Catalyst <span class="section-count">1</span></h2>
+    <p class="section-sub">High relative volume + significant move — 2-4 week plays</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="healthcare" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=INSM" target="_blank" class="ticker-link">INSM</a>
+      <span class="company">Insmed Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 62</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +22.8%</span><span title="vs 50-day MA">50d +27.2%</span><span title="vs 200-day MA">200d +15.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=INSM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=INSM&ty=c&ta=1&p=d&s=m" alt="INSM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS 54.4%</span>
+    <span title="Market Cap">31.01B</span>
+    <span title="Relative Volume">RVol 2.1x</span>
+    <span title="Distance from 52w High">-34% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>👀 Watch List <span class="section-count">5</span></h2>
+    <p class="section-sub">Transitional or lower conviction — monitor, do not chase</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="technology" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ATEN" target="_blank" class="ticker-link">ATEN</a>
+      <span class="company">A10 Networks Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 34</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +11.7%</span><span title="vs 50-day MA">50d +13.1%</span><span title="vs 200-day MA">200d +11.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ATEN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ATEN&ty=c&ta=1&p=d&s=m" alt="ATEN" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.4%</span>
+    <span title="EPS Y/Y TTM">EPS -4.1%</span>
+    <span title="Market Cap">2.19B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-21% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="industrials" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=ALGT" target="_blank" class="ticker-link">ALGT</a>
+      <span class="company">Allegiant Travel</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 33</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔵 Stage 1</span>
+  </div>
+  <div class="sector-tag">Industrials · Airlines</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +6.5%</span><span title="vs 50-day MA">50d +15.2%</span><span title="vs 200-day MA">200d +4.2%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=ALGT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ALGT&ty=c&ta=1&p=d&s=m" alt="ALGT" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.8%</span>
+    <span title="EPS Y/Y TTM">EPS 120.0%</span>
+    <span title="Market Cap">2.49B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-26% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="consumer-defensive" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=COCO" target="_blank" class="ticker-link">COCO</a>
+      <span class="company">Vita Coco Company Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 31</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔵 Stage 1</span>
+  </div>
+  <div class="sector-tag">Consumer Defensive · Beverages - Non-Alcoholic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.8%</span><span title="vs 50-day MA">50d +8.7%</span><span title="vs 200-day MA">200d +3.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=COCO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=COCO&ty=c&ta=1&p=d&s=m" alt="COCO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS 73.0%</span>
+    <span title="Market Cap">3.67B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-25% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="communication-services" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=NXST" target="_blank" class="ticker-link">NXST</a>
+      <span class="company">Nexstar Media Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 29</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🔵 Stage 1</span>
+  </div>
+  <div class="sector-tag">Communication Services · Broadcasting</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.1%</span><span title="vs 50-day MA">50d +12.9%</span><span title="vs 200-day MA">200d +2.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=NXST" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NXST&ty=c&ta=1&p=d&s=m" alt="NXST" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.4%</span>
+    <span title="EPS Y/Y TTM">EPS -31.8%</span>
+    <span title="Market Cap">6.04B</span>
+    <span title="Relative Volume">RVol 0.8x</span>
+    <span title="Distance from 52w High">-23% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#f97316">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=AEMD" target="_blank" class="ticker-link">AEMD</a>
+      <span class="company">Aethlon Medical Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q -13</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-power-move">⚡ Power Move</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Medical Devices</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +1.8%</span><span title="vs 50-day MA">50d -0.1%</span><span title="vs 200-day MA">200d -23.9%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=AEMD" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AEMD&ty=c&ta=1&p=d&s=m" alt="AEMD" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.9%</span>
+    <span title="EPS Y/Y TTM">EPS 90.7%</span>
+    <span title="Market Cap">8.78M</span>
+    <span title="Relative Volume">RVol 0.1x</span>
+    <span title="Distance from 52w High">-78% hi</span>
+  </div>
+  <div class="screeners">Power Move</div>
+</div></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <h2>🚫 Excluded — check manually <span class="section-count">1</span></h2>
+    <p class="section-sub">10% Change tickers that failed momentum quality gate (below 50d MA, low RVol, far from highs, or Stage 3/4)</p>
+  </div>
+  <div class="chart-grid">
+<div class="chart-item" data-sector="healthcare" style="border-color:#f97316">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=EVH" target="_blank" class="ticker-link">EVH</a>
+      <span class="company">Evolent Health Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 2</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span><span class="tag-power-move">⚡ Power Move</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Health Information Services</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d -12.7%</span><span title="vs 50-day MA">50d -7.4%</span><span title="vs 200-day MA">200d -1.1%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=EVH" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EVH&ty=c&ta=1&p=d&s=m" alt="EVH" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 10.3%</span>
+    <span title="EPS Y/Y TTM">EPS -189.5%</span>
+    <span title="Market Cap">441.11M</span>
+    <span title="Relative Volume">RVol 2.1x</span>
+    <span title="Distance from 52w High">-38% hi</span>
+  </div>
+  <div class="screeners">10% Change, Power Move</div>
+</div></div>
+</div>
+
+
+
+
+<details class="section-collapsible" open>
+  <summary>
+    ⚡ Momentum Leader <span class="section-count">1</span>
+    <span class="section-sub-inline">strongest RS in the tape — no ATR/RVol cap by design, still peel-safe · watch only, size half</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=NTSK" target="_blank" class="ticker-link">NTSK</a><span style="font-size:9px;background:#7c3aed;color:#fff;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:6px">RS 93</span>
+      <span class="company">Netskope Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 71</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.3%</span><span title="vs 50-day MA">50d +15.5%</span><span title="vs 200-day MA">200d +74.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=NTSK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NTSK&ty=c&ta=1&p=d&s=m" alt="NTSK" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 7.5%</span>
+    <span title="EPS Y/Y TTM">EPS -124.1%</span>
+    <span title="Market Cap">9.78B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-10% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div></div>
+</details>
+
+
+
+<details class="section-collapsible" open>
+  <summary>
+    🌀 HTF Base Reclaim <span class="section-count">1</span>
+    <span class="section-sub-inline">Stage 2 perfect · deep 52w pullback but tight against recent swing pivot</span>
+  </summary>
+  <div class="chart-grid" style="margin-top:12px">
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank" class="ticker-link">KVYO</a>
+      <span class="company">Klaviyo Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 87</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.8%</span><span title="vs 50-day MA">50d +18.8%</span><span title="vs 200-day MA">200d +24.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.5%</span>
+    <span title="EPS Y/Y TTM">EPS 110.8%</span>
+    <span title="Market Cap">6.26B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-33% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</details>
+
+
+<details class="section-collapsible">
+  <summary>
+    📋 Watchlist <span class="section-count">100</span>
+    <span class="section-sub-inline">Entry-Ready · Focus · Watch — tickers on your radar</span>
+  </summary>
+  <div style="margin-top:16px">
+<div class="wl-tier">
+  <div class="wl-tier-header" style="border-left:4px solid #16a34a">
+    <span class="wl-tier-label">🎯 Entry-Ready</span>
+    <span class="section-count">5</span>
+  </div>
+  <div class="chart-grid" style="margin-top:8px">
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=KNTK" target="_blank" class="ticker-link">KNTK</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=KNTK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KNTK&ty=c&ta=1&p=d&s=m" alt="KNTK" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CHYM" target="_blank" class="ticker-link">CHYM</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CHYM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CHYM&ty=c&ta=1&p=d&s=m" alt="CHYM" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=APPN" target="_blank" class="ticker-link">APPN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=APPN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=APPN&ty=c&ta=1&p=d&s=m" alt="APPN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=LNC" target="_blank" class="ticker-link">LNC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=LNC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LNC&ty=c&ta=1&p=d&s=m" alt="LNC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=TPC" target="_blank" class="ticker-link">TPC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=TPC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=TPC&ty=c&ta=1&p=d&s=m" alt="TPC" loading="lazy" class="chart-img">
+  </a>
+</div></div>
+</div>
+<div class="wl-tier">
+  <div class="wl-tier-header" style="border-left:4px solid #2563eb">
+    <span class="wl-tier-label">🔭 Focus</span>
+    <span class="section-count">86</span>
+  </div>
+  <div class="chart-grid" style="margin-top:8px">
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ADI" target="_blank" class="ticker-link">ADI</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ADI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ADI&ty=c&ta=1&p=d&s=m" alt="ADI" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ANET" target="_blank" class="ticker-link">ANET</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ANET" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ANET&ty=c&ta=1&p=d&s=m" alt="ANET" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=AXTI" target="_blank" class="ticker-link">AXTI</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=AXTI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AXTI&ty=c&ta=1&p=d&s=m" alt="AXTI" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SLDE" target="_blank" class="ticker-link">SLDE</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SLDE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SLDE&ty=c&ta=1&p=d&s=m" alt="SLDE" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=RELY" target="_blank" class="ticker-link">RELY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=RELY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RELY&ty=c&ta=1&p=d&s=m" alt="RELY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=MXL" target="_blank" class="ticker-link">MXL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=MXL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MXL&ty=c&ta=1&p=d&s=m" alt="MXL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FIVE" target="_blank" class="ticker-link">FIVE</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FIVE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FIVE&ty=c&ta=1&p=d&s=m" alt="FIVE" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=TXN" target="_blank" class="ticker-link">TXN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=TXN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=TXN&ty=c&ta=1&p=d&s=m" alt="TXN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank" class="ticker-link">KVYO</a>
+      <span class="company">Klaviyo Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 87</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +4.8%</span><span title="vs 50-day MA">50d +18.8%</span><span title="vs 200-day MA">200d +24.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=KVYO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KVYO&ty=c&ta=1&p=d&s=m" alt="KVYO" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.5%</span>
+    <span title="EPS Y/Y TTM">EPS 110.8%</span>
+    <span title="Market Cap">6.26B</span>
+    <span title="Relative Volume">RVol 1.6x</span>
+    <span title="Distance from 52w High">-33% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank" class="ticker-link">FLYW</a>
+      <span class="company">Flywire Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 111</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.3%</span><span title="vs 50-day MA">50d +9.3%</span><span title="vs 200-day MA">200d +29.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=FLYW" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FLYW&ty=c&ta=1&p=d&s=m" alt="FLYW" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 3696.7%</span>
+    <span title="Market Cap">2.56B</span>
+    <span title="Relative Volume">RVol 1.5x</span>
+    <span title="Distance from 52w High">-7% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=TGTX" target="_blank" class="ticker-link">TGTX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=TGTX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=TGTX&ty=c&ta=1&p=d&s=m" alt="TGTX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=EVC" target="_blank" class="ticker-link">EVC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=EVC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EVC&ty=c&ta=1&p=d&s=m" alt="EVC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=SAIL" target="_blank" class="ticker-link">SAIL</a>
+      <span class="company">Sailpoint Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 78</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Infrastructure</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +2.9%</span><span title="vs 50-day MA">50d +4.5%</span><span title="vs 200-day MA">200d +30.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=SAIL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SAIL&ty=c&ta=1&p=d&s=m" alt="SAIL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 6.1%</span>
+    <span title="EPS Y/Y TTM">EPS 70.2%</span>
+    <span title="Market Cap">12.17B</span>
+    <span title="Relative Volume">RVol 1.1x</span>
+    <span title="Distance from 52w High">-9% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=VSXY" target="_blank" class="ticker-link">VSXY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=VSXY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VSXY&ty=c&ta=1&p=d&s=m" alt="VSXY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=VCTR" target="_blank" class="ticker-link">VCTR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=VCTR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VCTR&ty=c&ta=1&p=d&s=m" alt="VCTR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=AAMI" target="_blank" class="ticker-link">AAMI</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=AAMI" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AAMI&ty=c&ta=1&p=d&s=m" alt="AAMI" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=AMRX" target="_blank" class="ticker-link">AMRX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=AMRX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AMRX&ty=c&ta=1&p=d&s=m" alt="AMRX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ENTG" target="_blank" class="ticker-link">ENTG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ENTG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ENTG&ty=c&ta=1&p=d&s=m" alt="ENTG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=NAVN" target="_blank" class="ticker-link">NAVN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=NAVN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NAVN&ty=c&ta=1&p=d&s=m" alt="NAVN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=BLLN" target="_blank" class="ticker-link">BLLN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=BLLN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BLLN&ty=c&ta=1&p=d&s=m" alt="BLLN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=KYMR" target="_blank" class="ticker-link">KYMR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=KYMR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KYMR&ty=c&ta=1&p=d&s=m" alt="KYMR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=XYZ" target="_blank" class="ticker-link">XYZ</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=XYZ" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=XYZ&ty=c&ta=1&p=d&s=m" alt="XYZ" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=RAL" target="_blank" class="ticker-link">RAL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=RAL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RAL&ty=c&ta=1&p=d&s=m" alt="RAL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SEZL" target="_blank" class="ticker-link">SEZL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SEZL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SEZL&ty=c&ta=1&p=d&s=m" alt="SEZL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="communication-services" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=OMC" target="_blank" class="ticker-link">OMC</a>
+      <span class="company">Omnicom Group Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 80</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Communication Services · Advertising Agencies</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.1%</span><span title="vs 50-day MA">50d +5.8%</span><span title="vs 200-day MA">200d +7.8%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=OMC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=OMC&ty=c&ta=1&p=d&s=m" alt="OMC" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 2.9%</span>
+    <span title="EPS Y/Y TTM">EPS -73.3%</span>
+    <span title="Market Cap">23.24B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Base / Near-High</div>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VCEL" target="_blank" class="ticker-link">VCEL</a>
+      <span class="company">Vericel Corp</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 90</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +12.2%</span><span title="vs 50-day MA">50d +28.7%</span><span title="vs 200-day MA">200d +44.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VCEL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VCEL&ty=c&ta=1&p=d&s=m" alt="VCEL" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.0%</span>
+    <span title="EPS Y/Y TTM">EPS 147.6%</span>
+    <span title="Market Cap">2.94B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-4% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ZETA" target="_blank" class="ticker-link">ZETA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ZETA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ZETA&ty=c&ta=1&p=d&s=m" alt="ZETA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=IMO" target="_blank" class="ticker-link">IMO</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=IMO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=IMO&ty=c&ta=1&p=d&s=m" alt="IMO" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CRBG" target="_blank" class="ticker-link">CRBG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CRBG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CRBG&ty=c&ta=1&p=d&s=m" alt="CRBG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SOLV" target="_blank" class="ticker-link">SOLV</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SOLV" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SOLV&ty=c&ta=1&p=d&s=m" alt="SOLV" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CHRD" target="_blank" class="ticker-link">CHRD</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CHRD" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CHRD&ty=c&ta=1&p=d&s=m" alt="CHRD" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FANG" target="_blank" class="ticker-link">FANG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FANG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FANG&ty=c&ta=1&p=d&s=m" alt="FANG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=IOVA" target="_blank" class="ticker-link">IOVA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=IOVA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=IOVA&ty=c&ta=1&p=d&s=m" alt="IOVA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=HUM" target="_blank" class="ticker-link">HUM</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=HUM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=HUM&ty=c&ta=1&p=d&s=m" alt="HUM" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=NMAX" target="_blank" class="ticker-link">NMAX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=NMAX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NMAX&ty=c&ta=1&p=d&s=m" alt="NMAX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=WRBY" target="_blank" class="ticker-link">WRBY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=WRBY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=WRBY&ty=c&ta=1&p=d&s=m" alt="WRBY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=BRZE" target="_blank" class="ticker-link">BRZE</a>
+      <span class="company">Braze Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 82</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +0.4%</span><span title="vs 50-day MA">50d +29.0%</span><span title="vs 200-day MA">200d +75.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=BRZE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BRZE&ty=c&ta=1&p=d&s=m" alt="BRZE" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 1.5%</span>
+    <span title="EPS Y/Y TTM">EPS 0.8%</span>
+    <span title="Market Cap">5.26B</span>
+    <span title="Relative Volume">RVol 0.9x</span>
+    <span title="Distance from 52w High">-1% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=EMBJ" target="_blank" class="ticker-link">EMBJ</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=EMBJ" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EMBJ&ty=c&ta=1&p=d&s=m" alt="EMBJ" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=AVPT" target="_blank" class="ticker-link">AVPT</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=AVPT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=AVPT&ty=c&ta=1&p=d&s=m" alt="AVPT" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CXT" target="_blank" class="ticker-link">CXT</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CXT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CXT&ty=c&ta=1&p=d&s=m" alt="CXT" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CYPH" target="_blank" class="ticker-link">CYPH</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CYPH" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CYPH&ty=c&ta=1&p=d&s=m" alt="CYPH" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CNC" target="_blank" class="ticker-link">CNC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CNC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CNC&ty=c&ta=1&p=d&s=m" alt="CNC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=MEOH" target="_blank" class="ticker-link">MEOH</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=MEOH" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MEOH&ty=c&ta=1&p=d&s=m" alt="MEOH" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ARQT" target="_blank" class="ticker-link">ARQT</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ARQT" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ARQT&ty=c&ta=1&p=d&s=m" alt="ARQT" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CBRL" target="_blank" class="ticker-link">CBRL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CBRL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CBRL&ty=c&ta=1&p=d&s=m" alt="CBRL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=PR" target="_blank" class="ticker-link">PR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=PR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PR&ty=c&ta=1&p=d&s=m" alt="PR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CNK" target="_blank" class="ticker-link">CNK</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CNK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CNK&ty=c&ta=1&p=d&s=m" alt="CNK" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=MNDY" target="_blank" class="ticker-link">MNDY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=MNDY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MNDY&ty=c&ta=1&p=d&s=m" alt="MNDY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=NRIX" target="_blank" class="ticker-link">NRIX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=NRIX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NRIX&ty=c&ta=1&p=d&s=m" alt="NRIX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ANDG" target="_blank" class="ticker-link">ANDG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ANDG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ANDG&ty=c&ta=1&p=d&s=m" alt="ANDG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=XNCR" target="_blank" class="ticker-link">XNCR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=XNCR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=XNCR&ty=c&ta=1&p=d&s=m" alt="XNCR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=LTH" target="_blank" class="ticker-link">LTH</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=LTH" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=LTH&ty=c&ta=1&p=d&s=m" alt="LTH" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=GDYN" target="_blank" class="ticker-link">GDYN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=GDYN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GDYN&ty=c&ta=1&p=d&s=m" alt="GDYN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=MSGK" target="_blank" class="ticker-link">MSGK</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=MSGK" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MSGK&ty=c&ta=1&p=d&s=m" alt="MSGK" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=COP" target="_blank" class="ticker-link">COP</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=COP" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=COP&ty=c&ta=1&p=d&s=m" alt="COP" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=NWL" target="_blank" class="ticker-link">NWL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=NWL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=NWL&ty=c&ta=1&p=d&s=m" alt="NWL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=BETA" target="_blank" class="ticker-link">BETA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=BETA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BETA&ty=c&ta=1&p=d&s=m" alt="BETA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=EQH" target="_blank" class="ticker-link">EQH</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=EQH" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EQH&ty=c&ta=1&p=d&s=m" alt="EQH" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FOX" target="_blank" class="ticker-link">FOX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FOX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FOX&ty=c&ta=1&p=d&s=m" alt="FOX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FOXA" target="_blank" class="ticker-link">FOXA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FOXA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FOXA&ty=c&ta=1&p=d&s=m" alt="FOXA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=RVTY" target="_blank" class="ticker-link">RVTY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=RVTY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RVTY&ty=c&ta=1&p=d&s=m" alt="RVTY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=PCOR" target="_blank" class="ticker-link">PCOR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=PCOR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PCOR&ty=c&ta=1&p=d&s=m" alt="PCOR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=EXPE" target="_blank" class="ticker-link">EXPE</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=EXPE" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=EXPE&ty=c&ta=1&p=d&s=m" alt="EXPE" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ETSY" target="_blank" class="ticker-link">ETSY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ETSY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ETSY&ty=c&ta=1&p=d&s=m" alt="ETSY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=DUOL" target="_blank" class="ticker-link">DUOL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=DUOL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=DUOL&ty=c&ta=1&p=d&s=m" alt="DUOL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=BBY" target="_blank" class="ticker-link">BBY</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=BBY" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BBY&ty=c&ta=1&p=d&s=m" alt="BBY" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=THC" target="_blank" class="ticker-link">THC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=THC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=THC&ty=c&ta=1&p=d&s=m" alt="THC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=KSS" target="_blank" class="ticker-link">KSS</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=KSS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KSS&ty=c&ta=1&p=d&s=m" alt="KSS" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=PFG" target="_blank" class="ticker-link">PFG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=PFG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=PFG&ty=c&ta=1&p=d&s=m" alt="PFG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=HST" target="_blank" class="ticker-link">HST</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=HST" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=HST&ty=c&ta=1&p=d&s=m" alt="HST" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#4ade80">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=XERS" target="_blank" class="ticker-link">XERS</a>
+      <span class="company">Xeris Biopharma Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 86</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Drug Manufacturers - Specialty & Generic</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +22.2%</span><span title="vs 50-day MA">50d +50.3%</span><span title="vs 200-day MA">200d +110.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=XERS" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=XERS&ty=c&ta=1&p=d&s=m" alt="XERS" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.1%</span>
+    <span title="EPS Y/Y TTM">EPS 63.4%</span>
+    <span title="Market Cap">3.10B</span>
+    <span title="Relative Volume">RVol 1.0x</span>
+    <span title="Distance from 52w High">-2% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SFNC" target="_blank" class="ticker-link">SFNC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SFNC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SFNC&ty=c&ta=1&p=d&s=m" alt="SFNC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ELF" target="_blank" class="ticker-link">ELF</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ELF" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ELF&ty=c&ta=1&p=d&s=m" alt="ELF" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FNV" target="_blank" class="ticker-link">FNV</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FNV" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FNV&ty=c&ta=1&p=d&s=m" alt="FNV" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=RGA" target="_blank" class="ticker-link">RGA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=RGA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RGA&ty=c&ta=1&p=d&s=m" alt="RGA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=GTN" target="_blank" class="ticker-link">GTN</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=GTN" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=GTN&ty=c&ta=1&p=d&s=m" alt="GTN" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ARGX" target="_blank" class="ticker-link">ARGX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ARGX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ARGX&ty=c&ta=1&p=d&s=m" alt="ARGX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="technology" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=VIA" target="_blank" class="ticker-link">VIA</a>
+      <span class="company">Via Transportation Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 98</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span><span class="tag-overhead" title="Near 52-week high — watch for resistance">⚠️ Overhead</span>
+  </div>
+  <div class="sector-tag">Technology · Software - Application</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +13.3%</span><span title="vs 50-day MA">50d +32.5%</span><span title="vs 200-day MA">200d +104.5%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=VIA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=VIA&ty=c&ta=1&p=d&s=m" alt="VIA" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.1%</span>
+    <span title="EPS Y/Y TTM">EPS 15.6%</span>
+    <span title="Market Cap">3.77B</span>
+    <span title="Relative Volume">RVol 1.2x</span>
+    <span title="Distance from 52w High">-5% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ZYME" target="_blank" class="ticker-link">ZYME</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ZYME" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ZYME&ty=c&ta=1&p=d&s=m" alt="ZYME" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=RSKD" target="_blank" class="ticker-link">RSKD</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=RSKD" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RSKD&ty=c&ta=1&p=d&s=m" alt="RSKD" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ANGX" target="_blank" class="ticker-link">ANGX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ANGX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ANGX&ty=c&ta=1&p=d&s=m" alt="ANGX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SONO" target="_blank" class="ticker-link">SONO</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SONO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SONO&ty=c&ta=1&p=d&s=m" alt="SONO" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=KDP" target="_blank" class="ticker-link">KDP</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=KDP" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=KDP&ty=c&ta=1&p=d&s=m" alt="KDP" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=BILL" target="_blank" class="ticker-link">BILL</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=BILL" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=BILL&ty=c&ta=1&p=d&s=m" alt="BILL" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#facc15">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank" class="ticker-link">RYTM</a>
+      <span class="company">Rhythm Pharmaceuticals Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">2 screens</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 94</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">🟢 Stage 2</span><span class="tag-vcp">VCP</span><span class="tag-perf">⚡ aligned</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +6.8%</span><span title="vs 50-day MA">50d +14.6%</span><span title="vs 200-day MA">200d +15.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=RYTM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=RYTM&ty=c&ta=1&p=d&s=m" alt="RYTM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 5.4%</span>
+    <span title="EPS Y/Y TTM">EPS 6.1%</span>
+    <span title="Market Cap">7.79B</span>
+    <span title="Relative Volume">RVol 1.4x</span>
+    <span title="Distance from 52w High">-8% hi</span>
+  </div>
+  <div class="screeners">Growth, Base / Near-High</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=ZIM" target="_blank" class="ticker-link">ZIM</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=ZIM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=ZIM&ty=c&ta=1&p=d&s=m" alt="ZIM" loading="lazy" class="chart-img">
+  </a>
+</div></div>
+</div>
+<div class="wl-tier">
+  <div class="wl-tier-header" style="border-left:4px solid #6b7280">
+    <span class="wl-tier-label">👀 Watch</span>
+    <span class="section-count">9</span>
+  </div>
+  <div class="chart-grid" style="margin-top:8px">
+<div class="chart-item" data-sector="financial" style="border-color:#6b7280">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=MIAX" target="_blank" class="ticker-link">MIAX</a>
+      <span class="company">Miami International Holdings Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#64748b">Q 10</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚫ Stage 4</span>
+  </div>
+  <div class="sector-tag">Financial · Capital Markets</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +3.8%</span><span title="vs 50-day MA">50d +5.8%</span><span title="vs 200-day MA">200d -11.0%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=MIAX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=MIAX&ty=c&ta=1&p=d&s=m" alt="MIAX" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 3.8%</span>
+    <span title="EPS Y/Y TTM">EPS 329.0%</span>
+    <span title="Market Cap">3.64B</span>
+    <span title="Relative Volume">RVol 0.7x</span>
+    <span title="Distance from 52w High">-36% hi</span>
+  </div>
+  <div class="screeners">IPO</div>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=QTWO" target="_blank" class="ticker-link">QTWO</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=QTWO" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=QTWO&ty=c&ta=1&p=d&s=m" alt="QTWO" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=DNA" target="_blank" class="ticker-link">DNA</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=DNA" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=DNA&ty=c&ta=1&p=d&s=m" alt="DNA" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=OUST" target="_blank" class="ticker-link">OUST</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=OUST" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=OUST&ty=c&ta=1&p=d&s=m" alt="OUST" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=SG" target="_blank" class="ticker-link">SG</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=SG" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=SG&ty=c&ta=1&p=d&s=m" alt="SG" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=FIGR" target="_blank" class="ticker-link">FIGR</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=FIGR" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=FIGR&ty=c&ta=1&p=d&s=m" alt="FIGR" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=CROX" target="_blank" class="ticker-link">CROX</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=CROX" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=CROX&ty=c&ta=1&p=d&s=m" alt="CROX" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" style="border-color:#94a3b8">
+  <div class="chart-header">
+    <div><a href="https://finviz.com/quote.ashx?t=WKC" target="_blank" class="ticker-link">WKC</a></div>
+    <span style="font-size:10px;color:#9ca3af">not in today's scan</span>
+  </div>
+  <a href="https://finviz.com/quote.ashx?t=WKC" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=WKC&ty=c&ta=1&p=d&s=m" alt="WKC" loading="lazy" class="chart-img">
+  </a>
+</div>
+<div class="chart-item" data-sector="healthcare" style="border-color:#2d3148">
+  <div class="chart-header">
+    <div>
+      <a href="https://finviz.com/quote.ashx?t=INSM" target="_blank" class="ticker-link">INSM</a>
+      <span class="company">Insmed Inc</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+      <span class="badge">1 screen</span>
+      <span style="font-size:10px;font-weight:700;color:#4ade80">Q 62</span>
+    </div>
+  </div>
+  <div class="stage-row">
+    <span class="stage-badge">⚪ Transitional</span><span class="tag-sector-lead">🏆 Lead Sector</span>
+  </div>
+  <div class="sector-tag">Healthcare · Biotechnology</div>
+  <div class="sma-row"><span title="vs 20-day MA">20d +22.8%</span><span title="vs 50-day MA">50d +27.2%</span><span title="vs 200-day MA">200d +15.3%</span></div>
+  <a href="https://finviz.com/quote.ashx?t=INSM" target="_blank">
+    <img src="https://finviz.com/chart.ashx?t=INSM&ty=c&ta=1&p=d&s=m" alt="INSM" loading="lazy" class="chart-img">
+  </a>
+  <div class="meta">
+    <span title="ATR%">ATR 4.8%</span>
+    <span title="EPS Y/Y TTM">EPS 54.4%</span>
+    <span title="Market Cap">31.01B</span>
+    <span title="Relative Volume">RVol 2.1x</span>
+    <span title="Distance from 52w High">-34% hi</span>
+  </div>
+  <div class="screeners">Growth</div>
+</div></div>
+</div></div>
+</details>
+<script>
+(function() {
+  var activeSector = null;
+  var srCards = document.querySelectorAll('.sr-card[data-sector]');
+  var chartCards = document.querySelectorAll('.chart-item[data-sector]');
+  var sections = document.querySelectorAll('.section');
+  var clearBtn = document.getElementById('sr-clear-btn');
+
+  function applyFilter(sector) {
+    activeSector = sector;
+    chartCards.forEach(function(c) {
+      var match = !sector || c.getAttribute('data-sector') === sector;
+      c.classList.toggle('hidden', !match);
+    });
+    sections.forEach(function(sec) {
+      var visible = sec.querySelectorAll('.chart-item:not(.hidden)').length;
+      sec.classList.toggle('hidden', visible === 0);
+    });
+    srCards.forEach(function(card) {
+      var slug = card.getAttribute('data-sector');
+      card.classList.toggle('active', !!sector && slug === sector);
+      card.classList.toggle('dimmed', !!sector && slug !== sector);
+    });
+    if (clearBtn) clearBtn.style.display = sector ? 'inline-block' : 'none';
+  }
+
+  srCards.forEach(function(card) {
+    card.addEventListener('click', function() {
+      var slug = card.getAttribute('data-sector');
+      applyFilter(activeSector === slug ? null : slug);
+    });
+  });
+
+  window.clearSectorFilter = function() { applyFilter(null); };
+})();
+</script>
+</body>
+</html>
