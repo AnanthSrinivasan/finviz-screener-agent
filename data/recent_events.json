@@ -1,13 +1,6 @@
 {
-  "updated": "2026-11-21T01:50:47.569380Z",
+  "updated": "2026-11-24T05:01:49.600145Z",
   "events": [
-    {
-      "ts": "2026-10-06T01:39:27.510640Z",
-      "date": "2026-10-05",
-      "category": "market_state",
-      "title": "Market: RED \u2192 CAUTION",
-      "severity": "med"
-    },
     {
       "ts": "2026-10-08T00:30:10.073217Z",
       "date": "2026-10-07",
@@ -350,6 +343,13 @@
       "category": "market_state",
       "title": "Market: RED \u2192 DANGER",
       "severity": "high"
+    },
+    {
+      "ts": "2026-11-24T05:01:49.600145Z",
+      "date": "2026-11-24",
+      "category": "market_state",
+      "title": "Market: DANGER \u2192 CAUTION",
+      "severity": "med"
     }
   ]
 }
