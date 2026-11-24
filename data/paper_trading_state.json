@@ -5,7 +5,7 @@
   "total_losses": 5,
   "current_sizing_mode": "normal",
   "sizing_override": null,
-  "last_updated": "2026-09-10",
+  "last_updated": "2026-11-25",
   "recent_trades": [
     {
       "ticker": "MRVL",
@@ -118,6 +118,30 @@
       "date": "2026-09-10",
       "side": "SELL",
       "source": "fill"
+    },
+    {
+      "ticker": "ONC",
+      "result": "neutral",
+      "result_pct": 0.0,
+      "date": "2026-11-25",
+      "side": "SELL",
+      "source": "peak_fallback"
+    },
+    {
+      "ticker": "ETON",
+      "result": "neutral",
+      "result_pct": 0.0,
+      "date": "2026-11-25",
+      "side": "SELL",
+      "source": "peak_fallback"
+    },
+    {
+      "ticker": "APPN",
+      "result": "neutral",
+      "result_pct": 0.0,
+      "date": "2026-11-25",
+      "side": "SELL",
+      "source": "peak_fallback"
     }
   ]
 }
