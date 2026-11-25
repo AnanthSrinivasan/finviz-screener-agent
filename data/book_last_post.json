@@ -1,35 +1,4 @@
 {
-  "last_book_post_ts": "2026-11-25T22:35:05.545208Z",
-  "events_since_last": [
-    {
-      "kind": "stop_hit",
-      "ticker": "TNA",
-      "message": "\ud83d\udea8 STOP HIT: TNA @ $50.01 \u2014 exit immediately (stop $56.58)",
-      "current_price": 50.01,
-      "stop_price": 56.58,
-      "ts": "2026-11-25T22:59:09.897418Z"
-    },
-    {
-      "kind": "stop_hit",
-      "ticker": "QLD",
-      "message": "\ud83d\udea8 STOP HIT: QLD @ $68.04 \u2014 exit immediately (stop $86.99)",
-      "current_price": 68.04,
-      "stop_price": 86.99,
-      "ts": "2026-11-25T22:59:09.897418Z"
-    },
-    {
-      "kind": "exit_atr",
-      "ticker": "QLD",
-      "message": "\ud83d\udd34 EXIT_ATR \u2014 QLD ATR mult -3.04, P&L $+384",
-      "alert_type": "EXIT_ATR",
-      "ts": "2026-11-25T22:59:09.897418Z"
-    },
-    {
-      "kind": "exit_atr",
-      "ticker": "TNA",
-      "message": "\ud83d\udd34 EXIT_ATR \u2014 TNA ATR mult -1.71, P&L $+207",
-      "alert_type": "EXIT_ATR",
-      "ts": "2026-11-25T22:59:09.897418Z"
-    }
-  ]
+  "last_book_post_ts": "2026-11-25T23:12:01.129888Z",
+  "events_since_last": []
 }
