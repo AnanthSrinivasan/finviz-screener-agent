@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-25",
+  "up_4_today": 243,
+  "down_4_today": 61,
+  "breadth_source": "alpaca_4pct",
+  "universe_size": 2963,
+  "adv_total": null,
+  "dec_total": null,
+  "ratio_today": 3.98,
+  "ratio_5day": 0.97,
+  "ratio_10day": 0.62,
+  "up_25_quarter": 72,
+  "down_25_quarter": 269,
+  "thrust_detected": false,
+  "fg": 15.2,
+  "spy_price": 716.7,
+  "spy_sma200_pct": -2.25,
+  "spy_sma50_pct": -5.44,
+  "spy_atr_mult_50": -2.54,
+  "spy_sma50_slope_10d": -0.92,
+  "spy_pct_from_20d_high": -7.01,
+  "qqq_sma50_pct": -10.35,
+  "qqq_atr_mult_50": -3.09,
+  "pct_above_50ma": 2.43,
+  "vix_close": 28.29,
+  "vix_change_pct": 7.32,
+  "trend_follow_active": false,
+  "spy_above_200d": false,
+  "market_state": "RED",
+  "state_message": "Bearish \u2014 no new trades",
+  "blackout": false,
+  "fg_regime": "extreme_fear",
+  "post_thrust_floor_active": false,
+  "confidence_context": null,
+  "extended_since_date": "2026-05-26",
+  "extended_days_active": 183,
+  "days_below_21ema": 0,
+  "spy_close": 716.735,
+  "spy_21ema": 737.4766657413819,
+  "spy_20d_high": 769.49,
+  "cohort": {
+    "universe_size": 139,
+    "pct_down4_today": 2.2,
+    "pct_up4_today": 5.8,
+    "pct_above_20ma": 40.3,
+    "pct_above_50ma": 41.7,
+    "pct_within_10_of_52wk_high": 35.3,
+    "cohort_score": 54,
+    "label": "MIXED",
+    "worst": [
+      {
+        "ticker": "SNDK",
+        "chg_pct": -5.6,
+        "dollar_move": -4.34,
+        "close": 73.56
+      },
+      {
+        "ticker": "MU",
+        "chg_pct": -4.7,
+        "dollar_move": -29.69,
+        "close": 600.4
+      },
+      {
+        "ticker": "PWR",
+        "chg_pct": -4.1,
+        "dollar_move": -24.26,
+        "close": 565.3
+      }
+    ],
+    "divergence": false,
+    "divergence_alerted_label": null
+  }
+}
