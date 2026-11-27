@@ -1,4 +1,42 @@
 {
   "last_book_post_ts": "2026-11-27T21:59:55.108990Z",
-  "events_since_last": []
+  "events_since_last": [
+    {
+      "kind": "stop_hit",
+      "ticker": "TNA",
+      "message": "\ud83d\udea8 STOP HIT: TNA @ $52.79 \u2014 exit immediately (stop $56.58)",
+      "current_price": 52.79,
+      "stop_price": 56.58,
+      "ts": "2026-11-27T22:33:07.114079Z"
+    },
+    {
+      "kind": "stop_hit",
+      "ticker": "QLD",
+      "message": "\ud83d\udea8 STOP HIT: QLD @ $71.77 \u2014 exit immediately (stop $86.99)",
+      "current_price": 71.77,
+      "stop_price": 86.99,
+      "ts": "2026-11-27T22:33:07.114079Z"
+    },
+    {
+      "kind": "exit_atr",
+      "ticker": "QLD",
+      "message": "\ud83d\udd34 EXIT_ATR \u2014 QLD ATR mult -2.58, P&L $+1,130",
+      "alert_type": "EXIT_ATR",
+      "ts": "2026-11-27T22:33:07.114079Z"
+    },
+    {
+      "kind": "warn_atr",
+      "ticker": "TNA",
+      "message": "\ud83d\udfe1 WARN_ATR \u2014 TNA ATR mult -1.01",
+      "alert_type": "WARN_ATR",
+      "ts": "2026-11-27T22:33:07.114079Z"
+    },
+    {
+      "kind": "peel_signal",
+      "ticker": "FLYW",
+      "message": "\ud83d\udfe2 PEEL SIGNAL \u2014 FLYW ATR mult 5.42x",
+      "alert_type": "PEEL",
+      "ts": "2026-11-27T22:33:07.114079Z"
+    }
+  ]
 }
