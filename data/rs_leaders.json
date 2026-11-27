@@ -150,22 +150,6 @@
     ],
     "days_tracked": 14
   },
-  "CDNA": {
-    "first_triggered": "2026-10-16",
-    "trigger_state": "DANGER",
-    "trigger_q": 98.0,
-    "trigger_dist": -8.040270307543784,
-    "trigger_atr_mult": 4.0,
-    "rs_rating": 98,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-11-11",
-    "pullback_started": "2026-11-12",
-    "reacquired_dates": [
-      "2026-10-21",
-      "2026-11-10"
-    ],
-    "days_tracked": 5
-  },
   "CNK": {
     "first_triggered": "2026-10-16",
     "trigger_state": "DANGER",
@@ -191,9 +175,9 @@
     "trigger_dist": -0.7035175879396838,
     "trigger_atr_mult": 0.3,
     "rs_rating": 73,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-05",
       "2026-11-11",
@@ -232,19 +216,6 @@
     ],
     "days_tracked": 6
   },
-  "AXGN": {
-    "first_triggered": "2026-10-31",
-    "trigger_state": "CAUTION",
-    "trigger_q": 102.0,
-    "trigger_dist": -6.6906066906066926,
-    "trigger_atr_mult": 3.2,
-    "rs_rating": 70,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-11-11",
-    "pullback_started": "2026-11-12",
-    "reacquired_dates": [],
-    "days_tracked": 8
-  },
   "PRCH": {
     "first_triggered": "2026-11-05",
     "trigger_state": "RED",
@@ -276,21 +247,6 @@
       "2026-11-12"
     ],
     "days_tracked": 4
-  },
-  "MRNA": {
-    "first_triggered": "2026-11-05",
-    "trigger_state": "RED",
-    "trigger_q": 81.0,
-    "trigger_dist": 1.53213795921896,
-    "trigger_atr_mult": 4.9,
-    "rs_rating": 99,
-    "current_status": "pulling_back",
-    "last_active_date": "2026-11-11",
-    "pullback_started": "2026-11-12",
-    "reacquired_dates": [
-      "2026-11-10"
-    ],
-    "days_tracked": 3
   },
   "BTSG": {
     "first_triggered": "2026-11-07",
@@ -329,9 +285,9 @@
     "trigger_dist": -8.478183753103941,
     "trigger_atr_mult": 4.2,
     "rs_rating": 95,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-11",
       "2026-11-18",
@@ -375,9 +331,9 @@
     "trigger_dist": 0.0,
     "trigger_atr_mult": 2.4,
     "rs_rating": 72,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-24"
     ],
@@ -390,9 +346,9 @@
     "trigger_dist": -2.088533255028624,
     "trigger_atr_mult": 1.9,
     "rs_rating": 80,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-24"
     ],
@@ -485,9 +441,9 @@
     "trigger_dist": -3.431085043988258,
     "trigger_atr_mult": 3.9,
     "rs_rating": 75,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-24"
     ],
@@ -500,9 +456,9 @@
     "trigger_dist": -9.498867497168739,
     "trigger_atr_mult": 2.4,
     "rs_rating": 98,
-    "current_status": "active",
+    "current_status": "pulling_back",
     "last_active_date": "2026-11-26",
-    "pullback_started": null,
+    "pullback_started": "2026-11-27",
     "reacquired_dates": [
       "2026-11-24"
     ],
@@ -598,10 +554,10 @@
     "trigger_atr_mult": 1.4,
     "rs_rating": 76,
     "current_status": "active",
-    "last_active_date": "2026-11-26",
+    "last_active_date": "2026-11-27",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 2
+    "days_tracked": 3
   },
   "EXPD": {
     "first_triggered": "2026-11-24",
@@ -611,10 +567,10 @@
     "trigger_atr_mult": 0.4,
     "rs_rating": 66,
     "current_status": "active",
-    "last_active_date": "2026-11-26",
+    "last_active_date": "2026-11-27",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 2
+    "days_tracked": 3
   },
   "RYTM": {
     "first_triggered": "2026-11-24",
@@ -650,9 +606,9 @@
     "trigger_atr_mult": 3.4,
     "rs_rating": 98,
     "current_status": "active",
-    "last_active_date": "2026-11-26",
+    "last_active_date": "2026-11-27",
     "pullback_started": null,
     "reacquired_dates": [],
-    "days_tracked": 1
+    "days_tracked": 2
   }
 }
